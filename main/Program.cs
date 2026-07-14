@@ -27,6 +27,8 @@ static class Program
             return;
         }
 
+        string? deepLink = Array.Find(args, a => a.StartsWith(DeepLinkService.Scheme + "://", StringComparison.OrdinalIgnoreCase));
+
         bool isRelaunch = false;
         int waitPidIdx = Array.IndexOf(args, "--waitpid");
         if (waitPidIdx >= 0 && waitPidIdx + 1 < args.Length &&
@@ -36,7 +38,12 @@ static class Program
             try { System.Diagnostics.Process.GetProcessById(waitPid).WaitForExit(10000); } catch { }
         }
 
-        if (!AcquireMutex("Global\\VRCNext", out var mainMutex, showError: true, waitMs: isRelaunch ? 10000 : 0)) return;
+        if (!AcquireMutex("Global\\VRCNext", out var mainMutex, waitMs: isRelaunch ? 10000 : 0))
+        {
+            if (deepLink != null) { DeepLinkService.Forward(deepLink); return; }
+            MessageBox.Show(GetAlreadyRunningMessage(), "VRCNext", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
         using (mainMutex)
         {
             if (OperatingSystem.IsWindows())
@@ -47,7 +54,7 @@ static class Program
         }
     }
 
-    static bool AcquireMutex(string name, out Mutex mutex, bool showError = false, int waitMs = 0)
+    static bool AcquireMutex(string name, out Mutex mutex, int waitMs = 0)
     {
         mutex = new Mutex(initiallyOwned: true, name: name, out bool createdNew);
         if (createdNew) return true;
@@ -59,11 +66,6 @@ static class Program
         }
 
         mutex.Dispose();
-        if (showError)
-            MessageBox.Show(
-                GetAlreadyRunningMessage(),
-                "VRCNext", MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
         return false;
     }
 

@@ -244,6 +244,16 @@ public class WindowController
             ShowWindow(hWnd, SW_HIDE);
         }
     }
+
+    public void BringToFront()
+    {
+        var window = _core.Window;
+        if (window == null) return;
+        var hWnd = window.WindowHandle;
+        if (IsIconic(hWnd)) ShowWindow(hWnd, SW_RESTORE);
+        else if (!IsWindowVisible(hWnd)) ShowWindow(hWnd, SW_SHOW);
+        SetForegroundWindow(hWnd);
+    }
 #endif
 
     /// <summary>

@@ -335,6 +335,7 @@ public partial class AppShell
                     SendToJS("log", new { msg = $"[LOAD] {AppSettings.LoadDebugInfo}", color = "sec" });
                     SendToJS("log", new { msg = $"[STARTUP] Webhooks: {string.Join(", ", _settings.Webhooks.Select((w,i) => $"#{i+1} \"{w.Name}\" url={w.Url?.Length ?? 0}ch {(w.Enabled?"ON":"off")}"))}", color = "sec" });
                     _authCtrl.HandleReady();
+                    FlushPendingDeepLink();
                     // Check for crash report from previous session — show modal after UI is ready
                     _ = Task.Run(async () =>
                     {

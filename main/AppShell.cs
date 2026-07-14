@@ -21,6 +21,9 @@ public partial class AppShell
     private System.Threading.Timer? _worldStatsTimer;
     private int _worldStatsOffsetMin; // random 0-10 min offset per session
     private bool _minimized;
+    private string? _pendingDeepLink;
+    private bool _deepLinkReady;
+    private readonly CancellationTokenSource _deepLinkCts = new();
     private StreamWriter? _activityLogWriter;
     private string _activityLogPath = "";
     private string _activityLogDir  = "";
@@ -152,6 +155,7 @@ public partial class AppShell
         CacheHandler.SetActiveAccount(_settings.ActiveAccount);
 
         _minimized = args.Contains("--minimized");
+        _pendingDeepLink = Array.Find(args, a => a.StartsWith(DeepLinkService.Scheme + "://", StringComparison.OrdinalIgnoreCase));
         LoadDeletedAvatarsCache();
 
         // Create shared service container and domain controllers
@@ -264,6 +268,9 @@ public partial class AppShell
     {
         StartHttpListener();
         _core.HttpPort = _httpPort;
+
+        DeepLinkService.RegisterProtocol();
+        DeepLinkService.StartServer(OnDeepLinkReceived, _deepLinkCts.Token);
 
         VRCNext.Services.Helpers.ImageCacheHelper.Initialize(_vrcApi.GetHttpClient());
         VRCNext.Services.Helpers.PermafailHelper.Initialize();
@@ -688,6 +695,35 @@ public partial class AppShell
         {
             if (!silent) SendToJS("toast", new { ok = false, msg = "Failed to send crash report." });
         }
+    }
+
+    // Deep links (vrcn://)
+
+    private void OnDeepLinkReceived(string url)
+    {
+        var parsed = DeepLinkService.Parse(url);
+        if (parsed == null) return;
+#if WINDOWS
+        try { _windowCtrl?.BringToFront(); } catch { }
+#endif
+        if (_deepLinkReady) DispatchDeepLink(url);
+        else _pendingDeepLink = url;
+    }
+
+    private void FlushPendingDeepLink()
+    {
+        _deepLinkReady = true;
+        var url = _pendingDeepLink;
+        _pendingDeepLink = null;
+        if (url == null) return;
+        _ = Task.Run(async () => { await Task.Delay(1500); DispatchDeepLink(url); });
+    }
+
+    private void DispatchDeepLink(string url)
+    {
+        var parsed = DeepLinkService.Parse(url);
+        if (parsed == null) return;
+        SendToJS("openDeepLink", new { prefix = parsed.Value.prefix, id = parsed.Value.id });
     }
 
     // SendToJS

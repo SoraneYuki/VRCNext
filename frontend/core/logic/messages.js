@@ -7,6 +7,9 @@ window.external.receiveMessage(rawMsg => {
         try { window.__afOnWebsocketEvent(type, payload); } catch (e) { console.error('[ActionFlow] ws hook', e); }
     }
     switch (type) {
+            case 'openDeepLink':
+                if (payload && typeof msgrContentOpen === 'function') msgrContentOpen(payload.id, payload.prefix);
+                break;
             case 'translationData': handleTranslationData(payload); break;
             case 'loadSettings': loadSettingsToUI(payload); if (typeof requestAccountsList === 'function') requestAccountsList(); break;
             // Multi-Account events.
