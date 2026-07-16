@@ -51,3 +51,4 @@
 .vrcn-local-badge { display: inline-flex; align-items: center; gap: 2px; font-size: 7px; font-weight: 600; padding: 2px 5px; border-radius: 4px; background: #2a0a1f; color: #ff5fbf; border: 1px solid #ff5fbf; box-shadow: 0 0 7px #ff5fbf88; text-shadow: 0 0 5px #ff5fbf99; letter-spacing: .4px; }
 .vrcn-badge.db-avtrdb  { background: var(--accent); color: #fff; }
 .vrcn-badge.db-avtricu { background: #e879f9; color: #fff; }
+.vrcn-badge.db-vrcndb  { background: #2DD48C; color: #fff; }

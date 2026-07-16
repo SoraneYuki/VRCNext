@@ -506,6 +506,11 @@ public class AppSettings
     public bool AvtrIcuReportDeleted { get; set; } = true;
     public bool AvtrIcuSubmitAvatars { get; set; }
 
+    // VRCNDb (db.vrcnext.com) — default off
+    public bool VrcndbSubmitAvatars { get; set; }
+    public bool VrcndbReportDeleted { get; set; }
+    public bool VrcndbConsentShown { get; set; }
+
     // Discord Rich Presence — privacy per status
     public bool DpHideInstIdJoinMe  { get; set; }
     public bool DpHideInstIdOnline  { get; set; }

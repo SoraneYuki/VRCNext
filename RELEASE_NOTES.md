@@ -1,5 +1,7 @@
-**2026.33.3**
+**2026.33.4**
 
-**Features**
+* Added support for VRCNDb. This update allows you to help VRCNext collect avatars for its community Avatar Database.
+* On the next startup, you will be asked whether you want to support the database. To opt out, disable both options shown in the modal.
+* If you skip the modal, you can change these options later under **Settings > Avatar Search**.
 
-* Added **vrcn:// links**: opening `vrcn://user/<id>`, `vrcn://avatars/<id>`, `vrcn://worlds/<id>`, or `vrcn://group/<id>` from your browser now opens the matching profile directly in VRCNext. If VRCNext is already running the link is handed to it and the window comes to the front. All IDs are strictly validated before anything is opened.
+**Note:** Avatar Search is not yet integrated into VRCNext because the database is still too small. You can currently visit it at **db.vrcnext.com**.

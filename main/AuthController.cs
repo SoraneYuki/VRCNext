@@ -198,6 +198,13 @@ public class AuthController
                 if (data != null) ApplySettings(data);
                 break;
 
+            case "saveVrcndbConsent":
+                _core.Settings.VrcndbSubmitAvatars = msg["submit"]?.Value<bool>() ?? true;
+                _core.Settings.VrcndbReportDeleted = msg["report"]?.Value<bool>() ?? true;
+                _core.Settings.VrcndbConsentShown  = true;
+                _core.Settings.Save();
+                break;
+
             case "loadTranslation":
                 SendTranslation(msg["language"]?.ToString());
                 break;
@@ -691,11 +698,17 @@ public class AuthController
                         // Submit public avatar to avtrdb if enabled
                         if (!string.IsNullOrEmpty(avatarId) && av?["releaseStatus"]?.ToString() == "public")
                             _core.AvtrdbSubmit?.Invoke(avatarId);
+                        if (!string.IsNullOrEmpty(avatarId))
+                            _core.VrcndbSubmit?.Invoke(avatarId);
                     }
                     catch { }
                 });
             }
             catch { }
+        };
+        _core.LogWatcher.AvatarSeen += id =>
+        {
+            try { _core.VrcndbSubmit?.Invoke(id); } catch { }
         };
         _core.LogWatcher.VideoUrl += url =>
         {
@@ -1920,6 +1933,11 @@ public class AuthController
             // Avtr.icu Support
             _core.Settings.AvtrIcuReportDeleted = data["avtrIcuReportDeleted"]?.Value<bool>() ?? true;
             _core.Settings.AvtrIcuSubmitAvatars = data["avtrIcuSubmitAvatars"]?.Value<bool>() ?? false;
+
+            // VRCNDb
+            _core.Settings.VrcndbSubmitAvatars = data["vrcndbSubmitAvatars"]?.Value<bool>() ?? false;
+            _core.Settings.VrcndbReportDeleted = data["vrcndbReportDeleted"]?.Value<bool>() ?? false;
+            _core.Settings.VrcndbConsentShown  = data["vrcndbConsentShown"]?.Value<bool>() ?? _core.Settings.VrcndbConsentShown;
 
             // Memory Trim
             _core.Settings.MemoryTrimEnabled = data["memoryTrimEnabled"]?.Value<bool>() ?? false;

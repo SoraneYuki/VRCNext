@@ -92,6 +92,9 @@
 .vrcn-btn-danger { background: rgba(255,75,85,.15) !important; color: var(--err) !important; }
 .vrcn-btn-danger:hover { background: var(--err) !important; color: #fff !important; }
 
+.vrcn-btn-accent { background: var(--accent) !important; color: #fff !important; }
+.vrcn-btn-accent:hover { background: var(--accent-lt) !important; color: #fff !important; }
+
 .sub-tab-btn {
     opacity: .5;
     transition: opacity .15s;

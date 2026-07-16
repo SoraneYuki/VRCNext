@@ -54,6 +54,7 @@ public class VRChatLogWatcher : IDisposable
     public event Action? AvatarBlockedPerf;
     public event Action? ConnectionLost;
     public event Action<string, string, bool>? PlayerModerated;
+    public event Action<string>? AvatarSeen;
 
     public event Action<GameLogLine>? GameLogEntry;
 
@@ -107,6 +108,8 @@ public class VRChatLogWatcher : IDisposable
         @"\[VRC Camera\] Took screenshot to: (.+)", RegexOptions.Compiled);
     private static readonly Regex RxImageError = new(
         @"\[Image Download\] .+web request exception occurred while loading image from URL '([^']+)'", RegexOptions.Compiled);
+    private static readonly Regex RxAvatarId = new(
+        @"avtr_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", RegexOptions.Compiled);
     private const string RxPortalStr     = "[PortalManager] Pending portal request fulfilled";
     private const string RxAvatarBlkStr  = "Avatar was blocked by local perf limits";
     private const string RxConnLostStr   = "Lost connection to realtime network";
@@ -380,6 +383,10 @@ public class VRChatLogWatcher : IDisposable
     private void ParseLine(string line, bool catchUp)
     {
         if (line.Length < 30) return;
+
+        if (!catchUp && AvatarSeen != null && line.Contains("avtr_"))
+            foreach (Match am in RxAvatarId.Matches(line))
+                AvatarSeen.Invoke(am.Value);
 
         if (line.Contains("Joining wrld_"))
         {

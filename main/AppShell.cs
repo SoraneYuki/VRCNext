@@ -21,6 +21,14 @@ public partial class AppShell
     private System.Threading.Timer? _worldStatsTimer;
     private int _worldStatsOffsetMin; // random 0-10 min offset per session
     private bool _minimized;
+    private System.Threading.Timer? _vrcCacheTimer;
+    private readonly HashSet<string> _vrcCacheScanned = new();
+    private System.Threading.Timer? _amplitudeTimer;
+    private string _amplitudePath = "";
+    private string _amplitudeLast = "";
+    private static readonly System.Text.RegularExpressions.Regex _rxAvatarId = new(
+        @"avtr_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+        System.Text.RegularExpressions.RegexOptions.Compiled);
     private string? _pendingDeepLink;
     private bool _deepLinkReady;
     private readonly CancellationTokenSource _deepLinkCts = new();
@@ -174,6 +182,7 @@ public partial class AppShell
         _core.IsSteamVrRunning = RelayController.IsSteamVrRunning;
         _core.DispatchMessage = rawMsg => OnWebMessage(rawMsg);
         _core.AvtrdbSubmit        = id => { QueueAvtrdbSubmit(id); QueueAvtrIcuSubmit(id); };
+        _core.VrcndbSubmit        = id => QueueVrcndbSubmit(id);
         _core.PrefetchSharedContent = () => PrefetchSharedContentAsync();
         _core.LoadPage = path => _window.Load(path);
         _memTrim.OnTrim = () => { _core.TrimCaches(); _core.VrOverlay?.TrimMemory(); };
@@ -323,6 +332,15 @@ public partial class AppShell
             if (Interlocked.Increment(ref uptimeTick) % 10 == 0 && _relayCtrl.IsRunning)
                 SendToJS("uptimeTick", (DateTime.Now - _relayCtrl.RelayStart).ToString(@"hh\:mm\:ss"));
         }, null, 100, 100);
+
+        _vrcCacheTimer = new System.Threading.Timer(_ =>
+        {
+            if (!_settings.VrcndbSubmitAvatars) return;
+            try { VRCNext.Services.Helpers.VrcCacheScanner.Scan(_vrcCacheScanned, id => QueueVrcndbSubmit(id)); }
+            catch { }
+        }, null, 15_000, 120_000);
+
+        StartAmplitudePolling();
 
         // Hourly world stats collection for World Insights
         // Fires at each UTC hour + random 0-10 min offset (to spread API load across users)
@@ -724,6 +742,33 @@ public partial class AppShell
         var parsed = DeepLinkService.Parse(url);
         if (parsed == null) return;
         SendToJS("openDeepLink", new { prefix = parsed.Value.prefix, id = parsed.Value.id });
+    }
+
+    // Amplitude cache polling (avatar IDs) — mirrors VRC-LOG's PollWatcher(compare_contents)
+
+    private void StartAmplitudePolling()
+    {
+        _amplitudePath = Path.Combine(Path.GetTempPath(), "VRChat", "VRChat", "amplitude.cache");
+        _amplitudeTimer = new System.Threading.Timer(_ => PollAmplitude(), null, 5_000, 100);
+    }
+
+    private void PollAmplitude()
+    {
+        if (!_settings.VrcndbSubmitAvatars) return;
+        try
+        {
+            if (!File.Exists(_amplitudePath)) return;
+            string text;
+            using (var fs = new FileStream(_amplitudePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var sr = new StreamReader(fs))
+                text = sr.ReadToEnd();
+            if (text == _amplitudeLast) return;
+            _amplitudeLast = text;
+            if (text.Length <= 2 || !text.Contains("avtr_")) return;
+            foreach (System.Text.RegularExpressions.Match m in _rxAvatarId.Matches(text))
+                QueueVrcndbSubmit(m.Value);
+        }
+        catch { }
     }
 
     // SendToJS

@@ -11,7 +11,15 @@ window.external.receiveMessage(rawMsg => {
                 if (payload && typeof msgrContentOpen === 'function') msgrContentOpen(payload.id, payload.prefix);
                 break;
             case 'translationData': handleTranslationData(payload); break;
-            case 'loadSettings': loadSettingsToUI(payload); if (typeof requestAccountsList === 'function') requestAccountsList(); break;
+            case 'loadSettings':
+                loadSettingsToUI(payload);
+                if (typeof requestAccountsList === 'function') requestAccountsList();
+                if (!window.__vrcndbConsentChecked) {
+                    window.__vrcndbConsentChecked = true;
+                    const shown = payload.VrcndbConsentShown ?? payload.vrcndbConsentShown ?? false;
+                    if (!shown && typeof showVrcndbConsent === 'function') showVrcndbConsent();
+                }
+                break;
             // Multi-Account events.
             case 'accountsList':
                 if (typeof renderAccountsList === 'function') renderAccountsList(payload);
@@ -628,6 +636,9 @@ window.external.receiveMessage(rawMsg => {
                 break;
             case 'avtrIcuReport':
                 addAvtrdbReport(payload.count, payload.count, 0, null, payload.type, 'avtricu');
+                break;
+            case 'vrcndbReport':
+                if (typeof addVrcndbReport === 'function') addVrcndbReport(payload.count, payload.enqueued, payload.duplicates, payload.type);
                 break;
             case 'vrcSearchResults':
                 renderSearchResults(payload.type, payload.results, payload.offset || 0, payload.hasMore || false);

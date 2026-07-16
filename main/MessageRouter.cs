@@ -118,6 +118,14 @@ public partial class AppShell
     private readonly HashSet<string> _avtrIcuSubmittedIds = new();
     private System.Threading.Timer? _avtrIcuSubmitTimer;
 
+    private const string VrcndbBase = "https://db.vrcnext.com/api";
+    private readonly List<string> _vrcndbSubmitQueue = new();
+    private readonly HashSet<string> _vrcndbSubmittedIds = new();
+    private System.Threading.Timer? _vrcndbSubmitTimer;
+    private readonly List<string> _vrcndbRecheckQueue = new();
+    private readonly HashSet<string> _vrcndbRecheckedIds = new();
+    private System.Threading.Timer? _vrcndbRecheckTimer;
+
     private void LoadDeletedAvatarsCache()
     {
         foreach (var id in AvtrdbCacheHelper.LoadAllDeletedIds())
@@ -312,6 +320,92 @@ public partial class AppShell
         }
     }
 
+    private void QueueVrcndbSubmit(string avatarId)
+    {
+        if (!_settings.VrcndbSubmitAvatars) return;
+        lock (_vrcndbSubmitQueue)
+        {
+            if (!_vrcndbSubmittedIds.Add(avatarId)) return;
+            _vrcndbSubmitQueue.Add(avatarId);
+        }
+        _vrcndbSubmitTimer?.Dispose();
+        _vrcndbSubmitTimer = new System.Threading.Timer(_ => _ = Task.Run(FlushVrcndbSubmitQueue), null, 30_000, Timeout.Infinite);
+    }
+
+    private async Task FlushVrcndbSubmitQueue()
+    {
+        List<string> batch;
+        lock (_vrcndbSubmitQueue)
+        {
+            if (_vrcndbSubmitQueue.Count == 0) return;
+            batch = new List<string>(_vrcndbSubmitQueue);
+            _vrcndbSubmitQueue.Clear();
+        }
+        const int chunk = 100;
+        for (int i = 0; i < batch.Count; i += chunk)
+            await PostToVrcndb("ingest.php", batch.GetRange(i, Math.Min(chunk, batch.Count - i)), "submit");
+    }
+
+    private void QueueVrcndbRecheck(IEnumerable<string> ids)
+    {
+        if (!_settings.VrcndbReportDeleted) return;
+        lock (_vrcndbRecheckQueue)
+        {
+            foreach (var id in ids)
+                if (_vrcndbRecheckedIds.Add(id)) _vrcndbRecheckQueue.Add(id);
+            if (_vrcndbRecheckQueue.Count == 0) return;
+        }
+        _vrcndbRecheckTimer?.Dispose();
+        _vrcndbRecheckTimer = new System.Threading.Timer(_ => _ = Task.Run(FlushVrcndbRecheckQueue), null, 30_000, Timeout.Infinite);
+    }
+
+    private async Task FlushVrcndbRecheckQueue()
+    {
+        List<string> batch;
+        lock (_vrcndbRecheckQueue)
+        {
+            if (_vrcndbRecheckQueue.Count == 0) return;
+            batch = new List<string>(_vrcndbRecheckQueue);
+            _vrcndbRecheckQueue.Clear();
+        }
+        await PostToVrcndb("recheck.php", batch, "deletion");
+    }
+
+    private async Task PostToVrcndb(string endpoint, List<string> avatarIds, string reportType)
+    {
+        try
+        {
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(15);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
+            var userId = _vrcApi.CurrentUserId;
+            var payload = new { avatar_ids = avatarIds, attribution = string.IsNullOrEmpty(userId) ? null : userId };
+            var json = JsonConvert.SerializeObject(payload);
+            var resp = await client.PostAsync($"{VrcndbBase}/{endpoint}",
+                new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
+            var body = await resp.Content.ReadAsStringAsync();
+
+            if (resp.IsSuccessStatusCode)
+            {
+                var r = JObject.Parse(body);
+                var enqueued = r["enqueued"]?.Value<int>() ?? r["rechecking"]?.Value<int>() ?? 0;
+                var duplicates = r["duplicates"]?.Value<int>() ?? 0;
+                Invoke(() =>
+                {
+                    var label = reportType == "submit" ? "Submitted" : "Reported";
+                    SendToJS("log", new { msg = $"[VRCNDb] {label} {avatarIds.Count} avatar(s) — {enqueued} new, {duplicates} dupes", color = "ok" });
+                    SendToJS("vrcndbReport", new { count = avatarIds.Count, enqueued, duplicates, type = reportType });
+                });
+            }
+            else
+                Invoke(() => SendToJS("log", new { msg = $"[VRCNDb] Failed: {(int)resp.StatusCode} {body[..Math.Min(200, body.Length)]}", color = "err" }));
+        }
+        catch (Exception ex)
+        {
+            Invoke(() => SendToJS("log", new { msg = $"[VRCNDb] Error: {ex.Message}", color = "err" }));
+        }
+    }
+
     // JS to C# message handler
     private async Task OnWebMessage(string rawMessage)
     {
@@ -391,6 +485,7 @@ public partial class AppShell
                     break;
 
                 case "saveSettings":
+                case "saveVrcndbConsent":
                 case "loadTranslation":
                     await _authCtrl.HandleMessage(action, msg);
                     break;
@@ -959,6 +1054,8 @@ public partial class AppShell
                                 QueueAvtrdbReport(cachedDeleted);
                             if (_settings.AvtrIcuReportDeleted)
                                 _ = Task.Run(() => QueueAvtrIcuReport(cachedDeleted));
+                            if (_settings.VrcndbReportDeleted)
+                                QueueVrcndbRecheck(cachedDeleted);
                         }
 
                         // Skip IDs already cached in Avatar_Deletion or Avatar_User_Content (30-day TTL).
@@ -1000,6 +1097,8 @@ public partial class AppShell
                                         QueueAvtrdbReport(deleted);
                                     if (_settings.AvtrIcuReportDeleted)
                                         _ = Task.Run(() => QueueAvtrIcuReport(deleted));
+                                    if (_settings.VrcndbReportDeleted)
+                                        QueueVrcndbRecheck(deleted);
                                 }
                             });
                         }

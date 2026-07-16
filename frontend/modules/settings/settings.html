@@ -820,6 +820,30 @@
                         </div>
                     </div>
 
+                    <div class="vrcn-panel-card" data-section="community" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">hub</span> <span data-i18n="settings.vrcndb.title">VRCNDb Community Database</span></div>
+                        <div class="fd-tabs" style="margin-top:10px;">
+                            <button class="fd-tab active" onclick="switchVrcndbTab('support',this)" data-i18n="settings.vrcndb.tabs.support">Support</button>
+                            <button class="fd-tab" onclick="switchVrcndbTab('reports',this)" data-i18n="settings.vrcndb.tabs.reports">Reports</button>
+                        </div>
+                        <div id="vrcndbTabSupport">
+                            <div class="set-desc" data-i18n="settings.vrcndb.submit_desc">Submit avatar IDs you encounter in-game to the official VRCNDb database (db.vrcnext.com). Only the ID is sent. The server verifies the avatar itself, stores only public avatars, and downloads the image on its own. This helps build the community avatar search.</div>
+                            <div class="sf-toggle-row">
+                                <span data-i18n="settings.vrcndb.submit_toggle">Submit avatars to VRCNDb</span>
+                                <label class="toggle"><input type="checkbox" id="setVrcndbSubmit" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                            </div>
+                            <div class="set-desc" style="margin-top:14px;" data-i18n="settings.vrcndb.deleted_desc">Report avatars that appear to be deleted so VRCNDb re-verifies them. An avatar is only removed from the database if VRChat itself confirms it no longer exists.</div>
+                            <div class="sf-toggle-row">
+                                <span data-i18n="settings.vrcndb.deleted_toggle">Report deleted avatars to VRCNDb</span>
+                                <label class="toggle"><input type="checkbox" id="setVrcndbReport" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                            </div>
+                        </div>
+                        <div id="vrcndbTabReports" style="display:none;">
+                            <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.vrcndb.reports.desc">Avatar IDs submitted to VRCNDb during this session.</div>
+                            <div id="vrcndbReportsList"><div class="empty-msg" data-i18n="settings.vrcndb.reports.empty">No submissions sent yet this session.</div></div>
+                        </div>
+                    </div>
+
                     <div class="vrcn-panel-card" id="vrcxImportCard" data-section="vrcx" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">download</span> <span data-i18n="settings.vrcx.title">Import data from VRCX</span></div>
                         <div class="set-desc"><span data-i18n="settings.vrcx.desc_prefix">Imports your VRCX history into VRCNext: world time, friend time, instance joins, GPS events, online/offline, status and bio changes. Existing data is preserved and values are added on top. Select your</span> <code>VRCX.sqlite3</code> <span data-i18n="settings.vrcx.desc_suffix">file to begin.</span></div>

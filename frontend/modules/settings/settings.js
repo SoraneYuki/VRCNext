@@ -274,6 +274,8 @@ function saveSettings() {
             avtrdbSubmitAvatars: document.getElementById('setAvtrdbSubmit').checked,
             avtrIcuReportDeleted: document.getElementById('setAvtrIcuReport').checked,
             avtrIcuSubmitAvatars: document.getElementById('setAvtrIcuSubmit').checked,
+            vrcndbSubmitAvatars: document.getElementById('setVrcndbSubmit').checked,
+            vrcndbReportDeleted: document.getElementById('setVrcndbReport').checked,
             dashSectionOrder:  (typeof _dashLayout !== 'undefined') ? _dashLayout.order  : [],
             dashSectionHidden: (typeof _dashLayout !== 'undefined') ? _dashLayout.hidden : []
         }
@@ -662,6 +664,8 @@ function loadSettingsToUI(s) {
     document.getElementById('setAvtrdbSubmit').checked = s.AvtrdbSubmitAvatars ?? s.avtrdbSubmitAvatars ?? false;
     document.getElementById('setAvtrIcuReport').checked = s.AvtrIcuReportDeleted ?? s.avtrIcuReportDeleted ?? true;
     document.getElementById('setAvtrIcuSubmit').checked = s.AvtrIcuSubmitAvatars ?? s.avtrIcuSubmitAvatars ?? false;
+    document.getElementById('setVrcndbSubmit').checked = s.VrcndbSubmitAvatars ?? s.vrcndbSubmitAvatars ?? false;
+    document.getElementById('setVrcndbReport').checked = s.VrcndbReportDeleted ?? s.vrcndbReportDeleted ?? false;
 
     // Memory Trim
     document.getElementById('setMemoryTrimEnabled').checked = s.MemoryTrimEnabled ?? s.memoryTrimEnabled ?? false;
@@ -1023,6 +1027,87 @@ function switchAvtrdbTab(tab, btn) {
     document.getElementById('avtrdbTabReports').style.display = tab === 'reports' ? '' : 'none';
     btn.closest('.fd-tabs').querySelectorAll('.fd-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
+}
+
+// === VRCNDb ===
+
+function switchVrcndbTab(tab, btn) {
+    document.getElementById('vrcndbTabSupport').style.display = tab === 'support' ? '' : 'none';
+    document.getElementById('vrcndbTabReports').style.display = tab === 'reports' ? '' : 'none';
+    btn.closest('.fd-tabs').querySelectorAll('.fd-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+const _vrcndbReports = [];
+
+function addVrcndbReport(count, enqueued, duplicates, type) {
+    _vrcndbReports.push({ ts: Date.now(), count, enqueued: enqueued || 0, duplicates: duplicates || 0, type: type || 'submit' });
+    renderVrcndbReports();
+}
+
+function renderVrcndbReports() {
+    const el = document.getElementById('vrcndbReportsList');
+    if (!el) return;
+    if (!_vrcndbReports.length) {
+        el.innerHTML = `<div class="empty-msg">${esc(t('settings.vrcndb.reports.empty', 'No submissions sent yet this session.'))}</div>`;
+        return;
+    }
+    el.innerHTML = _vrcndbReports.slice().reverse().map(r => {
+        const isSubmit = r.type === 'submit';
+        const typeLabel = isSubmit
+            ? t('settings.vrcndb.reports.type.submitted', 'Submitted')
+            : t('settings.vrcndb.reports.type.recheck', 'Re-check');
+        const typeColor = isSubmit ? 'var(--ok)' : 'var(--accent)';
+        const typeIcon = isSubmit ? 'upload' : 'refresh';
+        const time = fmtTimeSeconds(new Date(r.ts || Date.now()));
+        const summary = isSubmit
+            ? tf('settings.vrcndb.reports.submit_summary', { enqueued: r.enqueued, dupes: r.duplicates }, `${r.enqueued} new, ${r.duplicates} known`)
+            : tf('settings.vrcndb.reports.recheck_summary', { count: r.count }, `${r.count} avatar(s)`);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-input);border-radius:8px;margin-bottom:6px;">
+        <span style="font-size:11px;color:var(--tx3);white-space:nowrap;">${esc(time)}</span>
+        <span class="vrcn-badge db-vrcndb" style="font-size:10px;flex-shrink:0;">VRCNDb</span>
+        <span class="vrcn-badge" style="font-size:10px;color:${typeColor};flex-shrink:0;"><span class="msi" style="font-size:10px;">${typeIcon}</span> ${esc(typeLabel)}</span>
+        <span style="font-size:12px;color:var(--tx1);flex:1;">${esc(summary)}</span>
+    </div>`;
+    }).join('');
+}
+
+function showVrcndbConsent() {
+    if (document.getElementById('vrcndbConsentModal')) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'vrcndbConsentModal';
+    overlay.style.zIndex = '10030';
+    overlay.innerHTML = `<div class="modal-box">
+        <div class="modal-icon" style="background:rgba(45,212,140,.12);color:var(--ok);"><span class="msi" style="font-size:22px;">hub</span></div>
+        <div class="modal-title">${esc(t('settings.vrcndb.consent.title', 'Support the VRCNDb Community Database'))}</div>
+        <div class="modal-msg" style="word-break:normal;">${esc(t('settings.vrcndb.consent.body', 'When you join instances, VRCNext collects the avatar IDs of public avatars around you and submits them to the VRCNDb community database (db.vrcnext.com). Only the ID is sent, the server verifies each avatar itself, stores only public avatars and downloads the image on its own. This builds the community avatar search.'))}</div>
+        <div class="set-desc" style="margin-bottom:14px;">${esc(t('settings.vrcndb.consent.turn_off', 'If you dont want this please turn off these two sliders.'))}</div>
+        <div class="sf-toggle-row">
+            <span>${esc(t('settings.vrcndb.consent.submit_toggle', 'Submit avatars to VRCNDb'))}</span>
+            <label class="toggle"><input type="checkbox" id="vrcndbConsentSubmit" checked><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+        </div>
+        <div class="sf-toggle-row">
+            <span>${esc(t('settings.vrcndb.consent.report_toggle', 'Report deleted avatars to VRCNDb'))}</span>
+            <label class="toggle"><input type="checkbox" id="vrcndbConsentReport" checked><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+        </div>
+        <div class="modal-btns" style="margin-top:22px;">
+            <button class="vrcn-button-round vrcn-btn-accent" onclick="confirmVrcndbConsent()">${esc(t('settings.vrcndb.consent.confirm', 'Got it'))}</button>
+        </div>
+    </div>`;
+    document.body.appendChild(overlay);
+}
+
+function confirmVrcndbConsent() {
+    const submit = document.getElementById('vrcndbConsentSubmit')?.checked ?? true;
+    const report = document.getElementById('vrcndbConsentReport')?.checked ?? true;
+    const sSubmit = document.getElementById('setVrcndbSubmit');
+    const sReport = document.getElementById('setVrcndbReport');
+    if (sSubmit) sSubmit.checked = submit;
+    if (sReport) sReport.checked = report;
+    sendToCS({ action: 'saveVrcndbConsent', submit, report });
+    const m = document.getElementById('vrcndbConsentModal');
+    if (m) m.remove();
 }
 
 const _avtrdbReports = [];
