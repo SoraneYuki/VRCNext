@@ -433,6 +433,11 @@ public class FriendsController
                         }
 
                         var raw = await _core.Avatars.SearchAvatarsByAuthorAsync(uid);
+                        foreach (var a in raw.Cast<JObject>())
+                        {
+                            var vid = a["vrc_id"]?.ToString() ?? a["id"]?.ToString() ?? "";
+                            if (vid.StartsWith("avtr_")) _core.VrcndbSubmit?.Invoke(vid);
+                        }
                         var avatars = raw.Cast<JObject>().Select(a => new
                         {
                             id                = a["vrc_id"]?.ToString() ?? a["id"]?.ToString() ?? "",

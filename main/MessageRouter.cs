@@ -176,6 +176,11 @@ public partial class AppShell
             try
             {
                 var result = await _core.Avatars.SearchAvatarsAsync(avatarId, 1);
+                foreach (var a in result.Cast<JObject>())
+                {
+                    var vid = a["vrc_id"]?.ToString() ?? a["id"]?.ToString() ?? "";
+                    if (vid.StartsWith("avtr_")) QueueVrcndbSubmit(vid);
+                }
                 bool exists = result.Count > 0 && result.Any(a =>
                     (a["vrc_id"]?.ToString() ?? a["id"]?.ToString() ?? "") == avatarId);
                 if (exists)
@@ -319,6 +324,18 @@ public partial class AppShell
             Invoke(() => SendToJS("log", new { msg = $"[avtr.icu] Error: {ex.Message}", color = "err" }));
         }
     }
+
+    private static string VrcndbThumbUrl(JObject a)
+    {
+        var t = a["thumbnail"]?.ToString() ?? "";
+        if (string.IsNullOrEmpty(t)) return "";
+        return t.StartsWith("http") ? t : "https://db.vrcnext.com" + t;
+    }
+
+    private static string[] VrcndbCompat(JObject a)
+        => (a["platforms"] as JArray ?? new JArray())
+            .Select(p => p.ToString() == "quest" ? "android" : p.ToString())
+            .ToArray();
 
     private void QueueVrcndbSubmit(string avatarId)
     {
@@ -902,6 +919,7 @@ public partial class AppShell
                             {
                                 int avLimit;
                                 List<object> list;
+                                var vrcndbIds = new List<string>();
 
                                 if (avSearchDb == "avtricu")
                                 {
@@ -924,6 +942,25 @@ public partial class AppShell
                                         compatibility     = (a["platforms"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
                                         sources           = new[] { "avtricu" },
                                     }).ToList();
+                                    vrcndbIds.AddRange(raw.Cast<JObject>().Select(a => a["id"]?.ToString() ?? ""));
+                                }
+                                else if (avSearchDb == "vrcn")
+                                {
+                                    avLimit = 20;
+                                    var raw = await _core.Avatars.SearchAvatarsVrcnAsync(avSearchQuery, avLimit, avSearchPage);
+                                    list = raw.Cast<JObject>().Select(a => (object)new
+                                    {
+                                        id                = a["id"]?.ToString() ?? "",
+                                        name              = a["name"]?.ToString() ?? "",
+                                        thumbnailImageUrl = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), VrcndbThumbUrl(a)),
+                                        imageUrl          = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), VrcndbThumbUrl(a)),
+                                        authorName        = a["author_name"]?.ToString() ?? "",
+                                        releaseStatus     = "public",
+                                        description       = a["description"]?.ToString() ?? "",
+                                        unityPackages     = Array.Empty<object>(),
+                                        compatibility     = VrcndbCompat(a),
+                                        sources           = new[] { "vrcn" },
+                                    }).ToList();
                                 }
                                 else if (avSearchDb == "all")
                                 {
@@ -942,7 +979,8 @@ public partial class AppShell
                                         avtrdbTask  = _core.Avatars.SearchAvatarsAsync(avSearchQuery, avLimit, avSearchPage);
                                         avtrIcuTask = _core.Avatars.SearchAvatarsAvtrIcuAsync(avSearchQuery, avLimit, avSearchPage * avLimit);
                                     }
-                                    await Task.WhenAll(avtrdbTask, avtrIcuTask);
+                                    var vrcnTask = _core.Avatars.SearchAvatarsVrcnAsync(avSearchQuery, avLimit, avSearchPage);
+                                    await Task.WhenAll(avtrdbTask, avtrIcuTask, vrcnTask);
 
                                     var dbEntries = avtrdbTask.Result.Cast<JObject>()
                                         .Select(a => new {
@@ -971,20 +1009,47 @@ public partial class AppShell
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
 
-                                    var dbIds  = new HashSet<string>(dbEntries.Select(x => x.id));
-                                    var icuIds = new HashSet<string>(icuEntries.Select(x => x.id));
+                                    var vrcnEntries = vrcnTask.Result.Cast<JObject>()
+                                        .Select(a => new {
+                                            id                = a["id"]?.ToString() ?? "",
+                                            name              = a["name"]?.ToString() ?? "",
+                                            thumbnailImageUrl = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), VrcndbThumbUrl(a)),
+                                            imageUrl          = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), VrcndbThumbUrl(a)),
+                                            authorName        = a["author_name"]?.ToString() ?? "",
+                                            description       = a["description"]?.ToString() ?? "",
+                                            compatibility     = VrcndbCompat(a),
+                                        })
+                                        .Where(x => !string.IsNullOrEmpty(x.id))
+                                        .ToList();
+
+                                    var dbIds   = new HashSet<string>(dbEntries.Select(x => x.id));
+                                    var icuIds  = new HashSet<string>(icuEntries.Select(x => x.id));
+                                    var vrcnIds = new HashSet<string>(vrcnEntries.Select(x => x.id));
+
+                                    string[] Srcs(string id, string first)
+                                    {
+                                        var s = new List<string> { first };
+                                        if (first != "avtrdb"  && dbIds.Contains(id))   s.Add("avtrdb");
+                                        if (first != "avtricu" && icuIds.Contains(id))  s.Add("avtricu");
+                                        if (first != "vrcn"    && vrcnIds.Contains(id)) s.Add("vrcn");
+                                        return s.ToArray();
+                                    }
 
                                     list = new List<object>();
                                     foreach (var a in dbEntries)
-                                    {
-                                        var srcs = icuIds.Contains(a.id) ? new[] { "avtrdb", "avtricu" } : new[] { "avtrdb" };
-                                        list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, a.unityPackages, a.compatibility, sources = srcs });
-                                    }
+                                        list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, a.unityPackages, a.compatibility, sources = Srcs(a.id, "avtrdb") });
                                     foreach (var a in icuEntries)
                                     {
                                         if (!dbIds.Contains(a.id))
-                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, sources = new[] { "avtricu" } });
+                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, sources = Srcs(a.id, "avtricu") });
                                     }
+                                    foreach (var a in vrcnEntries)
+                                    {
+                                        if (!dbIds.Contains(a.id) && !icuIds.Contains(a.id))
+                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, sources = new[] { "vrcn" } });
+                                    }
+                                    vrcndbIds.AddRange(dbIds);
+                                    vrcndbIds.AddRange(icuIds);
                                 }
                                 else
                                 {
@@ -1005,7 +1070,11 @@ public partial class AppShell
                                         compatibility     = (a["compatibility"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
                                         sources           = new[] { "avtrdb" },
                                     }).ToList();
+                                    vrcndbIds.AddRange(raw.Cast<JObject>().Select(a => a["vrc_id"]?.ToString() ?? a["id"]?.ToString() ?? ""));
                                 }
+
+                                foreach (var vid in vrcndbIds)
+                                    if (vid.StartsWith("avtr_")) QueueVrcndbSubmit(vid);
 
                                 Invoke(() => SendToJS("vrcAvatarSearchResults", new
                                 {

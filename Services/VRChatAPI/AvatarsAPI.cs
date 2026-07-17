@@ -200,6 +200,27 @@ public class AvatarsAPI(VRChatApiService ctx)
         return new JArray();
     }
 
+    public async Task<JArray> SearchAvatarsVrcnAsync(string query, int n = 20, int page = 0)
+    {
+        var url = $"https://db.vrcnext.com/api/search.php?q={Uri.EscapeDataString(query)}&limit={n}&page={page + 1}";
+        using var client = new HttpClient();
+        client.Timeout = TimeSpan.FromSeconds(15);
+        client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        try
+        {
+            ctx.Log($"SearchAvatarsVrcn: {url}");
+            var resp = await client.GetAsync(url);
+            var body = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"SearchAvatarsVrcn [{(int)resp.StatusCode}] len={body.Length}");
+            if (!resp.IsSuccessStatusCode || string.IsNullOrWhiteSpace(body)) return new JArray();
+            var parsed = JToken.Parse(body);
+            if (parsed is JObject obj && obj["results"] is JArray arr) return arr;
+        }
+        catch (Exception ex) { ctx.Log($"SearchAvatarsVrcn exception: {ex.Message}"); }
+        return new JArray();
+    }
+
     public async Task<JArray> SearchSimilarAvatarsAvtrIcuAsync(string avatarId, int n = 20)
     {
         var url = $"https://avtr.icu/similar/{Uri.EscapeDataString(avatarId)}?limit={n}";

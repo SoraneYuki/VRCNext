@@ -318,12 +318,14 @@ function _rerenderAvatarFilter() {
 function _avDbBadge(context, a) {
     if (context !== 'search') return '';
     const srcs = a.sources || [avatarSearchDb];
-    const hasDb  = srcs.includes('avtrdb');
-    const hasIcu = srcs.includes('avtricu');
-    if (!hasDb && !hasIcu) return '';
+    const hasDb   = srcs.includes('avtrdb');
+    const hasIcu  = srcs.includes('avtricu');
+    const hasVrcn = srcs.includes('vrcn');
+    if (!hasDb && !hasIcu && !hasVrcn) return '';
     const badges = [
-        hasDb  ? '<span class="vrcn-badge db-avtrdb">Avtrdb</span>'   : '',
-        hasIcu ? '<span class="vrcn-badge db-avtricu">Avtr.icu</span>' : '',
+        hasDb   ? '<span class="vrcn-badge db-avtrdb">Avtrdb</span>'   : '',
+        hasIcu  ? '<span class="vrcn-badge db-avtricu">Avtr.icu</span>' : '',
+        hasVrcn ? '<span class="vrcn-badge db-vrcndb">VRCN</span>'      : '',
     ].join('');
     return `<div class="cc-badge-db" style="display:flex;gap:3px;">${badges}</div>`;
 }
