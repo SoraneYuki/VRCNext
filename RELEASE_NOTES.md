@@ -1,4 +1,5 @@
-**2026.33.5**
+**2026.33.6**
 
-* Added "VRCNDb" as avatar search provider database to VRCNext.
-* Fixed some small issues with the DB Reporter.
+* Updated VRCNDb Avatar Reporting
+* Updated VRCNDb Avatar Deletion Reports
+* Fixed some DB related issues.
