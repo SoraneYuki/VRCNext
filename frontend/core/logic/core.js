@@ -82,10 +82,12 @@ function applyDecorationsSetting() {
     const nameplate = !!(typeof settings !== 'undefined' && settings.enableNameplateDecoration);
     const effects = !!(typeof settings !== 'undefined' && settings.enableProfileEffects);
     const square = !!(typeof settings !== 'undefined' && settings.squareIconFrames);
+    const onDash = !!(typeof settings !== 'undefined' && settings.showDecorationsOnDashboard);
     document.documentElement.classList.toggle('icon-frames-on', frames);
     document.documentElement.classList.toggle('icon-frames-square', frames && square);
     document.documentElement.classList.toggle('nameplate-deco-on', nameplate);
     document.documentElement.classList.toggle('profile-effect-on', effects);
+    document.documentElement.classList.toggle('deco-dashboard-on', onDash);
 }
 function applyIconFramesSetting() { applyDecorationsSetting(); }
 function iconFrameHtml(frameUrl) {

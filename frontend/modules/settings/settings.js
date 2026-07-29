@@ -124,6 +124,7 @@ function saveSettings() {
             squareIconFrames: document.getElementById('setSquareIconFrames')?.checked ?? false,
             enableNameplateDecoration: document.getElementById('setEnableNameplateDeco')?.checked ?? false,
             enableProfileEffects: document.getElementById('setEnableProfileEffect')?.checked ?? false,
+            showDecorationsOnDashboard: document.getElementById('setDecoOnDashboard')?.checked ?? false,
             profileModalStyle: settings.profileModalStyle || 'classic',
             worldModalStyle: settings.worldModalStyle || 'classic',
             groupModalStyle: settings.groupModalStyle || 'classic',
@@ -416,6 +417,9 @@ function loadSettingsToUI(s) {
     settings.enableProfileEffects = s.EnableProfileEffects ?? s.enableProfileEffects ?? false;
     const _epeEl = document.getElementById('setEnableProfileEffect');
     if (_epeEl) _epeEl.checked = settings.enableProfileEffects;
+    settings.showDecorationsOnDashboard = s.ShowDecorationsOnDashboard ?? s.showDecorationsOnDashboard ?? false;
+    const _dodEl = document.getElementById('setDecoOnDashboard');
+    if (_dodEl) _dodEl.checked = settings.showDecorationsOnDashboard;
     if (typeof applyDecorationsSetting === 'function') applyDecorationsSetting();
     settings.profileModalStyle = s.ProfileModalStyle ?? s.profileModalStyle ?? 'classic';
     if (typeof _applyProfileModalStyleUI === 'function') _applyProfileModalStyleUI(settings.profileModalStyle);

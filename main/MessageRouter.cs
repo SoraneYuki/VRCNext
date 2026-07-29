@@ -1182,12 +1182,22 @@ public partial class AppShell
                     _ = Task.Run(async () =>
                     {
                         var res = await _core.Users.SearchUsersAsync(uQ, 20, uOff);
+                        foreach (var did in res.OfType<JObject>()
+                                     .SelectMany(u => new[] { u["iconFrame"]?.ToString(), u["nameplateEffect"]?.ToString(), u["profileEffect"]?.ToString() })
+                                     .Where(x => !string.IsNullOrEmpty(x)).Distinct())
+                            await _core.Inventory.ResolveDecorationAsync(did!);
                         var list = res.Cast<JObject>().Select(u => new {
                             id = u["id"]?.ToString() ?? "", displayName = u["displayName"]?.ToString() ?? "",
                             image = ImageCacheHelper.GetUserUrl(u["id"]?.ToString(), VRChatApiService.GetUserImage(u)), status = u["status"]?.ToString() ?? "offline",
                             statusDescription = u["statusDescription"]?.ToString() ?? "", bio = u["bio"]?.ToString() ?? "",
                             isFriend = u["isFriend"]?.Value<bool>() ?? false,
                             location = u["location"]?.ToString() ?? "",
+                            iconFrame = u["iconFrame"]?.ToString() ?? "",
+                            iconFrameUrl = IconFrameHelper.UrlFor(u["iconFrame"]?.ToString(), _core.Inventory),
+                            nameplateEffect = u["nameplateEffect"]?.ToString() ?? "",
+                            nameplateUrl = IconFrameHelper.UrlFor(u["nameplateEffect"]?.ToString(), _core.Inventory),
+                            profileEffect = u["profileEffect"]?.ToString() ?? "",
+                            profileEffectUrl = IconFrameHelper.UrlFor(u["profileEffect"]?.ToString(), _core.Inventory),
                         }).ToList();
                         Invoke(() => SendToJS("vrcSearchResults", new { type = "users", results = list, offset = uOff, hasMore = list.Count >= 20 }));
                     });

@@ -2729,5 +2729,7 @@
   "profiles.deco.updated": "Profile updated!",
   "profiles.deco.failed": "Could not update decoration",
   "settings.decorations.square_frames": "Show Non-Icon-Frame Profiles as Square",
-  "settings.decorations.square_frames_desc": "When enabled, every profile without an icon frame decoration stays a square image. Only profiles that have a decoration get a round image."
+  "settings.decorations.square_frames_desc": "When enabled, every profile without an icon frame decoration stays a square image. Only profiles that have a decoration get a round image.",
+  "settings.decorations.on_dashboard": "Show Effects on Dashboard",
+  "settings.decorations.on_dashboard_desc": "When enabled, VRC+ decorations are also shown on the Dashboard, for example in the Friends Location (Small) section."
 }

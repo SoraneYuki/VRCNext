@@ -1769,6 +1769,7 @@ public class AuthController
             _core.Settings.SquareIconFrames = data["squareIconFrames"]?.Value<bool>() ?? false;
             _core.Settings.EnableNameplateDecoration = data["enableNameplateDecoration"]?.Value<bool>() ?? false;
             _core.Settings.EnableProfileEffects = data["enableProfileEffects"]?.Value<bool>() ?? false;
+            _core.Settings.ShowDecorationsOnDashboard = data["showDecorationsOnDashboard"]?.Value<bool>() ?? false;
             _core.Settings.ProfileModalStyle = data["profileModalStyle"]?.ToString() ?? "classic";
             _core.Settings.WorldModalStyle = data["worldModalStyle"]?.ToString() ?? "classic";
             _core.Settings.GroupModalStyle = data["groupModalStyle"]?.ToString() ?? "classic";
