@@ -183,11 +183,13 @@
             <div class="fd-banner">
                 ${banner ? `<div class="fp-banner-bg" style="background-image:url('${cssUrl(banner)}')"></div>` : ''}
                 <div class="fd-banner-fade"></div>
+                ${(typeof profileEffectHtml === 'function') ? profileEffectHtml(f.profileEffectUrl) : ''}
             </div>
             <div class="fp-body">
                 <div class="fp-header">
                     <div class="fp-av-wrap">
                         ${avatarInner}
+                        ${(typeof iconFrameHtml === 'function') ? iconFrameHtml(f.iconFrameUrl) : ''}
                         <span class="fp-av-dot ${dotCls} ${statusCls}"></span>
                     </div>
                     <div class="fp-header-info">

@@ -1226,6 +1226,12 @@ public class AuthController
             id = user["id"]?.ToString() ?? "",
             displayName = userDisplayName,
             image = userImage,
+            iconFrame = user["iconFrame"]?.ToString() ?? "",
+            iconFrameUrl = IconFrameHelper.UrlFor(user["iconFrame"]?.ToString(), _core.Inventory),
+            nameplateEffect = user["nameplateEffect"]?.ToString() ?? "",
+            nameplateUrl = IconFrameHelper.UrlFor(user["nameplateEffect"]?.ToString(), _core.Inventory),
+            profileEffect = user["profileEffect"]?.ToString() ?? "",
+            profileEffectUrl = IconFrameHelper.UrlFor(user["profileEffect"]?.ToString(), _core.Inventory),
             status = userStatus,
             statusDescription = userStatusDesc,
             statusHistory = user["statusHistory"]?.ToObject<List<string>>() ?? new List<string>(),
@@ -1759,6 +1765,10 @@ public class AuthController
             _core.Settings.ModernFolderLayout = data["modernFolderLayout"]?.Value<bool>() ?? true;
             _core.Settings.NavSidebarHoverText = data["navSidebarHoverText"]?.Value<bool>() ?? true;
             _core.Settings.DirectModalNav = data["directModalNav"]?.Value<bool>() ?? false;
+            _core.Settings.EnableProfileIconFrames = data["enableProfileIconFrames"]?.Value<bool>() ?? false;
+            _core.Settings.SquareIconFrames = data["squareIconFrames"]?.Value<bool>() ?? false;
+            _core.Settings.EnableNameplateDecoration = data["enableNameplateDecoration"]?.Value<bool>() ?? false;
+            _core.Settings.EnableProfileEffects = data["enableProfileEffects"]?.Value<bool>() ?? false;
             _core.Settings.ProfileModalStyle = data["profileModalStyle"]?.ToString() ?? "classic";
             _core.Settings.WorldModalStyle = data["worldModalStyle"]?.ToString() ?? "classic";
             _core.Settings.GroupModalStyle = data["groupModalStyle"]?.ToString() ?? "classic";
@@ -2177,7 +2187,7 @@ public class AuthController
         public bool   local       { get; set; } = false;
     }
 
-    internal static List<WFavGroup> FillMissingWorldSlots(List<WFavGroup> groupList)
+    internal static List<WFavGroup> FillMissingWorldSlots(List<WFavGroup> groupList, bool hasVrcPlus = false)
     {
         var existing = new HashSet<string>(groupList.Select(g => g.name));
 
@@ -2189,7 +2199,10 @@ public class AuthController
             if (!existing.Contains(sName))
                 groupList.Add(new WFavGroup { name = sName, displayName = sDisplay, type = sType });
 
-        bool hasVrcPlus = groupList.Any(g => g.type == "vrcPlusWorld");
+        // The VRChat+ world groups only come back from /favorite/groups once they have
+        // been materialized (first favorite added). Fall back to the account's VRChat+
+        // status so all 8 slots show up right away for VRChat+ users.
+        hasVrcPlus = hasVrcPlus || groupList.Any(g => g.type == "vrcPlusWorld");
         if (hasVrcPlus)
         {
             var vrcPlusSlots = new[] {
@@ -2272,7 +2285,7 @@ public class AuthController
                 })
                 .Where(g => !string.IsNullOrEmpty(g.name))
                 .ToList();
-            groupList = FillMissingWorldSlots(groupList);
+            groupList = FillMissingWorldSlots(groupList, _core.VrcApi.HasVrcPlus);
 
             var sem = new SemaphoreSlim(4, 4);
             var perGroup = new System.Collections.Concurrent.ConcurrentDictionary<string, List<JObject>>();

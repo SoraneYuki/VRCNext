@@ -269,6 +269,10 @@ public class AppSettings
     public bool ModernFolderLayout { get; set; } = true;
     public bool NavSidebarHoverText { get; set; } = true;
     public bool DirectModalNav { get; set; }
+    public bool EnableProfileIconFrames { get; set; } = false;
+    public bool SquareIconFrames { get; set; } = false;
+    public bool EnableNameplateDecoration { get; set; } = false;
+    public bool EnableProfileEffects { get; set; } = false;
     public string ProfileModalStyle { get; set; } = "classic";
     public string WorldModalStyle { get; set; } = "classic";
     public string GroupModalStyle { get; set; } = "classic";

@@ -18,6 +18,81 @@ function closeMyProfile(fromNav = false) {
     if (!fromNav && typeof navClear === 'function') navClear();
 }
 
+let _profileDecoData = { iconFrame: [], nameplateEffect: [], profileEffect: [] };
+
+function openProfileDecoPicker() {
+    let m = document.getElementById('profileDecoModal');
+    if (!m) {
+        m = document.createElement('div');
+        m.id = 'profileDecoModal';
+        m.className = 'modal-overlay';
+        m.addEventListener('click', e => { if (e.target === m) closeProfileDecoPicker(); });
+        document.body.appendChild(m);
+    }
+    m.style.display = 'flex';
+    renderProfileDecoPicker(true);
+    sendToCS({ action: 'vrcGetProfileDecorations' });
+}
+
+function closeProfileDecoPicker() {
+    const m = document.getElementById('profileDecoModal');
+    if (m) m.style.display = 'none';
+}
+
+function onProfileDecorations(data) {
+    _profileDecoData = { iconFrame: [], nameplateEffect: [], profileEffect: [] };
+    (data.decorations || []).forEach(d => { if (_profileDecoData[d.slot]) _profileDecoData[d.slot].push(d); });
+    renderProfileDecoPicker(false);
+}
+
+function renderProfileDecoPicker(loading) {
+    const m = document.getElementById('profileDecoModal');
+    if (!m || m.style.display === 'none') return;
+    const u = currentVrcUser || {};
+    const slots = [
+        { key: 'iconFrame',       label: t('profiles.deco.icon_frame', 'Icon Frame'),       cur: u.iconFrame || '' },
+        { key: 'nameplateEffect', label: t('profiles.deco.nameplate', 'Nameplate'),         cur: u.nameplateEffect || '' },
+        { key: 'profileEffect',   label: t('profiles.deco.profile_effect', 'Profile Effect'), cur: u.profileEffect || '' },
+    ];
+    const body = loading
+        ? `<div class="pd-loading">${t('common.loading', 'Loading...')}</div>`
+        : slots.map(s => {
+            const items = _profileDecoData[s.key] || [];
+            const noneCell = `<div class="pd-cell${!s.cur ? ' pd-sel' : ''}" onclick="setProfileDeco('${s.key}','')"><div class="pd-none"><span class="msi">block</span></div><div class="pd-name">${t('profiles.deco.none', 'None')}</div></div>`;
+            const cells = items.map(it =>
+                `<div class="pd-cell${it.templateId === s.cur ? ' pd-sel' : ''}" onclick="setProfileDeco('${s.key}','${jsq(it.templateId)}')" title="${esc(it.name)}"><img src="${esc(it.imageUrl)}" onerror="this.style.display='none'"><div class="pd-name">${esc(it.name)}</div></div>`
+            ).join('');
+            const empty = items.length === 0 ? `<div class="pd-empty">${t('profiles.deco.empty', 'You do not own any of these')}</div>` : '';
+            return `<div class="pd-section"><div class="pd-section-title">${esc(s.label)}</div><div class="pd-grid">${noneCell}${cells}</div>${empty}</div>`;
+        }).join('');
+    m.innerHTML = `<div class="gp-modal" style="width:560px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;">
+        <div class="gp-modal-header">
+            <span class="msi" style="font-size:20px;color:var(--accent);">filter_frames</span>
+            <span>${t('profiles.deco.title', 'Customize Profile')}</span>
+            <button class="vrcn-button-round" onclick="closeProfileDecoPicker()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:18px;">close</span></button>
+        </div>
+        <div class="gp-modal-body" style="flex:1;overflow-y:auto;">${body}</div>
+    </div>`;
+}
+
+function setProfileDeco(field, value) {
+    if (currentVrcUser) currentVrcUser[field] = value;
+    renderProfileDecoPicker(false);
+    sendToCS({ action: 'vrcSetProfileDecoration', field, value });
+}
+
+function onSetProfileDecorationResult(data) {
+    if (!data || !data.ok) { showToast(false, t('profiles.deco.failed', 'Could not update decoration')); return; }
+    if (currentVrcUser) {
+        currentVrcUser[data.field] = data.value;
+        const urlField = data.field === 'iconFrame' ? 'iconFrameUrl' : (data.field === 'nameplateEffect' ? 'nameplateUrl' : 'profileEffectUrl');
+        currentVrcUser[urlField] = data.url || '';
+    }
+    showToast(true, t('profiles.deco.updated', 'Profile updated!'));
+    const mp = document.getElementById('modalMyProfile');
+    if (mp && mp.style.display !== 'none' && typeof renderMyProfileContent === 'function') renderMyProfileContent();
+}
+
 function renderMyProfileContent() {
     const u = currentVrcUser;
     const box = document.getElementById('mypBox');
@@ -39,11 +114,13 @@ function renderMyProfileContent() {
 
     // Banner
     const bannerSrc = u.profilePicOverride || u.currentAvatarImageUrl || u.image || '';
+    const _mypEffect = (typeof profileEffectHtml === 'function') ? profileEffectHtml(u.profileEffectUrl) : '';
     const bannerHtml = bannerSrc
-        ? `<div class="fd-banner"><img src="${esc(bannerSrc)}" onerror="this.parentElement.style.display='none'"><div class="fd-banner-fade"></div></div>`
+        ? `<div class="fd-banner"><img src="${esc(bannerSrc)}" onerror="this.parentElement.style.display='none'"><div class="fd-banner-fade"></div>${_mypEffect}</div>`
         : `<div style="display:flex;justify-content:flex-end;padding:4px 0 2px 0;"><button class="myp-edit-btn" onclick="openImagePicker('profile-banner')" title="${esc(addBannerTitle)}"><span class="msi" style="font-size:13px;">edit</span><span style="font-size:11px;margin-left:3px;">${esc(bannerLabel)}</span></button></div>`;
     const mypHeaderActions = renderModalActions([
         { icon: 'edit', title: changeBannerTitle, onclick: `openImagePicker('profile-banner')`, header: true },
+        { icon: 'filter_frames', title: t('profiles.deco.title', 'Customize Profile'), onclick: `openProfileDecoPicker()`, header: true },
         {
             label: 'VRCN+',
             title: t('vrcnplus.dropdown.title', 'VRCN+'),
@@ -60,7 +137,8 @@ function renderMyProfileContent() {
     const avatarImg = u.image
         ? `<img class="myp-avatar" src="${esc(u.image)}" onerror="this.outerHTML='<div class=\\'myp-avatar myp-avatar-fb\\'>${esc((u.displayName||'?')[0])}</div>'">`
         : `<div class="myp-avatar myp-avatar-fb">${esc((u.displayName||'?')[0])}</div>`;
-    const imgTag = `<div style="position:relative;display:inline-block;flex-shrink:0;">${avatarImg}<button class="myp-edit-btn" style="position:absolute;bottom:-4px;right:-4px;padding:2px;min-width:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;" onclick="openImagePicker('profile-icon')" title="${esc(changeIconTitle)}"><span class="msi" style="font-size:11px;">edit</span></button></div>`;
+    const _mypFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(u.iconFrameUrl) : '';
+    const imgTag = `<div style="position:relative;display:inline-block;flex-shrink:0;line-height:0;">${avatarImg}${_mypFrame}<button class="myp-edit-btn" style="position:absolute;bottom:-4px;right:-4px;z-index:4;padding:2px;min-width:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;" onclick="openImagePicker('profile-icon')" title="${esc(changeIconTitle)}"><span class="msi" style="font-size:11px;">edit</span></button></div>`;
 
     // Trust rank & badges row
     const rank = getTrustRank(u.tags || []);

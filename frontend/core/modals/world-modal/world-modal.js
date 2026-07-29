@@ -271,7 +271,7 @@ function renderWorldSearchDetail(w) {
     const wdHeaderActions = renderModalActions([
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetWorldDetail',worldId:'${jsq(wid)}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/world/${esc(wid)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
-        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeWorldSearchDetail()`, header: true },
+        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeWorldSearchDetail()` },
     ]);
     const useWdCompact = (typeof settings !== 'undefined' && settings.worldModalStyle === 'compact');
 

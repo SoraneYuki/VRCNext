@@ -35,6 +35,7 @@ public class KikitanXDController : IDisposable
                     targetLang = _settings.TargetLang,
                     translateEnabled = _settings.TranslateEnabled,
                     oscEnabled = _settings.OscEnabled,
+                    partialOsc = _settings.PartialOsc,
                     noiseGatePct = _settings.NoiseGatePercent,
                     profileTranslationEnabled = _settings.ProfileTranslationEnabled,
                     profileTargetLang = _settings.ProfileTargetLang,
@@ -56,6 +57,7 @@ public class KikitanXDController : IDisposable
                 if (msg["targetLang"] is JToken tl0) _settings.TargetLang = tl0.ToString();
                 if (msg["translateEnabled"] is JToken te0) _settings.TranslateEnabled = te0.Value<bool>();
                 if (msg["oscEnabled"] is JToken oe0) _settings.OscEnabled = oe0.Value<bool>();
+                if (msg["partialOsc"] is JToken po0) _settings.PartialOsc = po0.Value<bool>();
                 if (msg["noiseGatePct"] is JToken ng0) _settings.NoiseGatePercent = ng0.Value<int>();
                 if (msg["personality"] is JToken pe0) _settings.Personality = pe0.ToString();
                 if (msg["model"] is JToken md0) _settings.Model = md0.ToString();
@@ -94,6 +96,7 @@ public class KikitanXDController : IDisposable
                 if (msg["targetLang"] is JToken tl) _settings.TargetLang = tl.ToString();
                 if (msg["translateEnabled"] is JToken te) _settings.TranslateEnabled = te.Value<bool>();
                 if (msg["oscEnabled"] is JToken oe) _settings.OscEnabled = oe.Value<bool>();
+                if (msg["partialOsc"] is JToken po) _settings.PartialOsc = po.Value<bool>();
                 if (msg["noiseGatePct"] is JToken ng) _settings.NoiseGatePercent = ng.Value<int>();
                 if (msg["profileTranslationEnabled"] is JToken pte) _settings.ProfileTranslationEnabled = pte.Value<bool>();
                 if (msg["profileTargetLang"] is JToken ptl) _settings.ProfileTargetLang = ptl.ToString();

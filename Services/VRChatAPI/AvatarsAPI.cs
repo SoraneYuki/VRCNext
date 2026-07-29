@@ -202,6 +202,11 @@ public class AvatarsAPI(VRChatApiService ctx)
 
     public async Task<JArray> SearchAvatarsVrcnAsync(string query, int n = 20, int page = 0)
     {
+        query = (query ?? "").Trim();
+        // Avatar ids aren't in the search index; look them up directly like the website does.
+        if (System.Text.RegularExpressions.Regex.IsMatch(query, @"^avtr_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))
+            return page > 0 ? new JArray() : await GetAvatarVrcnByIdAsync(query);
+
         var url = $"https://db.vrcnext.com/api/search.php?q={Uri.EscapeDataString(query)}&limit={n}&page={page + 1}";
         using var client = new HttpClient();
         client.Timeout = TimeSpan.FromSeconds(15);
@@ -218,6 +223,28 @@ public class AvatarsAPI(VRChatApiService ctx)
             if (parsed is JObject obj && obj["results"] is JArray arr) return arr;
         }
         catch (Exception ex) { ctx.Log($"SearchAvatarsVrcn exception: {ex.Message}"); }
+        return new JArray();
+    }
+
+    // Direct id lookup against VRCNDb (avatar.php returns the same card shape as search).
+    public async Task<JArray> GetAvatarVrcnByIdAsync(string avatarId)
+    {
+        var url = $"https://db.vrcnext.com/api/avatar.php?id={Uri.EscapeDataString(avatarId)}";
+        using var client = new HttpClient();
+        client.Timeout = TimeSpan.FromSeconds(15);
+        client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        try
+        {
+            ctx.Log($"GetAvatarVrcnById: {url}");
+            var resp = await client.GetAsync(url);
+            var body = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"GetAvatarVrcnById [{(int)resp.StatusCode}] len={body.Length}");
+            if (!resp.IsSuccessStatusCode || string.IsNullOrWhiteSpace(body)) return new JArray();
+            var parsed = JToken.Parse(body);
+            if (parsed is JObject obj && obj["id"] != null) return new JArray { obj };
+        }
+        catch (Exception ex) { ctx.Log($"GetAvatarVrcnById exception: {ex.Message}"); }
         return new JArray();
     }
 

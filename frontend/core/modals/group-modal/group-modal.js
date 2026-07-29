@@ -102,8 +102,9 @@ function renderGroupDetail(g) {
     const canPost   = g.canPost === true;
     const canEvent  = g.canEvent === true;
     const canInvite = g.canInvite === true;
+    const _gdCompact = (typeof settings !== 'undefined' && settings.groupModalStyle === 'compact');
     const headerActions = renderModalActions([
-        canEdit ? { icon: 'edit', title: t('groups.images.change_banner', 'Change banner'), onclick: `openImagePicker('group-banner','${gidJs}')`, header: true } : null,
+        (canEdit && !_gdCompact) ? { icon: 'edit', title: t('groups.images.change_banner', 'Change banner'), onclick: `openImagePicker('group-banner','${gidJs}')`, header: true } : null,
         g.isJoined
             ? { icon: 'logout', title: t('groups.actions.leave_group', 'Leave Group'), onclick: `confirmLeaveGroup('${gidJs}','${jsq(g.name || '')}')`, danger: true }
             : { icon: 'group_add', title: t('groups.actions.join_group', 'Join Group'), onclick: `sendToCS({action:'vrcJoinGroup',groupId:'${gidJs}'});closeGroupDetail();` },
@@ -120,7 +121,7 @@ function renderGroupDetail(g) {
         ] } : null,
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetGroup',groupId:'${gidJs}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/group/${esc(g.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
-        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeGroupDetail()`, header: true },
+        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeGroupDetail()` },
     ]);
 
     // Tab: Info
@@ -480,7 +481,7 @@ function renderGroupDetail(g) {
 
     if (useGdCompact) {
         const gdLeftHtml = `<div class="fd-left">
-            <div class="fd-left-banner">${banner ? `<img src="${banner}" onerror="this.src='fallback_cover.png'"><div class="fd-banner-fade"></div>` : ''}</div>
+            <div class="fd-left-banner">${banner ? `<img src="${banner}" onerror="this.src='fallback_cover.png'"><div class="fd-banner-fade"></div>` : ''}${canEdit ? `<button class="fd-banner-edit" onclick="openImagePicker('group-banner','${gidJs}')" title="${esc(t('groups.images.change_banner', 'Change banner'))}"><span class="msi">edit</span></button>` : ''}</div>
             <div class="fd-left-body">
                 <div class="fd-left-id">${iconHtml}<div class="fd-left-name-wrap"><div class="fd-name">${esc(g.name)}</div>${ownerHtml}<div class="fd-status">${headerMeta}</div></div></div>
             </div>

@@ -44,6 +44,7 @@ public static class ImageCacheHelper
         Directory.CreateDirectory(Path.Combine(_baseDir, "Users"));
         Directory.CreateDirectory(Path.Combine(_baseDir, "Badges"));
         Directory.CreateDirectory(Path.Combine(_baseDir, "Events"));
+        Directory.CreateDirectory(Path.Combine(_baseDir, "VRCPlus"));
 
         _InitDb();
     }
@@ -298,6 +299,26 @@ public static class ImageCacheHelper
         return RawOrEmpty(imageUrl);
     }
 
+    public static string? GetVrcPlusCached(string? entityId)
+        => FindCachedFile("VRCPlus", entityId);
+
+    public static Task<string?> CacheVrcPlusAsync(string? entityId, string? assetUrl, bool forceRefresh = false)
+        => CacheAsync("VRCPlus", entityId, assetUrl, forceRefresh, normalize: false);
+
+    public static string GetVrcPlusUrlIfCached(string? entityId)
+    {
+        var cached = GetVrcPlusCached(entityId);
+        return cached != null ? ToLocalUrl(cached) : "";
+    }
+
+    public static bool IsVrcPlusFresh(string? entityId, TimeSpan ttl)
+    {
+        var cached = GetVrcPlusCached(entityId);
+        if (cached == null) return false;
+        try { return DateTime.UtcNow - File.GetLastWriteTimeUtc(cached) < ttl; }
+        catch { return false; }
+    }
+
 // Avatars
 
     public static string? GetAvatarCached(string? avatarId)
@@ -391,12 +412,13 @@ public static class ImageCacheHelper
         return incomingVer >= storedVer;
     }
 
-    private static Task<string?> CacheAsync(string subdir, string? entityId, string? imageUrl, bool forceRefresh)
+    private static Task<string?> CacheAsync(string subdir, string? entityId, string? imageUrl, bool forceRefresh, bool normalize = true)
     {
         imageUrl = StripLocalhostUrl(imageUrl);
         if (string.IsNullOrWhiteSpace(entityId) || string.IsNullOrWhiteSpace(imageUrl) || _http == null)
             return Task.FromResult<string?>(null);
-        if (PermafailHelper.IsPermafailed(NormalizeTo512(imageUrl), "Image"))
+        var permaKey = normalize ? NormalizeTo512(imageUrl) : imageUrl;
+        if (PermafailHelper.IsPermafailed(permaKey, "Image"))
             return Task.FromResult<string?>(null);
 
         if (!forceRefresh)
@@ -409,7 +431,7 @@ public static class ImageCacheHelper
 
         return _downloads.GetOrAdd(key, _key =>
         {
-            var task = DownloadAsync(subdir, entityId, imageUrl, forceRefresh);
+            var task = DownloadAsync(subdir, entityId, imageUrl, forceRefresh, normalize);
             return task.ContinueWith(t =>
             {
                 _downloads.TryRemove(key, out _);
@@ -418,11 +440,11 @@ public static class ImageCacheHelper
         });
     }
 
-    private static async Task<string?> DownloadAsync(string subdir, string entityId, string imageUrl, bool forceRefresh)
+    private static async Task<string?> DownloadAsync(string subdir, string entityId, string imageUrl, bool forceRefresh, bool normalize = true)
     {
         var dir      = Path.Combine(_baseDir, subdir);
         var tmpPath  = Path.Combine(dir, entityId + ".tmp");
-        var fetchUrl = NormalizeTo512(imageUrl);
+        var fetchUrl = normalize ? NormalizeTo512(imageUrl) : imageUrl;
 
         Log?.Invoke($"CDN - {subdir} - {fetchUrl}", "sec");
 

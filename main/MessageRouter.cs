@@ -2101,7 +2101,7 @@ public partial class AppShell
                             })
                             .Where(g => !string.IsNullOrEmpty(g.name))
                             .ToList();
-                        groupList = AuthController.FillMissingWorldSlots(groupList);
+                        groupList = AuthController.FillMissingWorldSlots(groupList, _vrcApi.HasVrcPlus);
                         groupList.AddRange(AuthController.BuildLocalGroups(_core.LocalFavorites.GetGroups("world"), "localWorld"));
                         Invoke(() => SendToJS("vrcWorldFavGroups", groupList));
                     });
@@ -2943,6 +2943,42 @@ public partial class AppShell
                     }
                     break;
                 }
+
+                case "vrcGetProfileDecorations":
+                    _ = Task.Run(async () =>
+                    {
+                        var decos = await _core.Inventory.GetOwnDecorationsAsync();
+                        var list = decos.Select(it =>
+                        {
+                            var tpl = it["templateId"]?.ToString() ?? "";
+                            _ = _core.Inventory.ResolveDecorationAsync(tpl);
+                            return new
+                            {
+                                slot       = it["__slot"]?.ToString() ?? "",
+                                templateId = tpl,
+                                name       = it["name"]?.ToString() ?? "",
+                                imageUrl   = it["imageUrl"]?.ToString() ?? it["metadata"]?["imageUrl"]?.ToString() ?? "",
+                            };
+                        }).Where(x => !string.IsNullOrEmpty(x.templateId)).ToList();
+                        Invoke(() => SendToJS("vrcProfileDecorations", new { decorations = list }));
+                    });
+                    break;
+
+                case "vrcSetProfileDecoration":
+                    _ = Task.Run(async () =>
+                    {
+                        var field = msg["field"]?.ToString() ?? "";
+                        var value = msg["value"]?.ToString() ?? "";
+                        var ok = await _core.Inventory.SetProfileDecorationAsync(field, value);
+                        var url = "";
+                        if (ok && !string.IsNullOrEmpty(value))
+                        {
+                            await _core.Inventory.ResolveDecorationAsync(value);
+                            url = ImageCacheHelper.GetVrcPlusUrlIfCached(value);
+                        }
+                        Invoke(() => SendToJS("vrcSetProfileDecorationResult", new { ok, field, value, url }));
+                    });
+                    break;
 
                 case "invDownload":
                 {

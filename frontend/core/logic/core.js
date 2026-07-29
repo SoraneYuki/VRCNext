@@ -76,6 +76,30 @@ try { hiddenMedia = new Set(JSON.parse(localStorage.getItem('vrcnext_hidden') ||
 const thumbCache = {};
 let currentTheme = 'vrcn', currentSpecialTheme = '', autoColorAccuracy = 50, notifyAudio = null, messageAudio = null, mediaRelayAudio = null, steamOverlayAudio = null, waterAudio = null, currentVrcUser = null;
 let customThemes = []; // user-saved themes from auto color
+
+function applyDecorationsSetting() {
+    const frames = !!(typeof settings !== 'undefined' && settings.enableProfileIconFrames);
+    const nameplate = !!(typeof settings !== 'undefined' && settings.enableNameplateDecoration);
+    const effects = !!(typeof settings !== 'undefined' && settings.enableProfileEffects);
+    const square = !!(typeof settings !== 'undefined' && settings.squareIconFrames);
+    document.documentElement.classList.toggle('icon-frames-on', frames);
+    document.documentElement.classList.toggle('icon-frames-square', frames && square);
+    document.documentElement.classList.toggle('nameplate-deco-on', nameplate);
+    document.documentElement.classList.toggle('profile-effect-on', effects);
+}
+function applyIconFramesSetting() { applyDecorationsSetting(); }
+function iconFrameHtml(frameUrl) {
+    if (!frameUrl) return '';
+    return `<img class="user-frame-deco" src="${frameUrl}" alt="" aria-hidden="true">`;
+}
+function nameplateDecoHtml(url) {
+    if (!url) return '';
+    return `<img class="nameplate-deco" src="${url}" alt="" aria-hidden="true">`;
+}
+function profileEffectHtml(url) {
+    if (!url) return '';
+    return `<img class="profile-effect-deco" src="${url}" alt="" aria-hidden="true">`;
+}
 let currentPlayBtnTheme = '';
 let currentCursorTheme = '';
 let _localHttpPort = 0;

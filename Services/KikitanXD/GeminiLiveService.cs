@@ -67,6 +67,12 @@ public sealed class GeminiLiveService : IKikitanSpeechService
     private volatile bool _oscEnabled = true;
     private volatile string[] _blockedWords = Array.Empty<string>();
     private volatile string[] _blockedSentences = Array.Empty<string>();
+    private volatile float _silenceThreshold = 0.0167f;
+    private long _gateOpenUntilTicks;
+    private const int GateHangoverMs = 500;
+    private volatile bool _partialOsc;
+    private DateTime _lastPartialSend = DateTime.MinValue;
+    private const int PartialMinIntervalMs = 1200;
 
     private const int SampleRate = 16000;
     private const int Channels = 1;
@@ -80,6 +86,8 @@ public sealed class GeminiLiveService : IKikitanSpeechService
         _targetLang = MapTargetLang(s.TargetLang);
         _translateEnabled = s.TranslateEnabled;
         _oscEnabled = s.OscEnabled;
+        _partialOsc = s.PartialOsc;
+        _silenceThreshold = Math.Clamp(s.NoiseGatePercent / 100f / 6f, 0.001f, 0.5f);
         _blockedWords = NormalizeList(s.BlockedWords);
         _blockedSentences = NormalizeList(s.BlockedSentences);
 
@@ -158,6 +166,8 @@ public sealed class GeminiLiveService : IKikitanSpeechService
     {
         _translateEnabled = s.TranslateEnabled;
         _oscEnabled = s.OscEnabled;
+        _partialOsc = s.PartialOsc;
+        _silenceThreshold = Math.Clamp(s.NoiseGatePercent / 100f / 6f, 0.001f, 0.5f);
         _blockedWords = NormalizeList(s.BlockedWords);
         _blockedSentences = NormalizeList(s.BlockedSentences);
 
@@ -241,12 +251,35 @@ public sealed class GeminiLiveService : IKikitanSpeechService
     private void OnDataAvailable(object? sender, WaveInEventArgs e)
     {
         if (e.BytesRecorded <= 0 || !_running) return;
-        UpdateMeter(e.Buffer, e.BytesRecorded);
+
+        float rms = ComputeRms(e.Buffer, e.BytesRecorded);
+        _meterLevel = Math.Min(1f, rms * 6f);
+
         if (_ws == null || _ws.State != WebSocketState.Open) return;
-        var copy = new byte[e.BytesRecorded];
-        Buffer.BlockCopy(e.Buffer, 0, copy, 0, e.BytesRecorded);
-        _pcmQueue.Enqueue(copy);
+
+        var nowTicks = DateTime.UtcNow.Ticks;
+        if (rms > _silenceThreshold)
+            _gateOpenUntilTicks = DateTime.UtcNow.AddMilliseconds(GateHangoverMs).Ticks;
+
+        var chunk = new byte[e.BytesRecorded];
+        if (nowTicks < _gateOpenUntilTicks)
+            Buffer.BlockCopy(e.Buffer, 0, chunk, 0, e.BytesRecorded);
+        _pcmQueue.Enqueue(chunk);
         _pcmSignal.Release();
+    }
+
+    private static float ComputeRms(byte[] buf, int length)
+    {
+        if (length < 2) return 0f;
+        double sum = 0;
+        int samples = length / 2;
+        for (int i = 0; i < length - 1; i += 2)
+        {
+            short s = (short)(buf[i] | (buf[i + 1] << 8));
+            double v = s / 32768.0;
+            sum += v * v;
+        }
+        return (float)Math.Sqrt(sum / samples);
     }
 
     private void OnRecordingStopped(object? sender, StoppedEventArgs e)
@@ -381,6 +414,17 @@ public sealed class GeminiLiveService : IKikitanSpeechService
             }
             if (!string.IsNullOrEmpty(inText)) OnRecognized?.Invoke(inSnap, true);
             if (!string.IsNullOrEmpty(outText) && _translateEnabled) OnTranslated?.Invoke(outSnap);
+
+            // Live-type the growing sentence into the chatbox while it is spoken.
+            if (_partialOsc && _oscEnabled)
+            {
+                var partial = (_translateEnabled && outSnap.Trim().Length > 0 ? outSnap : inSnap).Trim();
+                if (partial.Length > 0 && (DateTime.UtcNow - _lastPartialSend).TotalMilliseconds >= PartialMinIntervalMs)
+                {
+                    _lastPartialSend = DateTime.UtcNow;
+                    SendChatbox(partial.Length > 140 ? partial.Substring(partial.Length - 140) + "..." : partial + "...");
+                }
+            }
         }
 
         if (sc["turnComplete"]?.Value<bool>() == true || sc["generationComplete"]?.Value<bool>() == true)
@@ -428,20 +472,6 @@ public sealed class GeminiLiveService : IKikitanSpeechService
 
         OnTranslated?.Invoke(send);
         if (_oscEnabled) { SendChatbox(send); OnChatboxSent?.Invoke(); }
-    }
-
-    private void UpdateMeter(byte[] buf, int length)
-    {
-        if (length < 2) return;
-        double sum = 0;
-        int samples = length / 2;
-        for (int i = 0; i < length - 1; i += 2)
-        {
-            short s = (short)(buf[i] | (buf[i + 1] << 8));
-            double v = s / 32768.0;
-            sum += v * v;
-        }
-        _meterLevel = Math.Min(1f, (float)Math.Sqrt(sum / samples) * 6f);
     }
 
     private static readonly Dictionary<string, string> TargetLangMap = new(StringComparer.OrdinalIgnoreCase)

@@ -120,6 +120,10 @@ function saveSettings() {
             modernFolderLayout: document.getElementById('setModernFolderLayout')?.checked ?? true,
             navSidebarHoverText: document.getElementById('setNavSidebarHoverText')?.checked ?? true,
             directModalNav: document.getElementById('setDirectModalNav')?.checked ?? false,
+            enableProfileIconFrames: document.getElementById('setEnableIconFrames')?.checked ?? false,
+            squareIconFrames: document.getElementById('setSquareIconFrames')?.checked ?? false,
+            enableNameplateDecoration: document.getElementById('setEnableNameplateDeco')?.checked ?? false,
+            enableProfileEffects: document.getElementById('setEnableProfileEffect')?.checked ?? false,
             profileModalStyle: settings.profileModalStyle || 'classic',
             worldModalStyle: settings.worldModalStyle || 'classic',
             groupModalStyle: settings.groupModalStyle || 'classic',
@@ -338,6 +342,14 @@ function initAutoSave() {
 
 }
 
+function updateSquareFrameToggle() {
+    const el = document.getElementById('setSquareIconFrames');
+    if (!el) return;
+    el.disabled = !(typeof settings !== 'undefined' && settings.enableProfileIconFrames);
+    const row = el.closest('.sf-toggle-row');
+    if (row) row.style.opacity = el.disabled ? '.45' : '';
+}
+
 function loadSettingsToUI(s) {
     settings = s;
     // Debug: log webhook data received from C#
@@ -391,6 +403,20 @@ function loadSettingsToUI(s) {
     settings.directModalNav = s.DirectModalNav ?? s.directModalNav ?? false;
     const _dmnEl = document.getElementById('setDirectModalNav');
     if (_dmnEl) _dmnEl.checked = settings.directModalNav;
+    settings.enableProfileIconFrames = s.EnableProfileIconFrames ?? s.enableProfileIconFrames ?? false;
+    const _eifEl = document.getElementById('setEnableIconFrames');
+    if (_eifEl) _eifEl.checked = settings.enableProfileIconFrames;
+    settings.squareIconFrames = s.SquareIconFrames ?? s.squareIconFrames ?? false;
+    const _sifEl = document.getElementById('setSquareIconFrames');
+    if (_sifEl) _sifEl.checked = settings.squareIconFrames;
+    if (typeof updateSquareFrameToggle === 'function') updateSquareFrameToggle();
+    settings.enableNameplateDecoration = s.EnableNameplateDecoration ?? s.enableNameplateDecoration ?? false;
+    const _endEl = document.getElementById('setEnableNameplateDeco');
+    if (_endEl) _endEl.checked = settings.enableNameplateDecoration;
+    settings.enableProfileEffects = s.EnableProfileEffects ?? s.enableProfileEffects ?? false;
+    const _epeEl = document.getElementById('setEnableProfileEffect');
+    if (_epeEl) _epeEl.checked = settings.enableProfileEffects;
+    if (typeof applyDecorationsSetting === 'function') applyDecorationsSetting();
     settings.profileModalStyle = s.ProfileModalStyle ?? s.profileModalStyle ?? 'classic';
     if (typeof _applyProfileModalStyleUI === 'function') _applyProfileModalStyleUI(settings.profileModalStyle);
     settings.worldModalStyle = s.WorldModalStyle ?? s.worldModalStyle ?? 'classic';

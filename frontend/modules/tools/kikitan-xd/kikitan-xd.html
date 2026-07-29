@@ -95,6 +95,11 @@
                             <span><span class="msi" style="font-size:16px;vertical-align:middle;">send</span> <span data-i18n="kikitan.osc_enabled">Send via OSC Chatbox</span></span>
                             <label class="toggle"><input type="checkbox" id="kxdOscToggle" checked onchange="kxdSaveSettings()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
+                        <div class="sf-toggle-row" style="margin-top:8px;">
+                            <span><span class="msi" style="font-size:16px;vertical-align:middle;">more_horiz</span> <span data-i18n="kikitan.partial_osc">Live typing (Gemini only)</span></span>
+                            <label class="toggle"><input type="checkbox" id="kxdPartialToggle" onchange="kxdSaveSettings()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                        </div>
+                        <div class="set-desc" data-i18n="kikitan.partial_osc_desc">Shows the sentence building up in the chatbox while you speak, instead of only the finished result. Works with the Google Gemini model.</div>
                     </div>
                     <!-- Recognition (source) -->
                     <div class="vrcn-panel-card">
