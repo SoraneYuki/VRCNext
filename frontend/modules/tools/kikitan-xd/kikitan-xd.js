@@ -109,6 +109,7 @@ function kxdConnect() {
     const targetLang = tgtSel?.value || _kxdDevicesPayload.targetLang || 'en';
     const translateEnabled = document.getElementById('kxdTranslateToggle')?.checked ?? !!_kxdDevicesPayload.translateEnabled;
     const oscEnabled = document.getElementById('kxdOscToggle')?.checked ?? !!_kxdDevicesPayload.oscEnabled;
+    const partialOsc = document.getElementById('kxdPartialToggle')?.checked ?? !!_kxdDevicesPayload.partialOsc;
     const model = document.getElementById('kxdModel')?.value || _kxdDevicesPayload.model || 'groq';
     const googleApiKey = (document.getElementById('kxdGoogleApiKey')?.value || _kxdDevicesPayload.googleApiKey || '').trim();
 
@@ -123,7 +124,7 @@ function kxdConnect() {
     }
 
     const personality = document.getElementById('kxdPersonality')?.value || _kxdDevicesPayload.personality || 'raw';
-    sendToCS({ action: 'kxdStart', deviceIndex, apiKey, googleApiKey, model, sourceLang, targetLang, translateEnabled, oscEnabled, noiseGatePct: kxdNoiseGatePct, personality, blockWords: _kxdBlockWords, blockSentences: _kxdBlockSentences });
+    sendToCS({ action: 'kxdStart', deviceIndex, apiKey, googleApiKey, model, sourceLang, targetLang, translateEnabled, oscEnabled, partialOsc, noiseGatePct: kxdNoiseGatePct, personality, blockWords: _kxdBlockWords, blockSentences: _kxdBlockSentences });
 }
 
 function populateKxdDevices(p) {
@@ -221,6 +222,8 @@ function populateKxdDevices(p) {
 
     const oscToggle = document.getElementById('kxdOscToggle');
     if (oscToggle && p.oscEnabled != null) oscToggle.checked = !!p.oscEnabled;
+    const partialToggle = document.getElementById('kxdPartialToggle');
+    if (partialToggle && p.partialOsc != null) partialToggle.checked = !!p.partialOsc;
 
     if (p.noiseGatePct != null) {
         kxdNoiseGatePct = p.noiseGatePct;
@@ -283,6 +286,7 @@ function kxdSaveSettings() {
     const targetLang = tgtSel ? tgtSel.value : 'en';
     const translateEnabled = !!(document.getElementById('kxdTranslateToggle')?.checked);
     const oscEnabled = !!(document.getElementById('kxdOscToggle')?.checked);
+    const partialOsc = !!(document.getElementById('kxdPartialToggle')?.checked);
     const profileTransToggle = document.getElementById('kxdProfileTransToggle');
     const profileTargetSel = document.getElementById('kxdProfileTargetLang');
     const profileTranslationEnabled = profileTransToggle ? !!profileTransToggle.checked : (window._kxdProfileTranslationEnabled !== false);
@@ -292,7 +296,7 @@ function kxdSaveSettings() {
     window._kxdApiKeyPresent = !!apiKey;
     const personality = document.getElementById('kxdPersonality')?.value || 'raw';
     const devSel = document.getElementById('kxdDeviceSelect');
-    const payload = { action: 'kxdSaveSettings', apiKey, googleApiKey, model, sourceLang, targetLang, translateEnabled, oscEnabled, noiseGatePct: kxdNoiseGatePct, profileTranslationEnabled, profileTargetLang, personality, blockWords: _kxdBlockWords, blockSentences: _kxdBlockSentences };
+    const payload = { action: 'kxdSaveSettings', apiKey, googleApiKey, model, sourceLang, targetLang, translateEnabled, oscEnabled, partialOsc, noiseGatePct: kxdNoiseGatePct, profileTranslationEnabled, profileTargetLang, personality, blockWords: _kxdBlockWords, blockSentences: _kxdBlockSentences };
     if (devSel && devSel.value !== '' && !isNaN(parseInt(devSel.value, 10))) {
         payload.deviceIndex = parseInt(devSel.value, 10);
     }

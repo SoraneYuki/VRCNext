@@ -731,6 +731,9 @@ public class UnifiedTimeEngine : IDisposable
         public string MutualGroupsJson        { get; set; } = "[]";
         public string MutualGroupsCachedAt    { get; set; } = "";
         public string ProfileCurrentAvatar    { get; set; } = "";
+        public string ProfileIconFrame        { get; set; } = "";
+        public string ProfileNameplate        { get; set; } = "";
+        public string ProfileEffect           { get; set; } = "";
     }
 
     public UserProfileCache? GetUserProfileCache(string userId)
@@ -755,7 +758,7 @@ public class UnifiedTimeEngine : IDisposable
                     profile_represented_group,
                     groups, groups_cached_at, content, content_cached_at,
                     mutuals, mutuals_cached_at, mutual_groups, mutual_groups_cached_at,
-                    profile_current_avatar
+                    profile_current_avatar, profile_icon_frame, profile_nameplate, profile_effect
                     FROM user_tracking WHERE user_id=$id";
                 cmd.Parameters.AddWithValue("$id", userId);
                 using var r = cmd.ExecuteReader();
@@ -814,6 +817,9 @@ public class UnifiedTimeEngine : IDisposable
                     MutualGroupsJson       = SA("mutual_groups", "[]"),
                     MutualGroupsCachedAt   = S("mutual_groups_cached_at"),
                     ProfileCurrentAvatar   = S("profile_current_avatar"),
+                    ProfileIconFrame       = S("profile_icon_frame"),
+                    ProfileNameplate       = S("profile_nameplate"),
+                    ProfileEffect          = S("profile_effect"),
                 };
                 return string.IsNullOrEmpty(c.ProfileCachedAt) ? null : c;
             }
@@ -850,7 +856,8 @@ public class UnifiedTimeEngine : IDisposable
                     profile_in_same_instance=$isi, profile_pronouns=$pro, profile_age_verification=$av,
                     profile_age_verified=$avd, profile_bio_links=$bl, profile_is_favorited=$ifav,
                     profile_fav_friend_id=$ffid, profile_badges=$badges,
-                    profile_represented_group=$rg
+                    profile_represented_group=$rg,
+                    profile_icon_frame=$icf, profile_nameplate=$npl, profile_effect=$pfx
                     WHERE user_id=$id";
                 cmd.Parameters.AddWithValue("$id",    userId);
                 cmd.Parameters.AddWithValue("$dn",    p["displayName"]?.ToString() ?? "");
@@ -893,6 +900,9 @@ public class UnifiedTimeEngine : IDisposable
                 cmd.Parameters.AddWithValue("$ffid",  p["favFriendId"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$badges", p["badges"]?.ToString() ?? "[]");
                 cmd.Parameters.AddWithValue("$rg",     p["representedGroup"]?.Type == JTokenType.Object ? p["representedGroup"]!.ToString() : "");
+                cmd.Parameters.AddWithValue("$icf",    p["iconFrame"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$npl",    p["nameplateEffect"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$pfx",    p["profileEffect"]?.ToString() ?? "");
                 cmd.ExecuteNonQuery();
             }
             catch { }
@@ -1720,6 +1730,9 @@ public class UnifiedTimeEngine : IDisposable
             "friend_alert                INTEGER NOT NULL DEFAULT 0",
             "last_status                 TEXT    NOT NULL DEFAULT ''",
             "last_status_at              TEXT    NOT NULL DEFAULT ''",
+            "profile_icon_frame          TEXT    NOT NULL DEFAULT ''",
+            "profile_nameplate           TEXT    NOT NULL DEFAULT ''",
+            "profile_effect              TEXT    NOT NULL DEFAULT ''",
         })
         {
             try

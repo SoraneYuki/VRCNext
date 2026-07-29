@@ -1172,6 +1172,8 @@ public class FriendsController
                 }
             }
 
+            await WarmDecorationsAsync(online.Concat(offline));
+
             var seenIds = new HashSet<string>();
             var onlineList = online.Select(f =>
             {
@@ -1185,6 +1187,12 @@ public class FriendsController
                 {
                     id, displayName = f["displayName"]?.ToString() ?? "",
                     image = ImageCacheHelper.GetUserUrl(id, VRChatApiService.GetUserImage(f)),
+                    iconFrame = f["iconFrame"]?.ToString() ?? "",
+                    iconFrameUrl = IconFrameHelper.UrlFor(f["iconFrame"]?.ToString(), _core.Inventory),
+                    nameplateEffect = f["nameplateEffect"]?.ToString() ?? "",
+                    nameplateUrl = IconFrameHelper.UrlFor(f["nameplateEffect"]?.ToString(), _core.Inventory),
+                    profileEffect = f["profileEffect"]?.ToString() ?? "",
+                    profileEffectUrl = IconFrameHelper.UrlFor(f["profileEffect"]?.ToString(), _core.Inventory),
                     status = f["status"]?.ToString() ?? "offline",
                     statusDescription = f["statusDescription"]?.ToString() ?? "",
                     location, platform,
@@ -1200,6 +1208,12 @@ public class FriendsController
                     id = f["id"]?.ToString() ?? "",
                     displayName = f["displayName"]?.ToString() ?? "",
                     image = ImageCacheHelper.GetUserUrl(f["id"]?.ToString(), VRChatApiService.GetUserImage(f)),
+                    iconFrame = f["iconFrame"]?.ToString() ?? "",
+                    iconFrameUrl = IconFrameHelper.UrlFor(f["iconFrame"]?.ToString(), _core.Inventory),
+                    nameplateEffect = f["nameplateEffect"]?.ToString() ?? "",
+                    nameplateUrl = IconFrameHelper.UrlFor(f["nameplateEffect"]?.ToString(), _core.Inventory),
+                    profileEffect = f["profileEffect"]?.ToString() ?? "",
+                    profileEffectUrl = IconFrameHelper.UrlFor(f["profileEffect"]?.ToString(), _core.Inventory),
                     status = "offline",
                     statusDescription = f["statusDescription"]?.ToString() ?? "",
                     location = "offline",
@@ -1462,6 +1476,12 @@ public class FriendsController
             id = f["id"]?.ToString() ?? "",
             displayName = f["displayName"]?.ToString() ?? "",
             image = ImageCacheHelper.GetUserUrl(f["id"]?.ToString(), VRChatApiService.GetUserImage(f)),
+            iconFrame = f["iconFrame"]?.ToString() ?? "",
+            iconFrameUrl = IconFrameHelper.UrlFor(f["iconFrame"]?.ToString(), _core.Inventory),
+            nameplateEffect = f["nameplateEffect"]?.ToString() ?? "",
+            nameplateUrl = IconFrameHelper.UrlFor(f["nameplateEffect"]?.ToString(), _core.Inventory),
+            profileEffect = f["profileEffect"]?.ToString() ?? "",
+            profileEffectUrl = IconFrameHelper.UrlFor(f["profileEffect"]?.ToString(), _core.Inventory),
             status, statusDescription = f["statusDescription"]?.ToString() ?? "",
             location, platform, presence,
             worldName = locWorld.name,
@@ -1499,6 +1519,12 @@ public class FriendsController
                 id = f["id"]?.ToString() ?? "",
                 displayName = f["displayName"]?.ToString() ?? "",
                 image = ImageCacheHelper.GetUserUrl(f["id"]?.ToString(), VRChatApiService.GetUserImage(f)),
+                iconFrame = f["iconFrame"]?.ToString() ?? "",
+                iconFrameUrl = IconFrameHelper.UrlFor(f["iconFrame"]?.ToString(), _core.Inventory),
+                nameplateEffect = f["nameplateEffect"]?.ToString() ?? "",
+                nameplateUrl = IconFrameHelper.UrlFor(f["nameplateEffect"]?.ToString(), _core.Inventory),
+                profileEffect = f["profileEffect"]?.ToString() ?? "",
+                profileEffectUrl = IconFrameHelper.UrlFor(f["profileEffect"]?.ToString(), _core.Inventory),
                 status, statusDescription = f["statusDescription"]?.ToString() ?? "",
                 location, platform, presence,
                 tags = f["tags"]?.ToObject<List<string>>() ?? new List<string>(),
@@ -1520,9 +1546,39 @@ public class FriendsController
 
         _core.SendToJS("vrcFriends", new { friends = list, counts });
 
+        if (_warmRepushPending) _warmRepushPending = false;
+        else WarmIconFrames(snapshot);
+
 #if WINDOWS
         if (_core.VrOverlay != null) { PushVroLocations(); PushVroOnlineFriends(); }
 #endif
+    }
+
+    private async Task WarmDecorationsAsync(IEnumerable<JObject> friends)
+    {
+        var ids = friends
+            .SelectMany(f => new[] { f["iconFrame"]?.ToString(), f["nameplateEffect"]?.ToString(), f["profileEffect"]?.ToString() })
+            .Where(id => !string.IsNullOrEmpty(id) && !ImageCacheHelper.IsVrcPlusFresh(id, InventoryAPI.DecorationTtl))
+            .Distinct()
+            .ToList();
+        foreach (var id in ids) await _core.Inventory.ResolveDecorationAsync(id!);
+    }
+
+    private volatile bool _warmRepushPending;
+    private void WarmIconFrames(List<JObject> friends)
+    {
+        var needsWork = friends
+            .SelectMany(f => new[] { f["iconFrame"]?.ToString(), f["nameplateEffect"]?.ToString() })
+            .Where(id => !string.IsNullOrEmpty(id) && !ImageCacheHelper.IsVrcPlusFresh(id, InventoryAPI.DecorationTtl))
+            .Distinct()
+            .ToList();
+        if (needsWork.Count == 0) return;
+        _ = Task.Run(async () =>
+        {
+            foreach (var id in needsWork) await _core.Inventory.ResolveDecorationAsync(id!);
+            _warmRepushPending = true;
+            DoPushFriendsFromStore();
+        });
     }
 
 #if WINDOWS
@@ -1721,6 +1777,12 @@ public class FriendsController
                 ["favFriendId"]           = GetFavoriteFriendId(userId),
                 ["badges"]                = liveBadges ?? TryParseJArray(cachedEntry.ProfileBadges) ?? new JArray(),
                 ["cachedAvatar"]          = (JToken?)TryParseJObject(cachedEntry.ProfileCurrentAvatar) ?? JValue.CreateNull(),
+                ["iconFrame"]             = live?["iconFrame"]?.ToString() ?? cachedEntry.ProfileIconFrame,
+                ["iconFrameUrl"]          = IconFrameHelper.UrlFor(live?["iconFrame"]?.ToString() ?? cachedEntry.ProfileIconFrame, _core.Inventory),
+                ["nameplateEffect"]       = live?["nameplateEffect"]?.ToString() ?? cachedEntry.ProfileNameplate,
+                ["nameplateUrl"]          = IconFrameHelper.UrlFor(live?["nameplateEffect"]?.ToString() ?? cachedEntry.ProfileNameplate, _core.Inventory),
+                ["profileEffect"]         = live?["profileEffect"]?.ToString() ?? cachedEntry.ProfileEffect,
+                ["profileEffectUrl"]      = IconFrameHelper.UrlFor(live?["profileEffect"]?.ToString() ?? cachedEntry.ProfileEffect, _core.Inventory),
             };
             _core.SendToJS("vrcFriendDetail", diskProfile);
 
@@ -2095,6 +2157,12 @@ public class FriendsController
             id = user["id"]?.ToString() ?? "",
             displayName = user["displayName"]?.ToString() ?? "",
             image = ImageCacheHelper.GetUserUrl(user["id"]?.ToString(), VRChatApiService.GetUserImage(user)),
+            iconFrame = user["iconFrame"]?.ToString() ?? "",
+            iconFrameUrl = IconFrameHelper.UrlFor(user["iconFrame"]?.ToString(), _core.Inventory),
+            nameplateEffect = user["nameplateEffect"]?.ToString() ?? "",
+            nameplateUrl = IconFrameHelper.UrlFor(user["nameplateEffect"]?.ToString(), _core.Inventory),
+            profileEffect = user["profileEffect"]?.ToString() ?? "",
+            profileEffectUrl = IconFrameHelper.UrlFor(user["profileEffect"]?.ToString(), _core.Inventory),
             status = user["status"]?.ToString() ?? "offline",
             statusDescription = user["statusDescription"]?.ToString() ?? "",
             bio = user["bio"]?.ToString() ?? "",

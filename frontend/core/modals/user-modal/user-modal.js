@@ -599,9 +599,11 @@ function renderFriendDetail(d) {
     if (_fdModal) _fdModal.classList.toggle('fd-style-compact', useCompact);
 
     const img = d.image || '';
-    const imgTag = img
+    const _fdAvatarInner = img
         ? `<img class="fd-avatar" src="${img}" onerror="this.style.display='none'">`
         : `<div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--tx3)">${esc((d.displayName || '?')[0])}</div>`;
+    const _fdFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(d.iconFrameUrl) : '';
+    const imgTag = _fdFrame ? `<div class="icon-frame-wrap">${_fdAvatarInner}${_fdFrame}</div>` : _fdAvatarInner;
 
     let _worldPartHtml = '';
     let _ownerPartHtml = '';
@@ -1067,7 +1069,7 @@ function renderFriendDetail(d) {
     const _fdStatusRowClassic = `<div class="fd-status-row"><div class="fd-status" id="fd-live-status"><span class="${fdDotClass} ${fdStatusDotCls}" style="width:8px;height:8px;"></span>${fdIsOffline ? t('status.offline', 'Offline') : statusLabel(d.status)}${(!fdIsOffline && fdIsWeb) ? ' ' + t('profiles.friends.web_suffix', '(Web)') : ''}${(!fdIsOffline && d.statusDescription) ? ' - ' + esc(d.statusDescription) : ''}</div>${repGroupBadgeHtml}</div>`;
 
     if (useCompact) {
-        const bannerSlotHtml = `<div class="fd-left-banner" id="fd-banner-slot">${bannerSrc ? '<div class="fd-banner-fade"></div>' : ''}</div>`;
+        const bannerSlotHtml = `<div class="fd-left-banner" id="fd-banner-slot">${bannerSrc ? '<div class="fd-banner-fade"></div>' : ''}${(typeof profileEffectHtml === 'function') ? profileEffectHtml(d.profileEffectUrl) : ''}</div>`;
         const _fdLeftHtml = `<div class="fd-left">
             ${bannerSlotHtml}
             <div class="fd-left-body">
@@ -1082,7 +1084,7 @@ function renderFriendDetail(d) {
         const _fdRightHtml = `<div class="fd-right"><div class="fd-right-scroll">${tabsHtml}<div id="fdTabInfo">${infoContent}</div><div id="fdTabGroups" style="display:none;">${groupsContent}</div><div id="fdTabMutuals" style="display:none;">${mutualsContent}</div><div id="fdTabContent" style="display:none;">${contentHtml}</div><div id="fdTabFavs" style="display:none;" data-user-id="${esc(userId)}"></div><div id="fdTabJson" style="display:none;"><div class="json-viewer">${jsonHighlight((d.id && _fdRawJsonCache[d.id]) || {})}</div></div></div></div>`;
         c.innerHTML = `${fdHeaderActions}<div class="fd-layout">${_fdLeftHtml}${_fdRightHtml}</div>`;
     } else {
-        const bannerHtml = bannerSrc ? `<div class="fd-banner" id="fd-banner-slot"><div class="fd-banner-fade"></div></div>` : '';
+        const bannerHtml = bannerSrc ? `<div class="fd-banner" id="fd-banner-slot"><div class="fd-banner-fade"></div>${(typeof profileEffectHtml === 'function') ? profileEffectHtml(d.profileEffectUrl) : ''}</div>` : '';
         c.innerHTML = `${fdHeaderActions}${bannerHtml}<div class="fd-content${bannerSrc ? ' fd-has-banner' : ''}"><div class="fd-header">${imgTag}<div><div class="fd-name" style="display:flex;align-items:center;gap:6px;">${esc(d.displayName)}${vrcPlusBadge}</div>${pronounsHtml}${_fdStatusRowClassic}</div></div>${badgesHtml}${actionsHtml}${favPickerHtml}${tabsHtml}<div id="fdTabInfo">${infoContent}</div><div id="fdTabGroups" style="display:none;">${groupsContent}</div><div id="fdTabMutuals" style="display:none;">${mutualsContent}</div><div id="fdTabContent" style="display:none;">${contentHtml}</div><div id="fdTabFavs" style="display:none;" data-user-id="${esc(userId)}"></div><div id="fdTabJson" style="display:none;"><div class="json-viewer">${jsonHighlight((d.id && _fdRawJsonCache[d.id]) || {})}</div></div></div>`;
     }
 
@@ -1936,6 +1938,7 @@ function _fdBuildTaskbarActions(d) {
         { icon: 'link_2', title: t('common.share', 'Share'), label: t('common.share_profile', 'Share Profile'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/user/${esc(d.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
     ];
     if (_moreItems.length) out.push({ label: t('common.more', 'More'), dropdown: _moreItems });
+    out.push({ icon: 'close', title: t('common.close', 'Close'), label: t('common.close', 'Close'), onclick: `closeFriendDetail()` });
     return out;
 }
 

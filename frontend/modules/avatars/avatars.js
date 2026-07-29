@@ -817,6 +817,7 @@ function closeAvFavPicker() {
     const panel = document.getElementById('avFavPickerPanel');
     if (panel) panel.style.display = 'none';
     _avFavPickerAvatarId = null;
+    document.removeEventListener('click', _avPickerOutside);
 }
 
 function renderAvFavPickerList(avatarId) {
@@ -899,6 +900,7 @@ function onAvatarFavoriteResult(data) {
         else if (avatarFilter === 'search') renderSearchGrid();
         else if (avatarFilter === 'favorites') filterFavAvatars();
         else if (avatarFilter === 'rose') filterRoseDb();
+        if (typeof updateAvatarModalFavBtn === 'function') updateAvatarModalFavBtn(data.avatarId);
         _scheduleAvFavRefresh();
     } else {
         if (data.error) showToast(false, localFavErrorText(data.error));
@@ -922,6 +924,7 @@ function onAvatarUnfavoriteResult(data) {
         else if (avatarFilter === 'own') renderAvatarGrid();
         else if (avatarFilter === 'search') renderSearchGrid();
         else if (avatarFilter === 'rose') filterRoseDb();
+        if (typeof updateAvatarModalFavBtn === 'function') updateAvatarModalFavBtn(data.avatarId);
         _scheduleAvFavRefresh();
     }
 }

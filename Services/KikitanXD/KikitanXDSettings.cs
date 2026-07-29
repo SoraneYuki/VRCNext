@@ -8,7 +8,6 @@ public class KikitanXDSettings
     private static readonly string FilePath = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "VRCNext", "kikitan_xd.json");
-
     public string ApiKey { get; set; } = "";
     public string GoogleApiKey { get; set; } = "";
     public string Model { get; set; } = "groq";
@@ -17,6 +16,7 @@ public class KikitanXDSettings
     public string TargetLang { get; set; } = "en";
     public bool TranslateEnabled { get; set; } = true;
     public bool OscEnabled { get; set; } = true;
+    public bool PartialOsc { get; set; } = false;
     public int NoiseGatePercent { get; set; } = 10;
     public bool ProfileTranslationEnabled { get; set; } = true;
     public string ProfileTargetLang { get; set; } = "en";

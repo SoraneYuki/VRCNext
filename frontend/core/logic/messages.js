@@ -275,6 +275,12 @@ window.external.receiveMessage(rawMsg => {
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);
                 if (favFriendsData.length > 0) filterFavFriends();
                 break;
+            case 'vrcProfileDecorations':
+                if (typeof onProfileDecorations === 'function') onProfileDecorations(payload);
+                break;
+            case 'vrcSetProfileDecorationResult':
+                if (typeof onSetProfileDecorationResult === 'function') onSetProfileDecorationResult(payload);
+                break;
             case 'vrcNeeds2FA': show2FAModal(payload.type || 'totp'); break;
             case 'vrcLoginError':
                 {

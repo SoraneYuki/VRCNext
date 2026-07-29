@@ -119,6 +119,7 @@ function renderAvatarDetail(a) {
     const thumb = a.thumbnailImageUrl || a.imageUrl || '';
     const isOwn = currentVrcUser && a.authorId === currentVrcUser.id;
     const aid = jsq(a.id || '');
+    const _avIsFav = (typeof favAvatarsData !== 'undefined') && favAvatarsData.some(f => f.id === a.id);
 
     function platBadge(label, cssClass, icon, perf) {
         const perfHtml = perf ? `<span style="opacity:.8;font-weight:400;"> - ${esc(perf)}</span>` : '';
@@ -225,11 +226,12 @@ function renderAvatarDetail(a) {
     </div>`;
 
     const avHeaderActions = renderModalActions([
-        isOwn ? { icon: 'edit', title: t('avatars.detail.actions.change_image', 'Change Image'), onclick: `avUploadBannerImage('${aid}')`, header: true } : null,
+        (isOwn && !useAvCompact) ? { icon: 'edit', title: t('avatars.detail.actions.change_image', 'Change Image'), onclick: `avUploadBannerImage('${aid}')`, header: true } : null,
         { icon: 'checkroom', title: t('avatars.detail.actions.use_avatar', 'Use Avatar'), onclick: `selectAvatar('${aid}');closeAvatarDetail()` },
+        { icon: _avIsFav ? 'star' : 'star_outline', iconClass: _avIsFav ? 'fd-action-fav' : '', title: avatarFavoriteActionLabel(_avIsFav), onclick: `openAvFavPicker('${aid}',this)` },
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetAvatarDetail',avatarId:'${aid}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/avatar/${esc(a.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
-        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeAvatarDetail()`, header: true },
+        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeAvatarDetail()` },
     ]);
     const _avNameAuthor = `<div id="avfNameView" style="display:flex;align-items:center;gap:6px;">
                         <div class="fd-name">${esc(a.name || t('avatars.detail.unnamed', 'Unnamed Avatar'))}</div>
@@ -259,7 +261,7 @@ function renderAvatarDetail(a) {
     if (useAvCompact) {
         c.innerHTML = `${avHeaderActions}<div class="fd-layout">
             <div class="fd-left">
-                <div class="fd-left-banner" id="av-banner-slot">${thumb ? `<img src="${thumb}" onerror="this.style.display='none'"><div class="fd-banner-fade"></div>` : ''}</div>
+                <div class="fd-left-banner" id="av-banner-slot">${thumb ? `<img src="${thumb}" onerror="this.style.display='none'"><div class="fd-banner-fade"></div>` : ''}${isOwn ? `<button class="fd-banner-edit" onclick="avUploadBannerImage('${aid}')" title="${esc(t('avatars.detail.actions.change_image', 'Change Image'))}"><span class="msi">edit</span></button>` : ''}</div>
                 <div class="fd-left-body">
                     <div class="fd-left-id"><div class="fd-left-name-wrap">${_avNameAuthor}</div></div>
                     ${_infosCard}
@@ -297,6 +299,21 @@ function renderAvatarDetail(a) {
 
     const _avModal = document.getElementById('modalAvatarDetail');
     if (_avModal) _avModal.classList.toggle('av-style-compact', useAvCompact);
+}
+
+function updateAvatarModalFavBtn(avatarId) {
+    if (!_avDetailData || _avDetailData.id !== avatarId) return;
+    const isFav = (typeof favAvatarsData !== 'undefined') && favAvatarsData.some(f => f.id === avatarId);
+    document.querySelectorAll('button[onclick^="openAvFavPicker("]').forEach(btn => {
+        const icon = btn.querySelector('.msi');
+        if (icon) {
+            icon.textContent = isFav ? 'star' : 'star_outline';
+            icon.classList.toggle('fd-action-fav', isFav);
+        } else {
+            btn.textContent = avatarFavoriteActionLabel(isFav);
+        }
+        btn.title = avatarFavoriteActionLabel(isFav);
+    });
 }
 
 function saveAvField(field, avatarId) {

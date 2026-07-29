@@ -308,8 +308,10 @@ function renderDashFriendsLocationSmall() {
             ? `<img class="dash-flocs-world-thumb" src="${cssUrl(thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">`
             : '';
         return `<div class="dash-flocs-card" onclick="openFriendLocationDetail('${wid}','${safeLoc}')">
+            ${(typeof nameplateDecoHtml === 'function') ? nameplateDecoHtml(f.nameplateUrl) : ''}
             <div class="dash-flocs-avatar-wrap">
                 ${avatarEl}
+                ${(typeof iconFrameHtml === 'function') ? iconFrameHtml(f.iconFrameUrl) : ''}
                 <span class="${dotClass} ${statusDotClass(f.status)} dash-flocs-dot"></span>
             </div>
             <div class="dash-flocs-info">

@@ -17,6 +17,11 @@ function renderUserItem(user, onclick, opts) {
         ? `<img class="vrcn-user-item-avatar" src="${esc(image)}" onerror="this.outerHTML='<div class=\\'vrcn-user-item-avatar vrcn-user-item-avatar-letter\\'>${letter}</div>'">`
         : `<div class="vrcn-user-item-avatar vrcn-user-item-avatar-letter">${letter}</div>`;
 
+    const _frameUrl = live?.iconFrameUrl || user.iconFrameUrl || '';
+    const _nameUrl  = live?.nameplateUrl || user.nameplateUrl || '';
+    const _frameDeco = (typeof iconFrameHtml === 'function') ? iconFrameHtml(_frameUrl) : '';
+    const _nameDeco  = (typeof nameplateDecoHtml === 'function') ? nameplateDecoHtml(_nameUrl) : '';
+
     const status = live?.status || user.status || '';
     const statusDesc = live?.statusDescription || user.statusDescription || '';
     const presence = live ? live.presence : (user.presence || '');
@@ -43,7 +48,8 @@ function renderUserItem(user, onclick, opts) {
         : '';
 
     return `<div class="vrcn-user-item${cls}"${idAttr}${attrs} onclick="${onclick}">
-        <div class="vrcn-user-item-avatar-wrap">${avatar}${dot}</div>
+        ${_nameDeco}
+        <div class="vrcn-user-item-avatar-wrap">${avatar}${_frameDeco}${dot}</div>
         <div class="vrcn-user-item-info">
             <div class="vrcn-user-item-name">${esc(name)}${platBadge ? `<span class="vrcn-user-item-plat">${platBadge}</span>` : ''}</div>
             ${secondRow}

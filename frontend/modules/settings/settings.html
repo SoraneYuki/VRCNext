@@ -236,6 +236,51 @@
                         <div class="set-desc" id="trayNotifDesc" data-windows-only data-i18n="settings.system.tray.notifications_desc">Displays a notification when a new VRChat notification arrives while VRCNext is hidden in the system tray.</div>
                     </div>
 
+                    <!-- VRC+ DECORATIONS -->
+                    <div class="vrcn-panel-card" data-section="general">
+                        <div class="vrcn-panel-card-header"><span class="msi" style="font-size:16px;">workspace_premium</span> <span data-i18n="settings.decorations.title">VRC+ Decorations</span></div>
+                        <div class="sf-toggle-row">
+                            <span data-i18n="settings.decorations.icon_frames">Enable Profile Icon Frames</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setEnableIconFrames" onchange="settings.enableProfileIconFrames=this.checked;autoSave();if(typeof applyDecorationsSetting==='function')applyDecorationsSetting();if(typeof updateSquareFrameToggle==='function')updateSquareFrameToggle();">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-i18n="settings.decorations.icon_frames_desc">When enabled all profile icons including your own will be round instead of square, and the profile frame decoration is shown on every player that has one.</div>
+                        <div class="sf-toggle-row" style="margin-top:10px;">
+                            <span data-i18n="settings.decorations.square_frames">Show Non-Icon-Frame Profiles as Square</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setSquareIconFrames" onchange="settings.squareIconFrames=this.checked;autoSave();if(typeof applyDecorationsSetting==='function')applyDecorationsSetting();">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-i18n="settings.decorations.square_frames_desc">When enabled, every profile without an icon frame decoration stays a square image. Only profiles that have a decoration get a round image.</div>
+                        <div class="sf-toggle-row" style="margin-top:14px;">
+                            <span data-i18n="settings.decorations.nameplate">Enable Name Plate Decoration</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setEnableNameplateDeco" onchange="settings.enableNameplateDecoration=this.checked;autoSave();if(typeof applyDecorationsSetting==='function')applyDecorationsSetting();">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-i18n="settings.decorations.nameplate_desc">When enabled, a player's VRC+ nameplate decoration is shown behind their entry in the friends sidebar and other places they appear.</div>
+                        <div class="sf-toggle-row" style="margin-top:14px;">
+                            <span data-i18n="settings.decorations.profile_effect">Enable Profile Effects</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setEnableProfileEffect" onchange="settings.enableProfileEffects=this.checked;autoSave();if(typeof applyDecorationsSetting==='function')applyDecorationsSetting();">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-i18n="settings.decorations.profile_effect_desc">When enabled, a player's VRC+ profile effect is shown as a frame over the banner in their profile modal.</div>
+                        <div class="sf-toggle-row" style="margin-top:14px;">
+                            <span data-i18n="settings.decorations.on_dashboard">Show Effects on Dashboard</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setDecoOnDashboard" onchange="settings.showDecorationsOnDashboard=this.checked;autoSave();if(typeof applyDecorationsSetting==='function')applyDecorationsSetting();">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-i18n="settings.decorations.on_dashboard_desc">When enabled, VRC+ decorations are also shown on the Dashboard, for example in the Friends Location (Small) section.</div>
+                    </div>
+
                     <!-- FRIENDS SIDEBAR -->
                     <div class="vrcn-panel-card" data-section="friends" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">group</span> <span data-i18n="settings.friends.title">Friends And User Settings</span></div>

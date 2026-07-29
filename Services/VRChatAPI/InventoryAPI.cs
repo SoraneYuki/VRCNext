@@ -1,9 +1,111 @@
+using System.Collections.Concurrent;
+using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using VRCNext.Services.Helpers;
 
 namespace VRCNext.Services;
 
 public class InventoryAPI(VRChatApiService ctx)
 {
+    private static readonly ConcurrentDictionary<string, Task> _decoResolving = new();
+    public static readonly TimeSpan DecorationTtl = TimeSpan.FromDays(7);
+
+    private static readonly HashSet<string> DecorationSlots = new() { "iconFrame", "nameplateEffect", "profileEffect" };
+
+    private static string? ClassifyDecorationSlot(JObject item)
+    {
+        var type = item["itemType"]?.ToString() ?? "";
+        if (DecorationSlots.Contains(type)) return type;
+        if (item["equipSlots"] is JArray es)
+            foreach (var s in es) { var v = s?.ToString() ?? ""; if (DecorationSlots.Contains(v)) return v; }
+        return null;
+    }
+
+    public async Task<List<JObject>> GetOwnDecorationsAsync()
+    {
+        var result = new List<JObject>();
+        if (!ctx.IsLoggedIn) return result;
+        for (int offset = 0; offset < 500; offset += 100)
+        {
+            var (items, _) = await GetInventoryItemsAsync(100, offset);
+            if (items.Count == 0) break;
+            foreach (var it in items.OfType<JObject>())
+            {
+                var slot = ClassifyDecorationSlot(it);
+                if (slot == null) continue;
+                it["__slot"] = slot;
+                result.Add(it);
+            }
+            if (items.Count < 100) break;
+        }
+        return result;
+    }
+
+    public async Task<bool> SetProfileDecorationAsync(string field, string value)
+    {
+        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(ctx.CurrentUserId)) return false;
+        if (!DecorationSlots.Contains(field)) return false;
+        try
+        {
+            var json = JsonConvert.SerializeObject(new Dictionary<string, string> { [field] = value ?? "" });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var resp = await ctx._http.PutAsync($"{VRChatApiService.BASE}/profile/{ctx.CurrentUserId}", content);
+            ctx.Log($"SetProfileDecoration [{field}={value}]: {(int)resp.StatusCode}");
+            return resp.IsSuccessStatusCode;
+        }
+        catch (Exception ex) { ctx.Log($"SetProfileDecoration exception: {ex.Message}"); return false; }
+    }
+
+    public async Task<JObject?> GetInventoryTemplateAsync(string templateId)
+    {
+        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(templateId)) return null;
+        try
+        {
+            var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/inventory/template/{Uri.EscapeDataString(templateId)}");
+            var body = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"GetInventoryTemplate {templateId}: {(int)resp.StatusCode} len={body.Length}");
+            if (!resp.IsSuccessStatusCode || string.IsNullOrWhiteSpace(body)) return null;
+            return JObject.Parse(body);
+        }
+        catch (Exception ex) { ctx.Log($"GetInventoryTemplate exception: {ex.Message}"); return null; }
+    }
+
+    public static string? ExtractDecorationAssetUrl(JObject? tpl)
+    {
+        if (tpl == null) return null;
+        if (tpl["metadata"]?["assets"] is JArray assets)
+        {
+            string? Pick(string type) => assets.FirstOrDefault(a => a["type"]?.ToString() == type)?["url"]?.ToString();
+            var url = Pick("mainAnimation") ?? Pick("base");
+            if (!string.IsNullOrEmpty(url)) return url;
+        }
+        return tpl["imageUrl"]?.ToString();
+    }
+
+    public Task ResolveDecorationAsync(string? templateId)
+    {
+        if (string.IsNullOrEmpty(templateId)) return Task.CompletedTask;
+        if (ImageCacheHelper.IsVrcPlusFresh(templateId, DecorationTtl)) return Task.CompletedTask;
+        return _decoResolving.GetOrAdd(templateId, id =>
+            ResolveDecorationInnerAsync(id).ContinueWith(_ => { _decoResolving.TryRemove(id, out _); }, TaskScheduler.Default));
+    }
+
+    private async Task ResolveDecorationInnerAsync(string templateId)
+    {
+        try
+        {
+            var tpl = await GetInventoryTemplateAsync(templateId);
+            var url = ExtractDecorationAssetUrl(tpl);
+            if (!string.IsNullOrEmpty(url))
+            {
+                bool exists = ImageCacheHelper.GetVrcPlusCached(templateId) != null;
+                await ImageCacheHelper.CacheVrcPlusAsync(templateId, url, forceRefresh: exists);
+            }
+        }
+        catch (Exception ex) { ctx.Log($"ResolveDecoration exception: {ex.Message}"); }
+    }
+
     public async Task<(JArray items, int totalCount)> GetInventoryItemsAsync(int n = 100, int offset = 0)
     {
         if (!ctx.IsLoggedIn) return (new JArray(), 0);
