@@ -273,6 +273,7 @@ public class AppSettings
     public bool SquareIconFrames { get; set; } = false;
     public bool EnableNameplateDecoration { get; set; } = false;
     public bool EnableProfileEffects { get; set; } = false;
+    public bool EnableProfileBackgrounds { get; set; } = false;
     public bool ShowDecorationsOnDashboard { get; set; } = false;
     public string ProfileModalStyle { get; set; } = "classic";
     public string WorldModalStyle { get; set; } = "classic";

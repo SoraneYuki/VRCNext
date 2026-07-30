@@ -91,6 +91,7 @@ public class StatusScheduleController : IDisposable
         {
             if (!rule.Enabled) continue;
             if (rule.OnlyWhileInGame && !vrcRunning) continue;
+            if (rule.OnlyWhileOutsideGame && vrcRunning) continue;
             if (!IsWithinWindow(rule, now)) continue;
             if (best == null || rule.Priority > best.Priority) best = rule;
         }
@@ -198,6 +199,11 @@ public class StatusScheduleController : IDisposable
                     break;
                 }
 
+                // The two game-state filters are mutually exclusive; normalise here so a
+                // malformed payload cannot produce a rule that never matches.
+                foreach (var r in _settings.Rules)
+                    if (r.OnlyWhileInGame) r.OnlyWhileOutsideGame = false;
+
                 // Deliberately does not touch Enabled - that has its own action. Letting a
                 // rule save carry it risks writing back a stale client-side default.
                 _settings.Save();
@@ -252,6 +258,7 @@ public class StatusScheduleController : IDisposable
                 ["end"]                   = r.End,
                 ["days"]                  = new JArray(r.Days ?? new List<int>()),
                 ["onlyWhileInGame"]       = r.OnlyWhileInGame,
+                ["onlyWhileOutsideGame"]  = r.OnlyWhileOutsideGame,
                 ["restorePreviousStatus"] = r.RestorePreviousStatus,
                 ["status"]                = r.Status,
                 ["setStatusMessage"]      = r.SetStatusMessage,

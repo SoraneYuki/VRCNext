@@ -23,7 +23,10 @@ public class StatusScheduleSettings
         // ISO-8601 weekdays: 1 = Monday .. 7 = Sunday. Empty = every day.
         public List<int> Days  { get; set; } = new();
 
-        public bool OnlyWhileInGame     { get; set; } = false;
+        // Mutually exclusive: at most one may be true. Both false means the rule applies
+        // regardless of whether VRChat is running.
+        public bool OnlyWhileInGame      { get; set; } = false;
+        public bool OnlyWhileOutsideGame { get; set; } = false;
         public bool RestorePreviousStatus { get; set; } = true;
 
         // "join me" | "active" | "ask me" | "busy"

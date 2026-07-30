@@ -124,6 +124,7 @@ function saveSettings() {
             squareIconFrames: document.getElementById('setSquareIconFrames')?.checked ?? false,
             enableNameplateDecoration: document.getElementById('setEnableNameplateDeco')?.checked ?? false,
             enableProfileEffects: document.getElementById('setEnableProfileEffect')?.checked ?? false,
+            enableProfileBackgrounds: document.getElementById('setEnableProfileBg')?.checked ?? false,
             showDecorationsOnDashboard: document.getElementById('setDecoOnDashboard')?.checked ?? false,
             profileModalStyle: settings.profileModalStyle || 'classic',
             worldModalStyle: settings.worldModalStyle || 'classic',
@@ -417,6 +418,9 @@ function loadSettingsToUI(s) {
     settings.enableProfileEffects = s.EnableProfileEffects ?? s.enableProfileEffects ?? false;
     const _epeEl = document.getElementById('setEnableProfileEffect');
     if (_epeEl) _epeEl.checked = settings.enableProfileEffects;
+    settings.enableProfileBackgrounds = s.EnableProfileBackgrounds ?? s.enableProfileBackgrounds ?? false;
+    const _epbEl = document.getElementById('setEnableProfileBg');
+    if (_epbEl) _epbEl.checked = settings.enableProfileBackgrounds;
     settings.showDecorationsOnDashboard = s.ShowDecorationsOnDashboard ?? s.showDecorationsOnDashboard ?? false;
     const _dodEl = document.getElementById('setDecoOnDashboard');
     if (_dodEl) _dodEl.checked = settings.showDecorationsOnDashboard;

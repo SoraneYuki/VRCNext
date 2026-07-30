@@ -734,6 +734,10 @@ public class UnifiedTimeEngine : IDisposable
         public string ProfileIconFrame        { get; set; } = "";
         public string ProfileNameplate        { get; set; } = "";
         public string ProfileEffect           { get; set; } = "";
+        public string ProfileBgType           { get; set; } = "";
+        public string ProfileBgTexture        { get; set; } = "";
+        public string ProfileBgGradTop        { get; set; } = "";
+        public string ProfileBgGradBottom     { get; set; } = "";
     }
 
     public UserProfileCache? GetUserProfileCache(string userId)
@@ -758,7 +762,8 @@ public class UnifiedTimeEngine : IDisposable
                     profile_represented_group,
                     groups, groups_cached_at, content, content_cached_at,
                     mutuals, mutuals_cached_at, mutual_groups, mutual_groups_cached_at,
-                    profile_current_avatar, profile_icon_frame, profile_nameplate, profile_effect
+                    profile_current_avatar, profile_icon_frame, profile_nameplate, profile_effect,
+                    profile_bg_type, profile_bg_texture, profile_bg_grad_top, profile_bg_grad_bottom
                     FROM user_tracking WHERE user_id=$id";
                 cmd.Parameters.AddWithValue("$id", userId);
                 using var r = cmd.ExecuteReader();
@@ -820,6 +825,10 @@ public class UnifiedTimeEngine : IDisposable
                     ProfileIconFrame       = S("profile_icon_frame"),
                     ProfileNameplate       = S("profile_nameplate"),
                     ProfileEffect          = S("profile_effect"),
+                    ProfileBgType          = S("profile_bg_type"),
+                    ProfileBgTexture       = S("profile_bg_texture"),
+                    ProfileBgGradTop       = S("profile_bg_grad_top"),
+                    ProfileBgGradBottom    = S("profile_bg_grad_bottom"),
                 };
                 return string.IsNullOrEmpty(c.ProfileCachedAt) ? null : c;
             }
@@ -857,7 +866,8 @@ public class UnifiedTimeEngine : IDisposable
                     profile_age_verified=$avd, profile_bio_links=$bl, profile_is_favorited=$ifav,
                     profile_fav_friend_id=$ffid, profile_badges=$badges,
                     profile_represented_group=$rg,
-                    profile_icon_frame=$icf, profile_nameplate=$npl, profile_effect=$pfx
+                    profile_icon_frame=$icf, profile_nameplate=$npl, profile_effect=$pfx,
+                    profile_bg_type=$bgt, profile_bg_texture=$bgx, profile_bg_grad_top=$bgu, profile_bg_grad_bottom=$bgd
                     WHERE user_id=$id";
                 cmd.Parameters.AddWithValue("$id",    userId);
                 cmd.Parameters.AddWithValue("$dn",    p["displayName"]?.ToString() ?? "");
@@ -903,6 +913,10 @@ public class UnifiedTimeEngine : IDisposable
                 cmd.Parameters.AddWithValue("$icf",    p["iconFrame"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$npl",    p["nameplateEffect"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$pfx",    p["profileEffect"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$bgt",    p["backgroundType"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$bgx",    p["backgroundTextureId"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$bgu",    p["backgroundGradientTop"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$bgd",    p["backgroundGradientBottom"]?.ToString() ?? "");
                 cmd.ExecuteNonQuery();
             }
             catch { }
@@ -1733,6 +1747,10 @@ public class UnifiedTimeEngine : IDisposable
             "profile_icon_frame          TEXT    NOT NULL DEFAULT ''",
             "profile_nameplate           TEXT    NOT NULL DEFAULT ''",
             "profile_effect              TEXT    NOT NULL DEFAULT ''",
+            "profile_bg_type             TEXT    NOT NULL DEFAULT ''",
+            "profile_bg_texture          TEXT    NOT NULL DEFAULT ''",
+            "profile_bg_grad_top         TEXT    NOT NULL DEFAULT ''",
+            "profile_bg_grad_bottom      TEXT    NOT NULL DEFAULT ''",
         })
         {
             try

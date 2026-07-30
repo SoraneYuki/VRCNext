@@ -921,9 +921,8 @@ function wiLocale() {
 }
 
 function wiWeekdayLabels() {
-    const base = new Date(Date.UTC(2024, 0, 8)); // Monday
-    const fmt = new Intl.DateTimeFormat(wiLocale(), { weekday: 'short' });
-    return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(base.getTime() + i * 86400000)));
+        const fmt = new Intl.DateTimeFormat(wiLocale(), { weekday: 'short' });
+    return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(2024, 0, 8 + i)));
 }
 
 // public entry points

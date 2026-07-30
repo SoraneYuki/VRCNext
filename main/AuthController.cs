@@ -1295,6 +1295,27 @@ public class AuthController
                     Invoke(() => _core.SendToJS("vrcCredits", new { balance }));
             });
         }
+
+        // The profile background sits on its own endpoint and this method is sync, so it
+        // is fetched afterwards and patched onto the already-sent user payload.
+        var selfId = user["id"]?.ToString();
+        if (!string.IsNullOrEmpty(selfId))
+        {
+            _ = Task.Run(async () =>
+            {
+                var appearance = await _core.Users.GetProfileAppearanceAsync(selfId, asSelf: true);
+                if (appearance == null) return;
+                var texId = appearance["backgroundTextureId"]?.ToString() ?? "";
+                Invoke(() => _core.SendToJS("vrcSelfAppearance", new
+                {
+                    backgroundType           = appearance["backgroundType"]?.ToString() ?? "",
+                    backgroundTextureId      = texId,
+                    backgroundTextureUrl     = ProfileBackgroundHelper.UrlFor(texId),
+                    backgroundGradientTop    = appearance["backgroundGradientTop"]?.ToString() ?? "",
+                    backgroundGradientBottom = appearance["backgroundGradientBottom"]?.ToString() ?? "",
+                }));
+            });
+        }
     }
 
     private void ReconcilePlayerSessionsFromLog(TimelineService.TimelineEvent lastJoin)
@@ -1769,6 +1790,7 @@ public class AuthController
             _core.Settings.SquareIconFrames = data["squareIconFrames"]?.Value<bool>() ?? false;
             _core.Settings.EnableNameplateDecoration = data["enableNameplateDecoration"]?.Value<bool>() ?? false;
             _core.Settings.EnableProfileEffects = data["enableProfileEffects"]?.Value<bool>() ?? false;
+            _core.Settings.EnableProfileBackgrounds = data["enableProfileBackgrounds"]?.Value<bool>() ?? false;
             _core.Settings.ShowDecorationsOnDashboard = data["showDecorationsOnDashboard"]?.Value<bool>() ?? false;
             _core.Settings.ProfileModalStyle = data["profileModalStyle"]?.ToString() ?? "classic";
             _core.Settings.WorldModalStyle = data["worldModalStyle"]?.ToString() ?? "classic";

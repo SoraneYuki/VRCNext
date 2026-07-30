@@ -285,11 +285,16 @@ public class FriendsController
                     var profilePicOverride = "";
 
                     // SQLite cache
+                    var bgType = ""; var bgTexture = ""; var bgTop = ""; var bgBottom = "";
                     var prevSqlite = _core.TimeEngine.GetUserProfileCache(prevId);
                     if (prevSqlite != null)
                     {
                         bio = prevSqlite.ProfileBio;
                         profilePicOverride = prevSqlite.ProfilePicOverride;
+                        bgType    = prevSqlite.ProfileBgType;
+                        bgTexture = prevSqlite.ProfileBgTexture;
+                        bgTop     = prevSqlite.ProfileBgGradTop;
+                        bgBottom  = prevSqlite.ProfileBgGradBottom;
                     }
 
                     // Live API fallback if no SQLite cache yet
@@ -305,7 +310,30 @@ public class FriendsController
                         }
                     }
 
-                    _core.SendToJS("vrcFriendPreview", new { id = prevId, bio, profilePicOverride = ImageCacheHelper.GetUserBannerUrl(prevId, profilePicOverride) });
+                    // Only pulled when the feature is on - this fires on every hover and
+                    // the appearance endpoint is a separate request per user.
+                    if (_core.Settings.EnableProfileBackgrounds && string.IsNullOrEmpty(bgType))
+                    {
+                        var prevAppearance = await _core.Users.GetProfileAppearanceAsync(prevId);
+                        if (prevAppearance != null)
+                        {
+                            bgType    = prevAppearance["backgroundType"]?.ToString() ?? "";
+                            bgTexture = prevAppearance["backgroundTextureId"]?.ToString() ?? "";
+                            bgTop     = prevAppearance["backgroundGradientTop"]?.ToString() ?? "";
+                            bgBottom  = prevAppearance["backgroundGradientBottom"]?.ToString() ?? "";
+                        }
+                    }
+
+                    _core.SendToJS("vrcFriendPreview", new {
+                        id = prevId,
+                        bio,
+                        profilePicOverride = ImageCacheHelper.GetUserBannerUrl(prevId, profilePicOverride),
+                        backgroundType           = bgType,
+                        backgroundTextureId      = bgTexture,
+                        backgroundTextureUrl     = ProfileBackgroundHelper.UrlFor(bgTexture),
+                        backgroundGradientTop    = bgTop,
+                        backgroundGradientBottom = bgBottom,
+                    });
                 }
                 break;
             }
@@ -1788,6 +1816,13 @@ public class FriendsController
                 ["nameplateUrl"]          = IconFrameHelper.UrlFor(live?["nameplateEffect"]?.ToString() ?? cachedEntry.ProfileNameplate, _core.Inventory),
                 ["profileEffect"]         = live?["profileEffect"]?.ToString() ?? cachedEntry.ProfileEffect,
                 ["profileEffectUrl"]      = IconFrameHelper.UrlFor(live?["profileEffect"]?.ToString() ?? cachedEntry.ProfileEffect, _core.Inventory),
+                // Cached like the other VRC+ decorations so the background is there on
+                // the first paint instead of waiting for the appearance request.
+                ["backgroundType"]           = cachedEntry.ProfileBgType,
+                ["backgroundTextureId"]      = cachedEntry.ProfileBgTexture,
+                ["backgroundTextureUrl"]     = ProfileBackgroundHelper.UrlFor(cachedEntry.ProfileBgTexture),
+                ["backgroundGradientTop"]    = cachedEntry.ProfileBgGradTop,
+                ["backgroundGradientBottom"] = cachedEntry.ProfileBgGradBottom,
             };
             _core.SendToJS("vrcFriendDetail", diskProfile);
 
@@ -2028,6 +2063,10 @@ public class FriendsController
         JObject? storeSnapshot;
         lock (_friendStore) _friendStore.TryGetValue(userId, out storeSnapshot);
 
+        // Backgrounds/banner live on their own endpoint, /users/{id} does not have them.
+        var isSelfProfile = userId == _core.VrcApi.CurrentUserId;
+        var appearance = await _core.Users.GetProfileAppearanceAsync(userId, isSelfProfile);
+
         user = storeSnapshot;
         if (user == null || user["badges"] == null)
         {
@@ -2168,6 +2207,13 @@ public class FriendsController
             nameplateUrl = IconFrameHelper.UrlFor(user["nameplateEffect"]?.ToString(), _core.Inventory),
             profileEffect = user["profileEffect"]?.ToString() ?? "",
             profileEffectUrl = IconFrameHelper.UrlFor(user["profileEffect"]?.ToString(), _core.Inventory),
+            // VRC+ profile background. The texture id is mapped to an asset URL in the
+            // frontend, where the file list lives next to the CSS that uses it.
+            backgroundType           = appearance?["backgroundType"]?.ToString() ?? "",
+            backgroundTextureId      = appearance?["backgroundTextureId"]?.ToString() ?? "",
+            backgroundTextureUrl     = ProfileBackgroundHelper.UrlFor(appearance?["backgroundTextureId"]?.ToString()),
+            backgroundGradientTop    = appearance?["backgroundGradientTop"]?.ToString() ?? "",
+            backgroundGradientBottom = appearance?["backgroundGradientBottom"]?.ToString() ?? "",
             status = user["status"]?.ToString() ?? "offline",
             statusDescription = user["statusDescription"]?.ToString() ?? "",
             bio = user["bio"]?.ToString() ?? "",

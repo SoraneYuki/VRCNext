@@ -1150,6 +1150,15 @@ function renderFriendDetail(d) {
     if (userId) { _fdHeatmapDays = 30; _fdHeatmapView = 'online'; _fdStatusData = null; sendToCS({ action: 'getUserOnlineHeatmap', userId, days: 30 }); }
     if (userId && !isSelf) sendToCS({ action: 'getUserStatusTime', userId, days: 30 });
 
+    // VRC+ profile background. Classic covers the whole modal box in place of the
+    // theme colour; compact only skins the left identity sidebar.
+    if (typeof applyProfileBg === 'function') {
+        const _bgBox  = document.querySelector('#modalFriendDetail .modal-box');
+        const _bgLeft = c.querySelector('.fd-left');
+        applyProfileBg(_bgBox,  useCompact ? null : d);
+        applyProfileBg(_bgLeft, useCompact ? d : null);
+    }
+
     if (_fdLiveTimer) { clearInterval(_fdLiveTimer); _fdLiveTimer = null; }
     if (d.inSameInstance && !(currentVrcUser && d.id === currentVrcUser.id)) {
         let liveSecs = d.totalTimeSeconds;
@@ -1554,9 +1563,8 @@ function renderFdOnlineHeatmap(payload) {
         ? tf('profiles.heatmap.total_online', { time: fdFmtMinutes(totalMinutes) }, `${fdFmtMinutes(totalMinutes)} online`)
         : '';
 
-    const base = new Date(Date.UTC(2024, 0, 8));
     const fmt = new Intl.DateTimeFormat(typeof getLanguageLocale === 'function' ? getLanguageLocale() : undefined, { weekday: 'short' });
-    const dayLabels = Array.from({ length: 7 }, (_, i) => fmt.format(new Date(base.getTime() + i * 86400000)));
+    const dayLabels = Array.from({ length: 7 }, (_, i) => fmt.format(new Date(2024, 0, 8 + i)));
 
     let max = 0;
     const dayTotals = new Array(7).fill(0);
@@ -1684,9 +1692,8 @@ function renderFdStatusTime(payload) {
         return;
     }
 
-    const base = new Date(Date.UTC(2024, 0, 8));
     const fmt = new Intl.DateTimeFormat(typeof getLanguageLocale === 'function' ? getLanguageLocale() : undefined, { weekday: 'short' });
-    const dayLabels = Array.from({ length: 7 }, (_, i) => fmt.format(new Date(base.getTime() + i * 86400000)));
+    const dayLabels = Array.from({ length: 7 }, (_, i) => fmt.format(new Date(2024, 0, 8 + i)));
 
     const view = _fdHeatmapView;
     const keys = Object.keys(META);

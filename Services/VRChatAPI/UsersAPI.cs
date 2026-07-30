@@ -155,6 +155,43 @@ public class UsersAPI(VRChatApiService ctx)
         catch (Exception ex) { ctx.Log($"UpdateBadge exception: {ex.Message}"); return false; }
     }
 
+    // VRC+ profile appearance (backgrounds, banner, theme). This lives on its own
+    // endpoint - /users/{id} does not carry the background fields.
+    public async Task<JObject?> GetProfileAppearanceAsync(string userId, bool asSelf = false)
+    {
+        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(userId)) return null;
+        try
+        {
+            var url = $"{VRChatApiService.BASE}/profile/{Uri.EscapeDataString(userId)}";
+            if (asSelf) url += "?asSelf=true";
+            var resp = await ctx._http.GetAsync(url);
+            if (resp.IsSuccessStatusCode) return JObject.Parse(await resp.Content.ReadAsStringAsync());
+            ctx.Log($"GetProfileAppearance({userId}): {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"GetProfileAppearance exception: {ex.Message}"); }
+        return null;
+    }
+
+    // PUT profile/{userId}. Bodies observed in the web client:
+    //   { backgroundType: "default" }
+    //   { backgroundType: "gradient", backgroundGradientTop: "5d3f86", backgroundGradientBottom: "21385B" }
+    //   { backgroundType: "texture",  backgroundTextureId: "grid" }
+    // Gradient colours are sent as bare hex without a leading '#'.
+    public async Task<JObject?> UpdateProfileAppearanceAsync(string userId, JObject body)
+    {
+        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(userId)) return null;
+        try
+        {
+            var content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+            var resp = await ctx._http.PutAsync($"{VRChatApiService.BASE}/profile/{Uri.EscapeDataString(userId)}", content);
+            var text = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"UpdateProfileAppearance({userId}): {(int)resp.StatusCode}");
+            if (resp.IsSuccessStatusCode) return JObject.Parse(text);
+        }
+        catch (Exception ex) { ctx.Log($"UpdateProfileAppearance exception: {ex.Message}"); }
+        return null;
+    }
+
     public async Task<bool> SendBoopAsync(string userId, string? emojiId = null)
     {
         if (!ctx.IsLoggedIn) return false;

@@ -209,8 +209,11 @@ function _buildGrid() {
         laneEnd[lane] = seg.gE;
     });
 
+    // 2024-01-08 was a Monday, matching the Monday-first grid above. Built in local
+    // time on purpose: Date.UTC() would put midnight UTC on the previous day for
+    // anyone west of UTC, shifting every header label back by one.
     const hdr = Array.from({ length: 7 }, (_, idx) => {
-        const label = new Date(Date.UTC(2024, 0, 8 + idx)).toLocaleDateString(_calDateLocale(), { weekday: 'short' });
+        const label = new Date(2024, 0, 8 + idx).toLocaleDateString(_calDateLocale(), { weekday: 'short' });
         return `<div class="cal-day-hdr">${esc(label.toUpperCase())}</div>`;
     }).join('');
 

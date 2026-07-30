@@ -226,8 +226,9 @@ function ssRenderEditor() {
     set('ssFieldName',       'value',   rule.name || '');
     set('ssFieldSetMessage', 'checked', !!rule.setStatusMessage);
     set('ssFieldMessage',    'value',   rule.statusMessage || '');
-    set('ssFieldOnlyInGame', 'checked', !!rule.onlyWhileInGame);
-    set('ssFieldRestore',    'checked', rule.restorePreviousStatus !== false);
+    set('ssFieldOnlyInGame',      'checked', !!rule.onlyWhileInGame);
+    set('ssFieldOnlyOutsideGame', 'checked', !!rule.onlyWhileOutsideGame);
+    set('ssFieldRestore',         'checked', rule.restorePreviousStatus !== false);
 
     const msgInput = document.getElementById('ssFieldMessage');
     if (msgInput) msgInput.style.display = rule.setStatusMessage ? '' : 'none';
@@ -292,6 +293,7 @@ function ssAddRule() {
         end: '17:00',
         days: [],
         onlyWhileInGame: false,
+        onlyWhileOutsideGame: false,
         restorePreviousStatus: true,
         status: 'active',
         setStatusMessage: false,
@@ -317,6 +319,16 @@ function ssUpdateField(key, value) {
     const rule = ssSelectedRule();
     if (!rule) return;
     rule[key] = value;
+
+    // The two game-state filters are mutually exclusive; switching one on clears the
+    // other. Both off means the rule applies whether VRChat runs or not.
+    if (key === 'onlyWhileInGame' || key === 'onlyWhileOutsideGame') {
+        const other = key === 'onlyWhileInGame' ? 'onlyWhileOutsideGame' : 'onlyWhileInGame';
+        if (value) rule[other] = false;
+        const otherEl = document.getElementById(
+            other === 'onlyWhileInGame' ? 'ssFieldOnlyInGame' : 'ssFieldOnlyOutsideGame');
+        if (otherEl) otherEl.checked = !!rule[other];
+    }
 
     if (key === 'setStatusMessage') {
         const msgInput = document.getElementById('ssFieldMessage');

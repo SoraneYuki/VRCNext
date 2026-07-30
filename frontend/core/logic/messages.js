@@ -204,6 +204,16 @@ window.external.receiveMessage(rawMsg => {
                 }
                 autoSave();
                 break;
+            case 'vrcProfileBackgroundUpdated':
+                if (typeof onProfileBackgroundUpdated === 'function') onProfileBackgroundUpdated(payload);
+                break;
+            case 'vrcSelfAppearance':
+                if (typeof currentVrcUser !== 'undefined' && currentVrcUser) {
+                    Object.assign(currentVrcUser, payload);
+                    if (document.getElementById('modalMyProfile')?.style.display !== 'none'
+                        && typeof renderMyProfileContent === 'function') renderMyProfileContent();
+                }
+                break;
             case 'vrcUser':
                 renderVrcProfile(payload);
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);

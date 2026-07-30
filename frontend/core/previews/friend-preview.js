@@ -203,6 +203,10 @@
                 <div class="fd-badges-row">${rankBadge}${friendBadge}${ageBadge}${platBadge}</div>
                 ${instanceHtml}${bioHtml}${langsHtml}
             </div>`;
+
+        // The background fields ride along on the preview payload, so the hover card
+        // gets the same treatment as the profile modal.
+        if (typeof applyProfileBg === 'function') applyProfileBg(popup, extra || f);
     }
 
     function buildStatsRow(uid) {
@@ -251,7 +255,16 @@
 
     window.handleFriendPreview = function (data) {
         if (!data?.id) return;
-        _fpCache[data.id] = { bio: data.bio || '', banner: data.profilePicOverride || '', ts: Date.now() };
+        _fpCache[data.id] = {
+            bio: data.bio || '',
+            banner: data.profilePicOverride || '',
+            backgroundType:           data.backgroundType || '',
+            backgroundTextureId:      data.backgroundTextureId || '',
+            backgroundTextureUrl:     data.backgroundTextureUrl || '',
+            backgroundGradientTop:    data.backgroundGradientTop || '',
+            backgroundGradientBottom: data.backgroundGradientBottom || '',
+            ts: Date.now(),
+        };
         // Re-render popup if still showing this friend
         if (_fpCurrentUid === data.id) {
             const popup = document.getElementById('fpPreview');
@@ -277,11 +290,22 @@
         if (card) positionPopup(popup, card);
     };
 
-    // Cache bio/banner whenever a full friend detail is opened
+    // Cache bio/banner whenever a full friend detail is opened. The profile payload
+    // carries the VRC+ background too, so it is taken along - dropping it here would
+    // silently strip the background from an already cached preview.
     const _origRender = window.renderFriendDetail;
     if (typeof _origRender === 'function') {
         window.renderFriendDetail = function (d) {
-            if (d?.id) _fpCache[d.id] = { bio: d.bio || '', banner: d.profilePicOverride || '', ts: Date.now() };
+            if (d?.id) _fpCache[d.id] = {
+                bio: d.bio || '',
+                banner: d.profilePicOverride || '',
+                backgroundType:           d.backgroundType || '',
+                backgroundTextureId:      d.backgroundTextureId || '',
+                backgroundTextureUrl:     d.backgroundTextureUrl || '',
+                backgroundGradientTop:    d.backgroundGradientTop || '',
+                backgroundGradientBottom: d.backgroundGradientBottom || '',
+                ts: Date.now(),
+            };
             return _origRender.call(this, d);
         };
     }

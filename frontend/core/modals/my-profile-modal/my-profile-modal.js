@@ -64,7 +64,7 @@ function renderProfileDecoPicker(loading) {
             ).join('');
             const empty = items.length === 0 ? `<div class="pd-empty">${t('profiles.deco.empty', 'You do not own any of these')}</div>` : '';
             return `<div class="pd-section"><div class="pd-section-title">${esc(s.label)}</div><div class="pd-grid">${noneCell}${cells}</div>${empty}</div>`;
-        }).join('');
+        }).join('') + _mypBackgroundSection();
     m.innerHTML = `<div class="gp-modal" style="width:560px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;">
         <div class="gp-modal-header">
             <span class="msi" style="font-size:20px;color:var(--accent);">filter_frames</span>
@@ -323,6 +323,8 @@ function renderMyProfileContent() {
         if (cnt) cnt.textContent = bioInput.value.length;
     };
 
+    // Own VRC+ profile background, same treatment as other profiles.
+    if (typeof applyProfileBg === 'function') applyProfileBg(box, u);
 }
 
 let _myBadgesEditing = false;
@@ -568,3 +570,135 @@ function submitStatusChange() {
     document.getElementById('modalStatus').style.display = 'none';
 }
 
+// VRC+ profile background. Written through PUT profile/{userId}, which is a different
+// endpoint from the decoration slots above, hence its own action.
+function _mypBackgroundSection() {
+    if (typeof PROFILE_BG_FILES === 'undefined') return '';
+    const u = currentVrcUser || {};
+    const type = u.backgroundType || 'default';
+    const curTex = type === 'texture' ? (u.backgroundTextureId || '') : '';
+
+    const noneCell = `<div class="pd-cell${type === 'default' ? ' pd-sel' : ''}" onclick="setProfileBackground('default')"><div class="pd-none"><span class="msi">block</span></div><div class="pd-name">${t('profiles.deco.none', 'None')}</div></div>`;
+
+    const gradCell = `<div class="pd-cell${type === 'gradient' ? ' pd-sel' : ''}" onclick="setProfileBackgroundGradient()" title="${esc(t('profiles.deco.gradient', 'Gradient'))}"><div class="pd-none" style="background:linear-gradient(180deg,${esc(u.backgroundGradientTop || '#5d3f86')},${esc(u.backgroundGradientBottom || '#21385b')});"></div><div class="pd-name">${esc(t('profiles.deco.gradient', 'Gradient'))}</div></div>`;
+
+    const texCells = Object.keys(PROFILE_BG_FILES).map(id => {
+        const url = PROFILE_BG_ASSET_URL + PROFILE_BG_FILES[id];
+        const label = id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        return `<div class="pd-cell${curTex === id ? ' pd-sel' : ''}" onclick="setProfileBackground('texture','${jsq(id)}')" title="${esc(label)}"><img src="${esc(url)}" loading="lazy" onerror="this.style.display='none'"><div class="pd-name">${esc(label)}</div></div>`;
+    }).join('');
+
+    return `<div class="pd-section"><div class="pd-section-title">${esc(t('profiles.deco.background', 'Profile Background'))}</div><div class="pd-grid">${noneCell}${gradCell}${texCells}</div></div>`;
+}
+
+function setProfileBackground(type, textureId) {
+    if (currentVrcUser) {
+        currentVrcUser.backgroundType = type;
+        currentVrcUser.backgroundTextureId = type === 'texture' ? (textureId || '') : '';
+    }
+    renderProfileDecoPicker(false);
+    sendToCS({ action: 'vrcUpdateProfileBackground', backgroundType: type, backgroundTextureId: textureId || '' });
+}
+
+let _pbgGradTop = '#5d3f86';
+let _pbgGradBottom = '#21385b';
+
+function _pbgHex(v, fallback) {
+    const c = String(v || '').trim().replace(/^#/, '');
+    return /^[0-9a-f]{6}$/i.test(c) ? '#' + c.toLowerCase() : fallback;
+}
+
+// Gradient editor in the same shell as the decoration picker, with a live preview so
+// the two colours can be judged together rather than one hex field at a time.
+function setProfileBackgroundGradient() {
+    const u = currentVrcUser || {};
+    _pbgGradTop    = _pbgHex(u.backgroundGradientTop, '#5d3f86');
+    _pbgGradBottom = _pbgHex(u.backgroundGradientBottom, '#21385b');
+
+    let m = document.getElementById('profileGradModal');
+    if (m) m.remove();
+    m = document.createElement('div');
+    m.className = 'modal-overlay';
+    m.id = 'profileGradModal';
+    m.style.zIndex = '10004';
+    m.style.display = 'flex';
+    m.innerHTML = `<div class="gp-modal" style="width:380px;max-width:92vw;">
+        <div class="gp-modal-header">
+            <span class="msi" style="font-size:20px;color:var(--accent);">gradient</span>
+            <span>${esc(t('profiles.deco.gradient', 'Gradient'))}</span>
+            <button class="vrcn-button-round" onclick="closeProfileGradPicker()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:18px;">close</span></button>
+        </div>
+        <div class="gp-modal-body">
+            <div id="pbgPreview" class="pbg-preview"></div>
+            <div class="pbg-row">
+                <span class="pbg-label">${esc(t('profiles.deco.gradient_top', 'Top'))}</span>
+                <input type="color" id="pbgTopColor" class="pbg-swatch" value="${esc(_pbgGradTop)}" oninput="pbgSetGrad('top', this.value)">
+                <input type="text" id="pbgTopHex" class="vrcn-edit-field pbg-hex" maxlength="7" value="${esc(_pbgGradTop)}" oninput="pbgSetGrad('top', this.value)">
+            </div>
+            <div class="pbg-row">
+                <span class="pbg-label">${esc(t('profiles.deco.gradient_bottom', 'Bottom'))}</span>
+                <input type="color" id="pbgBottomColor" class="pbg-swatch" value="${esc(_pbgGradBottom)}" oninput="pbgSetGrad('bottom', this.value)">
+                <input type="text" id="pbgBottomHex" class="vrcn-edit-field pbg-hex" maxlength="7" value="${esc(_pbgGradBottom)}" oninput="pbgSetGrad('bottom', this.value)">
+            </div>
+        </div>
+        <div class="modal-btns" style="padding:0 16px 16px;">
+            <button class="vrcn-button" onclick="closeProfileGradPicker()">${esc(t('common.cancel', 'Cancel'))}</button>
+            <button class="vrcn-button vrcn-btn-primary" onclick="applyProfileGradient()">${esc(t('common.apply', 'Apply'))}</button>
+        </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if (e.target === m) closeProfileGradPicker(); });
+    _pbgRenderPreview();
+}
+
+function _pbgRenderPreview() {
+    const el = document.getElementById('pbgPreview');
+    if (el) el.style.background = `linear-gradient(180deg, ${_pbgGradTop}, ${_pbgGradBottom})`;
+}
+
+function pbgSetGrad(which, value) {
+    const cur = which === 'top' ? _pbgGradTop : _pbgGradBottom;
+    const hex = _pbgHex(value, cur);
+    if (which === 'top') _pbgGradTop = hex; else _pbgGradBottom = hex;
+
+    const colorEl = document.getElementById(which === 'top' ? 'pbgTopColor' : 'pbgBottomColor');
+    const hexEl   = document.getElementById(which === 'top' ? 'pbgTopHex'   : 'pbgBottomHex');
+    if (colorEl) colorEl.value = hex;
+    // Leave the text field alone while it is being typed in, otherwise the caret jumps.
+    if (hexEl && document.activeElement !== hexEl) hexEl.value = hex;
+    _pbgRenderPreview();
+}
+
+function closeProfileGradPicker() {
+    document.getElementById('profileGradModal')?.remove();
+}
+
+function applyProfileGradient() {
+    if (currentVrcUser) {
+        currentVrcUser.backgroundType = 'gradient';
+        currentVrcUser.backgroundGradientTop = _pbgGradTop;
+        currentVrcUser.backgroundGradientBottom = _pbgGradBottom;
+    }
+    closeProfileGradPicker();
+    renderProfileDecoPicker(false);
+    sendToCS({
+        action: 'vrcUpdateProfileBackground',
+        backgroundType: 'gradient',
+        backgroundGradientTop: _pbgGradTop,
+        backgroundGradientBottom: _pbgGradBottom,
+    });
+}
+
+function onProfileBackgroundUpdated(data) {
+    if (!data?.success) { showToast(false, t('profiles.deco.failed', 'Could not update decoration')); return; }
+    if (currentVrcUser) Object.assign(currentVrcUser, {
+        backgroundType:           data.backgroundType || 'default',
+        backgroundTextureId:      data.backgroundTextureId || '',
+        backgroundTextureUrl:     data.backgroundTextureUrl || '',
+        backgroundGradientTop:    data.backgroundGradientTop || '',
+        backgroundGradientBottom: data.backgroundGradientBottom || '',
+    });
+    showToast(true, t('profiles.deco.updated', 'Profile updated!'));
+    if (typeof renderMyProfileContent === 'function') renderMyProfileContent();
+    renderProfileDecoPicker(false);
+}

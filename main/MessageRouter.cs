@@ -678,6 +678,40 @@ public partial class AppShell
                     break;
 
                 // Update own profile (bio, pronouns, links, languages, icon, banner)
+                case "vrcUpdateProfileBackground":
+                {
+                    var bgKind = msg["backgroundType"]?.ToString() ?? "default";
+                    var bgBody = new JObject { ["backgroundType"] = bgKind };
+                    if (bgKind == "texture")
+                        bgBody["backgroundTextureId"] = msg["backgroundTextureId"]?.ToString() ?? "";
+                    else if (bgKind == "gradient")
+                    {
+                        // VRChat expects bare hex, the picker hands us "#rrggbb".
+                        bgBody["backgroundGradientTop"]    = (msg["backgroundGradientTop"]?.ToString()    ?? "").TrimStart('#');
+                        bgBody["backgroundGradientBottom"] = (msg["backgroundGradientBottom"]?.ToString() ?? "").TrimStart('#');
+                    }
+
+                    var bgSelfId = _core.VrcApi.CurrentUserId;
+                    _ = Task.Run(async () =>
+                    {
+                        var ok = await _core.Users.UpdateProfileAppearanceAsync(bgSelfId, bgBody);
+                        Invoke(() =>
+                        {
+                            SendToJS("vrcProfileBackgroundUpdated", new
+                            {
+                                success                  = ok != null,
+                                backgroundType           = bgKind,
+                                backgroundTextureId      = bgBody["backgroundTextureId"]?.ToString() ?? "",
+                                backgroundTextureUrl     = ProfileBackgroundHelper.UrlFor(bgBody["backgroundTextureId"]?.ToString()),
+                                backgroundGradientTop    = bgBody["backgroundGradientTop"]?.ToString() ?? "",
+                                backgroundGradientBottom = bgBody["backgroundGradientBottom"]?.ToString() ?? "",
+                            });
+                            SendToJS("log", new { msg = ok != null ? "VRChat: Profile background updated" : "VRChat: Failed to update profile background", color = ok != null ? "ok" : "err" });
+                        });
+                    });
+                    break;
+                }
+
                 case "vrcUpdateProfile":
                     var upBio = msg["bio"] != null ? msg["bio"]!.ToString() : (string?)null;
                     var upPronouns = msg["pronouns"] != null ? msg["pronouns"]!.ToString() : (string?)null;
