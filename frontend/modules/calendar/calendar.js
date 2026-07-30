@@ -138,14 +138,34 @@ function _calClickDay(key) {
     _buildDayPanel(dayEvents, _calSelectedDay);
 }
 
+function _calDayKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 function _eventKey(evt) {
     const date = new Date(evt.startsAt || evt.startDate || '');
     if (isNaN(date)) return null;
-    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+    return _calDayKey(date);
+}
+
+function _eventDayKeys(evt) {
+    const start = new Date(evt.startsAt || evt.startDate || '');
+    if (isNaN(start)) return [];
+    let end = new Date(evt.endsAt || evt.endDate || '');
+    if (isNaN(end) || end < start) end = start;
+    const keys = [];
+    const cur  = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    let guard = 0;
+    while (cur <= last && guard++ < 366) {
+        keys.push(_calDayKey(cur));
+        cur.setDate(cur.getDate() + 1);
+    }
+    return keys;
 }
 
 function _eventsForDay(key) {
-    return _calEvents.filter(evt => _eventKey(evt) === key);
+    return _calEvents.filter(evt => _eventDayKeys(evt).includes(key));
 }
 
 function _isFeatured(evt) {
@@ -156,57 +176,82 @@ function _buildGrid() {
     const wrap = document.getElementById('calGridArea');
     if (!wrap) return;
 
-    const dayMap = {};
-    _calEvents.forEach(evt => {
-        const key = _eventKey(evt);
-        if (key) (dayMap[key] = dayMap[key] || []).push(evt);
-    });
-
+    const DAY = 86400000;
     const today = new Date();
-    const todayKey = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
+    const todayKey = _calDayKey(today);
     const firstDay = new Date(_calYear, _calMonth, 1).getDay();
     const firstDayMon = (firstDay + 6) % 7;
     const daysInMonth = new Date(_calYear, _calMonth + 1, 0).getDate();
+    const weeks = Math.ceil((firstDayMon + daysInMonth) / 7);
+    const totalCells = weeks * 7;
+    const gridStart = new Date(_calYear, _calMonth, 1 - firstDayMon);
+    gridStart.setHours(0, 0, 0, 0);
+
+    const gIndex = d => Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - gridStart) / DAY);
+
+    const segs = [];
+    _calEvents.forEach(evt => {
+        const start = new Date(evt.startsAt || evt.startDate || '');
+        if (isNaN(start)) return;
+        let end = new Date(evt.endsAt || evt.endDate || '');
+        if (isNaN(end) || end < start) end = start;
+        const rawS = gIndex(start), rawE = gIndex(end);
+        if (rawE < 0 || rawS > totalCells - 1) return;
+        segs.push({ evt, gS: Math.max(0, rawS), gE: Math.min(totalCells - 1, rawE), trueStart: rawS >= 0, trueEnd: rawE <= totalCells - 1 });
+    });
+
+    segs.sort((a, b) => a.gS - b.gS || (b.gE - b.gS) - (a.gE - a.gS));
+    const laneEnd = [];
+    segs.forEach(seg => {
+        let lane = 0;
+        while (lane < laneEnd.length && laneEnd[lane] >= seg.gS) lane++;
+        seg.lane = lane;
+        laneEnd[lane] = seg.gE;
+    });
 
     const hdr = Array.from({ length: 7 }, (_, idx) => {
         const label = new Date(Date.UTC(2024, 0, 8 + idx)).toLocaleDateString(_calDateLocale(), { weekday: 'short' });
         return `<div class="cal-day-hdr">${esc(label.toUpperCase())}</div>`;
     }).join('');
 
-    let cells = '';
-    for (let i = 0; i < firstDayMon; i++) {
-        cells += '<div class="cal-day cal-empty"></div>';
-    }
+    let weeksHtml = '';
+    for (let w = 0; w < weeks; w++) {
+        const wStart = w * 7, wEnd = w * 7 + 6;
+        let lanes = 0;
+        segs.forEach(seg => { if (seg.gE >= wStart && seg.gS <= wEnd) lanes = Math.max(lanes, seg.lane + 1); });
 
-    for (let day = 1; day <= daysInMonth; day++) {
-        const key = `${_calYear}-${String(_calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const events = dayMap[key] || [];
-        const isToday = key === todayKey;
-        const isSelected = key === _calSelectedDay;
-        let cls = 'cal-day';
-        if (isToday) cls += ' cal-today';
-        if (isSelected) cls += ' cal-sel';
+        let dayCells = '';
+        for (let c = 0; c < 7; c++) {
+            const cellDate = new Date(gridStart.getTime() + (wStart + c) * DAY);
+            const inMonth = cellDate.getMonth() === _calMonth && cellDate.getFullYear() === _calYear;
+            const key = _calDayKey(cellDate);
+            let cls = 'cal-day';
+            if (!inMonth) cls += ' cal-out';
+            if (key === todayKey) cls += ' cal-today';
+            if (key === _calSelectedDay) cls += ' cal-sel';
+            dayCells += `<div class="${cls}" style="grid-column:${c + 1};grid-row:1/-1;" onclick="_calClickDay('${key}')"><div class="cal-day-num">${cellDate.getDate()}</div></div>`;
+        }
 
-        const chips = events.slice(0, 3).map(evt => {
-            const groupId = esc(evt.ownerId || '');
-            const eventId = esc(evt.id || '');
-            const chipCls = _isFeatured(evt) ? 'cal-chip-f' : 'cal-chip-g';
+        let bars = '';
+        segs.forEach(seg => {
+            if (seg.gE < wStart || seg.gS > wEnd) return;
+            const colStart = Math.max(seg.gS, wStart) - wStart + 1;
+            const colEnd = Math.min(seg.gE, wEnd) - wStart + 1;
+            const openLeft = !(seg.gS >= wStart && seg.trueStart);
+            const openRight = !(seg.gE <= wEnd && seg.trueEnd);
+            const showLabel = seg.gS >= wStart;
+            const evt = seg.evt;
+            const barCls = _isFeatured(evt) ? 'cal-bar-f' : 'cal-bar-g';
+            const edge = (openLeft ? ' cal-bar-openl' : '') + (openRight ? ' cal-bar-openr' : '');
             const title = evt.title || t('calendar.event_fallback', 'Event');
-            return `<span class="cal-chip ${chipCls}" onclick="event.stopPropagation();openEventDetail('${groupId}','${eventId}')" title="${esc(title)}">${esc(title)}</span>`;
-        }).join('');
+            bars += `<div class="cal-bar ${barCls}${edge}" data-pin-event-id="${esc(evt.id || '')}" data-pin-event-owner="${esc(evt.ownerId || '')}" data-pin-event-name="${esc(evt.title || '')}" data-pin-event-image="${esc(evt.imageUrl || '')}" style="grid-column:${colStart}/${colEnd + 1};grid-row:${seg.lane + 2};" onclick="event.stopPropagation();openEventDetail('${esc(evt.ownerId || '')}','${esc(evt.id || '')}')" title="${esc(title)}">${showLabel ? esc(title) : ''}</div>`;
+        });
 
-        const moreCount = events.length - 3;
-        const moreFallback = `+${moreCount} more`;
-        const more = events.length > 3
-            ? `<span class="cal-chip-more">${esc(tf('calendar.more_count', { count: moreCount }, moreFallback))}</span>`
-            : '';
-
-        cells += `<div class="${cls}" onclick="_calClickDay('${key}')">
-            <div class="cal-day-num">${day}</div>${chips}${more}
-        </div>`;
+        const rows = `26px ${lanes > 0 ? `repeat(${lanes}, 22px) ` : ''}1fr`;
+        weeksHtml += `<div class="cal-week" style="grid-template-rows:${rows};">${dayCells}${bars}</div>`;
     }
 
-    wrap.innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;">${hdr}${cells}</div>`;
+    wrap.innerHTML = `<div class="cal-hdr-row">${hdr}</div><div class="cal-month">${weeksHtml}</div>`;
 }
 
 function _buildDayPanel(events, key) {
@@ -234,7 +279,7 @@ function _buildDayPanel(events, key) {
                 ? `<img class="cal-evlist-thumb" src="${evt.imageUrl}" onerror="this.style.display='none'">`
                 : `<div class="cal-evlist-thumb"><span class="msi" style="font-size:22px;color:var(--tx3);">event</span></div>`;
 
-            return `<div class="cal-evlist-card" onclick="openEventDetail('${esc(evt.ownerId || '')}','${esc(evt.id || '')}')">
+            return `<div class="cal-evlist-card" data-pin-event-id="${esc(evt.id || '')}" data-pin-event-owner="${esc(evt.ownerId || '')}" data-pin-event-name="${esc(evt.title || '')}" data-pin-event-image="${esc(evt.imageUrl || '')}" onclick="openEventDetail('${esc(evt.ownerId || '')}','${esc(evt.id || '')}')">
                 ${imgHtml}
                 <div style="flex:1;min-width:0;">
                     <div style="font-size:12px;font-weight:600;color:var(--tx0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${esc(evt.title || t('calendar.untitled_event', 'Untitled Event'))}</div>

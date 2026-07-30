@@ -38,7 +38,7 @@ public class FriendsController
     // Chat Storage
     private static readonly string _chatDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext", "chat");
-    public record ChatEntry(string id, string from, string text, string time, string? type = null);
+    public record ChatEntry(string id, string from, string text, string time, string? type = null, string? emoji = null);
 
     // Public Accessors (for other domains)
     public bool FriendStateSeeded => _friendStateSeeded;
@@ -900,14 +900,15 @@ public class FriendsController
             case "vrcBoop":
             {
                 var uid = msg["userId"]?.ToString();
+                var boopEmoji = msg["emojiId"]?.ToString();
                 if (!string.IsNullOrEmpty(uid))
                 {
                     _ = Task.Run(async () =>
                     {
-                        var ok = await _core.Users.SendBoopAsync(uid);
+                        var ok = await _core.Users.SendBoopAsync(uid, boopEmoji);
                         if (ok)
                         {
-                            var entry = StoreChatMessage(uid, "me", "💕 Boop!", "boop");
+                            var entry = StoreChatMessage(uid, "me", "💕 Boop!", "boop", boopEmoji);
                             _core.SendToJS("vrcChatMessage", entry);
                         }
                         _core.SendToJS("vrcActionResult", new { action = "boop", success = ok,
@@ -1724,6 +1725,10 @@ public class FriendsController
             var diskProfile = new JObject
             {
                 ["id"]                    = userId,
+                // Memos live in the timeline DB, not the profile cache, so they have to
+                // be attached here too - otherwise the cached path drops them and the UI
+                // falls back to the display name.
+                ["memo"]                  = _core.Timeline?.GetUserMemo(userId) ?? "",
                 ["displayName"]           = !string.IsNullOrEmpty(liveDisplayName) ? liveDisplayName : cachedEntry.DisplayName,
                 ["image"]                 = !string.IsNullOrEmpty(liveRawImage) ? ImageCacheHelper.GetUserUrl(userId, liveRawImage) : cachedEntry.Image,
                 ["status"]                = liveStatus,
@@ -2723,9 +2728,9 @@ public class FriendsController
         catch { return []; }
     }
 
-    public ChatEntry StoreChatMessage(string userId, string from, string text, string? type = null)
+    public ChatEntry StoreChatMessage(string userId, string from, string text, string? type = null, string? emoji = null)
     {
-        var entry = new ChatEntry(Guid.NewGuid().ToString(), from, text, DateTime.UtcNow.ToString("o"), type);
+        var entry = new ChatEntry(Guid.NewGuid().ToString(), from, text, DateTime.UtcNow.ToString("o"), type, string.IsNullOrEmpty(emoji) ? null : emoji);
         try
         {
             Directory.CreateDirectory(_chatDir);

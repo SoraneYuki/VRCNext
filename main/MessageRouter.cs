@@ -2315,6 +2315,7 @@ public partial class AppShell
                 case "vrcKickGroupMember":
                 case "vrcBanGroupMember":
                 case "vrcGetGroupBans":
+                case "vrcGetGroupLogs":
                 case "vrcUnbanGroupMember":
                 case "vrcCreateGroupRole":
                 case "vrcUpdateGroupRole":
@@ -2417,6 +2418,14 @@ public partial class AppShell
                 case "afSendChatMessage":
                 case "afInstanceWebhook":
                     _afCtrl.HandleMessage(action, msg);
+                    break;
+
+                // Status Schedule
+                case "ssLoadRules":
+                case "ssSaveRules":
+                case "ssSetEnabled":
+                case "ssEvaluateNow":
+                    await _ssCtrl.HandleMessage(action, msg);
                     break;
 
                 // Avatar Scaling

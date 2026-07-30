@@ -61,6 +61,7 @@ public partial class AppShell
     private RelayController _relayCtrl = null!;
     private SnipeController _snipeCtrl = null!;
     private ActionFlowController _afCtrl = null!;
+    private StatusScheduleController _ssCtrl = null!;
     private VRCNPlusController _vrcnPlusCtrl = null!;
     private WindowController _windowCtrl = null!;
     private readonly CacheHandler _cache = new();
@@ -202,11 +203,13 @@ public partial class AppShell
         _asCtrl = new AvatarScalingController(_core);
         _snipeCtrl = new SnipeController(_core);
         _afCtrl = new ActionFlowController(_core);
+        _ssCtrl = new StatusScheduleController(_core);
         _vrcnPlusCtrl = new VRCNPlusController(_core);
 #if WINDOWS
         _afCtrl.TrayServiceProvider = () => _trayService;
 #endif
         _relayCtrl = new RelayController(_core, _friends, _instance, _notifications, _vroCtrl);
+        _ssCtrl.Start();
         _windowCtrl = new WindowController(_core);
 #if WINDOWS
         WindowController.OnMinimized = () => _memTrim.TrimNow();
@@ -605,6 +608,7 @@ public partial class AppShell
         _asCtrl?.Dispose();
         _snipeCtrl?.Dispose();
         _afCtrl?.Dispose();
+        _ssCtrl?.Dispose();
         _discordCtrl?.Dispose();
         _chatboxCtrl?.Dispose();
         _vroCtrl?.Dispose();

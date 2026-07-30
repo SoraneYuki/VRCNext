@@ -1923,7 +1923,7 @@ function _fdBuildTaskbarActions(d) {
     const _mInt = Array.isArray(interactOffData)  && interactOffData.some(x => x.targetUserId === d.id);
     const _invG = (typeof myGroups !== 'undefined') ? myGroups.filter(g => g.canInvite === true) : [];
     const _moreItems = [
-        d.isFriend ? { icon: 'waving_hand', label: t('context_menu.friend.boop', 'Boop!'), onclick: `(typeof msgrRegisterBoopSent==='function'&&msgrRegisterBoopSent('${_fid}'));sendToCS({action:'vrcBoop',userId:'${_fid}'})` } : null,
+        d.isFriend ? { icon: 'waving_hand', label: t('context_menu.friend.boop', 'Boop!'), onclick: `openBoopModal('${_fid}','${jsq(d.displayName || _fid)}')` } : null,
         (d.isFriend && _invG.length) ? { icon: 'group_add', label: t('context_menu.friend.invite_group', 'Invite to Group'), submenu: _invG.map(g => ({ icon: 'group', label: g.name || g.id, onclick: `sendToCS({action:'vrcInviteToGroup',groupId:'${jsq(g.id)}',userIds:['${_fid}']});showToast(true,t('context_menu.friend.invite_group_sent','Invite sent!'))` })) } : null,
         { icon: 'shield_person', label: t('context_menu.friend.moderate', 'Moderate'), submenu: [
             { icon: _mBlk ? 'lock_open' : 'block',           label: _mBlk ? t('context_menu.friend.unblock', 'Unblock')                  : t('context_menu.friend.block', 'Block'),                       onclick: `sendToCS({action:'${_mBlk ? 'vrcUnblock' : 'vrcBlock'}',userId:'${_fid}'})` },

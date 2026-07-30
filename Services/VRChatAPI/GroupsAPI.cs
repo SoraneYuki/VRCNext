@@ -340,6 +340,40 @@ public class GroupsAPI(VRChatApiService ctx)
         catch (Exception ex) { ctx.Log($"BanGroupMember exception: {ex.Message}"); return false; }
     }
 
+    // Audit logs are paged and, unlike most group endpoints, return an object
+    // ({ results, totalCount, hasNext }) rather than a bare array.
+    // Requires the group-audit-view permission.
+    public async Task<JObject?> GetGroupAuditLogsAsync(string groupId, int n = 50, int offset = 0, string eventTypes = "")
+    {
+        if (!ctx.IsLoggedIn) return null;
+        try
+        {
+            var url = $"{VRChatApiService.BASE}/groups/{groupId}/auditLogs?n={n}&offset={offset}";
+            if (!string.IsNullOrWhiteSpace(eventTypes))
+                url += $"&eventTypes={Uri.EscapeDataString(eventTypes)}";
+
+            var resp = await ctx._http.GetAsync(url);
+            var body = await resp.Content.ReadAsStringAsync();
+            if (resp.IsSuccessStatusCode) return JObject.Parse(body);
+            ctx.Log($"GetGroupAuditLogs({groupId}): {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"GetGroupAuditLogs exception: {ex.Message}"); }
+        return null;
+    }
+
+    public async Task<JArray> GetGroupAuditLogTypesAsync(string groupId)
+    {
+        if (!ctx.IsLoggedIn) return new JArray();
+        try
+        {
+            var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/groups/{groupId}/auditLogTypes");
+            if (resp.IsSuccessStatusCode) return JArray.Parse(await resp.Content.ReadAsStringAsync());
+            ctx.Log($"GetGroupAuditLogTypes({groupId}): {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"GetGroupAuditLogTypes exception: {ex.Message}"); }
+        return new JArray();
+    }
+
     public async Task<JArray> GetGroupBansAsync(string groupId)
     {
         if (!ctx.IsLoggedIn) return new JArray();

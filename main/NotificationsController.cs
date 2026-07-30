@@ -356,12 +356,30 @@ public class NotificationsController
     }
 
     // Static Helpers
-
     private static string? ExtractGroupIdFromLink(string? link)
     {
         if (string.IsNullOrEmpty(link)) return null;
         var m = System.Text.RegularExpressions.Regex.Match(link, @"grp_[0-9a-f\-]+");
         return m.Success ? m.Value : null;
+    }
+
+    // Boop emoji can arrive as details/data, either as an object or as an embedded JSON string.
+    private static string? ExtractEmojiId(JObject n)
+    {
+        foreach (var key in new[] { "details", "data" })
+        {
+            var tok = n[key];
+            if (tok is null) continue;
+            if (tok.Type == JTokenType.String)
+            {
+                var raw = tok.ToString();
+                if (string.IsNullOrWhiteSpace(raw) || !raw.TrimStart().StartsWith("{")) continue;
+                try { tok = JObject.Parse(raw); } catch { continue; }
+            }
+            var id = (tok as JObject)?["emojiId"]?.ToString();
+            if (!string.IsNullOrEmpty(id)) return id;
+        }
+        return n["emojiId"]?.ToString();
     }
 
     private static dynamic NormalizeNotifV1(JObject n) => (dynamic)new {
@@ -378,6 +396,7 @@ public class NotificationsController
         _v2            = false,
         _title         = (string?)null,
         _link          = (string?)null,
+        _emojiId       = ExtractEmojiId(n),
     };
 
     private static dynamic NormalizeNotifV2(JObject n) => (dynamic)new {
@@ -398,6 +417,7 @@ public class NotificationsController
         _title         = n["title"]?.ToString(),
         _link          = n["link"]?.ToString(),
         _data          = n["data"],  // group-specific data: groupId, requestUserId, etc.
+        _emojiId       = ExtractEmojiId(n),
     };
 
     // Core Logic
@@ -416,7 +436,7 @@ public class NotificationsController
             var boopSender = (string?)n.senderUserId ?? "";
             if (!string.IsNullOrEmpty(boopSender))
             {
-                var boopEntry = _friends.StoreChatMessage(boopSender, boopSender, "\ud83d\udc95 Boop!", "boop");
+                var boopEntry = _friends.StoreChatMessage(boopSender, boopSender, "\ud83d\udc95 Boop!", "boop", (string?)n._emojiId);
                 Invoke(() => _core.SendToJS("vrcChatMessage", boopEntry));
             }
         }

@@ -836,6 +836,7 @@ function getPageTitle(i) {
         t('page.avatar_scaling', 'Avatar Scaling'),
         t('page.action_flow', 'Action Flow'),
         t('page.frame_shot', 'FrameShot'),
+        t('page.status_schedule', 'Status Schedule'),
     ][i] ?? '';
 }
 
@@ -1427,6 +1428,7 @@ function showTab(i) {
     if (i === 21) onPerminiTabOpen();
     if (i === 22) { kxdInitLangSelects(); kxdOnTabOpen(); }
     if (i === 25) { if (typeof afOnTabOpen === 'function') afOnTabOpen(); }
+    if (i === 27) { if (typeof onStatusScheduleTabOpen === 'function') onStatusScheduleTabOpen(); }
 
     if (_prevTabEl) {
         if (_lazyUnloadDelay === 0) {

@@ -56,6 +56,7 @@ function confirmLeaveGroup(groupId, groupName) {
     if (old) old.remove();
     const o = document.createElement('div');
     o.className = 'modal-overlay';
+    o.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     o.id = 'leaveGroupModal';
     o.style.zIndex = '10003';
     o.onclick = e => { if (e.target === o) o.remove(); };
@@ -75,6 +76,9 @@ function renderGroupDetail(g) {
     window._currentGroupDetailFull = g;
     window._currentGroupDetail = { id: g.id, canKick: g.canKick === true, canBan: g.canBan === true, canManageRoles: g.canManageRoles === true, canAssignRoles: g.canAssignRoles === true, languages: g.languages || [], links: g.links || [], joinState: g.joinState || '', roles: g.roles || [] };
     window._gdBannedLoaded = false;
+    window._gdLogsLoaded   = false;
+    window._gdLogRows      = [];
+    window._gdLogsOffset   = 0;
     if (typeof navUpdateLabel === 'function') navUpdateLabel(g.name || '');
     window._gdMemberRoleIds = {};
     const el = document.getElementById('detailModalContent');
@@ -461,6 +465,7 @@ function renderGroupDetail(g) {
     ];
     if (g.canManageRoles) tabs.push({ key: 'roles', label: t('groups.tabs.roles', 'Roles') });
     if (g.canBan)         tabs.push({ key: 'banned', label: t('groups.tabs.banned', 'Banned') });
+    if (g.canViewAudit)   tabs.push({ key: 'logs', label: t('groups.tabs.logs', 'Logs') });
     tabs.push({ key: 'json', label: 'Json' });
     const tabsHtml = `<div class="fd-tabs gd-tabs">${tabs.map((t,i) => `<button class="fd-tab${i===0?' active':''}" onclick="switchGdTab('${t.key}',this)">${t.label}</button>`).join('')}</div>`;
 
@@ -477,6 +482,7 @@ function renderGroupDetail(g) {
         <div id="gdTabMembers" style="display:none;">${membersTab}</div>
         ${g.canManageRoles ? `<div id="gdTabRoles" style="display:none;">${rolesTab}</div>` : ''}
         ${g.canBan ? `<div id="gdTabBanned" style="display:none;">${bannedTab}</div>` : ''}
+        ${g.canViewAudit ? `<div id="gdTabLogs" style="display:none;">${_buildLogsTab()}</div>` : ''}
         <div id="gdTabJson" style="display:none;"><div class="json-viewer">${jsonHighlight((g.id && _gdRawJsonCache[g.id]) || {})}</div></div>`;
 
     if (useGdCompact) {
@@ -826,7 +832,7 @@ function searchGroupMembers() {
 function switchGdTab(tab, btn) {
     const box = document.querySelector('#modalDetail .modal-box');
     animateModalBox(box, () => {
-        ['Info','Posts','Events','Instances','Gallery','Members','Roles','Banned','Json'].forEach(t => {
+        ['Info','Posts','Events','Instances','Gallery','Members','Roles','Banned','Logs','Json'].forEach(t => {
             const el = document.getElementById('gdTab' + t);
             if (el) el.style.display = t.toLowerCase() === tab ? '' : 'none';
         });
@@ -834,6 +840,7 @@ function switchGdTab(tab, btn) {
         btn.classList.add('active');
     });
     if (tab === 'banned' && !window._gdBannedLoaded) loadGroupBans();
+    if (tab === 'logs'   && !window._gdLogsLoaded)   loadGroupLogs(true);
 }
 
 function _switchGdTabByKey(key) {
@@ -1788,6 +1795,147 @@ function onGroupRoleResult(payload) {
 
 function _buildBannedTab() {
     return `<div id="gdBannedList">${renderGroupEmptyMessage('common.loading', 'Loading...')}</div>`;
+}
+
+// Audit Logs (group-audit-view)
+
+function _buildLogsTab() {
+    return `<div id="gdLogsList">${renderGroupEmptyMessage('common.loading', 'Loading...')}</div>
+        <div id="gdLogsLoadMore" style="text-align:center;padding:12px;"></div>`;
+}
+
+function loadGroupLogs(reset) {
+    const gid = window._currentGroupDetail?.id;
+    if (!gid) return;
+    window._gdLogsLoaded = true;
+    if (reset) {
+        window._gdLogRows   = [];
+        window._gdLogsOffset = 0;
+    }
+    sendToCS({ action: 'vrcGetGroupLogs', groupId: gid, offset: window._gdLogsOffset || 0 });
+}
+
+function loadMoreGroupLogs() {
+    const more = document.getElementById('gdLogsLoadMore');
+    if (more) more.innerHTML = `<div style="font-size:11px;color:var(--tx3);">${esc(t('common.loading', 'Loading...'))}</div>`;
+    loadGroupLogs(false);
+}
+
+const _GD_LOG_VERB_PAST = {
+    create: 'Created',   update: 'Updated',   delete: 'Deleted',
+    remove: 'Removed',   add: 'Added',        edit: 'Edited',
+    join: 'Joined',      leave: 'Left',       post: 'Posted',
+    assign: 'Assigned',  unassign: 'Unassigned',
+    kick: 'Kicked',      ban: 'Banned',       unban: 'Unbanned',
+    invite: 'Invited',   accept: 'Accepted',  reject: 'Rejected',
+};
+
+// Nouns that read badly straight from the API.
+const _GD_LOG_NOUN_ALIAS = { calendarEvent: 'Event' };
+
+function _gdLogTitle(s) {
+    return String(s || '')
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// "group.calendarEvent.create" -> "Event Created", "group.member.join" -> "Join".
+// The leading group/member segments are noise inside a group's own log and only eat
+// column width. The trailing verb is only put in past tense when a noun survives,
+// which is what keeps bare actions short.
+function _gdLogEventLabel(eventType) {
+    const raw = String(eventType || '');
+    const key = 'groups.logs.event.' + raw.replace(/\./g, '_');
+    const translated = t(key, '');
+    if (translated && translated !== key) return translated;
+
+    let parts = raw.split('.').filter(Boolean);
+    while (parts.length && (parts[0] === 'group' || parts[0] === 'member')) parts.shift();
+    if (!parts.length) return _gdLogTitle(raw.split('.').pop());
+
+    const verb  = parts.pop();
+    const nouns = parts.map(p => _GD_LOG_NOUN_ALIAS[p] || _gdLogTitle(p));
+
+    if (!nouns.length) return _gdLogTitle(verb);
+    return [...nouns, _GD_LOG_VERB_PAST[verb] || _gdLogTitle(verb)].join(' ');
+}
+
+function _gdLogEventColor(eventType) {
+    const e = String(eventType || '');
+    if (/ban|delete|remove|kick/i.test(e)) return 'var(--err)';
+    if (/create|add|join/i.test(e))        return 'var(--ok)';
+    if (/update|edit|role/i.test(e))       return 'var(--warn)';
+    return 'var(--tx3)';
+}
+
+function renderGroupLogs(payload) {
+    const list = document.getElementById('gdLogsList');
+    const more = document.getElementById('gdLogsLoadMore');
+    if (!list) return;
+
+    if (payload?.error) {
+        list.innerHTML = renderGroupEmptyMessage('groups.logs.failed', 'Failed to load audit logs.');
+        if (more) more.innerHTML = '';
+        return;
+    }
+
+    const rows = Array.isArray(payload?.logs) ? payload.logs : [];
+    window._gdLogRows = (window._gdLogRows || []).concat(rows);
+    window._gdLogsOffset = (payload?.offset || 0) + rows.length;
+
+    const all = window._gdLogRows;
+    if (!all.length) {
+        list.innerHTML = renderGroupEmptyMessage('groups.logs.empty', 'No audit log entries.');
+        if (more) more.innerHTML = '';
+        return;
+    }
+
+    const body = all.map(ev => {
+        const dateStr = tlFormatShortDate(ev.created_at);
+        const timeStr = tlFormatTime(ev.created_at);
+        const dt      = (dateStr || timeStr) ? `${dateStr} | ${timeStr}` : '';
+        const name    = ev.actorDisplayName || ev.actorId || '';
+        const uid     = ev.actorId || '';
+
+        // tl-av, not tl-list-av: the latter is the stacked variant with a negative
+        // margin and bleeds into the neighbouring column.
+        const av = ev.actorImage
+            ? `<div class="tl-av" style="width:26px;height:26px;background-image:url('${cssUrl(ev.actorImage)}')" title="${esc(name)}"></div>`
+            : `<div class="tl-av tl-av-letter" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;" title="${esc(name)}">${esc((name || '?')[0].toUpperCase())}</div>`;
+
+        // Same click + context-menu contract as group member cards.
+        const userAttrs = uid
+            ? ` data-gdlog-user="${esc(uid)}" data-gdlog-name="${esc(name)}" style="cursor:pointer;" onclick="navOpenModal('friend','${jsq(uid)}','${jsq(name)}')"`
+            : '';
+
+        return `<tr class="tl-list-row">
+            <td class="tl-list-dt">${esc(dt)}</td>
+            <td class="tl-list-type"><span class="msi tl-list-icon" style="color:${_gdLogEventColor(ev.eventType)}">history</span><span>${esc(_gdLogEventLabel(ev.eventType))}</span></td>
+            <td style="width:34px;padding:4px 8px;"><span${userAttrs}>${av}</span></td>
+            <td class="tl-list-user"><span${userAttrs}>${esc(name)}</span></td>
+            <td class="tl-list-detail">${esc(ev.description || '')}</td>
+        </tr>`;
+    }).join('');
+
+    list.innerHTML = `<div class="tl-list-wrap">
+        <table class="tl-list-table">
+            <colgroup><col style="width:155px"><col style="width:135px"><col style="width:80px"><col style="width:130px"><col></colgroup>
+            <thead><tr>
+                <th>${esc(t('timeline.list.header.date_time', 'Date / Time'))}</th>
+                <th>${esc(t('timeline.list.header.type', 'Type'))}</th>
+                <th>${esc(t('timeline.list.header.profile', 'Profile'))}</th>
+                <th>${esc(t('timeline.list.header.user', 'User'))}</th>
+                <th>${esc(t('timeline.list.header.detail', 'Detail'))}</th>
+            </tr></thead>
+            <tbody>${body}</tbody>
+        </table>
+    </div>`;
+
+    if (more) {
+        more.innerHTML = payload?.hasNext
+            ? `<button class="vrcn-button" onclick="loadMoreGroupLogs()">${esc(t('groups.logs.load_more', 'Load More Logs'))}</button>`
+            : `<div style="font-size:11px;color:var(--tx3);">${esc(t('groups.logs.all_loaded', 'All log entries loaded'))}</div>`;
+    }
 }
 
 function loadGroupBans() {

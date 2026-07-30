@@ -238,6 +238,7 @@ function showLaunchModal(location, steamVrOpen) {
     let _launchVr = steamVrOpen;
     const el = document.createElement('div');
     el.className = 'modal-overlay';
+    el.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     el.style.zIndex = '10003';
     el.innerHTML = `
         <div class="modal-box launch-modal">

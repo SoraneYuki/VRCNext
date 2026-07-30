@@ -16,7 +16,17 @@ public class GroupsController
     private record GroupMemberPerms(
         bool CanPost, bool CanEvent, bool CanInvite, bool CanEdit,
         bool CanKick, bool CanBan, bool CanManageRoles, bool CanAssignRoles,
-        string Visibility);
+        bool CanViewAudit, string Visibility);
+
+    // Newtonsoft turns date-time fields into JTokenType.Date, whose ToString() emits the
+    // machine's locale format - which new Date() in JS cannot parse. Force ISO-8601.
+    private static string GroupIsoDate(JToken? t)
+    {
+        if (t == null) return "";
+        if (t.Type == JTokenType.Date)
+            return t.Value<DateTime>().ToUniversalTime().ToString("o");
+        return t.ToString();
+    }
 
     public GroupsController(CoreLibrary core, FriendsController friends)
     {
@@ -84,9 +94,10 @@ public class GroupsController
                 var canBan         = perms != null && (perms.Contains("*") || perms.Contains("group-bans-manage"));
                 var canManageRoles = perms != null && (perms.Contains("*") || perms.Contains("group-roles-manage"));
                 var canAssignRoles = perms != null && (perms.Contains("*") || perms.Contains("group-roles-manage") || perms.Contains("group-roles-assign"));
+                var canViewAudit   = perms != null && (perms.Contains("*") || perms.Contains("group-audit-view"));
                 var vis            = g["memberVisibility"]?.ToString() ?? "visible";
 
-                newPerms[gid] = new GroupMemberPerms(canPost, canEvent, canInvite, canEdit, canKick, canBan, canManageRoles, canAssignRoles, vis);
+                newPerms[gid] = new GroupMemberPerms(canPost, canEvent, canInvite, canEdit, canKick, canBan, canManageRoles, canAssignRoles, canViewAudit, vis);
 
                 enriched.Add(new {
                     id = gid,
@@ -102,6 +113,7 @@ public class GroupsController
                     visibility     = vis,
                     canCreateInstance = canCreate,
                     canPost, canEvent, canInvite, canEdit, canKick, canBan, canManageRoles, canAssignRoles,
+                    canViewAudit,
                 });
             }
             _memberPerms = newPerms;
@@ -231,6 +243,7 @@ public class GroupsController
                             isJoined = gp != null, canPost = gp?.CanPost ?? false, canEvent = gp?.CanEvent ?? false, canEdit = gp?.CanEdit ?? false,
                             canInvite = gp?.CanInvite ?? false, canKick = gp?.CanKick ?? false, canBan = gp?.CanBan ?? false,
                             canManageRoles = gp?.CanManageRoles ?? false, canAssignRoles = gp?.CanAssignRoles ?? false,
+                            canViewAudit = gp?.CanViewAudit ?? false,
                             roles = Array.Empty<object>(),
                             posts = cachedPost != null ? new[] { cachedPost } : Array.Empty<object>(),
                             groupEvents = cachedEvent != null ? new[] { cachedEvent } : Array.Empty<object>(),
@@ -310,6 +323,7 @@ public class GroupsController
                             var canBan         = myPerms.Any(p => p.ToString() == "*" || p.ToString() == "group-bans-manage");
                             var canManageRoles = myPerms.Any(p => p.ToString() == "*" || p.ToString() == "group-roles-manage");
                             var canAssignRoles = myPerms.Any(p => p.ToString() == "*" || p.ToString() == "group-roles-manage" || p.ToString() == "group-roles-assign");
+                            var canViewAudit   = myPerms.Any(p => p.ToString() == "*" || p.ToString() == "group-audit-view");
 
                             var ownerId = g["ownerId"]?.ToString() ?? "";
                             var ownerMember = members.FirstOrDefault(m => m["userId"]?.ToString() == ownerId);
@@ -377,6 +391,7 @@ public class GroupsController
                                 links     = (g["links"]     as JArray)?.Select(x => x.ToString()).ToArray() ?? Array.Empty<string>(),
                                 isJoined = g["myMember"] != null && g["myMember"].Type != JTokenType.Null,
                                 canPost, canEvent, canEdit, canInvite, canKick, canBan, canManageRoles, canAssignRoles,
+                                canViewAudit,
                                 roles = (g["roles"] as JArray ?? new JArray()).Select(r => {
                                     var rPerms = (r["permissions"] as JArray)?.Select(p => p.ToString()).ToArray() ?? Array.Empty<string>();
                                     _core.SendToJS("log", new { msg = $"[ROLE] \"{r["name"]}\" perms: [{string.Join(", ", rPerms)}]", color = "sec" });
@@ -774,6 +789,45 @@ public class GroupsController
                     {
                         var ok = await _core.Groups.BanGroupMemberAsync(bmGroupId, bmUserId);
                         _core.SendToJS("vrcActionResult", new { action = "banGroupMember", success = ok, message = ok ? "Member banned." : "Ban failed." });
+                    });
+                break;
+            }
+
+            case "vrcGetGroupLogs":
+            {
+                var glId     = msg["groupId"]?.ToString() ?? "";
+                var glOffset = msg["offset"]?.Value<int>() ?? 0;
+                var glTypes  = msg["eventTypes"]?.ToString() ?? "";
+                if (!string.IsNullOrEmpty(glId))
+                    _ = Task.Run(async () => {
+                        const int pageSize = 50;
+                        var page = await _core.Groups.GetGroupAuditLogsAsync(glId, pageSize, glOffset, glTypes);
+                        if (page == null)
+                        {
+                            _core.SendToJS("vrcGroupLogs", new { groupId = glId, offset = glOffset, logs = new object[0], hasNext = false, error = true });
+                            return;
+                        }
+
+                        var rows = (page["results"] as JArray) ?? new JArray();
+                        var list = rows.OfType<JObject>().Select(r => {
+                            var actorId = r["actorId"]?.ToString() ?? "";
+                            return new {
+                                id          = r["id"]?.ToString() ?? "",
+                                created_at  = GroupIsoDate(r["created_at"]),
+                                eventType   = r["eventType"]?.ToString() ?? "",
+                                description = r["description"]?.ToString() ?? "",
+                                actorId,
+                                actorDisplayName = r["actorDisplayName"]?.ToString() ?? "",
+                                actorImage  = ImageCacheHelper.GetUserUrl(actorId, _friends.GetNameImage(actorId).image),
+                                targetId    = r["targetId"]?.ToString() ?? "",
+                                data        = r["data"],
+                            };
+                        }).ToList();
+
+                        var total   = page["totalCount"]?.Value<int>() ?? 0;
+                        var hasNext = rows.Count >= pageSize && (total == 0 || glOffset + rows.Count < total);
+
+                        _core.SendToJS("vrcGroupLogs", new { groupId = glId, offset = glOffset, logs = list, hasNext, totalCount = total });
                     });
                 break;
             }

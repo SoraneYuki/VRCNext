@@ -306,7 +306,10 @@ window.external.receiveMessage(rawMsg => {
                 break;
             case 'vrcFriendDetail': renderFriendDetail(payload); break;
             case 'vrcFriendPreview': if (typeof handleFriendPreview === 'function') handleFriendPreview(payload); break;
-            case 'vrcUserBasic': if (typeof handleUserBasic === 'function') handleUserBasic(payload); break;
+            case 'vrcUserBasic':
+                if (typeof handleUserBasic === 'function') handleUserBasic(payload);
+                if (typeof pinsOnUserBasic === 'function') pinsOnUserBasic(payload);
+                break;
             case 'vrcAvatarByFileId': handleAvatarByFileId(payload); break;
             case 'vrcAvatarInfo': handleAvatarByFileId(payload); break;
             case 'vrcInstanceAvatarFound': handleInstanceAvatarFound(payload); break;
@@ -697,6 +700,9 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcGroupBans':
                 renderGroupBans(payload.groupId, payload.bans);
                 break;
+            case 'vrcGroupLogs':
+                if (typeof renderGroupLogs === 'function') renderGroupLogs(payload);
+                break;
             case 'vrcGroupRoleResult':
                 onGroupRoleResult(payload);
                 break;
@@ -1052,6 +1058,8 @@ case 'vrcNews':
                         onGroupEventGalleryLoaded(payload.files || []);
                     if (typeof onImagePickerFilesLoaded === 'function')
                         onImagePickerFilesLoaded(payload.files || [], payload.tag);
+                    if (typeof onBoopModalFilesLoaded === 'function')
+                        onBoopModalFilesLoaded(payload.files || [], payload.tag);
                     if (payload.tag === 'gallery' && typeof _invModalOnGalleryLoaded === 'function')
                         _invModalOnGalleryLoaded(payload.files || []);
                     if (payload.tag === 'gallery' && typeof _nrModalOnGalleryLoaded === 'function')
@@ -1135,6 +1143,16 @@ case 'vrcNews':
         case 'afSaveResult':
         case 'afGameRunning':
             if (typeof window.__afHandleMessage === 'function') window.__afHandleMessage(type, payload);
+            break;
+
+        case 'ssRules':
+            if (typeof ssOnRules === 'function') ssOnRules(payload);
+            break;
+        case 'ssApplied':
+            if (typeof ssOnApplied === 'function') ssOnApplied(payload);
+            break;
+        case 'ssSaveResult':
+            if (typeof ssOnSaveResult === 'function') ssOnSaveResult(payload);
             break;
         case 'vrcnPlusTheme':
             if (typeof window.vrcnPlusTheme === 'function') window.vrcnPlusTheme(payload);

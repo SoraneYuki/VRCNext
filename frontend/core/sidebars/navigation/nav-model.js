@@ -26,6 +26,7 @@ const NAV_ITEMS_DEF = {
     'event-snipe':      { icon: 'gps_fixed',       tab: 23, i18n: 'nav.event_snipe',        label: 'Event Snipe'      },
     'avatar-scaling':   { icon: 'height',          tab: 24, i18n: 'nav.avatar_scaling',     label: 'Avatar Scaling',   windowsOnly: true },
     'action-flow':      { icon: 'auto_awesome',    tab: 25, i18n: 'nav.action_flow',        label: 'Action Flow'      },
+    'status-schedule':  { icon: 'event_available', tab: 27, i18n: 'nav.status_schedule',    label: 'Status Schedule',  defaultFolder: 'folder-tools' },
 };
 
 const NAV_ICON_OPTIONS = [
@@ -82,6 +83,7 @@ const NAV_DEFAULT_LAYOUT = [
             'chatbox','media-relay','space-flight','frame-shot','osc-tool','youtube-fix',
             'activity-log','mutual-network','time-spent','voice-fight',
             'discord-presence','vr-overlay','permini','kikitan-xd','event-snipe','avatar-scaling','action-flow',
+            'status-schedule',
         ],
     },
     { type: 'item', key: 'settings' },
@@ -156,8 +158,15 @@ function navSanitizeLayout(layout, hidden = []) {
         }
     }
 
+    // Items added in a later version are not in the user's saved layout yet. Drop them
+    // into their declared folder when it still exists, so new tools do not pile up at
+    // the bottom of the sidebar for everyone who ever reordered it.
     for (const key of allKeys) {
-        if (!seen.has(key) && !hiddenSet.has(key)) result.push({ type: 'item', key, icon: null });
+        if (seen.has(key) || hiddenSet.has(key)) continue;
+        const folderId = NAV_ITEMS_DEF[key].defaultFolder;
+        const folder = folderId ? result.find(e => e.type === 'folder' && e.id === folderId) : null;
+        if (folder) folder.items.push(key);
+        else result.push({ type: 'item', key, icon: null });
     }
     return result;
 }

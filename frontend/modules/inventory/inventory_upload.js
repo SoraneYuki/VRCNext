@@ -190,6 +190,7 @@ function openInvUploadModal(tabOverride, callback) {
 
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
+    overlay.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     overlay.id = 'invUploadModal';
     overlay.style.zIndex = '20010';
     overlay.onclick = event => { if (event.target === overlay) closeInvUploadModal(); };

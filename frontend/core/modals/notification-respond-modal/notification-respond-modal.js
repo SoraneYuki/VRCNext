@@ -57,6 +57,7 @@ function openNotifRespondModal(notifId) {
 
     const el = document.createElement('div');
     el.className = 'modal-overlay';
+    el.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     /* Notification panel uses z-index 20001 — must sit above it. */
     el.style.zIndex = '20003';
     el.innerHTML = `

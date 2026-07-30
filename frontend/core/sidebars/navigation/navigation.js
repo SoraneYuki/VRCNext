@@ -134,6 +134,7 @@ function openNavFolderPopout(groupId, anchorEl) {
         if (!def) continue;
         const cell = document.createElement('button');
         cell.className = 'nav-folder-cell';
+        cell.dataset.navKey = key;
         if (def.tab === activeTab) cell.classList.add('active');
         cell.addEventListener('click', () => { showTab(def.tab); closeNavFolderPopout(); });
 
@@ -182,6 +183,7 @@ function openNavFolderPopout(groupId, anchorEl) {
 function _navMakeItemBtn(key, icon, tab, i18nKey, labelFallback) {
     const btn = document.createElement('button');
     btn.className = 'nav-btn';
+    btn.dataset.navKey = key;
     btn.setAttribute('onclick', `showTab(${tab})`);
 
     const ni = document.createElement('span');

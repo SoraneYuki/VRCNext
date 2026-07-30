@@ -140,6 +140,7 @@ let _messengerCooldown = null;
 let _messengerSlots = { used: 0, total: 24 };
 let _messengerHistory = [];
 let _pendingBoopUserId = null;
+let _pendingBoopEmojiId = '';
 let _msgrCdInterval = null;
 let _msgrCdEnd = 0; // Date.now() timestamp when cooldown expires
 
@@ -427,16 +428,19 @@ function handleChatMessage(msg) {
     if (document.getElementById('chatPanel')?.style.display !== 'none') renderChatPanel();
 }
 
-function msgrRegisterBoopSent(userId) {
+function msgrRegisterBoopSent(userId, emojiId) {
     _pendingBoopUserId = userId;
+    _pendingBoopEmojiId = emojiId || '';
 }
 
 function handleBoopSent() {
     const uid = _pendingBoopUserId;
+    const emo = _pendingBoopEmojiId;
     _pendingBoopUserId = null;
+    _pendingBoopEmojiId = '';
     if (!document.getElementById('messengerPanel')) return;
     if (!uid || uid === _messengerUserId) {
-        const msg = { type: 'boop', from: 'me', time: new Date().toISOString() };
+        const msg = { type: 'boop', from: 'me', time: new Date().toISOString(), emoji: emo };
         _messengerHistory.push(msg);
         appendChatMessage(msg, true);
     }
@@ -469,22 +473,27 @@ function renderMessengerHistory(scrollToBottom) {
     else container.scrollTop = prevScrollTop;
 }
 
-function appendBoopBubble(isMine, name, isoTime, scroll) {
+function appendBoopBubble(isMine, name, isoTime, scroll, emojiId) {
     const container = document.getElementById('msgrMessages');
     if (!container) return;
 
     const time = isoTime ? msgrFormatTime(isoTime) : msgrFormatTime(Date.now());
     const text = msgrBoopText(isMine, name);
+    const url  = (typeof boopEmojiPreviewUrl === 'function') ? boopEmojiPreviewUrl(emojiId) : '';
+    const glyph = url
+        ? `<img class="msgr-boop-emoji" src="${esc(url)}" alt="" title="${esc(typeof boopEmojiName === 'function' ? boopEmojiName(emojiId) : '')}" onerror="this.remove()">`
+        : `<span class="msi msgr-boop-icon">favorite</span>`;
+
     const div = document.createElement('div');
     div.className = 'msgr-boop-event';
-    div.innerHTML = `<span class="msi msgr-boop-icon">favorite</span><span class="msgr-boop-text">${esc(text)}</span><span class="msgr-boop-time">${esc(time)}</span>`;
+    div.innerHTML = `${glyph}<span class="msgr-boop-text">${esc(text)}</span><span class="msgr-boop-time">${esc(time)}</span>`;
     container.appendChild(div);
     if (scroll) container.scrollTop = container.scrollHeight;
 }
 
 function appendChatMessage(msg, scroll) {
     if (msg.type === 'boop') {
-        appendBoopBubble(msg.from === 'me', _messengerName, msg.time, scroll);
+        appendBoopBubble(msg.from === 'me', _messengerName, msg.time, scroll, msg.emoji);
         return;
     }
 

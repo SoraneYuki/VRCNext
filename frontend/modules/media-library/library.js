@@ -760,6 +760,7 @@ function libEditDeleteSelected() {
     if (x) x.remove();
     const o = document.createElement('div');
     o.className = 'modal-overlay';
+    o.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     o.id        = 'deleteModal';
     o.onclick   = e => { if (e.target === o) closeDeleteModal(); };
     o.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-title">${t('library.delete.title', 'Delete File')}</div><div class="modal-msg">${tf('library.edit.delete_confirm', { count }, 'Permanently delete {count} file(s) from disk?')}</div><div class="modal-btns"><button id="libDelCancelBtn" class="vrcn-button-round" onclick="closeDeleteModal()">${t('common.cancel', 'Cancel')}</button><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmLibEditDelete()">${t('library.delete.confirm', 'Delete')}</button></div></div>`;
@@ -1315,6 +1316,7 @@ function showDeleteModal(fp, fn) {
     if (x) x.remove();
     const o = document.createElement('div');
     o.className = 'modal-overlay';
+    o.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     o.id        = 'deleteModal';
     o.onclick   = e => { if (e.target === o) closeDeleteModal(); };
     o.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-title">${t('library.delete.title', 'Delete File')}</div><div class="modal-msg">${t('library.delete.message', 'Permanently delete from disk:')}<br><span class="modal-fname">${esc(fn)}</span></div><div class="modal-btns"><button id="libDelCancelBtn" class="vrcn-button-round" onclick="closeDeleteModal()">${t('common.cancel', 'Cancel')}</button><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmDelete()">${t('library.delete.confirm', 'Delete')}</button></div></div>`;
@@ -1347,6 +1349,7 @@ function showDeleteAllModal() {
     if (x) x.remove();
     const o = document.createElement('div');
     o.className = 'modal-overlay';
+    o.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     o.id        = 'deleteModal';
     o.onclick   = e => { if (e.target === o) closeDeleteModal(); };
     o.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-title">${t('library.delete_all.title', 'Delete All Posts')}</div><div class="modal-msg">${tf('library.delete_all.message', { count: postedFiles.length }, 'Delete all {count} post(s) from Discord?')}</div><div class="modal-btns"><button class="vrcn-button-round" onclick="closeDeleteModal()">${t('common.cancel', 'Cancel')}</button><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmDeleteAll()">${t('library.delete_all.confirm', 'Delete All')}</button></div></div>`;

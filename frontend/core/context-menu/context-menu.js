@@ -453,8 +453,53 @@
     }
 
     /* Entity detection */
+    // Sidebar buttons carry their target as showTab(n) in the onclick attribute; the
+    // matching NAV_ITEMS_DEF entry supplies a stable key, label and icon for the pin.
+    function _navPinItem(el) {
+        if (typeof pinsContextItem !== 'function' || typeof NAV_ITEMS_DEF === 'undefined') return null;
+
+        // Sidebar buttons and folder popout cells both carry data-nav-key; the onclick
+        // fallback covers anything built before that attribute existed.
+        const holder = el.closest('[data-nav-key]');
+        let key = holder?.dataset.navKey || null;
+
+        if (!key) {
+            const tab = parseInt(el.closest('.nav-btn[onclick]')?.getAttribute('onclick')?.match(/showTab\((\d+)\)/)?.[1] ?? '', 10);
+            if (isNaN(tab)) return null;
+            key = Object.keys(NAV_ITEMS_DEF).find(k => NAV_ITEMS_DEF[k].tab === tab) || null;
+        }
+        if (!key || !NAV_ITEMS_DEF[key]) return null;
+        const def = NAV_ITEMS_DEF[key];
+        return pinsContextItem('feature', key, {
+            name: t(def.i18n, def.label),
+            icon: def.icon,
+            tab:  def.tab,
+        });
+    }
+
+    // Element of the current right-click, so the pin builders inside the item builders
+    // (which only receive an id) can still read a name and thumbnail off the card.
+    let _ctxEl = null;
+
+    function _pinCardData() {
+        const card = _ctxEl?.closest?.('.vrcn-content-card, .av-card, .vrcn-user-item, .vrcn-mini-content, .vrcn-world-card-small, .dash-flocs-card');
+        if (!card) return {};
+
+        const name = (card.querySelector('.cc-name, .vrcn-user-item-name, .vrcn-mini-title, .flocs-world')?.textContent
+            || card.getAttribute('title') || '').trim();
+
+        let image = card.querySelector('img')?.getAttribute('src') || '';
+        if (!image) {
+            const holder = card.querySelector('.cc-bg, .vrcn-mini-thumb, .vrcn-user-item-avatar') || card;
+            const bg = holder.style?.backgroundImage || '';
+            image = bg.match(/url\(["']?([^"')]+)/)?.[1] || '';
+        }
+        return { name, image };
+    }
+
     function getMenuConfig(e) {
         const el = e.target;
+        _ctxEl = el;
 
         if (el.closest('.af-blockly-host') && typeof window.afBuildBlockContextMenu === 'function') {
             return window.afBuildBlockContextMenu(el);
@@ -486,11 +531,54 @@
         const ftEntry = el.closest('#tlContainer .tl-card[data-ftid], #tlContainer .tl-list-row[data-ftid]');
         if (ftEntry) return buildTlEntryDeleteItems(ftEntry.dataset.ftid, 'friends');
 
-        if (el.closest('.nav-btn[data-nav="dashboard"]')) {
+        // Right-click on a pin row in the taskbar Pins menu
+        const pinRow = el.closest('[data-pin-type][data-pin-id]');
+        if (pinRow) {
+            const pt = pinRow.dataset.pinType, pid = pinRow.dataset.pinId;
             return [
+                { icon: 'open_in_new', label: t('pins.open', 'Open'), action: () => pinsOpen(pt, pid) },
+                { icon: 'push_pin', label: t('pins.remove', 'Remove pin'), action: () => pinsRemove(pt, pid), danger: true },
+            ];
+        }
+
+        // Calendar, dashboard and group event cards
+        const evCard = el.closest('[data-pin-event-id], [onclick*="openEventDetail"]');
+        if (evCard && typeof pinsContextItem === 'function') {
+            const ev = _eventPinDataFromEl(evCard);
+            if (ev) {
+                const item = pinsContextItem('event', ev.id, { name: ev.name, image: ev.image, ownerId: ev.ownerId });
+                if (item) {
+                    return [
+                        { icon: 'open_in_new', label: cm('event.open_details', 'Open Details'), action: () => openEventDetail(ev.ownerId, ev.id) },
+                        'sep',
+                        item,
+                    ];
+                }
+            }
+        }
+
+        if (el.closest('.nav-btn[data-nav="dashboard"]')) {
+            const dashItems = [
                 { icon: 'dashboard_customize', label: cm('dash_layout', 'Edit Dashboard'), action: () => openDashLayoutEditor() },
                 { icon: 'tune', label: cm('nav_edit', 'Edit Navigation'), action: () => openNavEditor() },
             ];
+            const dashPin = _navPinItem(el);
+            if (dashPin) { dashItems.push('sep'); dashItems.push(dashPin); }
+            return dashItems;
+        }
+
+        // Any other sidebar entry: keep the existing sidebar menu and append the pin
+        // entry for the feature it points at. Folder popouts render outside #navEl.
+        const navBtn = el.closest('#navEl .nav-btn[onclick], .nav-folder-cell[data-nav-key]');
+        if (navBtn) {
+            const navPin = _navPinItem(navBtn);
+            if (navPin) {
+                return [
+                    { icon: 'tune', label: cm('nav_edit', 'Edit Navigation'), action: () => openNavEditor() },
+                    'sep',
+                    navPin,
+                ];
+            }
         }
 
         if (el.closest('#vrcProfileArea') && (typeof currentVrcUser !== 'undefined') && currentVrcUser) {
@@ -550,7 +638,15 @@
         const myInstCard = el.closest('#dashMyInstances .vrcn-content-card');
         if (myInstCard) {
             const loc = myInstCard.dataset.location;
-            if (loc) return buildMyInstanceItems(loc);
+            if (loc) {
+                const instItems = buildMyInstanceItems(loc);
+                // Pin the world behind the instance, not the instance itself.
+                const instWid = extractWorldId(myInstCard);
+                const instPin = instWid && typeof pinsContextItem === 'function'
+                    ? pinsContextItem('world', instWid, _pinCardData()) : null;
+                if (instPin) { instItems.push('sep'); instItems.push(instPin); }
+                return instItems;
+            }
         }
 
         const dashWorld = el.closest('#dashFavWorlds .vrcn-content-card, #dashDiscoveryGrid .vrcn-content-card, #dashFavWorldsShelf .vrcn-content-card, #dashRecentlyVisitedShelf .vrcn-content-card, #dashPopularWorldsShelf .vrcn-content-card, #dashActiveWorldsShelf .vrcn-content-card, #dashFriendLocSmallShelf .dash-flocs-card');
@@ -610,6 +706,16 @@
             }
         }
 
+        const gdLogUser = el.closest('[data-gdlog-user]');
+        if (gdLogUser && gdLogUser.dataset.gdlogUser) {
+            const id = gdLogUser.dataset.gdlogUser;
+            // Same menu as the Members tab so moderation actions are available; log
+            // actors are not necessarily members, so no role ids are passed.
+            return window._currentGroupDetail
+                ? buildGroupMemberItems(id, window._currentGroupDetail)
+                : buildFriendItems(id);
+        }
+
         const friendCard = el.closest('.vrc-friend-card, .vrcn-user-item, .inst-user-row, .iim-user-item, .dash-feed-card');
         if (friendCard) {
             const id = extractFriendId(friendCard);
@@ -656,8 +762,26 @@
         const onclick = el.getAttribute('onclick') || '';
         return onclick.match(/openWorld(?:Search)?Detail\('([^']+)'\)/)?.[1]
             || onclick.match(/navOpenModal\('world[^']*','([^']+)'/)?.[1]
+            // Dashboard "Your Instances" cards open the instance, not the world
+            || onclick.match(/openMyInstanceDetail\('([^']+)'/)?.[1]
             || el.dataset.wid
             || null;
+    }
+
+    // Event cards carry their ids in openEventDetail(ownerId, eventId); name and image
+    // are read off the card so a pinned event still shows something useful.
+    function _eventPinDataFromEl(el) {
+        const ds = el.dataset || {};
+        if (ds.pinEventId) {
+            return { id: ds.pinEventId, ownerId: ds.pinEventOwner || '', name: ds.pinEventName || '', image: ds.pinEventImage || '' };
+        }
+        const m = (el.getAttribute('onclick') || '').match(/openEventDetail\('([^']*)'\s*,\s*'([^']*)'\)/);
+        if (!m || !m[2]) return null;
+
+        const titleEl = el.querySelector('.dash-evt-title, .dash-evt-mini-title, .cal-evlist-title');
+        const name = (titleEl?.textContent || el.getAttribute('title') || '').trim();
+        const img  = el.querySelector('img')?.getAttribute('src') || '';
+        return { id: m[2], ownerId: m[1] || '', name, image: img };
     }
 
     function extractGroupId(el) {
@@ -718,6 +842,8 @@
         items.push({ icon: 'visibility', label: cm('group.visibility', 'Visibility'), submenuFn: btn => showGroupVisibilitySubmenu(id, curVis, btn) });
         items.push('sep');
         items.push({ icon: 'logout', label: cm('group.leave', 'Leave Group'), action: () => sendToCS({ action: 'vrcLeaveGroup', groupId: id }), danger: true, confirm: true });
+        const _pinGroup = (typeof pinsContextItem === 'function') ? pinsContextItem('group', id, _pinCardData()) : null;
+        if (_pinGroup) { items.push('sep'); items.push(_pinGroup); }
         return items;
     }
 
@@ -1058,6 +1184,8 @@
         } else {
             items.push({ icon: 'star', label: cm('avatar.add_favorites', 'Add to Favorites'), submenuFn: btn => showAvFavGroupSubmenu(id, btn) });
         }
+        const _pinAvatar = (typeof pinsContextItem === 'function') ? pinsContextItem('avatar', id, _pinCardData()) : null;
+        if (_pinAvatar) { items.push('sep'); items.push(_pinAvatar); }
         return items;
     }
 
@@ -1155,6 +1283,8 @@
         } else {
             items.push({ icon: 'star', label: cm('world.add_favorites', 'Add to Favorites'), submenuFn: btn => showFavGroupSubmenu(id, btn) });
         }
+        const _pinWorld = (typeof pinsContextItem === 'function') ? pinsContextItem('world', id, _pinCardData()) : null;
+        if (_pinWorld) { items.push('sep'); items.push(_pinWorld); }
         return items;
     }
 
@@ -1198,7 +1328,7 @@
             if (invitableGroups.length > 0) {
                 actionItems.push({ icon: 'group_add', label: cm('friend.invite_group', 'Invite to Group'), submenuFn: btn => showGroupInviteForUserSubmenu(id, invitableGroups, btn) });
             }
-            actionItems.push({ icon: 'waving_hand', label: cm('friend.boop', 'Boop!'), action: () => { if (typeof msgrRegisterBoopSent === 'function') msgrRegisterBoopSent(id); sendToCS({ action: 'vrcBoop', userId: id }); } });
+            actionItems.push({ icon: 'waving_hand', label: cm('friend.boop', 'Boop!'), action: () => openBoopModal(id, f.displayName || id) });
             actionItems.push({ icon: 'chat', label: cm('friend.messenger', 'Messenger'), action: () => openMessenger(id, f.displayName || id, f.image || '', f.status || '', f.statusDescription || '') });
             if (actionItems.length) {
                 items.push('sep');
@@ -1233,6 +1363,8 @@
             items.push('sep');
             items.push({ icon: 'shield_person', label: cm('friend.moderate', 'Moderate'), submenuFn: btn => showModerateSubmenu(id, btn) });
         }
+        const _pinUser = (typeof pinsContextItem === 'function') ? pinsContextItem('user', id, _pinCardData()) : null;
+        if (_pinUser) { items.push('sep'); items.push(_pinUser); }
         return items;
     }
 

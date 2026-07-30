@@ -106,6 +106,12 @@
     0%,100% { transform: scale(1); }
     40%     { transform: scale(1.25); }
 }
+.msgr-boop-emoji {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    animation: boop-pulse 1.8s ease-in-out 2;
+}
 .msgr-boop-text {
     font-size: 13px;
     font-weight: 600;
