@@ -496,6 +496,29 @@ public class FriendsController
             case "vrcGetUserAvatars":
             {
                 var uid = msg["userId"]?.ToString();
+                if (!string.IsNullOrEmpty(uid) && uid == (_core.VrcApi.CurrentUserId ?? ""))
+                {
+                    try
+                    {
+                        var own = await _core.Avatars.GetOwnAvatarsAsync();
+                        var ownAvatars = own.Select(a => new
+                        {
+                            id                = a["id"]?.ToString() ?? "",
+                            name              = a["name"]?.ToString() ?? "",
+                            thumbnailImageUrl = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), a["thumbnailImageUrl"]?.ToString() ?? a["imageUrl"]?.ToString()),
+                            imageUrl          = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), a["imageUrl"]?.ToString() ?? a["thumbnailImageUrl"]?.ToString()),
+                            authorName        = a["authorName"]?.ToString() ?? "",
+                            releaseStatus     = a["releaseStatus"]?.ToString() ?? "private",
+                            unityPackages     = a["unityPackages"] as JArray ?? new JArray(),
+                        }).ToList();
+                        _core.SendToJS("vrcUserAvatars", new { userId = uid, avatars = ownAvatars });
+                    }
+                    catch
+                    {
+                        _core.SendToJS("vrcUserAvatars", new { userId = uid, avatars = new JArray() });
+                    }
+                    break;
+                }
                 if (!string.IsNullOrEmpty(uid))
                 {
                     try
@@ -1094,8 +1117,10 @@ public class FriendsController
 
     private async Task GetUserFavWorldsAsync(string userId)
     {
+        var isSelfFav = userId == (_core.VrcApi.CurrentUserId ?? "");
+
         // Serve from cache if fresh (TTL 3 days) — no API call needed
-        if (_core.Settings.FfcEnabled && _core.Cache.IsFresh(CacheHandler.KeyUserFavContent(userId), TimeSpan.FromDays(3)))
+        if (!isSelfFav && _core.Settings.FfcEnabled && _core.Cache.IsFresh(CacheHandler.KeyUserFavContent(userId), TimeSpan.FromDays(3)))
         {
             var cached = _core.Cache.LoadRaw(CacheHandler.KeyUserFavContent(userId));
             if (cached != null)
@@ -1130,9 +1155,11 @@ public class FriendsController
             var displayName = grp["displayName"]?.ToString() ?? name;
             var visibility = grp["visibility"]?.ToString() ?? "private";
             List<object> worlds = new();
-            if (visibility != "private")
+            if (visibility != "private" || isSelfFav)
             {
-                var wArr = await _core.Favorites.GetUserFavWorldsInGroupAsync(userId, name);
+                IEnumerable<JToken> wArr = isSelfFav
+                    ? await _core.Favorites.GetFavoriteWorldsByGroupAsync(name)
+                    : await _core.Favorites.GetUserFavWorldsInGroupAsync(userId, name);
                 foreach (var w in wArr)
                 {
                     if (w is not JObject wo) continue;

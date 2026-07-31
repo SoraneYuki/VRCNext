@@ -442,6 +442,7 @@ function switchFdMutualsPill(pill, btn) {
 }
 
 function renderFdUserAvatars(payload) {
+    if (!currentFriendDetail || currentFriendDetail.id !== payload.userId) return;
     const avatars = payload.avatars || [];
 
     const avatarsPill = document.getElementById('fdAvatarsPill');
@@ -1365,17 +1366,19 @@ function patchFriendDetailLive(f) {
 
 function renderFdTimeline(userId, events) {
     if (!currentFriendDetail || currentFriendDetail.id !== userId) return;
-    const el = document.getElementById('fdMiniTl');
+    _fdTimelineEvents = events || [];
+    drawMiniTimeline(_fdTimelineEvents, document.getElementById('fdMiniTl'));
+}
+
+function drawMiniTimeline(events, el) {
     if (!el) return;
 
-    _fdTimelineEvents = events || [];
-
-    if (!_fdTimelineEvents.length) {
+    if (!events || !events.length) {
         el.innerHTML = `<div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('timeline.empty.initial', 'No events yet')}</div>`;
         return;
     }
 
-    el.innerHTML = _fdTimelineEvents.map(ev => {
+    el.innerHTML = events.map(ev => {
         const meta   = typeof tlTypeMeta === 'function' ? tlTypeMeta(ev.type) : { icon: 'event', label: ev.type };
         const color  = { instance_join:'var(--accent)', photo:'var(--ok)', first_meet:'var(--cyan)', meet_again:'#AB47BC', notification:'var(--warn)', avatar_switch:'#FF7043', video_url:'#29B6F6' }[ev.type] || 'var(--tx3)';
         const d      = new Date(ev.timestamp);
@@ -1445,8 +1448,8 @@ function renderFdProfileInsights(payload) {
     renderFdInsightsPersons(payload.persons || []);
 }
 
-function renderFdInsightsWorlds(worlds) {
-    const el = document.getElementById('fdInsightsWorlds');
+function renderFdInsightsWorlds(worlds, elId = 'fdInsightsWorlds') {
+    const el = document.getElementById(elId);
     if (!el) return;
     if (!worlds.length) {
         el.innerHTML = `<div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('profiles.insights.no_worlds', 'No world data yet')}</div>`;
@@ -1472,8 +1475,8 @@ function renderFdInsightsWorlds(worlds) {
     }).join('') + '</div>';
 }
 
-function renderFdInsightsPersons(persons) {
-    const el = document.getElementById('fdInsightsPersons');
+function renderFdInsightsPersons(persons, elId = 'fdInsightsPersons') {
+    const el = document.getElementById(elId);
     if (!el) return;
     if (!persons.length) {
         el.innerHTML = `<div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('profiles.insights.no_persons', 'No interaction data yet')}</div>`;
@@ -1553,15 +1556,28 @@ function fdFmtMinutes(mins) {
     return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
 }
 
+const FD_HM_IDS = {
+    icon:   'fdHmRefreshIcon',
+    count:  'fdHmCount',
+    stats:  'fdHmStats',
+    grid:   'fdHmGridWrap',
+    status: 'fdHmStatusWrap',
+    mostly: 'fdInfoStatusMostly',
+};
+
 function renderFdOnlineHeatmap(payload) {
     if (!currentFriendDetail || currentFriendDetail.id !== payload.userId) return;
-    const icon = document.getElementById('fdHmRefreshIcon');
+    drawOnlineHeatmap(payload, FD_HM_IDS);
+}
+
+function drawOnlineHeatmap(payload, ids) {
+    const icon = document.getElementById(ids.icon);
     if (icon) icon.classList.remove('ts-spin');
 
     const buckets = payload.buckets || [];
     const totalMinutes = payload.totalMinutes || 0;
 
-    const countEl = document.getElementById('fdHmCount');
+    const countEl = document.getElementById(ids.count);
     if (countEl) countEl.textContent = totalMinutes > 0
         ? tf('profiles.heatmap.total_online', { time: fdFmtMinutes(totalMinutes) }, `${fdFmtMinutes(totalMinutes)} online`)
         : '';
@@ -1581,7 +1597,7 @@ function renderFdOnlineHeatmap(payload) {
         }
     }
 
-    const statsEl = document.getElementById('fdHmStats');
+    const statsEl = document.getElementById(ids.stats);
     if (statsEl) {
         if (totalMinutes <= 0) {
             statsEl.innerHTML = '';
@@ -1606,7 +1622,7 @@ function renderFdOnlineHeatmap(payload) {
         }
     }
 
-    const wrap = document.getElementById('fdHmGridWrap');
+    const wrap = document.getElementById(ids.grid);
     if (!wrap) return;
     if (totalMinutes <= 0) {
         wrap.innerHTML = `<div style="padding:16px 0;font-size:12px;color:var(--tx3);text-align:center;">${t('profiles.heatmap.empty', 'No online activity recorded yet')}</div>`;
@@ -1650,13 +1666,17 @@ function fdStatusMeta() {
 
 function renderFdStatusTime(payload) {
     if (!currentFriendDetail || currentFriendDetail.id !== payload.userId) return;
+    _fdStatusData = payload;
+    drawStatusHeatmap(payload, FD_HM_IDS, _fdHeatmapView);
+}
 
+function drawStatusHeatmap(payload, ids, view) {
     const META = fdStatusMeta();
     const buckets = payload.buckets || {};
     const totals = payload.totals || {};
     const total = payload.totalSeconds || 0;
 
-    const mostlyEl = document.getElementById('fdInfoStatusMostly');
+    const mostlyEl = document.getElementById(ids.mostly);
     if (mostlyEl && payload.days === 30) {
         let topKey = '', topSec = 0;
         for (const k of Object.keys(META)) { const s = totals[k] || 0; if (s > topSec) { topSec = s; topKey = k; } }
@@ -1669,19 +1689,18 @@ function renderFdStatusTime(payload) {
         }
     }
 
-    _fdStatusData = payload;
-    if (_fdHeatmapView === 'online') return;
+    if (view === 'online') return;
 
-    const icon = document.getElementById('fdHmRefreshIcon');
+    const icon = document.getElementById(ids.icon);
     if (icon) icon.classList.remove('ts-spin');
 
-    const wrap = document.getElementById('fdHmStatusWrap');
+    const wrap = document.getElementById(ids.status);
     if (!wrap) return;
 
-    const countEl = document.getElementById('fdHmCount');
+    const countEl = document.getElementById(ids.count);
     if (countEl) countEl.textContent = total > 0 ? fdFmtMinutes(total / 60) : '';
 
-    const statsEl = document.getElementById('fdHmStats');
+    const statsEl = document.getElementById(ids.stats);
     if (statsEl) {
         statsEl.innerHTML = FD_STATUS_ORDER.map(k => {
             const secs = totals[k] || 0;
@@ -1698,7 +1717,6 @@ function renderFdStatusTime(payload) {
     const fmt = new Intl.DateTimeFormat(typeof getLanguageLocale === 'function' ? getLanguageLocale() : undefined, { weekday: 'short' });
     const dayLabels = Array.from({ length: 7 }, (_, i) => fmt.format(new Date(2024, 0, 8 + i)));
 
-    const view = _fdHeatmapView;
     const keys = Object.keys(META);
 
     const cellVal = (slot) => {

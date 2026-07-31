@@ -648,9 +648,11 @@ window.external.receiveMessage(rawMsg => {
                 break;
             case 'vrcUserAvatars':
                 renderFdUserAvatars(payload);
+                if (typeof onMypUserAvatars === 'function') onMypUserAvatars(payload);
                 break;
             case 'vrcUserFavWorlds':
                 if (typeof renderUserFavWorlds === 'function') renderUserFavWorlds(payload);
+                if (typeof renderMypFavWorlds === 'function') renderMypFavWorlds(payload);
                 break;
             case 'vrcAvatarsDeleted':
                 _markDeletedAvatars(payload.ids || []);
@@ -807,6 +809,7 @@ window.external.receiveMessage(rawMsg => {
                 break;
             case 'vrcMyWorlds':
                 renderMyWorlds(payload);
+                if (typeof onMypMyWorlds === 'function') onMypMyWorlds(payload);
                 break;
             case 'worldInsights':
                 if (typeof wiHandleData === 'function') wiHandleData(payload);
@@ -1058,12 +1061,12 @@ case 'vrcNews':
             case 'friendOnlineToast':      if (typeof _showFriendOnlineCard  === 'function') _showFriendOnlineCard(payload);  break;
             case 'vrcFriendAlertState':    if (typeof _fotHandleAlertState  === 'function') _fotHandleAlertState(payload);  break;
             case 'friendTimelineSearchResults': handleFtlSearchResults(payload); break;
-            case 'timelineForUser':        renderFdTimeline(payload.userId, payload.events); break;
+            case 'timelineForUser':        renderFdTimeline(payload.userId, payload.events); if (typeof renderMypTimeline === 'function') renderMypTimeline(payload.userId, payload.events); break;
             case 'timelineForWorld':       if (typeof renderWdInstanceHistory === 'function') renderWdInstanceHistory(payload.worldId, payload.events); break;
             case 'friendActivityForUser':  renderFdUserActivity(payload.userId, payload.events); break;
-            case 'profileInsights':        renderFdProfileInsights(payload); break;
-            case 'userOnlineHeatmap':      renderFdOnlineHeatmap(payload); break;
-            case 'userStatusTime':         renderFdStatusTime(payload); break;
+            case 'profileInsights':        renderFdProfileInsights(payload); if (typeof renderMypProfileInsights === 'function') renderMypProfileInsights(payload); break;
+            case 'userOnlineHeatmap':      renderFdOnlineHeatmap(payload); if (typeof renderMypOnlineHeatmap === 'function') renderMypOnlineHeatmap(payload); break;
+            case 'userStatusTime':         renderFdStatusTime(payload); if (typeof renderMypStatusTime === 'function') renderMypStatusTime(payload); break;
             case 'exportList':             if (typeof renderExportModal === 'function') renderExportModal(payload); break;
             case 'invFiles':
                 if (!payload.error) {

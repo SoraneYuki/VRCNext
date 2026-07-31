@@ -1609,9 +1609,12 @@ public class TimelineController
         var userId = msg["userId"]?.ToString() ?? "";
         if (string.IsNullOrEmpty(userId)) return;
         var days = msg["days"]?.Value<int>() ?? 30;
+        var isSelfHm = userId == (_core.VrcApi.CurrentUserId ?? "");
         _ = Task.Run(() =>
         {
-            var hm = _core.Timeline.GetUserOnlineHeatmap(userId, days);
+            var hm = isSelfHm
+                ? _core.Timeline.GetSelfOnlineHeatmap(userId, days)
+                : _core.Timeline.GetUserOnlineHeatmap(userId, days);
             _core.SendToJS("userOnlineHeatmap", new { userId, days, buckets = hm.Buckets, totalMinutes = hm.TotalMinutes, sessions = hm.Sessions });
         });
     }
@@ -1621,9 +1624,12 @@ public class TimelineController
         var userId = msg["userId"]?.ToString() ?? "";
         if (string.IsNullOrEmpty(userId)) return;
         var days = msg["days"]?.Value<int>() ?? 30;
+        var isSelfSt = userId == (_core.VrcApi.CurrentUserId ?? "");
         _ = Task.Run(() =>
         {
-            var bd = _core.Timeline.GetUserStatusBreakdown(userId, days);
+            var bd = isSelfSt
+                ? _core.Timeline.GetSelfStatusBreakdown(userId, days)
+                : _core.Timeline.GetUserStatusBreakdown(userId, days);
             _core.SendToJS("userStatusTime", new { userId, days, buckets = bd.Buckets, totals = bd.Seconds, totalSeconds = bd.TotalSeconds });
         });
     }

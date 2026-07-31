@@ -9,6 +9,7 @@
 #modalFriendDetail .modal-box.has-profile-bg .fd-banner-fade,
 #modalMyProfile .has-profile-bg .fd-banner-fade,
 #modalFriendDetail.fd-style-compact .fd-left.has-profile-bg .fd-left-banner .fd-banner-fade,
+#modalMyProfile.fd-style-compact .fd-left.has-profile-bg .fd-left-banner .fd-banner-fade,
 .fp-preview.has-profile-bg .fd-banner-fade {
     background: none;
 }
@@ -16,6 +17,7 @@
 #modalFriendDetail .modal-box.has-profile-bg .fd-banner,
 #modalMyProfile .has-profile-bg .fd-banner,
 #modalFriendDetail.fd-style-compact .fd-left.has-profile-bg .fd-left-banner,
+#modalMyProfile.fd-style-compact .fd-left.has-profile-bg .fd-left-banner,
 .fp-preview.has-profile-bg .fd-banner {
     -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
@@ -25,11 +27,13 @@
 /* Panels stacked on top of the background would otherwise hide it completely. */
 #modalFriendDetail .modal-box.has-profile-bg .fd-content,
 #modalMyProfile .has-profile-bg .fd-content,
-#modalFriendDetail.fd-style-compact .fd-left.has-profile-bg .fd-left-body {
+#modalFriendDetail.fd-style-compact .fd-left.has-profile-bg .fd-left-body,
+#modalMyProfile.fd-style-compact .fd-left.has-profile-bg .fd-left-body {
     background: transparent;
 }
 
-#modalFriendDetail.fd-style-compact .fd-left.has-profile-bg {
+#modalFriendDetail.fd-style-compact .fd-left.has-profile-bg,
+#modalMyProfile.fd-style-compact .fd-left.has-profile-bg {
     background-position: top center;
     background-size: cover;
 }

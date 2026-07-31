@@ -12,6 +12,7 @@ function _buildSearchDebouncers() {
     window._dbFdGroups         = debounceAnim(() => { window._fdGroupsPage = 0;        filterFdGroups(); },        DEBOUNCE_SEARCH_MS, 'fdGroupsSearch');
     window._dbFdMutuals        = debounceAnim(() => { window._fdMutualsPage = 0;        filterFdMutuals(); },       DEBOUNCE_SEARCH_MS, 'fdMutualsSearch');
     window._dbFdMutualsGroups  = debounceAnim(() => { window._fdMutualsGroupsPage = 0;  filterFdMutualsGroups(); }, DEBOUNCE_SEARCH_MS, 'fdMutualsGroupsSearch');
+    window._dbMypGroups        = debounceAnim(() => { _mypGroupsPage = 0;              filterMypGroups(); },       DEBOUNCE_SEARCH_MS, 'mypGroupsSearch');
 }
 
 function rebuildSearchDebouncers(ms) {
@@ -36,3 +37,4 @@ window._dbFilterInvite     = debounceAnim(filterInviteList,   DEBOUNCE_SEARCH_MS
 window._dbFdGroups         = debounceAnim(() => { window._fdGroupsPage = 0;        filterFdGroups(); },        DEBOUNCE_SEARCH_MS, 'fdGroupsSearch');
 window._dbFdMutuals        = debounceAnim(() => { window._fdMutualsPage = 0;        filterFdMutuals(); },       DEBOUNCE_SEARCH_MS, 'fdMutualsSearch');
 window._dbFdMutualsGroups  = debounceAnim(() => { window._fdMutualsGroupsPage = 0;  filterFdMutualsGroups(); }, DEBOUNCE_SEARCH_MS, 'fdMutualsGroupsSearch');
+window._dbMypGroups        = debounceAnim(() => { _mypGroupsPage = 0;              filterMypGroups(); },       DEBOUNCE_SEARCH_MS, 'mypGroupsSearch');
