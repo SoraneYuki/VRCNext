@@ -1,4 +1,4 @@
-**2026.35.2**
+**2026.35.3**
 
 **User Profile Update**
 
@@ -25,3 +25,4 @@
 * Fixed status dots in profile modals appearing behind icon frame decorations.
 * Fixed moderation entries in the Timeline showing “Unknown” instead of the player’s name. Existing entries are filled in automatically the next time the Timeline loads.
 * Fixed #113 - using CTRl + Scroll / zoom in / zoom out caused buttons and text to be blurry.
+* Fixed status dots in profile modals.

@@ -265,10 +265,7 @@
 
 /* Above .user-frame-deco (z-index 3), which overhangs the avatar and would cover
    the dot in this corner. */
-#modalFriendDetail.fd-style-compact .fd-left-status-dot,
-which overhangs the avatar and would cover
-   the dot in this corner. */
-#modalMyProfile.fd-style-compact .fd-left-status-dot{
+#modalFriendDetail.fd-style-compact .fd-left-status-dot {
     position: absolute;
     z-index: 4;
     bottom: -2px;
@@ -278,9 +275,12 @@ which overhangs the avatar and would cover
     box-shadow: 0 0 0 2px var(--bg-card);
 }
 
-#modalFriendDetail.fd-style-compact .fd-left-status-dot.vrc-status-ring,
-#modalMyProfile.fd-style-compact .fd-left-status-dot.vrc-status-ring{
+#modalFriendDetail.fd-style-compact .fd-left-status-dot.vrc-status-ring{
     background: var(--bg-card);
+}
+
+#modalMyProfile.fd-style-compact .fd-left-status-dot{
+    display: none;
 }
 
 #modalFriendDetail.fd-style-compact .fd-left-name-wrap,
