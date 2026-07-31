@@ -738,6 +738,9 @@ public class UnifiedTimeEngine : IDisposable
         public string ProfileBgTexture        { get; set; } = "";
         public string ProfileBgGradTop        { get; set; } = "";
         public string ProfileBgGradBottom     { get; set; } = "";
+        public string ProfileThemeButton      { get; set; } = "";
+        public string ProfileThemeIcon        { get; set; } = "";
+        public string ProfileThemeSubtext     { get; set; } = "";
     }
 
     public UserProfileCache? GetUserProfileCache(string userId)
@@ -763,7 +766,8 @@ public class UnifiedTimeEngine : IDisposable
                     groups, groups_cached_at, content, content_cached_at,
                     mutuals, mutuals_cached_at, mutual_groups, mutual_groups_cached_at,
                     profile_current_avatar, profile_icon_frame, profile_nameplate, profile_effect,
-                    profile_bg_type, profile_bg_texture, profile_bg_grad_top, profile_bg_grad_bottom
+                    profile_bg_type, profile_bg_texture, profile_bg_grad_top, profile_bg_grad_bottom,
+                    profile_theme_button, profile_theme_icon, profile_theme_subtext
                     FROM user_tracking WHERE user_id=$id";
                 cmd.Parameters.AddWithValue("$id", userId);
                 using var r = cmd.ExecuteReader();
@@ -829,6 +833,9 @@ public class UnifiedTimeEngine : IDisposable
                     ProfileBgTexture       = S("profile_bg_texture"),
                     ProfileBgGradTop       = S("profile_bg_grad_top"),
                     ProfileBgGradBottom    = S("profile_bg_grad_bottom"),
+                    ProfileThemeButton     = S("profile_theme_button"),
+                    ProfileThemeIcon       = S("profile_theme_icon"),
+                    ProfileThemeSubtext    = S("profile_theme_subtext"),
                 };
                 return string.IsNullOrEmpty(c.ProfileCachedAt) ? null : c;
             }
@@ -867,7 +874,8 @@ public class UnifiedTimeEngine : IDisposable
                     profile_fav_friend_id=$ffid, profile_badges=$badges,
                     profile_represented_group=$rg,
                     profile_icon_frame=$icf, profile_nameplate=$npl, profile_effect=$pfx,
-                    profile_bg_type=$bgt, profile_bg_texture=$bgx, profile_bg_grad_top=$bgu, profile_bg_grad_bottom=$bgd
+                    profile_bg_type=$bgt, profile_bg_texture=$bgx, profile_bg_grad_top=$bgu, profile_bg_grad_bottom=$bgd,
+                    profile_theme_button=$thb, profile_theme_icon=$thi, profile_theme_subtext=$ths
                     WHERE user_id=$id";
                 cmd.Parameters.AddWithValue("$id",    userId);
                 cmd.Parameters.AddWithValue("$dn",    p["displayName"]?.ToString() ?? "");
@@ -917,6 +925,9 @@ public class UnifiedTimeEngine : IDisposable
                 cmd.Parameters.AddWithValue("$bgx",    p["backgroundTextureId"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$bgu",    p["backgroundGradientTop"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$bgd",    p["backgroundGradientBottom"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$thb",    p["themeButtonColor"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$thi",    p["themeIconColor"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$ths",    p["themeSubtextColor"]?.ToString() ?? "");
                 cmd.ExecuteNonQuery();
             }
             catch { }
@@ -1751,6 +1762,9 @@ public class UnifiedTimeEngine : IDisposable
             "profile_bg_texture          TEXT    NOT NULL DEFAULT ''",
             "profile_bg_grad_top         TEXT    NOT NULL DEFAULT ''",
             "profile_bg_grad_bottom      TEXT    NOT NULL DEFAULT ''",
+            "profile_theme_button        TEXT    NOT NULL DEFAULT ''",
+            "profile_theme_icon          TEXT    NOT NULL DEFAULT ''",
+            "profile_theme_subtext       TEXT    NOT NULL DEFAULT ''",
         })
         {
             try

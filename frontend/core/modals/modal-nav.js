@@ -160,6 +160,8 @@ function navSetCurrent(type, id, id2) {
 function navOpenModal(type, id, label, id2) {
     if (!id) return;
 
+    _navCaptureTab(_navLiveEntry());
+
     if (_navIdx === -1 && _navCurrentEntry && _navCurrentEntry.id) {
         _navStack.push({ ..._navCurrentEntry });
         _navIdx = 0;
@@ -196,6 +198,8 @@ function navOpenModal(type, id, label, id2) {
 function navGoTo(idx) {
     if (idx < 0 || idx >= _navStack.length || idx === _navIdx) return;
 
+    _navCaptureTab(_navStack[_navIdx]);
+
     const leavingEntry = _navStack[_navIdx] ? { ..._navStack[_navIdx] } : null;
     const targetEntry  = { ..._navStack[idx] };
 
@@ -206,10 +210,12 @@ function navGoTo(idx) {
     if (leavingEntry && _navSameOverlay(leavingEntry.type, targetEntry.type)) {
         _navAnimateLeaveThen(leavingEntry, () => {
             _navDoOpen(targetEntry.type, targetEntry.id, targetEntry.id2);
+            _navRestoreTab(targetEntry);
         });
     } else {
         if (leavingEntry) _navAnimateLeave(leavingEntry);
         _navDoOpen(targetEntry.type, targetEntry.id, targetEntry.id2);
+        _navRestoreTab(targetEntry);
     }
 }
 
@@ -217,6 +223,7 @@ function navClear() {
     _navStack        = [];
     _navIdx          = -1;
     _navCurrentEntry = null;
+    _navTabPending   = null;
     document.documentElement.classList.remove('modal-nav-instant');
     document.documentElement.classList.remove('modal-nav-active');
     _navHideBackdrop();
@@ -258,6 +265,83 @@ function _navOverlayIdForType(type) {
 
 function _navSameOverlay(typeA, typeB) {
     return _navOverlayIdForType(typeA) === _navOverlayIdForType(typeB);
+}
+
+function _navTabKey(btn) {
+    if (!btn) return '';
+    if (btn.dataset && btn.dataset.fdtab) return btn.dataset.fdtab;
+    const m = /\(\s*'([^']+)'/.exec(btn.getAttribute('onclick') || '');
+    return m ? m[1] : '';
+}
+
+const _NAV_TABS = {
+    friend: {
+        active: () => _navTabKey(document.querySelector('#modalFriendDetail .fd-tab.active')),
+        btn:    tab => document.querySelector(`#modalFriendDetail .fd-tab[data-fdtab="${tab}"]`),
+        curId:  () => (typeof currentFriendDetail !== 'undefined' && currentFriendDetail) ? (currentFriendDetail.id || '') : '',
+    },
+    group: {
+        active: () => _navTabKey(document.querySelector('#detailModalContent .fd-tab.active[onclick^="switchGdTab("]')),
+        btn:    tab => document.querySelector(`#detailModalContent .fd-tab[onclick^="switchGdTab('${tab}'"]`),
+        curId:  () => (window._currentGroupDetail && window._currentGroupDetail.id) || '',
+    },
+    worldSearch: {
+        active: () => _navTabKey(document.querySelector('#detailModalContent .fd-tab.active[onclick^="switchWdTab("]')),
+        btn:    tab => document.querySelector(`#detailModalContent .fd-tab[onclick^="switchWdTab('${tab}'"]`),
+        curId:  () => (typeof _wdCurrentWorldId !== 'undefined' && _wdCurrentWorldId) ? _wdCurrentWorldId : '',
+    },
+    avatar: {
+        active: () => _navTabKey(document.querySelector('#avatarDetailContent .fd-tab.active[onclick^="switchAvTab("]')),
+        btn:    tab => document.querySelector(`#avatarDetailContent .fd-tab[onclick^="switchAvTab('${tab}'"]`),
+        curId:  () => (typeof _avDetailData !== 'undefined' && _avDetailData) ? (_avDetailData.id || '') : '',
+    },
+    myprofile: {
+        active: () => _navTabKey(document.querySelector('#mypBox .fd-tab.active[onclick^="switchMypTab("]')),
+        btn:    tab => document.querySelector(`#mypBox .fd-tab[onclick^="switchMypTab('${tab}'"]`),
+    },
+};
+
+function _navLiveEntry() {
+    return (_navIdx >= 0 && _navStack[_navIdx]) ? _navStack[_navIdx] : _navCurrentEntry;
+}
+
+function _navCaptureTab(entry) {
+    if (!entry) return;
+    const d = _NAV_TABS[entry.type];
+    if (!d) return;
+    const tab = d.active();
+    if (tab) entry.tab = tab;
+}
+
+let _navTabPending = null;
+const _NAV_TAB_MAX_FRAMES = 120;
+
+function _navRestoreTab(entry) {
+    _navTabPending = null;
+    if (!entry || !entry.tab) return;
+    const d = _NAV_TABS[entry.type];
+    if (!d) return;
+
+    const token = { tab: entry.tab, id: entry.id || '', frames: 0 };
+    _navTabPending = token;
+
+    const tick = () => {
+        if (_navTabPending !== token) return;
+        if (token.frames++ > _NAV_TAB_MAX_FRAMES) { _navTabPending = null; return; }
+
+        if (d.curId) {
+            const cur = d.curId();
+            if (!cur || (token.id && cur !== token.id)) { requestAnimationFrame(tick); return; }
+        }
+
+        const btn = d.btn(token.tab);
+        if (!btn) { requestAnimationFrame(tick); return; }
+
+        _navTabPending = null;
+        if (d.active() !== token.tab) btn.click();
+    };
+
+    requestAnimationFrame(tick);
 }
 
 function _navBoxForEntry(entry) {

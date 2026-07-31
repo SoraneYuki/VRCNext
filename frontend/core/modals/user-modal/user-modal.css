@@ -239,9 +239,11 @@
     flex-shrink: 0;
 }
 
+/* Above .user-frame-deco (z-index 3), which overhangs the avatar and would cover
+   the dot in this corner. */
 #modalFriendDetail.fd-style-compact .fd-left-status-dot {
     position: absolute;
-    z-index: 2;
+    z-index: 4;
     bottom: -2px;
     right: -2px;
     width: 11px !important;

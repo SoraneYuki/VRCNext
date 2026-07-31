@@ -207,6 +207,14 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcProfileBackgroundUpdated':
                 if (typeof onProfileBackgroundUpdated === 'function') onProfileBackgroundUpdated(payload);
                 break;
+            case 'vrcProfileThemeSaved':
+                if (typeof onProfileThemeSaved === 'function') onProfileThemeSaved(payload);
+                break;
+            case 'vrcProfileThemeDeleted':
+                if (typeof onProfileThemeDeleted === 'function') onProfileThemeDeleted(payload);
+                break;
+            case 'vrcActiveProfileThemeSet':
+                break;
             case 'vrcSelfAppearance':
                 if (typeof currentVrcUser !== 'undefined' && currentVrcUser) {
                     Object.assign(currentVrcUser, payload);

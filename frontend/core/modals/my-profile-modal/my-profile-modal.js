@@ -64,7 +64,7 @@ function renderProfileDecoPicker(loading) {
             ).join('');
             const empty = items.length === 0 ? `<div class="pd-empty">${t('profiles.deco.empty', 'You do not own any of these')}</div>` : '';
             return `<div class="pd-section"><div class="pd-section-title">${esc(s.label)}</div><div class="pd-grid">${noneCell}${cells}</div>${empty}</div>`;
-        }).join('') + _mypBackgroundSection();
+        }).join('') + _mypThemeSection() + _mypBackgroundSection();
     m.innerHTML = `<div class="gp-modal" style="width:560px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;">
         <div class="gp-modal-header">
             <span class="msi" style="font-size:20px;color:var(--accent);">filter_frames</span>
@@ -325,6 +325,7 @@ function renderMyProfileContent() {
 
     // Own VRC+ profile background, same treatment as other profiles.
     if (typeof applyProfileBg === 'function') applyProfileBg(box, u);
+    if (typeof applyProfileTheme === 'function') applyProfileTheme(box, u);
 }
 
 let _myBadgesEditing = false;
@@ -700,5 +701,161 @@ function onProfileBackgroundUpdated(data) {
     });
     showToast(true, t('profiles.deco.updated', 'Profile updated!'));
     if (typeof renderMyProfileContent === 'function') renderMyProfileContent();
+    renderProfileDecoPicker(false);
+}
+
+function _mypThemeSection() {
+    if (typeof profileThemeStripes !== 'function') return '';
+    const u = currentVrcUser || {};
+    const themes = Array.isArray(u.themes) ? u.themes : [];
+    const cur = u.themeId || '';
+
+    const noneCell = `<div class="pd-cell${!cur ? ' pd-sel' : ''}" onclick="setActiveProfileTheme('')"><div class="pd-none"><span class="msi">block</span></div><div class="pd-name">${t('profiles.deco.none', 'None')}</div></div>`;
+
+    const cells = themes.map(th => `<div class="pd-cell${th.id === cur ? ' pd-sel' : ''}" title="${esc(th.name || '')}">
+        <div onclick="setActiveProfileTheme('${jsq(th.id)}')">${profileThemeStripes(th)}<div class="pd-name">${esc(th.name || t('profiles.theme.unnamed', 'Unnamed'))}</div></div>
+        <div class="pt-cell-actions">
+            <button class="vrcn-button" style="padding:2px 6px;" onclick="event.stopPropagation();openProfileThemeEditor('${jsq(th.id)}')"><span class="msi" style="font-size:13px;">edit</span></button>
+            <button class="vrcn-button" style="padding:2px 6px;" onclick="event.stopPropagation();deleteProfileTheme('${jsq(th.id)}')"><span class="msi" style="font-size:13px;">delete</span></button>
+        </div>
+    </div>`).join('');
+
+    const addCell = `<div class="pd-cell" onclick="openProfileThemeEditor('')"><div class="pd-none"><span class="msi">add</span></div><div class="pd-name">${t('profiles.theme.add', 'New Theme')}</div></div>`;
+
+    return `<div class="pd-section"><div class="pd-section-title">${esc(t('profiles.theme.title', 'Profile Theme'))}</div><div class="pd-grid">${noneCell}${cells}${addCell}</div></div>`;
+}
+
+function setActiveProfileTheme(themeId) {
+    if (currentVrcUser) currentVrcUser.themeId = themeId;
+    _mypApplyActiveThemeColors();
+    renderProfileDecoPicker(false);
+    sendToCS({ action: 'vrcSetActiveProfileTheme', themeId });
+}
+
+function _mypApplyActiveThemeColors() {
+    const u = currentVrcUser;
+    if (!u) return;
+    const th = (Array.isArray(u.themes) ? u.themes : []).find(x => x.id === u.themeId);
+    u.themeButtonColor  = th ? (th.buttonColor  || '') : '';
+    u.themeIconColor    = th ? (th.iconColor    || '') : '';
+    u.themeSubtextColor = th ? (th.subtextColor || '') : '';
+    if (typeof renderMyProfileContent === 'function') renderMyProfileContent();
+}
+
+let _ptEditId = '';
+let _ptEditColors = { button: '#064b5c', icon: '#6ae3f9', subtext: '#a9a9a9' };
+
+function openProfileThemeEditor(themeId) {
+    const u = currentVrcUser || {};
+    const th = (Array.isArray(u.themes) ? u.themes : []).find(x => x.id === themeId);
+    _ptEditId = themeId || '';
+    _ptEditColors = {
+        button:  ptHex(th && th.buttonColor,  '#064b5c'),
+        icon:    ptHex(th && th.iconColor,    '#6ae3f9'),
+        subtext: ptHex(th && th.subtextColor, '#a9a9a9'),
+    };
+
+    document.getElementById('profileThemeModal')?.remove();
+    const m = document.createElement('div');
+    m.className = 'modal-overlay';
+    m.id = 'profileThemeModal';
+    m.style.zIndex = '10004';
+    m.style.display = 'flex';
+
+    const rows = [
+        ['button',  t('profiles.theme.button_color',  'Button')],
+        ['icon',    t('profiles.theme.icon_color',    'Icons')],
+        ['subtext', t('profiles.theme.subtext_color', 'Text')],
+    ].map(pair => `<div class="pt-row">
+        <span class="pt-label">${esc(pair[1])}</span>
+        <input type="color" id="ptColor_${pair[0]}" class="pbg-swatch" value="${esc(_ptEditColors[pair[0]])}" oninput="ptSetColor('${pair[0]}', this.value)">
+        <input type="text" id="ptHex_${pair[0]}" class="vrcn-edit-field pbg-hex" maxlength="7" value="${esc(_ptEditColors[pair[0]])}" oninput="ptSetColor('${pair[0]}', this.value)">
+    </div>`).join('');
+
+    m.innerHTML = `<div class="gp-modal" style="width:400px;max-width:92vw;">
+        <div class="gp-modal-header">
+            <span class="msi" style="font-size:20px;color:var(--accent);">palette</span>
+            <span>${esc(themeId ? t('profiles.theme.edit', 'Edit Theme') : t('profiles.theme.add', 'New Theme'))}</span>
+            <button class="vrcn-button-round" onclick="closeProfileThemeEditor()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:18px;">close</span></button>
+        </div>
+        <div class="gp-modal-body">
+            <div class="pt-preview" id="ptPreview"></div>
+            <div class="pt-row">
+                <span class="pt-label">${esc(t('profiles.theme.name', 'Name'))}</span>
+                <input type="text" id="ptName" class="vrcn-edit-field" style="flex:1;" maxlength="32" value="${esc((th && th.name) || '')}">
+            </div>
+            ${rows}
+        </div>
+        <div class="modal-btns" style="padding:0 16px 16px;">
+            <button class="vrcn-button" onclick="closeProfileThemeEditor()">${esc(t('common.cancel', 'Cancel'))}</button>
+            <button class="vrcn-button vrcn-btn-primary" onclick="saveProfileThemeFromEditor()">${esc(t('common.save', 'Save'))}</button>
+        </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if (e.target === m) closeProfileThemeEditor(); });
+    _ptRenderPreview();
+}
+
+function _ptRenderPreview() {
+    const el = document.getElementById('ptPreview');
+    if (el) el.innerHTML = profileThemeStripes({
+        buttonColor: _ptEditColors.button,
+        iconColor: _ptEditColors.icon,
+        subtextColor: _ptEditColors.subtext,
+    });
+}
+
+function ptSetColor(key, value) {
+    const hex = ptHex(value, _ptEditColors[key]);
+    _ptEditColors[key] = hex;
+    const c = document.getElementById('ptColor_' + key);
+    const h = document.getElementById('ptHex_' + key);
+    if (c) c.value = hex;
+    if (h && document.activeElement !== h) h.value = hex;
+    _ptRenderPreview();
+}
+
+function closeProfileThemeEditor() {
+    document.getElementById('profileThemeModal')?.remove();
+}
+
+function saveProfileThemeFromEditor() {
+    const name = (document.getElementById('ptName')?.value || '').trim();
+    if (!name) { showToast(false, t('profiles.theme.name_required', 'Please enter a theme name')); return; }
+    sendToCS({
+        action: 'vrcSaveProfileTheme',
+        themeId: _ptEditId,
+        name,
+        buttonColor: _ptEditColors.button,
+        iconColor: _ptEditColors.icon,
+        subtextColor: _ptEditColors.subtext,
+    });
+    closeProfileThemeEditor();
+}
+
+function deleteProfileTheme(themeId) {
+    sendToCS({ action: 'vrcDeleteProfileTheme', themeId });
+}
+
+function onProfileThemeSaved(data) {
+    if (!data || !data.success || !data.theme) { showToast(false, t('profiles.theme.save_failed', 'Could not save theme')); return; }
+    if (currentVrcUser) {
+        if (!Array.isArray(currentVrcUser.themes)) currentVrcUser.themes = [];
+        const i = currentVrcUser.themes.findIndex(x => x.id === data.theme.id);
+        if (i >= 0) currentVrcUser.themes[i] = data.theme; else currentVrcUser.themes.push(data.theme);
+        if (data.created) currentVrcUser.themeId = data.theme.id;
+        _mypApplyActiveThemeColors();
+    }
+    showToast(true, t('profiles.deco.updated', 'Profile updated!'));
+    renderProfileDecoPicker(false);
+}
+
+function onProfileThemeDeleted(data) {
+    if (!data || !data.success) { showToast(false, t('profiles.theme.delete_failed', 'Could not delete theme')); return; }
+    if (currentVrcUser && Array.isArray(currentVrcUser.themes)) {
+        currentVrcUser.themes = currentVrcUser.themes.filter(x => x.id !== data.themeId);
+        if (currentVrcUser.themeId === data.themeId) currentVrcUser.themeId = '';
+        _mypApplyActiveThemeColors();
+    }
     renderProfileDecoPicker(false);
 }

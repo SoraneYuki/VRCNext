@@ -34,6 +34,60 @@
     background-size: cover;
 }
 
+/* --- Transparent profile cards (opt-in, default off) ---
+
+   Scoped to the two profile modals so the rest of the app keeps its solid panels.
+   States that carry an accent colour (.active, round-button hover) are excluded so
+   the interaction feedback stays readable, and hover sits at 75% instead of 50% so
+   pointing at a card still visibly lifts it. */
+
+html.profile-cards-transparent #modalFriendDetail .fd-info-card,
+html.profile-cards-transparent #modalMyProfile .fd-info-card,
+html.profile-cards-transparent #modalFriendDetail .fd-group-card,
+html.profile-cards-transparent #modalMyProfile .fd-group-card,
+html.profile-cards-transparent #modalFriendDetail .vrcn-user-item,
+html.profile-cards-transparent #modalMyProfile .vrcn-user-item,
+html.profile-cards-transparent #modalFriendDetail .inst-item,
+html.profile-cards-transparent #modalMyProfile .inst-item,
+html.profile-cards-transparent #modalFriendDetail .fd-tabs,
+html.profile-cards-transparent #modalMyProfile .fd-tabs {
+    background: color-mix(in srgb, var(--bg-input) 50%, transparent);
+}
+
+html.profile-cards-transparent #modalFriendDetail .fd-group-card:hover,
+html.profile-cards-transparent #modalMyProfile .fd-group-card:hover,
+html.profile-cards-transparent #modalFriendDetail .vrcn-user-item:hover,
+html.profile-cards-transparent #modalMyProfile .vrcn-user-item:hover,
+html.profile-cards-transparent #modalFriendDetail .inst-item:hover,
+html.profile-cards-transparent #modalMyProfile .inst-item:hover {
+    background: color-mix(in srgb, var(--bg-hover) 75%, transparent);
+}
+
+html.profile-cards-transparent #modalFriendDetail .fd-tab.active,
+html.profile-cards-transparent #modalMyProfile .fd-tab.active {
+    background: color-mix(in srgb, var(--bg-hover) 50%, transparent);
+}
+
+html.profile-cards-transparent #modalFriendDetail .fd-modal-bar,
+html.profile-cards-transparent #modalMyProfile .fd-modal-bar {
+    background: color-mix(in srgb, var(--bg-card) 50%, transparent);
+}
+
+html.profile-cards-transparent #modalFriendDetail .vrcn-button:not(.active),
+html.profile-cards-transparent #modalMyProfile .vrcn-button:not(.active) {
+    background: color-mix(in srgb, var(--bg-btn) 50%, transparent);
+}
+
+html.profile-cards-transparent #modalFriendDetail .vrcn-button:not(.active):hover,
+html.profile-cards-transparent #modalMyProfile .vrcn-button:not(.active):hover {
+    background: color-mix(in srgb, var(--bg-btn-h) 75%, transparent);
+}
+
+html.profile-cards-transparent #modalFriendDetail .vrcn-button-round:not(.active):not(:hover),
+html.profile-cards-transparent #modalMyProfile .vrcn-button-round:not(.active):not(:hover) {
+    background: color-mix(in srgb, var(--bg-hover) 50%, transparent);
+}
+
 /* --- Gradient picker (profile background) --- */
 
 .pbg-preview {

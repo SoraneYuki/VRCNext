@@ -1308,6 +1308,8 @@ public class AuthController
                 var texId = appearance["backgroundTextureId"]?.ToString() ?? "";
                 Invoke(() => _core.SendToJS("vrcSelfAppearance", new
                 {
+                    themeId                  = appearance["themeId"]?.ToString() ?? "",
+                    themes                   = appearance["themes"] as JArray ?? new JArray(),
                     backgroundType           = appearance["backgroundType"]?.ToString() ?? "",
                     backgroundTextureId      = texId,
                     backgroundTextureUrl     = ProfileBackgroundHelper.UrlFor(texId),
@@ -1791,6 +1793,9 @@ public class AuthController
             _core.Settings.EnableNameplateDecoration = data["enableNameplateDecoration"]?.Value<bool>() ?? false;
             _core.Settings.EnableProfileEffects = data["enableProfileEffects"]?.Value<bool>() ?? false;
             _core.Settings.EnableProfileBackgrounds = data["enableProfileBackgrounds"]?.Value<bool>() ?? false;
+            _core.Settings.EnableProfileThemes = data["enableProfileThemes"]?.Value<bool>() ?? false;
+            _core.Settings.ProfileThemeVrcnOverride = data["profileThemeVrcnOverride"]?.Value<bool>() ?? false;
+            _core.Settings.TransparentProfileCards = data["transparentProfileCards"]?.Value<bool>() ?? false;
             _core.Settings.ShowDecorationsOnDashboard = data["showDecorationsOnDashboard"]?.Value<bool>() ?? false;
             _core.Settings.ProfileModalStyle = data["profileModalStyle"]?.ToString() ?? "classic";
             _core.Settings.WorldModalStyle = data["worldModalStyle"]?.ToString() ?? "classic";

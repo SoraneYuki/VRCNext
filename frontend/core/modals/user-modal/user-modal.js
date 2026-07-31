@@ -1158,6 +1158,9 @@ function renderFriendDetail(d) {
         applyProfileBg(_bgBox,  useCompact ? null : d);
         applyProfileBg(_bgLeft, useCompact ? d : null);
     }
+    if (typeof applyProfileTheme === 'function') {
+        applyProfileTheme(document.querySelector('#modalFriendDetail .modal-box'), d);
+    }
 
     if (_fdLiveTimer) { clearInterval(_fdLiveTimer); _fdLiveTimer = null; }
     if (d.inSameInstance && !(currentVrcUser && d.id === currentVrcUser.id)) {

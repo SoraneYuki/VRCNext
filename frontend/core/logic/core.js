@@ -83,11 +83,13 @@ function applyDecorationsSetting() {
     const effects = !!(typeof settings !== 'undefined' && settings.enableProfileEffects);
     const square = !!(typeof settings !== 'undefined' && settings.squareIconFrames);
     const onDash = !!(typeof settings !== 'undefined' && settings.showDecorationsOnDashboard);
+    const glassCards = !!(typeof settings !== 'undefined' && settings.transparentProfileCards);
     document.documentElement.classList.toggle('icon-frames-on', frames);
     document.documentElement.classList.toggle('icon-frames-square', frames && square);
     document.documentElement.classList.toggle('nameplate-deco-on', nameplate);
     document.documentElement.classList.toggle('profile-effect-on', effects);
     document.documentElement.classList.toggle('deco-dashboard-on', onDash);
+    document.documentElement.classList.toggle('profile-cards-transparent', glassCards);
 }
 function applyIconFramesSetting() { applyDecorationsSetting(); }
 function iconFrameHtml(frameUrl) {

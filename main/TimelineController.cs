@@ -611,6 +611,43 @@ public class TimelineController
                     }
                 }
 
+                // 0b) Backfill moderation user names the same way - older rows were written
+                // before the name was resolved for non-friends and show up as "Unknown".
+                foreach (var ev in allEvents.Where(e => e.Type == "moderation"
+                                                     && !string.IsNullOrEmpty(e.UserId)
+                                                     && string.IsNullOrEmpty(e.UserName)))
+                {
+                    var bfName  = "";
+                    var bfImage = "";
+                    if (_core.TimeEngine.Users.TryGetValue(ev.UserId, out var uRec) && !string.IsNullOrEmpty(uRec.DisplayName))
+                    {
+                        bfName  = uRec.DisplayName;
+                        bfImage = uRec.Image ?? "";
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var uDet = _core.TimeEngine.GetUserDetail(ev.UserId);
+                            if (uDet != null && !string.IsNullOrEmpty(uDet.DisplayName))
+                            {
+                                bfName  = uDet.DisplayName;
+                                bfImage = uDet.Image ?? "";
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (!string.IsNullOrEmpty(bfName))
+                    {
+                        _core.Timeline.UpdateEvent(ev.Id, e =>
+                        {
+                            e.UserName = bfName;
+                            if (string.IsNullOrEmpty(e.UserImage)) e.UserImage = bfImage;
+                        });
+                    }
+                }
+
                 var (events, hasMore) = _core.Timeline.GetEventsPaged(100, 0, tlTypeFilter);
                 var total   = _core.Timeline.GetEventCount(tlTypeFilter);
                 var payload = events.Select(e => _instance.BuildTimelinePayload(e)).ToList();

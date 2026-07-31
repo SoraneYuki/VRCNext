@@ -192,6 +192,69 @@ public class UsersAPI(VRChatApiService ctx)
         return null;
     }
 
+    public static string NormalizeThemeColor(string? value)
+    {
+        var hex = (value ?? "").Trim().TrimStart('#').ToLowerInvariant();
+        return System.Text.RegularExpressions.Regex.IsMatch(hex, "^[0-9a-f]{6}$") ? hex : "";
+    }
+
+    public async Task<JObject?> CreateProfileThemeAsync(string name, string button, string icon, string subtext)
+    {
+        if (!ctx.IsLoggedIn) return null;
+        try
+        {
+            var body = new JObject
+            {
+                ["name"]         = name,
+                ["buttonColor"]  = NormalizeThemeColor(button),
+                ["iconColor"]    = NormalizeThemeColor(icon),
+                ["subtextColor"] = NormalizeThemeColor(subtext),
+            };
+            var content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+            var resp = await ctx._http.PostAsync($"{VRChatApiService.BASE}/profile/theme", content);
+            var text = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"CreateProfileTheme: {(int)resp.StatusCode}");
+            if (resp.IsSuccessStatusCode) return JObject.Parse(text);
+        }
+        catch (Exception ex) { ctx.Log($"CreateProfileTheme exception: {ex.Message}"); }
+        return null;
+    }
+
+    public async Task<JObject?> UpdateProfileThemeAsync(string themeId, string name, string button, string icon, string subtext)
+    {
+        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(themeId)) return null;
+        try
+        {
+            var body = new JObject
+            {
+                ["themeId"]      = themeId,
+                ["name"]         = name,
+                ["buttonColor"]  = NormalizeThemeColor(button),
+                ["iconColor"]    = NormalizeThemeColor(icon),
+                ["subtextColor"] = NormalizeThemeColor(subtext),
+            };
+            var content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+            var resp = await ctx._http.PutAsync($"{VRChatApiService.BASE}/profile/theme/{Uri.EscapeDataString(themeId)}", content);
+            var text = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"UpdateProfileTheme({themeId}): {(int)resp.StatusCode}");
+            if (resp.IsSuccessStatusCode) return JObject.Parse(text);
+        }
+        catch (Exception ex) { ctx.Log($"UpdateProfileTheme exception: {ex.Message}"); }
+        return null;
+    }
+
+    public async Task<bool> DeleteProfileThemeAsync(string themeId)
+    {
+        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(themeId)) return false;
+        try
+        {
+            var resp = await ctx._http.DeleteAsync($"{VRChatApiService.BASE}/profile/theme/{Uri.EscapeDataString(themeId)}");
+            ctx.Log($"DeleteProfileTheme({themeId}): {(int)resp.StatusCode}");
+            return resp.IsSuccessStatusCode;
+        }
+        catch (Exception ex) { ctx.Log($"DeleteProfileTheme exception: {ex.Message}"); return false; }
+    }
+
     public async Task<bool> SendBoopAsync(string userId, string? emojiId = null)
     {
         if (!ctx.IsLoggedIn) return false;

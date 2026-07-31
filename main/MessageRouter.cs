@@ -678,6 +678,46 @@ public partial class AppShell
                     break;
 
                 // Update own profile (bio, pronouns, links, languages, icon, banner)
+                case "vrcSaveProfileTheme":
+                {
+                    var thId   = msg["themeId"]?.ToString() ?? "";
+                    var thName = msg["name"]?.ToString() ?? "";
+                    var thBtn  = msg["buttonColor"]?.ToString() ?? "";
+                    var thIcon = msg["iconColor"]?.ToString() ?? "";
+                    var thSub  = msg["subtextColor"]?.ToString() ?? "";
+                    _ = Task.Run(async () =>
+                    {
+                        var theme = string.IsNullOrEmpty(thId)
+                            ? await _core.Users.CreateProfileThemeAsync(thName, thBtn, thIcon, thSub)
+                            : await _core.Users.UpdateProfileThemeAsync(thId, thName, thBtn, thIcon, thSub);
+                        Invoke(() => SendToJS("vrcProfileThemeSaved", new { success = theme != null, theme, created = string.IsNullOrEmpty(thId) }));
+                    });
+                    break;
+                }
+
+                case "vrcDeleteProfileTheme":
+                {
+                    var delId = msg["themeId"]?.ToString() ?? "";
+                    _ = Task.Run(async () =>
+                    {
+                        var ok = await _core.Users.DeleteProfileThemeAsync(delId);
+                        Invoke(() => SendToJS("vrcProfileThemeDeleted", new { success = ok, themeId = delId }));
+                    });
+                    break;
+                }
+
+                case "vrcSetActiveProfileTheme":
+                {
+                    var actId = msg["themeId"]?.ToString() ?? "";
+                    var actSelf = _core.VrcApi.CurrentUserId;
+                    _ = Task.Run(async () =>
+                    {
+                        var res = await _core.Users.UpdateProfileAppearanceAsync(actSelf, new JObject { ["themeId"] = actId });
+                        Invoke(() => SendToJS("vrcActiveProfileThemeSet", new { success = res != null, themeId = actId }));
+                    });
+                    break;
+                }
+
                 case "vrcUpdateProfileBackground":
                 {
                     var bgKind = msg["backgroundType"]?.ToString() ?? "default";
