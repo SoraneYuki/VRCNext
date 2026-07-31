@@ -71,6 +71,9 @@ function confirmLeaveGroup(groupId, groupName) {
 }
 
 function renderGroupDetail(g) {
+    const _gdPrevBtn = document.querySelector('#detailModalContent .fd-tab.active[onclick^="switchGdTab("]');
+    const _gdPrevTab = _gdPrevBtn ? ((/switchGdTab\('([^']+)'/.exec(_gdPrevBtn.getAttribute('onclick') || '') || [])[1] || '') : '';
+    const _gdPrevId  = (window._currentGroupDetail && window._currentGroupDetail.id) || '';
     if (g.id && g.rawJson) _gdRawJsonCache[g.id] = g.rawJson;
     if (g.id) _groupDetailCache[g.id] = g;
     window._currentGroupDetailFull = g;
@@ -506,6 +509,11 @@ function renderGroupDetail(g) {
     }
     applyGroupDetailTranslations(g);
     if (useGdCompact) _gdCompactReflow(g);
+
+    if (_gdPrevTab && _gdPrevTab !== 'info' && _gdPrevId === g.id) {
+        const _gdRestoreBtn = el.querySelector(`.fd-tab[onclick^="switchGdTab('${_gdPrevTab}'"]`);
+        if (_gdRestoreBtn) switchGdTab(_gdPrevTab, _gdRestoreBtn);
+    }
 }
 
 function _gdCompactReflow(g) {

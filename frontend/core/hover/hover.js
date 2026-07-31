@@ -22,17 +22,16 @@
         tip.style.left = '-9999px';
         tip.style.top  = '-9999px';
         requestAnimationFrame(() => {
-            const z = (typeof _guiZoom !== 'undefined' ? _guiZoom : 1) || 1;
             const tw = tip.offsetWidth;
             const th = tip.offsetHeight;
-            const rLeft   = rect.left   / z;
-            const rTop    = rect.top    / z;
-            const rWidth  = rect.width  / z;
-            const rHeight = rect.height / z;
-            const rRight  = rect.right  / z;
-            const rBottom = rect.bottom / z;
-            const vw = window.innerWidth  / z;
-            const vh = window.innerHeight / z;
+            const rLeft   = rect.left;
+            const rTop    = rect.top;
+            const rWidth  = rect.width;
+            const rHeight = rect.height;
+            const rRight  = rect.right;
+            const rBottom = rect.bottom;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
             let left, top;
             if (placement === 'right') {
                 left = rRight + 7;

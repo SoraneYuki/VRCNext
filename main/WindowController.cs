@@ -343,6 +343,12 @@ public class WindowController
                 window.SetMaximized(!nowMax);
                 _core.SendToJS("windowMaxState", !nowMax);
                 break;
+            case "setGuiZoom":
+            {
+                var pct = (int?)msg["zoom"] ?? 100;
+                window.Zoom = Math.Clamp(pct, 50, 200);
+                break;
+            }
             case "windowClose":
 #if WINDOWS
                 if (_minimizeToTray)

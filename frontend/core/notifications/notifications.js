@@ -10,9 +10,8 @@ function _updatePillIndicator() {
     if (!group || !indicator || !active) return;
     const gRect = group.getBoundingClientRect();
     const aRect = active.getBoundingClientRect();
-    const z = (typeof _guiZoom !== 'undefined' ? _guiZoom : 1) || 1;
-    indicator.style.width     = (aRect.width / z) + 'px';
-    indicator.style.transform = `translateX(${(aRect.left - gRect.left) / z - 2}px)`;
+    indicator.style.width     = aRect.width + 'px';
+    indicator.style.transform = `translateX(${aRect.left - gRect.left - 2}px)`;
 }
 
 function setNotifTab(tab) {

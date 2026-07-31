@@ -92,10 +92,57 @@ public class FriendsController
 
     private readonly Dictionary<string, DateTime> _recentMod = new();
 
-    private void LogModerationEvent(string userId, string modType, bool active)
+    private async Task LogModerationEventAsync(string userId, string modType, bool active)
     {
         if (string.IsNullOrEmpty(userId)) return;
         var (mname, mimg) = _friendNameImg.GetValueOrDefault(userId, ("", ""));
+
+        if (string.IsNullOrEmpty(mname))
+        {
+            try
+            {
+                var pl = _core.LogWatcher.GetCurrentPlayers().FirstOrDefault(p => p.UserId == userId);
+                if (pl != null) mname = pl.DisplayName ?? "";
+            }
+            catch { }
+        }
+
+        if (string.IsNullOrEmpty(mname) && _core.TimeEngine.Users.TryGetValue(userId, out var uRec))
+        {
+            mname = uRec.DisplayName ?? "";
+            if (string.IsNullOrEmpty(mimg)) mimg = uRec.Image ?? "";
+        }
+
+        if (string.IsNullOrEmpty(mname))
+        {
+            try
+            {
+                var cached = _core.TimeEngine.GetUserDetail(userId);
+                if (cached != null)
+                {
+                    mname = cached.DisplayName ?? "";
+                    if (string.IsNullOrEmpty(mimg)) mimg = cached.Image ?? "";
+                }
+            }
+            catch { }
+        }
+
+        // Moderating someone you have never shared an instance with leaves no local
+        // trace at all, so the API is the only remaining source for their name.
+        if (string.IsNullOrEmpty(mname))
+        {
+            try
+            {
+                var u = await _core.Users.GetUserAsync(userId);
+                if (u != null)
+                {
+                    mname = u["displayName"]?.ToString() ?? "";
+                    if (string.IsNullOrEmpty(mimg)) mimg = VRChatApiService.GetUserImage(u);
+                }
+            }
+            catch { }
+        }
+
         LogModeration(userId, mname, mimg, modType, active);
     }
 
@@ -286,6 +333,7 @@ public class FriendsController
 
                     // SQLite cache
                     var bgType = ""; var bgTexture = ""; var bgTop = ""; var bgBottom = "";
+                    var thBtn = ""; var thIcon = ""; var thSub = "";
                     var prevSqlite = _core.TimeEngine.GetUserProfileCache(prevId);
                     if (prevSqlite != null)
                     {
@@ -295,6 +343,9 @@ public class FriendsController
                         bgTexture = prevSqlite.ProfileBgTexture;
                         bgTop     = prevSqlite.ProfileBgGradTop;
                         bgBottom  = prevSqlite.ProfileBgGradBottom;
+                        thBtn     = prevSqlite.ProfileThemeButton;
+                        thIcon    = prevSqlite.ProfileThemeIcon;
+                        thSub     = prevSqlite.ProfileThemeSubtext;
                     }
 
                     // Live API fallback if no SQLite cache yet
@@ -312,7 +363,9 @@ public class FriendsController
 
                     // Only pulled when the feature is on - this fires on every hover and
                     // the appearance endpoint is a separate request per user.
-                    if (_core.Settings.EnableProfileBackgrounds && string.IsNullOrEmpty(bgType))
+                    var needAppearance = (_core.Settings.EnableProfileBackgrounds && string.IsNullOrEmpty(bgType))
+                                     || (_core.Settings.EnableProfileThemes && string.IsNullOrEmpty(thBtn));
+                    if (needAppearance)
                     {
                         var prevAppearance = await _core.Users.GetProfileAppearanceAsync(prevId);
                         if (prevAppearance != null)
@@ -321,6 +374,10 @@ public class FriendsController
                             bgTexture = prevAppearance["backgroundTextureId"]?.ToString() ?? "";
                             bgTop     = prevAppearance["backgroundGradientTop"]?.ToString() ?? "";
                             bgBottom  = prevAppearance["backgroundGradientBottom"]?.ToString() ?? "";
+                            var pvTheme = ResolveActiveTheme(prevAppearance);
+                            thBtn  = pvTheme.button;
+                            thIcon = pvTheme.icon;
+                            thSub  = pvTheme.subtext;
                         }
                     }
 
@@ -333,6 +390,9 @@ public class FriendsController
                         backgroundTextureUrl     = ProfileBackgroundHelper.UrlFor(bgTexture),
                         backgroundGradientTop    = bgTop,
                         backgroundGradientBottom = bgBottom,
+                        themeButtonColor         = thBtn,
+                        themeIconColor           = thIcon,
+                        themeSubtextColor        = thSub,
                     });
                 }
                 break;
@@ -436,6 +496,29 @@ public class FriendsController
             case "vrcGetUserAvatars":
             {
                 var uid = msg["userId"]?.ToString();
+                if (!string.IsNullOrEmpty(uid) && uid == (_core.VrcApi.CurrentUserId ?? ""))
+                {
+                    try
+                    {
+                        var own = await _core.Avatars.GetOwnAvatarsAsync();
+                        var ownAvatars = own.Select(a => new
+                        {
+                            id                = a["id"]?.ToString() ?? "",
+                            name              = a["name"]?.ToString() ?? "",
+                            thumbnailImageUrl = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), a["thumbnailImageUrl"]?.ToString() ?? a["imageUrl"]?.ToString()),
+                            imageUrl          = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), a["imageUrl"]?.ToString() ?? a["thumbnailImageUrl"]?.ToString()),
+                            authorName        = a["authorName"]?.ToString() ?? "",
+                            releaseStatus     = a["releaseStatus"]?.ToString() ?? "private",
+                            unityPackages     = a["unityPackages"] as JArray ?? new JArray(),
+                        }).ToList();
+                        _core.SendToJS("vrcUserAvatars", new { userId = uid, avatars = ownAvatars });
+                    }
+                    catch
+                    {
+                        _core.SendToJS("vrcUserAvatars", new { userId = uid, avatars = new JArray() });
+                    }
+                    break;
+                }
                 if (!string.IsNullOrEmpty(uid))
                 {
                     try
@@ -799,7 +882,7 @@ public class FriendsController
                         var ok = await _core.PlayerModeration.ModerateUserAsync(uid, "block");
                         _core.SendToJS("vrcActionResult", new { action = "block", success = ok,
                             message = ok ? "Blocked" : "Failed to block" });
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "block", active = true }); LogModerationEvent(uid, "block", true); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "block", active = true }); await LogModerationEventAsync(uid,"block", true); }
                     });
                 }
                 break;
@@ -815,7 +898,7 @@ public class FriendsController
                         var ok = await _core.PlayerModeration.ModerateUserAsync(uid, "mute");
                         _core.SendToJS("vrcActionResult", new { action = "mute", success = ok,
                             message = ok ? "Muted" : "Failed to mute" });
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "mute", active = true }); LogModerationEvent(uid, "mute", true); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "mute", active = true }); await LogModerationEventAsync(uid,"mute", true); }
                     });
                 }
                 break;
@@ -831,7 +914,7 @@ public class FriendsController
                         var ok = await _core.PlayerModeration.UnmoderateUserAsync(uid, "block");
                         _core.SendToJS("vrcActionResult", new { action = "unblock", success = ok,
                             message = ok ? "Unblocked" : "Failed to unblock" });
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "block", active = false }); LogModerationEvent(uid, "block", false); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "block", active = false }); await LogModerationEventAsync(uid,"block", false); }
                     });
                 }
                 break;
@@ -847,7 +930,7 @@ public class FriendsController
                         var ok = await _core.PlayerModeration.UnmoderateUserAsync(uid, "mute");
                         _core.SendToJS("vrcActionResult", new { action = "unmute", success = ok,
                             message = ok ? "Unmuted" : "Failed to unmute" });
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "mute", active = false }); LogModerationEvent(uid, "mute", false); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "mute", active = false }); await LogModerationEventAsync(uid,"mute", false); }
                     });
                 }
                 break;
@@ -860,7 +943,7 @@ public class FriendsController
                     _ = Task.Run(async () =>
                     {
                         var ok = await _core.PlayerModeration.ModerateUserAsync(uid, "hideAvatar");
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "hideAvatar", active = true }); LogModerationEvent(uid, "hideAvatar", true); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "hideAvatar", active = true }); await LogModerationEventAsync(uid,"hideAvatar", true); }
                     });
                 break;
             }
@@ -872,7 +955,7 @@ public class FriendsController
                     _ = Task.Run(async () =>
                     {
                         var ok = await _core.PlayerModeration.UnmoderateUserAsync(uid, "hideAvatar");
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "hideAvatar", active = false }); LogModerationEvent(uid, "hideAvatar", false); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "hideAvatar", active = false }); await LogModerationEventAsync(uid,"hideAvatar", false); }
                     });
                 break;
             }
@@ -884,7 +967,7 @@ public class FriendsController
                     _ = Task.Run(async () =>
                     {
                         var ok = await _core.PlayerModeration.ModerateUserAsync(uid, "interactOff");
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "interactOff", active = true }); LogModerationEvent(uid, "interactOff", true); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "interactOff", active = true }); await LogModerationEventAsync(uid,"interactOff", true); }
                     });
                 break;
             }
@@ -896,7 +979,7 @@ public class FriendsController
                     _ = Task.Run(async () =>
                     {
                         var ok = await _core.PlayerModeration.UnmoderateUserAsync(uid, "interactOff");
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "interactOff", active = false }); LogModerationEvent(uid, "interactOff", false); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "interactOff", active = false }); await LogModerationEventAsync(uid,"interactOff", false); }
                     });
                 break;
             }
@@ -908,7 +991,7 @@ public class FriendsController
                     _ = Task.Run(async () =>
                     {
                         var ok = await _core.PlayerModeration.ModerateUserAsync(uid, "muteChat");
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "muteChat", active = true }); LogModerationEvent(uid, "muteChat", true); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "muteChat", active = true }); await LogModerationEventAsync(uid,"muteChat", true); }
                     });
                 break;
             }
@@ -920,7 +1003,7 @@ public class FriendsController
                     _ = Task.Run(async () =>
                     {
                         var ok = await _core.PlayerModeration.UnmoderateUserAsync(uid, "muteChat");
-                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "muteChat", active = false }); LogModerationEvent(uid, "muteChat", false); }
+                        if (ok) { _core.SendToJS("vrcModDone", new { userId = uid, type = "muteChat", active = false }); await LogModerationEventAsync(uid,"muteChat", false); }
                     });
                 break;
             }
@@ -1034,8 +1117,10 @@ public class FriendsController
 
     private async Task GetUserFavWorldsAsync(string userId)
     {
+        var isSelfFav = userId == (_core.VrcApi.CurrentUserId ?? "");
+
         // Serve from cache if fresh (TTL 3 days) — no API call needed
-        if (_core.Settings.FfcEnabled && _core.Cache.IsFresh(CacheHandler.KeyUserFavContent(userId), TimeSpan.FromDays(3)))
+        if (!isSelfFav && _core.Settings.FfcEnabled && _core.Cache.IsFresh(CacheHandler.KeyUserFavContent(userId), TimeSpan.FromDays(3)))
         {
             var cached = _core.Cache.LoadRaw(CacheHandler.KeyUserFavContent(userId));
             if (cached != null)
@@ -1070,9 +1155,11 @@ public class FriendsController
             var displayName = grp["displayName"]?.ToString() ?? name;
             var visibility = grp["visibility"]?.ToString() ?? "private";
             List<object> worlds = new();
-            if (visibility != "private")
+            if (visibility != "private" || isSelfFav)
             {
-                var wArr = await _core.Favorites.GetUserFavWorldsInGroupAsync(userId, name);
+                IEnumerable<JToken> wArr = isSelfFav
+                    ? await _core.Favorites.GetFavoriteWorldsByGroupAsync(name)
+                    : await _core.Favorites.GetUserFavWorldsInGroupAsync(userId, name);
                 foreach (var w in wArr)
                 {
                     if (w is not JObject wo) continue;
@@ -1823,6 +1910,9 @@ public class FriendsController
                 ["backgroundTextureUrl"]     = ProfileBackgroundHelper.UrlFor(cachedEntry.ProfileBgTexture),
                 ["backgroundGradientTop"]    = cachedEntry.ProfileBgGradTop,
                 ["backgroundGradientBottom"] = cachedEntry.ProfileBgGradBottom,
+                ["themeButtonColor"]         = cachedEntry.ProfileThemeButton,
+                ["themeIconColor"]           = cachedEntry.ProfileThemeIcon,
+                ["themeSubtextColor"]        = cachedEntry.ProfileThemeSubtext,
             };
             _core.SendToJS("vrcFriendDetail", diskProfile);
 
@@ -2057,6 +2147,28 @@ public class FriendsController
         return list;
     }
 
+    private static (string button, string icon, string subtext) ResolveActiveTheme(JObject? appearance)
+    {
+        if (appearance == null) return ("", "", "");
+
+        var flatButton  = UsersAPI.NormalizeThemeColor(appearance["themeButtonColor"]?.ToString());
+        var flatIcon    = UsersAPI.NormalizeThemeColor(appearance["themeIconColor"]?.ToString());
+        var flatSubtext = UsersAPI.NormalizeThemeColor(appearance["themeSubtextColor"]?.ToString());
+        if (flatButton != "" || flatIcon != "" || flatSubtext != "")
+            return (flatButton, flatIcon, flatSubtext);
+
+        var id = appearance["themeId"]?.ToString() ?? "";
+        if (string.IsNullOrEmpty(id) || appearance["themes"] is not JArray list) return ("", "", "");
+        foreach (var t in list.OfType<JObject>())
+        {
+            if (t["id"]?.ToString() != id) continue;
+            return (UsersAPI.NormalizeThemeColor(t["buttonColor"]?.ToString()),
+                    UsersAPI.NormalizeThemeColor(t["iconColor"]?.ToString()),
+                    UsersAPI.NormalizeThemeColor(t["subtextColor"]?.ToString()));
+        }
+        return ("", "", "");
+    }
+
     public async Task<object?> BuildUserDetailPayloadAsync(string userId)
     {
         JObject? user;
@@ -2066,6 +2178,7 @@ public class FriendsController
         // Backgrounds/banner live on their own endpoint, /users/{id} does not have them.
         var isSelfProfile = userId == _core.VrcApi.CurrentUserId;
         var appearance = await _core.Users.GetProfileAppearanceAsync(userId, isSelfProfile);
+        var activeTheme = ResolveActiveTheme(appearance);
 
         user = storeSnapshot;
         if (user == null || user["badges"] == null)
@@ -2209,6 +2322,11 @@ public class FriendsController
             profileEffectUrl = IconFrameHelper.UrlFor(user["profileEffect"]?.ToString(), _core.Inventory),
             // VRC+ profile background. The texture id is mapped to an asset URL in the
             // frontend, where the file list lives next to the CSS that uses it.
+            themeId                  = appearance?["themeId"]?.ToString() ?? "",
+            themes                   = appearance?["themes"] as JArray ?? new JArray(),
+            themeButtonColor         = activeTheme.button,
+            themeIconColor           = activeTheme.icon,
+            themeSubtextColor        = activeTheme.subtext,
             backgroundType           = appearance?["backgroundType"]?.ToString() ?? "",
             backgroundTextureId      = appearance?["backgroundTextureId"]?.ToString() ?? "",
             backgroundTextureUrl     = ProfileBackgroundHelper.UrlFor(appearance?["backgroundTextureId"]?.ToString()),

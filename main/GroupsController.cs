@@ -109,6 +109,7 @@ public class GroupsController
                     bannerUrl      = g["bannerUrl"]?.ToString() ?? "",
                     memberCount    = g["memberCount"]?.Value<int>() ?? 0,
                     privacy        = g["privacy"]?.ToString() ?? "",
+                    ownerId        = g["ownerId"]?.ToString() ?? "",
                     isRepresenting = g["isRepresenting"]?.Value<bool>() ?? false,
                     visibility     = vis,
                     canCreateInstance = canCreate,

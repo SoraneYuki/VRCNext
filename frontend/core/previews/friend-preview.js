@@ -207,6 +207,7 @@
         // The background fields ride along on the preview payload, so the hover card
         // gets the same treatment as the profile modal.
         if (typeof applyProfileBg === 'function') applyProfileBg(popup, extra || f);
+        if (typeof applyProfileTheme === 'function') applyProfileTheme(popup, extra || f);
     }
 
     function buildStatsRow(uid) {

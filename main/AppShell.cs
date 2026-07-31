@@ -413,6 +413,7 @@ public partial class AppShell
             .SetLeft(startX)
             .SetTop(startY)
             .SetTemporaryFilesPath(webView2DataDir)
+            .SetZoom(Math.Clamp(_settings.GuiZoom, 50, 200))
 #if WINDOWS
             .SetBrowserControlInitParameters(BuildChromiumFlags(_settings))
 #endif

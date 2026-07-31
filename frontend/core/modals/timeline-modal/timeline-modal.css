@@ -129,7 +129,7 @@
 .modal-overlay.tl-style-compact #detailModalContent,
 .modal-overlay.tl-style-compact #detailModalContent2 {
     padding: 0;
-    height: min(calc((100vh - var(--tb-h, 0px)) / var(--gui-zoom, 1) - 80px), 420px);
+    height: min(calc(100vh - var(--tb-h, 0px) - 80px), 420px);
     display: flex;
     flex-direction: column;
     overflow: hidden;

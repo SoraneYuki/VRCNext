@@ -2911,9 +2911,6 @@ public class TimelineService : IDisposable
 
     private List<(DateTime Start, DateTime End)> BuildMergedOnlineSessions(string userId)
     {
-        const double MAX_SESSION_MIN = 8 * 60;
-        const double MERGE_GAP_MIN   = 5;
-
         var result = new List<(DateTime Start, DateTime End)>();
         if (string.IsNullOrEmpty(userId)) return result;
 
@@ -2935,6 +2932,41 @@ public class TimelineService : IDisposable
         }
         catch { return result; }
 
+        return MergeOnlineEvents(events);
+    }
+
+    private List<(DateTime Start, DateTime End)> BuildSelfOnlineSessions(string userId)
+    {
+        var result = new List<(DateTime Start, DateTime End)>();
+        if (string.IsNullOrEmpty(userId)) return result;
+
+        var events = new List<(DateTime Ts, bool IsOnline)>();
+        try
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = @"SELECT timestamp, message FROM events
+                WHERE type='profile' AND notif_type='launch' AND user_id=$uid
+                ORDER BY timestamp ASC";
+            cmd.Parameters.AddWithValue("$uid", userId);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                if (!DateTime.TryParse(r.GetString(0), null,
+                    System.Globalization.DateTimeStyles.RoundtripKind, out var dt)) continue;
+                events.Add((dt.ToUniversalTime(), (r.IsDBNull(1) ? "" : r.GetString(1)) == "start"));
+            }
+        }
+        catch { return result; }
+
+        return MergeOnlineEvents(events);
+    }
+
+    private static List<(DateTime Start, DateTime End)> MergeOnlineEvents(List<(DateTime Ts, bool IsOnline)> events)
+    {
+        const double MAX_SESSION_MIN = 8 * 60;
+        const double MERGE_GAP_MIN   = 5;
+
+        var result = new List<(DateTime Start, DateTime End)>();
         if (events.Count == 0) return result;
 
         var now = DateTime.UtcNow;
@@ -2976,10 +3008,19 @@ public class TimelineService : IDisposable
 
     public OnlineHeatmap GetUserOnlineHeatmap(string userId, int days = 30)
     {
-        var hm = new OnlineHeatmap();
-        if (string.IsNullOrEmpty(userId)) return hm;
+        if (string.IsNullOrEmpty(userId)) return new OnlineHeatmap();
+        return BuildHeatmap(BuildMergedOnlineSessions(userId), days);
+    }
 
-        var merged = BuildMergedOnlineSessions(userId);
+    public OnlineHeatmap GetSelfOnlineHeatmap(string userId, int days = 30)
+    {
+        if (string.IsNullOrEmpty(userId)) return new OnlineHeatmap();
+        return BuildHeatmap(BuildSelfOnlineSessions(userId), days);
+    }
+
+    private static OnlineHeatmap BuildHeatmap(List<(DateTime Start, DateTime End)> merged, int days)
+    {
+        var hm = new OnlineHeatmap();
         if (merged.Count == 0) return hm;
 
         var now = DateTime.UtcNow;
@@ -3066,19 +3107,32 @@ public class TimelineService : IDisposable
 
     public StatusBreakdown GetUserStatusBreakdown(string userId, int days = 30)
     {
-        var bd = new StatusBreakdown();
-        if (string.IsNullOrEmpty(userId)) return bd;
+        if (string.IsNullOrEmpty(userId)) return new StatusBreakdown();
+        var transitions = ReadStatusTransitions(
+            @"SELECT timestamp, old_value, new_value FROM friend_events
+              WHERE type='friend_status' AND friend_id=$uid ORDER BY timestamp ASC",
+            userId, out var initial);
+        return BuildStatusBreakdown(BuildMergedOnlineSessions(userId), transitions, initial, userId, days);
+    }
 
-        var sessions = BuildMergedOnlineSessions(userId);
-        if (sessions.Count == 0) return bd;
+    public StatusBreakdown GetSelfStatusBreakdown(string userId, int days = 30)
+    {
+        if (string.IsNullOrEmpty(userId)) return new StatusBreakdown();
+        var transitions = ReadStatusTransitions(
+            @"SELECT timestamp, notif_title, message FROM events
+              WHERE type='profile' AND notif_type='status' AND user_id=$uid ORDER BY timestamp ASC",
+            userId, out var initial);
+        return BuildStatusBreakdown(BuildSelfOnlineSessions(userId), transitions, initial, userId, days);
+    }
 
+    private List<(DateTime Ts, string Status)> ReadStatusTransitions(string sql, string userId, out string initialStatus)
+    {
         var transitions = new List<(DateTime Ts, string Status)>();
-        string initialStatus = "";
+        initialStatus = "";
         try
         {
             using var cmd = _db.CreateCommand();
-            cmd.CommandText = @"SELECT timestamp, old_value, new_value FROM friend_events
-                WHERE type='friend_status' AND friend_id=$uid ORDER BY timestamp ASC";
+            cmd.CommandText = sql;
             cmd.Parameters.AddWithValue("$uid", userId);
             using var r = cmd.ExecuteReader();
             while (r.Read())
@@ -3090,6 +3144,16 @@ public class TimelineService : IDisposable
             }
         }
         catch { }
+        return transitions;
+    }
+
+    private StatusBreakdown BuildStatusBreakdown(
+        List<(DateTime Start, DateTime End)> sessions,
+        List<(DateTime Ts, string Status)> transitions,
+        string initialStatus, string userId, int days)
+    {
+        var bd = new StatusBreakdown();
+        if (sessions.Count == 0) return bd;
 
         if (string.IsNullOrEmpty(initialStatus))
         {

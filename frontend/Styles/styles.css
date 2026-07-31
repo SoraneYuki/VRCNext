@@ -293,6 +293,14 @@ html.text-tools-active * { user-select: text !important; }
     z-index: 3;
 }
 html.icon-frames-on .user-frame-deco { display: block; }
+
+/* The frame sits at z-index 3 and overhangs the avatar by 19% on every side, which
+   covers the bottom-right corner where the status dot lives. The dots are positioned
+   but had no z-index of their own, so they painted underneath it. */
+html.icon-frames-on .vrcn-user-item-dot,
+html.icon-frames-on .vrc-friend-status-badge,
+html.icon-frames-on .fp-av-dot,
+html.icon-frames-on .dash-flocs-dot { z-index: 4; }
 html.icon-frames-on:not(.icon-frames-square) .fd-avatar,
 html.icon-frames-on:not(.icon-frames-square) .myp-avatar,
 html.icon-frames-on:not(.icon-frames-square) .vrc-avatar,

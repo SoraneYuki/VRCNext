@@ -125,6 +125,9 @@ function saveSettings() {
             enableNameplateDecoration: document.getElementById('setEnableNameplateDeco')?.checked ?? false,
             enableProfileEffects: document.getElementById('setEnableProfileEffect')?.checked ?? false,
             enableProfileBackgrounds: document.getElementById('setEnableProfileBg')?.checked ?? false,
+            enableProfileThemes: document.getElementById('setEnableProfileThemes')?.checked ?? false,
+            profileThemeVrcnOverride: document.getElementById('setThemeVrcnOverride')?.checked ?? false,
+            transparentProfileCards: document.getElementById('setTransparentProfileCards')?.checked ?? false,
             showDecorationsOnDashboard: document.getElementById('setDecoOnDashboard')?.checked ?? false,
             profileModalStyle: settings.profileModalStyle || 'classic',
             worldModalStyle: settings.worldModalStyle || 'classic',
@@ -421,6 +424,15 @@ function loadSettingsToUI(s) {
     settings.enableProfileBackgrounds = s.EnableProfileBackgrounds ?? s.enableProfileBackgrounds ?? false;
     const _epbEl = document.getElementById('setEnableProfileBg');
     if (_epbEl) _epbEl.checked = settings.enableProfileBackgrounds;
+    settings.enableProfileThemes = s.EnableProfileThemes ?? s.enableProfileThemes ?? false;
+    const _eptEl = document.getElementById('setEnableProfileThemes');
+    if (_eptEl) _eptEl.checked = settings.enableProfileThemes;
+    settings.profileThemeVrcnOverride = s.ProfileThemeVrcnOverride ?? s.profileThemeVrcnOverride ?? false;
+    const _ptoEl = document.getElementById('setThemeVrcnOverride');
+    if (_ptoEl) _ptoEl.checked = settings.profileThemeVrcnOverride;
+    settings.transparentProfileCards = s.TransparentProfileCards ?? s.transparentProfileCards ?? false;
+    const _tpcEl = document.getElementById('setTransparentProfileCards');
+    if (_tpcEl) _tpcEl.checked = settings.transparentProfileCards;
     settings.showDecorationsOnDashboard = s.ShowDecorationsOnDashboard ?? s.showDecorationsOnDashboard ?? false;
     const _dodEl = document.getElementById('setDecoOnDashboard');
     if (_dodEl) _dodEl.checked = settings.showDecorationsOnDashboard;
