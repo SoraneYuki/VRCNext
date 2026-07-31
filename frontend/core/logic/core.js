@@ -127,31 +127,32 @@ let rsidebarCollapsed = localStorage.getItem('vrcnext_rsidebar') !== '0';
         if (rsIcon) rsIcon.textContent = 'chevron_left';
     }
 })();
-// GUI zoom — Ctrl+Wheel persisted to settings
+// GUI zoom — Ctrl+Wheel persisted to settings, applied as native browser zoom by the host
 let _zoomSaveTimer = null;
 let _guiZoom = 1;
 function applyGuiZoom(z) {
     _guiZoom = z;
-    const inv = 100 / z;
-    document.body.style.transform = `scale(${z})`;
-    document.body.style.transformOrigin = 'top left';
-    document.body.style.width = `${inv}vw`;
-    document.body.style.height = `${inv}vh`;
-    document.documentElement.style.setProperty('--gui-zoom', z);
+    sendToCS({ action: 'setGuiZoom', zoom: Math.round(z * 100) });
     const _lbl = document.getElementById('tbZoomLabel');
     if (_lbl) _lbl.textContent = Math.round(z * 100) + '%';
+}
+function _stepGuiZoom(dir) {
+    const z = Math.min(2, Math.max(0.5, _guiZoom + dir * 0.05));
+    applyGuiZoom(z);
+    clearTimeout(_zoomSaveTimer);
+    _zoomSaveTimer = setTimeout(() => { try { autoSave(); } catch {} }, 800);
 }
 document.addEventListener('wheel', e => {
     if (!e.ctrlKey) return;
     e.preventDefault();
-    const z = Math.min(2, Math.max(0.5, _guiZoom + (e.deltaY < 0 ? 0.05 : -0.05)));
-    applyGuiZoom(z);
-    clearTimeout(_zoomSaveTimer);
-    _zoomSaveTimer = setTimeout(() => { try { autoSave(); } catch {} }, 800);
+    _stepGuiZoom(e.deltaY < 0 ? 1 : -1);
 }, { passive: false });
-// Ctrl+0 resets zoom
+// Ctrl+0 resets zoom, Ctrl+Plus / Ctrl+Minus step it — handled here so the host stays in sync
 document.addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key === '0') { e.preventDefault(); applyGuiZoom(1); try { autoSave(); } catch {} }
+    if (!e.ctrlKey) return;
+    if (e.key === '0') { e.preventDefault(); applyGuiZoom(1); try { autoSave(); } catch {} }
+    else if (e.key === '+' || e.key === '=') { e.preventDefault(); _stepGuiZoom(1); }
+    else if (e.key === '-') { e.preventDefault(); _stepGuiZoom(-1); }
 });
 
 let dashBgPath = '', dashBgDataUri = '';

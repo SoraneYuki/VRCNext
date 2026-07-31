@@ -29,8 +29,7 @@ function toggleHelpPanel() {
         var titleEl = document.getElementById('pageTitle');
         if (titleEl) {
             var r = titleEl.getBoundingClientRect();
-            var z = (typeof _guiZoom !== 'undefined' ? _guiZoom : 1) || 1;
-            panel.style.left = Math.max(8, r.left / z) + 'px';
+            panel.style.left = Math.max(8, r.left) + 'px';
         }
         var activeTab = document.querySelector('.tab.active');
         var tabIndex = activeTab ? (parseInt(activeTab.id.replace('tab', '')) || 0) : 0;
@@ -99,9 +98,8 @@ function tbToggleTools() {
         var drop = item.querySelector('.tb-dropdown');
         if (drop) {
             var r = item.getBoundingClientRect();
-            var z = (typeof _guiZoom !== 'undefined' ? _guiZoom : 1) || 1;
-            drop.style.top  = (r.bottom / z) + 'px';
-            drop.style.left = (r.left / z) + 'px';
+            drop.style.top  = r.bottom + 'px';
+            drop.style.left = r.left + 'px';
         }
         item.classList.add('open');
         _open = item;
@@ -126,17 +124,16 @@ function tbToggleTools() {
             cancelSubClose();
             if (_openSubDrop && _openSubDrop !== drop) closeSubDrop();
             var r = sub.getBoundingClientRect();
-            var z = (typeof _guiZoom !== 'undefined' ? _guiZoom : 1) || 1;
-            var vw = window.innerWidth / z;
-            var vh = window.innerHeight / z;
+            var vw = window.innerWidth;
+            var vh = window.innerHeight;
             drop.style.visibility = 'hidden';
             drop.style.display = 'block';
             var sw = drop.offsetWidth;
             var sh = drop.offsetHeight;
             drop.style.visibility = '';
-            var left = r.right / z - 1;
-            if (left + sw > vw - 4) left = r.left / z - sw + 1;
-            var top = r.top / z;
+            var left = r.right - 1;
+            if (left + sw > vw - 4) left = r.left - sw + 1;
+            var top = r.top;
             if (top + sh > vh - 4) top = Math.max(4, vh - sh - 4);
             drop.style.left = Math.max(4, left) + 'px';
             drop.style.top = top + 'px';

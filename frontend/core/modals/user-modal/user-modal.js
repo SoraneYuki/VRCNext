@@ -2011,18 +2011,14 @@ function handleUserBasic(payload) {
 
         t.style.opacity = '0';
         t.style.display = 'flex';
-        // tip lives inside the scaled body — offsetWidth/Height are CSS px.
         const tw = t.offsetWidth;
         const th = t.offsetHeight;
-        // rect / viewport come from the scaled coordinate space — convert to
-        // the same CSS-pixel space the tip is positioned in.
-        const z = (typeof _guiZoom !== 'undefined' ? _guiZoom : 1) || 1;
         const rect = wrap.getBoundingClientRect();
-        const rLeft  = rect.left  / z;
-        const rTop   = rect.top   / z;
-        const rWidth = rect.width / z;
-        const rBot   = rect.bottom / z;
-        const vw = window.innerWidth  / z;
+        const rLeft  = rect.left;
+        const rTop   = rect.top;
+        const rWidth = rect.width;
+        const rBot   = rect.bottom;
+        const vw = window.innerWidth;
         let x = rLeft + rWidth / 2 - tw / 2;
         let y = rTop - th - 8;
 

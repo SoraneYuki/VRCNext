@@ -5,7 +5,7 @@
     grid-template-columns: 220px minmax(0, 1fr);
     border-radius: 0 0 14px 14px;
     overflow: hidden;
-    height: min(calc(88vh / var(--gui-zoom, 1)), 380px);
+    height: min(88vh, 380px);
     max-height: 380px;
 }
 

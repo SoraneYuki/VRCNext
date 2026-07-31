@@ -488,6 +488,7 @@ public partial class AppShell
                 case "windowClose":
                 case "windowDragStart":
                 case "windowResizeStart":
+                case "setGuiZoom":
                     _windowCtrl.HandleMessage(action, msg);
                     break;
 

@@ -15,7 +15,7 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
     backdrop-filter: blur(4px);
     will-change: opacity;
     overflow-y: auto;
-    padding: calc(var(--tb-h) + 20px / var(--gui-zoom, 1)) 0 calc(20px / var(--gui-zoom, 1));
+    padding: calc(var(--tb-h) + 20px) 0 20px;
 }
 
 #modalFriendDetail { z-index: 10001; }
@@ -39,7 +39,7 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
     padding: 28px 32px 22px;
     width: 460px;
     max-width: 90%;
-    max-height: calc((100vh - var(--tb-h)) / var(--gui-zoom, 1) - 40px);
+    max-height: calc(100vh - var(--tb-h) - 40px);
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-gutter: stable;
