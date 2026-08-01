@@ -1567,8 +1567,9 @@ function openGroupRolesModal(groupId) {
     overlay.addEventListener('click', e => { if (e.target === overlay) closeGroupRolesModal(); });
 
     const myRoleIds = new Set(Array.isArray(g.myRoleIds) ? g.myRoleIds : []);
+    const gid = g.id || groupId || '';
     const body = roles.length
-        ? roles.map((r, i) => _buildRoleViewCard(r, i, myRoleIds.has(r.id))).join('')
+        ? roles.map((r, i) => _buildRoleViewCard(r, i, myRoleIds.has(r.id), gid)).join('')
         : `<div class="myp-empty">${t('groups.roles.empty', 'No roles found')}</div>`;
 
     overlay.innerHTML = `<div class="gp-modal" style="width:460px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;">
@@ -1582,7 +1583,7 @@ function closeGroupRolesModal() {
     document.getElementById('groupRolesOverlay')?.remove();
 }
 
-function _buildRoleViewCard(role, idx, isMine) {
+function _buildRoleViewCard(role, idx, isMine, groupId) {
     const rid   = 'grv' + idx;
     const badge = (isMine ? `<span class="vrcn-badge ok" style="margin-right:6px;">${t('groups.roles.yours', 'Your role')}</span>` : '')
         + (role.isManagementRole ? `<span class="vrcn-badge" style="margin-right:6px;">${t('groups.roles.system', 'System')}</span>` : '');
@@ -1605,7 +1606,7 @@ function _buildRoleViewCard(role, idx, isMine) {
     }
 
     return `<div class="gd-role-card" id="gdrole-${rid}">
-        <div class="gd-role-header" onclick="toggleGdRoleExpand('${rid}')">
+        <div class="gd-role-header" onclick="toggleGroupRoleView('${rid}','${jsq(role.id || '')}','${jsq(groupId || '')}')">
             <div style="flex:1;min-width:0;">
                 <div class="gd-role-name">${badge}${esc(role.name || '')}</div>
                 <div class="gd-role-meta">${esc(getRoleMetaText(role))}</div>
@@ -1618,8 +1619,20 @@ function _buildRoleViewCard(role, idx, isMine) {
                 <div class="gd-role-section-title">${t('groups.roles.permissions', 'Permissions')}</div>
                 ${permsHtml}
             </div>
+            <div class="gd-role-section">
+                <div class="gd-role-section-title">${t('groups.roles.tabs.members', 'Members')}</div>
+                <div id="grv-members-${esc(role.id || '')}"><div style="padding:8px 0;font-size:12px;color:var(--tx3);">${t('common.loading', 'Loading...')}</div></div>
+            </div>
         </div>
     </div>`;
+}
+
+function toggleGroupRoleView(rid, roleId, groupId) {
+    toggleGdRoleExpand(rid);
+    const list = document.getElementById('grv-members-' + roleId);
+    if (!list || list.dataset.loaded || !groupId || !roleId) return;
+    list.dataset.loaded = '1';
+    sendToCS({ action: 'vrcGetGroupRoleMembers', groupId, roleId });
 }
 
 function getRolePermissionDescription(def) {
@@ -1770,13 +1783,15 @@ function switchGdRoleTab(roleId, tab, btn) {
 }
 
 function onGroupRoleMembers(data) {
-    const listEl = document.getElementById('gdrole-members-list-' + data.roleId);
-    if (!listEl) return;
-    if (!data.members || data.members.length === 0) {
-        listEl.innerHTML = renderGroupEmptyMessage('groups.roles.no_members', 'No members with this role.');
-        return;
-    }
-    listEl.innerHTML = data.members.map(m => renderGroupMemberCard(m)).join('');
+    const targets = [
+        document.getElementById('gdrole-members-list-' + data.roleId),
+        document.getElementById('grv-members-' + data.roleId),
+    ].filter(Boolean);
+    if (!targets.length) return;
+    const html = (!data.members || data.members.length === 0)
+        ? renderGroupEmptyMessage('groups.roles.no_members', 'No members with this role.')
+        : data.members.map(m => renderGroupMemberCard(m)).join('');
+    targets.forEach(el => { el.innerHTML = html; });
 }
 
 function openCreateRoleForm() {
