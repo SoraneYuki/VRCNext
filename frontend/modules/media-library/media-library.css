@@ -427,6 +427,37 @@
     cursor: grabbing;
 }
 
+.photo-detail-img,
+.photo-detail-video { transition: filter .18s; }
+
+.photo-detail-img-pane.pd-blurred .photo-detail-img,
+.photo-detail-img-pane.pd-blurred .photo-detail-video {
+    filter: blur(34px);
+    transition: none;
+}
+
+.photo-detail-img-pane.pd-blurred { cursor: pointer; }
+
+.pd-blur-hint {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: rgba(255,255,255,.82);
+    font-size: 12px;
+    font-weight: 600;
+    text-shadow: 0 1px 6px rgba(0,0,0,.7);
+    pointer-events: none;
+}
+
+.pd-blur-hint .msi { font-size: 34px; }
+
+.photo-detail-img-pane.pd-blurred .pd-blur-hint { display: flex; }
+
 .photo-detail-img-pane img {
     max-width: 100%;
     max-height: 100%;

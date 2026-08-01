@@ -144,7 +144,8 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
 .modal-nav-active #modalWorldDetail,
 .modal-nav-active #modalDetail,
 .modal-nav-active #modalAvatarDetail,
-.modal-nav-active #modalMyInstance {
+.modal-nav-active #modalMyInstance,
+.modal-nav-active #photoDetailModal {
     background: transparent !important;
     backdrop-filter: none !important;
     animation: none !important;

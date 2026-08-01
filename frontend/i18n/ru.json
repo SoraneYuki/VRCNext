@@ -2462,6 +2462,7 @@
   "library.detail.favorited": "В избранном",
   "library.detail.prev": "Назад",
   "library.detail.next": "Вперёд",
+  "library.detail.click_to_reveal": "Нажмите, чтобы показать",
   "library.detail.zoom_in": "Приблизить",
   "library.detail.zoom_out": "Отдалить",
   "library.detail.rotate_left": "Повернуть влево",

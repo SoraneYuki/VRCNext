@@ -1417,6 +1417,7 @@
   "library.detail.favorited": "お気に入り",
   "library.detail.prev": "前へ",
   "library.detail.next": "次へ",
+  "library.detail.click_to_reveal": "クリックして表示",
   "library.detail.zoom_in": "拡大",
   "library.detail.zoom_out": "縮小",
   "library.detail.rotate_left": "左回転",

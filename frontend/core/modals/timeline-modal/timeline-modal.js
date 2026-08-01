@@ -5,11 +5,6 @@
 // underlying modal stays open — same behaviour as the profile modal.
 let _tlMid = 'modalDetail';
 
-function _instanceLinkBtn(location, closeJs) {
-    if (!location || location.indexOf(':') <= 0 || !location.startsWith('wrld_')) return '';
-    return `<button class="vrcn-button-round" onclick="${closeJs ? closeJs + ';' : ''}copyInstanceLink('${jsq(location)}')"><span class="msi" style="font-size:14px;">content_copy</span> ${esc(t('timeline.actions.copy_instance_link', 'Copy Instance Link'))}</button>`;
-}
-
 function openTlDetail(id) {
     const ev = timelineEvents.find(e => e.id === id)
              || _tlSearchEvents.find(e => e.id === id)
@@ -476,19 +471,20 @@ function openFtGpsDetail(evId) {
              || _ftlSearchEvents.find(e => e.id === evId);
     if (!ev) return;
     renderFtGpsDetailModal(ev);
-    const _ftMb = document.getElementById('ftGpsDetailContent');
-    if (_ftMb) _ftMb.classList.add('narrow');
-    document.getElementById('modalFtGpsDetail').style.display = 'flex';
+    _ftGpsShowModal();
+}
+
+function _ftGpsShowModal() {
+    const box = document.getElementById('ftGpsDetailContent');
+    if (box) box.classList.remove('narrow');
+    const ov = document.getElementById('modalFtGpsDetail');
+    if (!ov) return;
+    ov.classList.add('tl-style-compact');
+    ov.style.display = 'flex';
 }
 
 function closeFtGpsDetail() {
     document.getElementById('modalFtGpsDetail').style.display = 'none';
-}
-
-function switchFtGpsTab(tab) {
-    document.getElementById('ftGpsTabInfo').style.display = tab === 'info' ? '' : 'none';
-    document.getElementById('ftGpsTabAlso').style.display = tab === 'also' ? '' : 'none';
-    document.querySelectorAll('#ftGpsDetailContent .ftgps-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
 }
 
 function renderFtGpsDetailModal(ev) {
@@ -502,9 +498,6 @@ function renderFtGpsDetailModal(ev) {
     const { dateStr, timeStr } = ftDetailDatetime(ev);
 
     const worldName = ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World');
-
-    // Was Also Here: populated async from server (covers all pages, not just loaded memory)
-    const alsoList = [];
 
     const fromStr = ev.timestamp ? tlFormatTime(ev.timestamp) : null;
     const toStr   = ev.leftAt    ? tlFormatTime(ev.leftAt)    : null;
@@ -520,25 +513,37 @@ function renderFtGpsDetailModal(ev) {
         _tlMr(esc(t('timeline.detail.event', 'Event')), `<span style="color:var(--tx2);">${esc(tf('timeline.detail.friend_joined_world', { name: ev.friendName || t('timeline.unknown', 'Unknown') }, `${ev.friendName || 'Unknown'} joined this world`))}</span>`),
     ].filter(Boolean).join(''));
 
-    const banner = _tlBanner(!!ev.worldThumb);
-    const el = document.getElementById('ftGpsDetailContent');
-    el.innerHTML = `${renderModalBar(worldName, [modalCloseAction('closeFtGpsDetail()')])}${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:16px 0;">
-        ${ftDetailAvRow(ev)}
-        <h2 style="margin:0 0 4px;color:var(--tx0);font-size:18px;">${esc(worldName)}</h2>
-        <div style="margin-bottom:12px;">${idBadge(ev.worldId || '')}</div>
-        <div class="fd-tabs" style="margin-bottom:14px;">
-            <button class="fd-tab active ftgps-tab-btn" data-tab="info" onclick="switchFtGpsTab('info')">${esc(t('timeline.detail.info', 'Info'))}</button>
-            <button class="fd-tab ftgps-tab-btn" data-tab="also" id="ftGpsAlsoTab" onclick="switchFtGpsTab('also')">${esc(t('timeline.detail.was_also_here', 'Was also here'))}</button>
-        </div>
-        <div id="ftGpsTabInfo">${infoHtml}</div>
-        <div id="ftGpsTabAlso" style="display:none;"><div style="font-size:12px;color:var(--tx3);padding:12px 0;">${esc(t('common.loading', 'Loading...'))}</div></div>
-        <div style="margin-top:14px;display:flex;gap:8px;">
-            ${loc ? `<button class="vrcn-button-round vrcn-btn-join" onclick="closeFtGpsDetail();sendToCS({action:'vrcJoinFriend',location:'${jsq(loc)}'});">${esc(t('instance.actions.force_join', 'Force-Join'))}</button>` : ''}
-            ${_instanceLinkBtn(loc, '')}
-            <span style="flex:1;"></span>
-            ${ev.worldId ? `<button class="vrcn-button-round" onclick="closeFtGpsDetail();openWorldSearchDetail('${esc(ev.worldId)}')"><span class="msi" style="font-size:14px;">travel_explore</span> ${esc(t('timeline.actions.open_world', 'Open World'))}</button>` : ''}
+    const canCopyLink = !!(loc && loc.indexOf(':') > 0 && loc.startsWith('wrld_'));
+
+    const leftHtml = `<div class="fd-left">
+        <div class="fd-left-banner" id="tl-banner-slot">${ev.worldThumb ? '<div class="fd-banner-fade"></div>' : ''}</div>
+        <div class="fd-left-body">
+            ${ftDetailAvRow(ev)}
+            <div>
+                <h2 style="margin:0 0 4px;color:var(--tx0);font-size:18px;">${esc(worldName)}</h2>
+                <div style="font-size:12px;color:var(--tx3);margin-bottom:8px;">${esc(dateStr)}</div>
+                ${idBadge(ev.worldId || '')}
+            </div>
+            <div class="fd-actions">
+                ${loc ? `<button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="closeFtGpsDetail();sendToCS({action:'vrcJoinFriend',location:'${jsq(loc)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>` : ''}
+                ${canCopyLink ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.copy_instance_link', 'Copy Instance Link'))}" onclick="copyInstanceLink('${jsq(loc)}')"><span class="msi" style="font-size:16px;">content_copy</span></button>` : ''}
+                ${ev.worldId ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.open_world', 'Open World'))}" onclick="closeFtGpsDetail();openWorldSearchDetail('${esc(ev.worldId)}')"><span class="msi" style="font-size:16px;">travel_explore</span></button>` : ''}
+            </div>
+            ${infoHtml}
         </div>
     </div>`;
+
+    const rightHtml = `<div class="fd-right">
+        <div class="tl-players-head">
+            <div class="fd-group-rep-label" id="ftGpsAlsoTab" style="margin-bottom:0;">${esc(t('timeline.detail.was_also_here', 'Was also here'))}</div>
+        </div>
+        <div class="fd-right-scroll" id="ftGpsTabAlso">
+            <div style="font-size:12px;color:var(--tx3);padding:12px 0;">${esc(t('common.loading', 'Loading...'))}</div>
+        </div>
+    </div>`;
+
+    const el = document.getElementById('ftGpsDetailContent');
+    el.innerHTML = `${renderModalBar(worldName, [modalCloseAction('closeFtGpsDetail()')])}<div class="fd-layout">${leftHtml}${rightHtml}</div>`;
 
     // Async: ask server for all friends at this location (searches full DB, not just loaded page)
     _tlInsertBanner(el, ev.worldId || ev.id, ev.worldThumb);
@@ -594,9 +599,7 @@ function openFdActivityDetail(id) {
     if (!ev) return;
     if (ev.type === 'friend_gps') {
         renderFtGpsDetailModal(ev);
-        const _ftMb = document.getElementById('ftGpsDetailContent');
-        if (_ftMb) _ftMb.classList.add('narrow');
-        document.getElementById('modalFtGpsDetail').style.display = 'flex';
+        _ftGpsShowModal();
         return;
     }
     _tlMid = 'modalDetail';

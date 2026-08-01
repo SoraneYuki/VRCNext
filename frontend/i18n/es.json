@@ -1417,6 +1417,7 @@
   "library.detail.favorited": "Favorito",
   "library.detail.prev": "Anterior",
   "library.detail.next": "Siguiente",
+  "library.detail.click_to_reveal": "Haz clic para mostrar",
   "library.detail.zoom_in": "Acercar",
   "library.detail.zoom_out": "Alejar",
   "library.detail.rotate_left": "Girar a la izquierda",

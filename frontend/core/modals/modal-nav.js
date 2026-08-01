@@ -258,6 +258,7 @@ function _navDoOpen(type, id, id2) {
         case 'event':       openEventDetail(id, id2);       break;
         case 'instance':    if (typeof _reopenCachedInstance === 'function') _reopenCachedInstance(id); break;
         case 'myprofile':   if (typeof openMyProfileModal === 'function') openMyProfileModal(); break;
+        case 'photo':       if (typeof openPhotoDetail === 'function') openPhotoDetail(id); break;
     }
 }
 
@@ -271,6 +272,7 @@ function _navOverlayIdForType(type) {
         case 'event':       return 'modalDetail';
         case 'instance':    return 'modalMyInstance';
         case 'myprofile':   return 'modalMyProfile';
+        case 'photo':       return 'photoDetailModal';
         default:            return null;
     }
 }
@@ -448,6 +450,9 @@ function _navCloseForEntry(entry) {
             if (mp) mp.style.display = 'none';
             break;
         }
+        case 'photo':
+            if (typeof closePhotoDetail === 'function') closePhotoDetail(true);
+            break;
     }
 }
 
@@ -488,6 +493,7 @@ function _navTypeLabel(type) {
         event:       typeof t === 'function' ? t('nav.modal.event',       'Event')   : 'Event',
         instance:    typeof t === 'function' ? t('nav.modal.instance',    'Instance'): 'Instance',
         myprofile:   typeof t === 'function' ? t('nav.modal.friend',      'Profile') : 'Profile',
+        photo:       typeof t === 'function' ? t('timeline.photo',        'Photo')   : 'Photo',
     };
     return labels[type] || type;
 }

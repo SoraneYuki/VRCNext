@@ -843,6 +843,11 @@ function toggleHidden(p) {
     filterLibrary(true); // stay on current page
     renderDashRecentPhotos();
     if (typeof _wdRenderPhotosPage === 'function') _wdRenderPhotosPage();
+    const photoModal = document.getElementById('photoDetailModal');
+    if (photoModal && _photoState.item?.path === p) {
+        _photoState.revealed = false;
+        _photoApplyBlur(photoModal, _photoState.item);
+    }
 }
 
 async function setLibItemAsDashBg(path, url) {
@@ -889,15 +894,18 @@ function cacheVidThumb(v, fp) {
 
 // Photo detail modal — image on the left, info card on the right.
 // Accepts: number (libraryFiles index), string (file path → looked up in libraryFiles), or item object.
-const _photoState = { scale: 1, rotation: 0, tx: 0, ty: 0, item: null, drag: null };
+const _photoState = { scale: 1, rotation: 0, tx: 0, ty: 0, item: null, drag: null, revealed: false, shownPath: '' };
 let _photoKeyHandler = null;
+const _photoNavCache = {};
 
 function openPhotoDetail(target) {
     let x;
     if (typeof target === 'number')      x = libraryFiles[target];
-    else if (typeof target === 'string') x = libraryFiles.find(f => f.path === target);
+    else if (typeof target === 'string') x = libraryFiles.find(f => f.path === target) || _photoNavCache[target];
     else                                  x = target;
     if (!x) return;
+
+    if (x.path) _photoNavCache[x.path] = x;
 
     _photoState.item = x;
     _photoState.scale = 1;
@@ -905,6 +913,12 @@ function openPhotoDetail(target) {
     _photoState.tx = 0;
     _photoState.ty = 0;
     _photoState.drag = null;
+    _photoState.revealed = false;
+
+    if (x.path && typeof navSetCurrent === 'function') {
+        navSetCurrent('photo', x.path);
+        if (typeof navUpdateLabel === 'function') navUpdateLabel(x.name || '');
+    }
 
     const existing = document.getElementById('photoDetailModal');
     if (existing) {
@@ -913,6 +927,27 @@ function openPhotoDetail(target) {
     } else {
         _photoCreateModal(x);
     }
+}
+
+function _photoIsBlurred(x) {
+    return !_photoState.revealed
+        && !!(x && x.path)
+        && typeof hiddenMedia !== 'undefined'
+        && hiddenMedia.has(x.path);
+}
+
+function _photoRevealClick(e) {
+    if (e.target.closest('.photo-detail-toolbar, .pd-video-controls-mount')) return;
+    if (!_photoIsBlurred(_photoState.item)) return;
+    e.stopPropagation();
+    _photoState.revealed = true;
+    const modal = document.getElementById('photoDetailModal');
+    if (modal) _photoApplyBlur(modal, _photoState.item);
+}
+
+function _photoApplyBlur(modal, x) {
+    const pane = modal.querySelector('.photo-detail-img-pane');
+    if (pane) pane.classList.toggle('pd-blurred', _photoIsBlurred(x));
 }
 
 function _photoCreateModal(x) {
@@ -926,6 +961,7 @@ function _photoCreateModal(x) {
             <div class="photo-detail-img-pane">
                 <img class="photo-detail-img" alt="" draggable="false" style="display:none;" onerror="this.style.display='none'">
                 <video class="photo-detail-video" playsinline style="display:none;"></video>
+                <div class="pd-blur-hint"><span class="msi">visibility_off</span><span>${esc(t('library.detail.click_to_reveal', 'Click to reveal'))}</span></div>
                 <div class="pd-video-controls-mount"></div>
                 <div class="photo-detail-toolbar-mount"></div>
             </div>
@@ -940,6 +976,7 @@ function _photoCreateModal(x) {
     if (imgPane) {
         imgPane.addEventListener('wheel',     _photoOnWheel, { passive: false });
         imgPane.addEventListener('mousedown', _photoOnMouseDown);
+        imgPane.addEventListener('click',     _photoRevealClick);
     }
 
     const ok = e => {
@@ -962,6 +999,21 @@ function _photoRenderContent(modal, x) {
         barTitle.textContent = label;
         barTitle.title = label;
     }
+
+    const prevPath = _photoState.shownPath || '';
+    if (prevPath && prevPath !== x.path && typeof hiddenMedia !== 'undefined' && hiddenMedia.has(prevPath)) {
+        const oldImg = modal.querySelector('.photo-detail-img');
+        const oldVid = modal.querySelector('.photo-detail-video');
+        if (oldImg) oldImg.src = PLACEHOLDER;
+        if (oldVid) {
+            try { oldVid.pause(); } catch {}
+            oldVid.removeAttribute('src');
+            try { oldVid.load(); } catch {}
+        }
+    }
+    _photoState.shownPath = x.path || '';
+
+    _photoApplyBlur(modal, x);
 
     const imgPane = modal.querySelector('.photo-detail-img-pane');
     if (imgPane) {
@@ -1105,7 +1157,7 @@ function _photoBuildInfoPaneContent(x) {
         ? (resTag ? `${resTag} (${x.imgW}×${x.imgH})` : `${x.imgW}×${x.imgH}`)
         : resTag;
 
-    const worldRowClick = worldId ? ` onclick="closePhotoDetail();openWorldSearchDetail('${esc(worldId)}')"` : '';
+    const worldRowClick = worldId ? ` onclick="navOpenModal('worldSearch','${jsq(worldId)}','${jsq(worldName || '')}')"` : '';
     const worldCursor   = worldId ? 'cursor:pointer;' : '';
     const isFav = x.path && (typeof favorites !== 'undefined') && favorites.has(x.path);
     const favBadge = `<span class="vrcn-badge accent"><span class="msi" style="font-size:11px;">star</span>${esc(t('library.detail.favorited', 'Favorited'))}</span>`;
@@ -1116,7 +1168,7 @@ function _photoBuildInfoPaneContent(x) {
     if (authorName) {
         const authorLabel = esc(t('library.detail.author', 'Author'));
         if (authorId) {
-            authorRow = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;cursor:pointer;" onclick="closePhotoDetail();openFriendDetail('${jsq(authorId)}')"><span style="color:var(--tx3);">${authorLabel}</span><span style="color:var(--accent-lt);font-weight:700;text-align:right;">${esc(authorName)}</span></div>`;
+            authorRow = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;cursor:pointer;" onclick="navOpenModal('friend','${jsq(authorId)}','${jsq(authorName)}')"><span style="color:var(--tx3);">${authorLabel}</span><span style="color:var(--accent-lt);font-weight:700;text-align:right;">${esc(authorName)}</span></div>`;
         } else {
             authorRow = _tlMr(authorLabel, `<span style="font-weight:700;">${esc(authorName)}</span>`);
         }
@@ -1144,7 +1196,7 @@ function _photoBuildInfoPaneContent(x) {
                 ? `<div class="tl-player-card-av" style="background-image:url('${cssUrl(image)}')"></div>`
                 : `<div class="tl-player-card-av">${esc(name[0].toUpperCase())}</div>`;
             const badge   = live ? `<span class="vrcn-badge bdg-friend"><span class="msi" style="font-size:10px;">check_circle</span>${t('profiles.badges.friend', 'Friend')}</span>` : '';
-            const onclick = p.userId ? `onclick="closePhotoDetail();openFriendDetail('${jsq(p.userId)}')"` : '';
+            const onclick = p.userId ? `onclick="navOpenModal('friend','${jsq(p.userId)}','${jsq(name)}')"` : '';
             const clickCls = p.userId ? ' clickable' : '';
             grid += `<div class="tl-player-card${clickCls}" ${onclick}>${av}<div class="tl-player-card-info"><div class="tl-player-card-name"><span>${esc(name)}</span>${badge}</div></div></div>`;
         });
@@ -1159,9 +1211,9 @@ function _photoBuildInfoPaneContent(x) {
         ${playersHtml}`;
 }
 
-function closePhotoDetail() {
+function closePhotoDetail(fromNav = false) {
     const m = document.getElementById('photoDetailModal');
-    if (!m) return;
+    if (!m) { if (!fromNav && typeof navClear === 'function') navClear(); return; }
     if (_photoKeyHandler) { document.removeEventListener('keydown', _photoKeyHandler); _photoKeyHandler = null; }
     document.removeEventListener('mousemove', _photoOnMouseMove);
     document.removeEventListener('mouseup',   _photoOnMouseUp);
@@ -1170,6 +1222,8 @@ function closePhotoDetail() {
     if (vid) { try { vid.pause(); } catch {} if (vid._pdCleanup) vid._pdCleanup(); vid.removeAttribute('src'); }
     m.querySelectorAll('img').forEach(img => { img.src = PLACEHOLDER; });
     m.remove();
+    _photoState.shownPath = '';
+    if (!fromNav && typeof navClear === 'function') navClear();
 }
 
 // === Photo modal interactions ===

@@ -1417,6 +1417,7 @@
   "library.detail.favorited": "已收藏",
   "library.detail.prev": "上一个",
   "library.detail.next": "下一个",
+  "library.detail.click_to_reveal": "点击显示",
   "library.detail.zoom_in": "放大",
   "library.detail.zoom_out": "缩小",
   "library.detail.rotate_left": "向左旋转",
