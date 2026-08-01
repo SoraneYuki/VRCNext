@@ -110,11 +110,13 @@ function showSwitchAccountModal(username, accountId) {
         modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
         modal.innerHTML = `
             <div class="modal-box" style="max-width:460px;">
-                <div class="modal-icon" style="background:rgba(56,132,255,.1);color:var(--accent);"><span class="msi" style="font-size:22px;">swap_horiz</span></div>
-                <div class="modal-title" data-i18n="settings.accounts.switch_title">Switch Account</div>
+                <div class="fd-modal-bar">
+                    <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" data-i18n="settings.accounts.switch_title">Switch Account</span></div>
+                    <div class="fd-modal-bar-actions"><button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="document.getElementById('modalSwitchAccount').style.display='none'"><span class="msi" style="font-size:20px;">close</span></button></div>
+                </div>
+                <div class="modal-icon" style="background:rgba(56,132,255,.1);color:var(--accent);margin-top:20px;"><span class="msi" style="font-size:22px;">swap_horiz</span></div>
                 <div class="modal-msg" id="modalSwitchAccountMsg" style="word-break:normal;overflow-wrap:break-word;line-height:1.5;"></div>
                 <div class="modal-btns">
-                    <button class="vrcn-button-round" onclick="document.getElementById('modalSwitchAccount').style.display='none'" data-i18n="common.cancel">Cancel</button>
                     <button class="vrcn-button-round vrcn-btn-join" id="modalSwitchAccountConfirm" data-i18n="settings.accounts.switch_title">Switch Account</button>
                 </div>
             </div>`;
