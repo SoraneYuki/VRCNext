@@ -2798,6 +2798,8 @@
   "settings.decorations.profile_theme_desc": "Wenn aktiviert, werden die VRC+ Theme-Farben eines Spielers auf sein Profil-Modal angewendet. Die Button-Farbe färbt auch das Modal selbst, etwa 25% dunkler.",
   "settings.decorations.theme_vrcn_override": "VRCN+ Farben bevorzugen",
   "settings.decorations.theme_vrcn_override_desc": "Wenn aktiviert, haben VRCN+ Profilfarben Vorrang vor dem VRC+ Profil-Theme eines Spielers.",
+  "settings.decorations.theme_contrast": "Theme-Text lesbar halten",
+  "settings.decorations.theme_contrast_desc": "Wenn aktiviert, werden Text und Icons eines VRC+ Profil-Themes nur so weit abgedunkelt oder aufgehellt, dass sie auf dem Hintergrund des Themes lesbar bleiben. Deaktiviere dies, um die unveränderten Theme-Farben zu sehen.",
   "profiles.theme.title": "Profil-Theme",
   "profiles.theme.add": "Neues Theme",
   "profiles.theme.edit": "Theme bearbeiten",

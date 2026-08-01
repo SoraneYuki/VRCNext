@@ -2839,6 +2839,8 @@
   "settings.decorations.profile_theme_desc": "When enabled, a player's VRC+ profile theme colours are applied to their profile modal. The button colour also tints the modal itself, about 25% darker.",
   "settings.decorations.theme_vrcn_override": "Prefer VRCN+ Colours",
   "settings.decorations.theme_vrcn_override_desc": "When enabled, VRCN+ profile colours take precedence over a player's VRC+ profile theme.",
+  "settings.decorations.theme_contrast": "Keep Theme Text Readable",
+  "settings.decorations.theme_contrast_desc": "When enabled, text and icons of a VRC+ profile theme are darkened or lightened just enough to stay readable on the theme's own background. Turn this off to show the raw theme colours.",
   "profiles.theme.title": "Profile Theme",
   "profiles.theme.add": "New Theme",
   "profiles.theme.edit": "Edit Theme",

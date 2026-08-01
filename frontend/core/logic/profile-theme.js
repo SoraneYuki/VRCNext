@@ -25,6 +25,71 @@ function _ptShade(hex, factor) {
     return '#' + [r, g, b].map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('');
 }
 
+function profileThemeContrastEnabled() {
+    return !(typeof settings !== 'undefined' && settings.profileThemeContrast === false);
+}
+
+function _ptToHex(value) {
+    const s = String(value || '').trim();
+    if (/^#[0-9a-f]{6}$/i.test(s)) return s.toLowerCase();
+    if (/^#[0-9a-f]{3}$/i.test(s)) return '#' + s.slice(1).split('').map(c => c + c).join('').toLowerCase();
+    const m = s.match(/^rgba?\(([^)]+)\)$/i);
+    if (m) {
+        const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+        if (p.length >= 3 && p.slice(0, 3).every(n => isFinite(n))) {
+            return '#' + p.slice(0, 3).map(n => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0')).join('');
+        }
+    }
+    return '';
+}
+
+function _ptRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function _ptLuminance(hex) {
+    return _ptRgb(hex).map(v => {
+        const s = v / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    }).reduce((acc, v, i) => acc + v * [0.2126, 0.7152, 0.0722][i], 0);
+}
+
+function _ptContrast(a, b) {
+    const l1 = _ptLuminance(a), l2 = _ptLuminance(b);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+
+function _ptBlend(hex, target, amount) {
+    const a = _ptRgb(hex), b = _ptRgb(target);
+    return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * amount).toString(16).padStart(2, '0')).join('');
+}
+
+// Keeps the theme hue but pushes it toward black or white until it reads on the
+// surface it is painted on. Bright themes on light surfaces are the bad case.
+function _ptReadable(color, bg, minRatio) {
+    const c = ptHex(color);
+    const b = ptHex(bg);
+    if (!c || !b || !profileThemeContrastEnabled()) return c || color;
+    if (_ptContrast(c, b) >= minRatio) return c;
+
+    const target = _ptLuminance(b) > 0.22 ? '#000000' : '#ffffff';
+    for (let i = 1; i <= 20; i++) {
+        const mixed = _ptBlend(c, target, i / 20);
+        if (_ptContrast(mixed, b) >= minRatio) return mixed;
+    }
+    return target;
+}
+
+function _ptSurface(el, buttonColor) {
+    if (buttonColor) return _ptShade(buttonColor, 0.75);
+    try {
+        const hex = _ptToHex(getComputedStyle(el).getPropertyValue('--bg-card'));
+        if (hex) return hex;
+    } catch {}
+    return '#0f0f0f';
+}
+
 function profileThemeColors(user) {
     if (!profileThemeEnabled() || !user) return null;
 
@@ -68,11 +133,13 @@ function _ptPaint(el, c) {
         el.style.setProperty('--pt-bg-btn-h', c.button);
         el.style.setProperty('--pt-brd', _ptShade(_ptShade(c.button, 0.75), 1.10));
     }
+    const surface = _ptSurface(el, c.button);
     if (c.subtext) {
-        el.style.setProperty('--pt-tx2', c.subtext);
-        el.style.setProperty('--pt-tx3', c.subtext);
+        const readable = _ptReadable(c.subtext, surface, 4.5);
+        el.style.setProperty('--pt-tx2', readable);
+        el.style.setProperty('--pt-tx3', readable);
     }
-    if (c.icon) el.style.setProperty('--pt-icon', c.icon);
+    if (c.icon) el.style.setProperty('--pt-icon', _ptReadable(c.icon, surface, 3));
     el.classList.add('has-profile-theme');
     el.classList.toggle('pt-has-button', !!c.button);
     el.classList.toggle('pt-has-text', !!c.subtext);
@@ -103,6 +170,7 @@ function profileThemeStripes(theme) {
 }
 
 window.profileThemeEnabled  = profileThemeEnabled;
+window.profileThemeContrastEnabled = profileThemeContrastEnabled;
 window.profileThemeColors   = profileThemeColors;
 window.applyProfileTheme    = applyProfileTheme;
 window.profileThemeStripes  = profileThemeStripes;

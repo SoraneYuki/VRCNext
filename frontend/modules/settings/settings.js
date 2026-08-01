@@ -127,6 +127,7 @@ function saveSettings() {
             enableProfileBackgrounds: document.getElementById('setEnableProfileBg')?.checked ?? false,
             enableProfileThemes: document.getElementById('setEnableProfileThemes')?.checked ?? false,
             profileThemeVrcnOverride: document.getElementById('setThemeVrcnOverride')?.checked ?? false,
+            profileThemeContrast: document.getElementById('setProfileThemeContrast')?.checked ?? true,
             transparentProfileCards: document.getElementById('setTransparentProfileCards')?.checked ?? false,
             showDecorationsOnDashboard: document.getElementById('setDecoOnDashboard')?.checked ?? false,
             profileModalStyle: settings.profileModalStyle || 'classic',
@@ -430,6 +431,9 @@ function loadSettingsToUI(s) {
     settings.profileThemeVrcnOverride = s.ProfileThemeVrcnOverride ?? s.profileThemeVrcnOverride ?? false;
     const _ptoEl = document.getElementById('setThemeVrcnOverride');
     if (_ptoEl) _ptoEl.checked = settings.profileThemeVrcnOverride;
+    settings.profileThemeContrast = s.ProfileThemeContrast ?? s.profileThemeContrast ?? true;
+    const _ptcEl = document.getElementById('setProfileThemeContrast');
+    if (_ptcEl) _ptcEl.checked = settings.profileThemeContrast;
     settings.transparentProfileCards = s.TransparentProfileCards ?? s.transparentProfileCards ?? false;
     const _tpcEl = document.getElementById('setTransparentProfileCards');
     if (_tpcEl) _tpcEl.checked = settings.transparentProfileCards;

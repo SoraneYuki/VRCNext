@@ -1,5 +1,9 @@
 **2026.35.4**
 
+**VRC+ Decoration Improvements**
+* Added an option to improve readability on profiles with bad text colors.
+* Navbar badges do use icon color now on vrc+ decorated profiles.
+
 **Photo Modal**
 * Hidden or blurred images now remain blurred when opened, preventing accidental clicks and photo leaks. Click the image again to reveal it.
 * Photo modals now support breadcrumb navigation. When opening a user profile from a photo, you can navigate back to the photo modal.

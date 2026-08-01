@@ -2794,6 +2794,8 @@
   "settings.decorations.profile_theme_desc": "启用后，玩家的 VRC+ 主题颜色会应用到其个人资料窗口。按钮颜色也会为窗口着色，约暗 25%。",
   "settings.decorations.theme_vrcn_override": "优先使用 VRCN+ 颜色",
   "settings.decorations.theme_vrcn_override_desc": "启用后，VRCN+ 颜色优先于玩家的 VRC+ 主题。",
+  "settings.decorations.theme_contrast": "保持主题文字可读",
+  "settings.decorations.theme_contrast_desc": "启用后，VRC+ 个人主页主题的文字和图标会被适度调暗或调亮，以便在主题背景上保持可读。关闭后将显示主题的原始颜色。",
   "profiles.theme.title": "个人资料主题",
   "profiles.theme.add": "新建主题",
   "profiles.theme.edit": "编辑主题",

@@ -2818,6 +2818,8 @@
   "settings.decorations.profile_theme_desc": "Если включено, цвета VRC+ темы игрока применяются к его профилю. Цвет кнопки также тонирует окно, примерно на 25% темнее.",
   "settings.decorations.theme_vrcn_override": "Предпочитать цвета VRCN+",
   "settings.decorations.theme_vrcn_override_desc": "Если включено, цвета VRCN+ имеют приоритет над темой профиля VRC+.",
+  "settings.decorations.theme_contrast": "Сохранять читаемость текста темы",
+  "settings.decorations.theme_contrast_desc": "Если включено, текст и значки темы профиля VRC+ затемняются или осветляются ровно настолько, чтобы оставаться читаемыми на фоне самой темы. Отключите, чтобы видеть исходные цвета темы.",
   "profiles.theme.title": "Тема профиля",
   "profiles.theme.add": "Новая тема",
   "profiles.theme.edit": "Изменить тему",
