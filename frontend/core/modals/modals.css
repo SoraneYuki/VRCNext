@@ -1,5 +1,9 @@
 /* === Core Modal Base Shell === */
 
+:root {
+    --fd-compact-h: min(calc((100vh - var(--tb-h) - 16px) * 0.95), 669px);
+}
+
 @keyframes modal-refresh-spin { to { transform: rotate(360deg); } }
 html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s linear infinite; }
 

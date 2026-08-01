@@ -169,13 +169,13 @@
 #modalFriendDetail.fd-style-compact .modal-box.wide,
 #modalMyProfile.fd-style-compact .modal-box.wide{
     width: 1144px;
-    max-height: calc(100vh - var(--tb-h) - 16px);
+    max-height: var(--fd-compact-h);
 }
 
 #modalFriendDetail.fd-style-compact #friendDetailContent,
 #modalMyProfile.fd-style-compact #myProfileContent{
     padding: 0;
-    height: min(calc(100vh - var(--tb-h, 0px) - 16px), 704px);
+    height: var(--fd-compact-h);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -338,12 +338,12 @@
 #modalFriendDetail.fd-style-compact #fdTabJson > .json-viewer,
 #modalMyProfile.fd-style-compact #mypTabJson > .json-viewer{
     max-height: none !important;
-    height: min(calc(100vh - var(--tb-h, 0px) - 104px), 618px) !important;
+    height: calc(var(--fd-compact-h) - 88px) !important;
     margin: 0 !important;
 }
 #modalFriendDetail.fd-style-compact .fd-modal-bar + .fd-layout #fdTabJson > .json-viewer,
 #modalMyProfile.fd-style-compact .fd-modal-bar + .fd-layout #mypTabJson > .json-viewer{
-    height: min(calc(100vh - var(--tb-h, 0px) - 148px), 574px) !important;
+    height: calc(var(--fd-compact-h) - 132px) !important;
 }
 
 #modalFriendDetail.fd-style-compact .fd-info-cols,
