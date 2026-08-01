@@ -894,7 +894,7 @@ function cacheVidThumb(v, fp) {
 
 // Photo detail modal — image on the left, info card on the right.
 // Accepts: number (libraryFiles index), string (file path → looked up in libraryFiles), or item object.
-const _photoState = { scale: 1, rotation: 0, tx: 0, ty: 0, item: null, drag: null, revealed: false, shownPath: '' };
+const _photoState = { scale: 1, rotation: 0, tx: 0, ty: 0, item: null, drag: null, revealed: false, shownPath: '', navOwned: false };
 let _photoKeyHandler = null;
 const _photoNavCache = {};
 
@@ -915,6 +915,7 @@ function openPhotoDetail(target) {
     _photoState.drag = null;
     _photoState.revealed = false;
 
+    _photoState.navOwned = !!x.path;
     if (x.path && typeof navSetCurrent === 'function') {
         navSetCurrent('photo', x.path);
         if (typeof navUpdateLabel === 'function') navUpdateLabel(x.name || '');
@@ -991,7 +992,10 @@ function _photoCreateModal(x) {
 function _photoRenderContent(modal, x) {
     const isVid = x.type === 'video';
     const box = modal.querySelector('.photo-detail-box');
-    if (box) box.classList.toggle('pd-is-video', isVid);
+    if (box) {
+        box.classList.toggle('pd-is-video', isVid);
+        box.classList.toggle('pd-no-info', !!x.remote);
+    }
 
     const barTitle = modal.querySelector('.fd-modal-bar-title');
     if (barTitle) {
@@ -1061,7 +1065,7 @@ function _photoRenderContent(modal, x) {
     if (oldToolbar) oldToolbar.outerHTML = _photoBuildToolbar(x);
 
     const infoPane = modal.querySelector('.photo-detail-info-pane');
-    if (infoPane) infoPane.innerHTML = _photoBuildInfoPaneContent(x);
+    if (infoPane) infoPane.innerHTML = x.remote ? '' : _photoBuildInfoPaneContent(x);
 }
 
 function _photoBuildVideoControls() {
@@ -1130,17 +1134,27 @@ function _photoBuildToolbar(x) {
     const prevDisabled = (navIdx <= 0)                              ? ' disabled' : '';
     const nextDisabled = (navIdx < 0 || navIdx >= navList.length-1) ? ' disabled' : '';
 
+    const navBtns = x.remote
+        ? { prev: '', next: '' }
+        : {
+            prev: `<button class="pdt-btn" onclick="photoNavPrev()" title="${esc(t('library.detail.prev', 'Previous'))}"${prevDisabled}><span class="msi">chevron_left</span></button><span class="pdt-sep"></span>`,
+            next: `<span class="pdt-sep"></span><button class="pdt-btn" onclick="photoNavNext()" title="${esc(t('library.detail.next', 'Next'))}"${nextDisabled}><span class="msi">chevron_right</span></button>`,
+        };
+
+    const copyBtns = x.remote
+        ? `<button class="pdt-btn" onclick="photoDownload()" title="${esc(t('context_menu.image.download', 'Download Image'))}"><span class="msi">download</span></button>
+           <button class="pdt-btn" onclick="photoCopyLink()" title="${esc(t('common.share', 'Share'))}"><span class="msi">link</span></button>`
+        : `<button class="pdt-btn" onclick="photoCopy()" title="${esc(t('library.actions.copy_clipboard', 'Copy to clipboard'))}"><span class="msi">content_copy</span></button>`;
+
     return `<div class="photo-detail-toolbar" onmousedown="event.stopPropagation()">
-        <button class="pdt-btn" onclick="photoNavPrev()" title="${esc(t('library.detail.prev', 'Previous'))}"${prevDisabled}><span class="msi">chevron_left</span></button>
-        <span class="pdt-sep"></span>
-        <button class="pdt-btn" onclick="photoCopy()" title="${esc(t('library.actions.copy_clipboard', 'Copy to clipboard'))}"><span class="msi">content_copy</span></button>
+        ${navBtns.prev}
+        ${copyBtns}
         <button class="pdt-btn" onclick="photoZoom(1.25)" title="${esc(t('library.detail.zoom_in', 'Zoom In'))}"><span class="msi">zoom_in</span></button>
         <button class="pdt-btn" onclick="photoZoom(0.8)" title="${esc(t('library.detail.zoom_out', 'Zoom Out'))}"><span class="msi">zoom_out</span></button>
         <button class="pdt-btn" onclick="photoRotate(-90)" title="${esc(t('library.detail.rotate_left', 'Rotate Left'))}"><span class="msi">rotate_left</span></button>
         <button class="pdt-btn" onclick="photoRotate(90)" title="${esc(t('library.detail.rotate_right', 'Rotate Right'))}"><span class="msi">rotate_right</span></button>
         <button class="pdt-btn" onclick="photoReset()" title="${esc(t('library.detail.reset', 'Reset'))}"><span class="msi">refresh</span></button>
-        <span class="pdt-sep"></span>
-        <button class="pdt-btn" onclick="photoNavNext()" title="${esc(t('library.detail.next', 'Next'))}"${nextDisabled}><span class="msi">chevron_right</span></button>
+        ${navBtns.next}
     </div>`;
 }
 
@@ -1212,8 +1226,9 @@ function _photoBuildInfoPaneContent(x) {
 }
 
 function closePhotoDetail(fromNav = false) {
+    const clearNav = !fromNav && _photoState.navOwned && typeof navClear === 'function';
     const m = document.getElementById('photoDetailModal');
-    if (!m) { if (!fromNav && typeof navClear === 'function') navClear(); return; }
+    if (!m) { if (clearNav) navClear(); return; }
     if (_photoKeyHandler) { document.removeEventListener('keydown', _photoKeyHandler); _photoKeyHandler = null; }
     document.removeEventListener('mousemove', _photoOnMouseMove);
     document.removeEventListener('mouseup',   _photoOnMouseUp);
@@ -1223,7 +1238,8 @@ function closePhotoDetail(fromNav = false) {
     m.querySelectorAll('img').forEach(img => { img.src = PLACEHOLDER; });
     m.remove();
     _photoState.shownPath = '';
-    if (!fromNav && typeof navClear === 'function') navClear();
+    _photoState.navOwned = false;
+    if (clearNav) navClear();
 }
 
 // === Photo modal interactions ===
@@ -1256,6 +1272,22 @@ function photoCopy() {
     const it = _photoState.item;
     if (!it || !it.path) return;
     copyToClipboard(it.url || '', it.path, it.type || 'image');
+}
+
+function photoDownload() {
+    const it = _photoState.item;
+    if (!it || !it.url) return;
+    const guess = (it.url.split('?')[0].split('/').pop() || '').trim();
+    const fileName = /\.[a-z0-9]{3,4}$/i.test(guess) ? guess : 'image.png';
+    sendToCS({ action: 'invDownload', url: it.url, fileName });
+}
+
+function photoCopyLink() {
+    const it = _photoState.item;
+    if (!it || !it.url) return;
+    navigator.clipboard.writeText(it.url)
+        .then(() => showToast(true, t('common.link_copied', 'Link copied!')))
+        .catch(() => {});
 }
 
 function photoNavPrev() { _photoNav(-1); }
@@ -1344,32 +1376,20 @@ function _photoOnMouseUp() {
     document.removeEventListener('mouseup',   _photoOnMouseUp);
 }
 
-// Lightbox.
-function openLightbox(u, t) {
-    const lb    = document.createElement('div');
-    lb.className = 'lib-lightbox';
-    const closeLb = () => {
-        // Clear src BEFORE removing element to release decoded bitmaps
-        lb.querySelectorAll('img').forEach(img => { img.src = PLACEHOLDER; });
-        lb.querySelectorAll('video').forEach(v => { try { v.pause(); } catch {} v.src = ''; });
-        lb.remove();
-        document.removeEventListener('keydown', ok);
-    };
-    lb.onclick = e => { if (e.target === lb) closeLb(); };
-    if (t === 'video') {
-        const v    = document.createElement('video');
-        v.src      = u;
-        v.controls = true;
-        v.autoplay = true;
-        v.style.cssText = 'max-width:90%;max-height:90%;border-radius:8px;';
-        v.onclick  = e => e.stopPropagation();
-        lb.appendChild(v);
-    } else {
-        lb.innerHTML = `<img src="${u}">`;
-    }
-    document.body.appendChild(lb);
-    const ok = e => { if (e.key === 'Escape') closeLb(); };
-    document.addEventListener('keydown', ok);
+// Lightbox — reuses the photo modal without the info sidebar.
+function openLightbox(u, kind) {
+    if (!u) return;
+    openPhotoDetail({
+        name:     '',
+        path:     '',
+        url:      u,
+        type:     kind === 'video' ? 'video' : 'image',
+        modified: Date.now(),
+        size:     '',
+        players:  [],
+        imgW: 0, imgH: 0,
+        remote:   true,
+    });
 }
 
 // Delete modal.

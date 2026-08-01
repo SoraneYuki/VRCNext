@@ -617,6 +617,8 @@
 }
 .pd-video-controls input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.18); }
 
+.photo-detail-box.pd-no-info .photo-detail-info-pane { display: none; }
+
 .photo-detail-info-pane {
     width: 340px;
     flex-shrink: 0;
