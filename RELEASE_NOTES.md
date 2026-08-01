@@ -1,9 +1,8 @@
 **2026.35.4**
 
 **Design Refactor**
-* All Modals now use the new headline menu with option buttons so they match the design of the new profile modals.
-* Avatar, Profile, Group and World Modals are slightly higher to display more content.
+* All modals now use the new header menu with action buttons, matching the design of the updated profile modals.
+* Avatar, Profile, Group, and World modals are now slightly taller and wider to display more content.
 
 **Bug Fixes**
-
-* Fixed Close, Customize Profile and Change banner buttons appearing inside your own profile modal instead of the taskbar when **Use Direct Modal Navigation** is disabled.
+* Fixed the **Close**, **Customize Profile**, and **Change Banner** buttons appearing inside your own profile modal instead of in the taskbar when **Use Direct Modal Navigation** is disabled.
