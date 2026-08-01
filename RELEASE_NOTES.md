@@ -22,3 +22,4 @@
 
 **Bug Fixes**
 * Fixed the **Close**, **Customize Profile**, and **Change Banner** buttons appearing inside your own profile modal instead of in the taskbar when **Use Direct Modal Navigation** is disabled.
+* Fixed Log "Type" text being to long in gorup logs.

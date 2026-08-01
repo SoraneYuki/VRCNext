@@ -64,6 +64,12 @@
     gap: 5px;
     width: 135px;
     font-weight: 600;
+    overflow: hidden;
+}
+.tl-list-type > span:not(.tl-list-icon) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 .tl-list-icon {
     font-size: 15px !important;
