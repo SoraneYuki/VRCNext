@@ -82,7 +82,7 @@ function renderEventDetail(ev) {
     const evHeaderActions = renderModalActions([
         { icon: isFollowing ? 'notifications_off' : 'notifications_active', title: followLabel, onclick: `toggleFollowEvent('${groupId}','${calendarId}',${isFollowing},this)` },
         gid ? { icon: 'group', title: t('calendar.detail.open_group', 'Open Group'), onclick: `navOpenModal('group','${groupOpenId}','${jsq(groupName || '')}')` } : null,
-        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeEventDetail()`, header: true },
+        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeEventDetail()` },
     ]);
 
     el.innerHTML = `${evHeaderActions}

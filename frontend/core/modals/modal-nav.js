@@ -41,6 +41,18 @@ function renderModalActions(actions) {
     return header.length ? `<div class="fd-modal-actions">${_mnActionsHtml(header, false)}</div>` : '';
 }
 
+function renderModalBar(title, actions, opts) {
+    opts = opts || {};
+    const label = String(title == null ? '' : title);
+    const cls   = 'fd-modal-bar' + (opts.flush ? ' fd-modal-bar-flush' : '');
+    const idAttr = opts.titleId ? ` id="${_esc(opts.titleId)}"` : '';
+    return `<div class="${cls}"><div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title"${idAttr} title="${_esc(label)}">${_esc(label)}</span></div><div class="fd-modal-bar-actions">${opts.extra || ''}${_mnActionsHtml(actions, false)}</div></div>`;
+}
+
+function modalCloseAction(onclick) {
+    return { icon: 'close', title: typeof t === 'function' ? t('common.close', 'Close') : 'Close', onclick };
+}
+
 function refreshModalActions(actions) {
     actions = (actions || []).filter(Boolean);
     _mnActions = actions;

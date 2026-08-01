@@ -135,6 +135,13 @@
     overflow: hidden;
 }
 
+.modal-overlay.tl-style-compact #detailModalContent .fd-modal-bar,
+.modal-overlay.tl-style-compact #detailModalContent2 .fd-modal-bar {
+    margin: 0;
+    border-radius: 0;
+    flex-shrink: 0;
+}
+
 .modal-overlay.tl-style-compact .fd-layout {
     flex: 1 1 0;
     min-height: 0;

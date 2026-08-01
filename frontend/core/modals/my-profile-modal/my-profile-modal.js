@@ -97,11 +97,7 @@ function renderProfileDecoPicker(loading) {
             return `<div class="pd-section"><div class="pd-section-title">${esc(s.label)}</div><div class="pd-grid">${noneCell}${cells}</div>${empty}</div>`;
         }).join('') + _mypThemeSection() + _mypBackgroundSection();
     m.innerHTML = `<div class="gp-modal" style="width:560px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;">
-        <div class="gp-modal-header">
-            <span class="msi" style="font-size:20px;color:var(--accent);">filter_frames</span>
-            <span>${t('profiles.deco.title', 'Customize Profile')}</span>
-            <button class="vrcn-button-round" onclick="closeProfileDecoPicker()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:18px;">close</span></button>
-        </div>
+        ${renderModalBar(t('profiles.deco.title', 'Customize Profile'), [modalCloseAction('closeProfileDecoPicker()')])}
         <div class="gp-modal-body" style="flex:1;overflow-y:auto;">${body}</div>
     </div>`;
 }
@@ -158,8 +154,8 @@ function renderMyProfileContent() {
         : `<div style="display:flex;justify-content:flex-end;padding:4px 0 2px 0;"><button class="myp-edit-btn" onclick="openImagePicker('profile-banner')" title="${esc(addBannerTitle)}"><span class="msi" style="font-size:13px;">edit</span><span style="font-size:11px;margin-left:3px;">${esc(bannerLabel)}</span></button></div>`;
     const bannerCompactHtml = `<div class="fd-left-banner" id="myp-banner-slot">${bannerSrc ? `<div class="fd-banner-fade"></div>` : ''}${_mypEffect}<span class="vrcn-keybind" style="position:absolute;top:8px;right:8px;z-index:3;border-radius:5px;">CTRL P</span></div>`;
     const mypHeaderActions = renderModalActions([
-        { icon: 'edit', title: changeBannerTitle, onclick: `openImagePicker('profile-banner')`, header: true },
-        { icon: 'filter_frames', title: t('profiles.deco.title', 'Customize Profile'), onclick: `openProfileDecoPicker()`, header: true },
+        { icon: 'edit', title: changeBannerTitle, onclick: `openImagePicker('profile-banner')` },
+        { icon: 'filter_frames', title: t('profiles.deco.title', 'Customize Profile'), onclick: `openProfileDecoPicker()` },
         {
             label: 'VRCN+',
             title: t('vrcnplus.dropdown.title', 'VRCN+'),
@@ -169,7 +165,7 @@ function renderMyProfileContent() {
             ],
         },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/user/${esc(u.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
-        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeMyProfile()`, header: true },
+        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeMyProfile()` },
     ]);
 
     // Avatar with edit overlay
@@ -1148,11 +1144,7 @@ function setProfileBackgroundGradient() {
     m.style.zIndex = '10004';
     m.style.display = 'flex';
     m.innerHTML = `<div class="gp-modal" style="width:380px;max-width:92vw;">
-        <div class="gp-modal-header">
-            <span class="msi" style="font-size:20px;color:var(--accent);">gradient</span>
-            <span>${esc(t('profiles.deco.gradient', 'Gradient'))}</span>
-            <button class="vrcn-button-round" onclick="closeProfileGradPicker()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:18px;">close</span></button>
-        </div>
+        ${renderModalBar(t('profiles.deco.gradient', 'Gradient'), [modalCloseAction('closeProfileGradPicker()')])}
         <div class="gp-modal-body">
             <div id="pbgPreview" class="pbg-preview"></div>
             <div class="pbg-row">
@@ -1167,7 +1159,6 @@ function setProfileBackgroundGradient() {
             </div>
         </div>
         <div class="modal-btns" style="padding:0 16px 16px;">
-            <button class="vrcn-button" onclick="closeProfileGradPicker()">${esc(t('common.cancel', 'Cancel'))}</button>
             <button class="vrcn-button vrcn-btn-primary" onclick="applyProfileGradient()">${esc(t('common.apply', 'Apply'))}</button>
         </div>
     </div>`;
@@ -1297,11 +1288,7 @@ function openProfileThemeEditor(themeId) {
     </div>`).join('');
 
     m.innerHTML = `<div class="gp-modal" style="width:400px;max-width:92vw;">
-        <div class="gp-modal-header">
-            <span class="msi" style="font-size:20px;color:var(--accent);">palette</span>
-            <span>${esc(themeId ? t('profiles.theme.edit', 'Edit Theme') : t('profiles.theme.add', 'New Theme'))}</span>
-            <button class="vrcn-button-round" onclick="closeProfileThemeEditor()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:18px;">close</span></button>
-        </div>
+        ${renderModalBar(themeId ? t('profiles.theme.edit', 'Edit Theme') : t('profiles.theme.add', 'New Theme'), [modalCloseAction('closeProfileThemeEditor()')])}
         <div class="gp-modal-body">
             <div class="pt-preview" id="ptPreview"></div>
             <div class="pt-row">
@@ -1311,7 +1298,6 @@ function openProfileThemeEditor(themeId) {
             ${rows}
         </div>
         <div class="modal-btns" style="padding:0 16px 16px;">
-            <button class="vrcn-button" onclick="closeProfileThemeEditor()">${esc(t('common.cancel', 'Cancel'))}</button>
             <button class="vrcn-button vrcn-btn-primary" onclick="saveProfileThemeFromEditor()">${esc(t('common.save', 'Save'))}</button>
         </div>
     </div>`;

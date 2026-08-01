@@ -90,8 +90,8 @@ function _tlMr(label, val) {
 function _tlInfoCard(title, rowsHtml) {
     return `<div class="fd-info-card"><div class="fd-group-rep-label">${title}</div><div style="display:grid;gap:6px;">${rowsHtml}</div></div>`;
 }
-function _tlClose() {
-    return `<button class="vrcn-button-round" style="margin-left:auto;" onclick="document.getElementById('${_tlMid}').style.display='none'">${esc(t('common.close', 'Close'))}</button>`;
+function _tlBar(title) {
+    return renderModalBar(title, [modalCloseAction(`document.getElementById('${_tlMid}').style.display='none'`)]);
 }
 function _tlBanner(hasThumb) {
     return hasThumb ? `<div class="fd-banner" id="tl-banner-slot"><div class="fd-banner-fade"></div></div>` : '';
@@ -259,7 +259,6 @@ function renderTlDetailJoin(ev, el) {
             <div class="fd-actions">
                 <button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="document.getElementById('${_tlMid}').style.display='none';sendToCS({action:'vrcJoinFriend',location:'${jsq(ev.location)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>
                 ${canCopyLink ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.copy_instance_link', 'Copy Instance Link'))}" onclick="copyInstanceLink('${jsq(ev.location)}')"><span class="msi" style="font-size:16px;">content_copy</span></button>` : ''}
-                <button class="vrcn-button-round" title="${esc(t('common.close', 'Close'))}" onclick="document.getElementById('${_tlMid}').style.display='none'"><span class="msi" style="font-size:16px;">close</span></button>
             </div>
             ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         </div>
@@ -285,7 +284,7 @@ function renderTlDetailJoin(ev, el) {
         </div>
     </div>`;
 
-    el.innerHTML = `<div class="fd-layout">${leftHtml}${rightHtml}</div>`;
+    el.innerHTML = `${_tlBar(ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World'))}<div class="fd-layout">${leftHtml}${rightHtml}</div>`;
     const _tlSortSel = el.querySelector('#tlPlayersSort');
     if (_tlSortSel && typeof initVnSelect === 'function') initVnSelect(_tlSortSel);
     _tlInsertBanner(el, ev.worldId || ev.id, ev.worldThumb);
@@ -302,13 +301,12 @@ function renderTlDetailMeet(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         ev.worldId ? `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;"${worldRowClick}><span style="color:var(--tx3);">${esc(t('timeline.detail.world', 'World'))}</span><span style="color:var(--accent-lt);text-align:right;">${esc(ev.worldName || ev.worldId)}</span></div>` : '',
     ].filter(Boolean).join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${_tlBar(ev.userName || t('timeline.unknown', 'Unknown'))}<div class="fd-content" style="padding:20px 0;">
         ${_tlAvRow(ev.userImage, ev.userName, t('timeline.detail.first_meet', 'FIRST MEET'), 'var(--cyan)')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">
-            ${ev.userId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>` : ''}
-            ${_tlClose()}
-        </div>
+        ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
+            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
+        </div>` : ''}
     </div>`;
 }
 
@@ -323,13 +321,12 @@ function renderTlDetailMeetAgain(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         ev.worldId ? `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;"${worldRowClick}><span style="color:var(--tx3);">${esc(t('timeline.detail.world', 'World'))}</span><span style="color:var(--accent-lt);text-align:right;">${esc(ev.worldName || ev.worldId)}</span></div>` : '',
     ].filter(Boolean).join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${_tlBar(ev.userName || t('timeline.unknown', 'Unknown'))}<div class="fd-content" style="padding:20px 0;">
         ${_tlAvRow(ev.userImage, ev.userName, t('timeline.detail.met_again', 'MET AGAIN'), '#AB47BC')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">
-            ${ev.userId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>` : ''}
-            ${_tlClose()}
-        </div>
+        ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
+            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
+        </div>` : ''}
     </div>`;
 }
 
@@ -346,13 +343,12 @@ function renderTlDetailNotif(ev, el) {
         ev.notifTitle ? _tlMr(esc(t('timeline.detail.context', 'Context')), esc(ev.notifTitle)) : '',
         ev.message    ? _tlMr(esc(t('timeline.detail.message', 'Message')), esc(ev.message))    : '',
     ].filter(Boolean).join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${_tlBar(ev.senderName || typeLabel)}<div class="fd-content" style="padding:20px 0;">
         ${_tlAvRow(ev.senderImage, ev.senderName || typeLabel, typeLabel.toUpperCase(), 'var(--warn)')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">
-            ${ev.senderId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.senderId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>` : ''}
-            ${_tlClose()}
-        </div>
+        ${ev.senderId ? `<div style="margin-top:14px;display:flex;gap:8px;">
+            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.senderId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
+        </div>` : ''}
     </div>`;
 }
 
@@ -367,13 +363,12 @@ function renderTlDetailAvatar(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         ev.userId ? _tlMr(esc(t('timeline.detail.avatar_id', 'Avatar ID')), `<span style="font-size:11px;color:var(--tx3);">${esc(ev.userId)}</span>`) : '',
     ].filter(Boolean).join('');
-    el.innerHTML = `${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:20px 0;">
+    el.innerHTML = `${_tlBar(ev.userName || t('timeline.unknown_avatar', 'Unknown Avatar'))}${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:20px 0;">
         <h2 style="margin:0 0 12px;color:var(--tx0);font-size:18px;">${esc(ev.userName || t('timeline.unknown_avatar', 'Unknown Avatar'))}</h2>
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">
-            ${ev.userId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openAvatarDetail('${jsq(ev.userId)}')">${esc(t('timeline.actions.view_avatar', 'View Avatar'))}</button>` : ''}
-            ${_tlClose()}
-        </div>
+        ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
+            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openAvatarDetail('${jsq(ev.userId)}')">${esc(t('timeline.actions.view_avatar', 'View Avatar'))}</button>
+        </div>` : ''}
     </div>`;
     _tlInsertBanner(el, ev.userId || ev.id, ev.userImage);
 }
@@ -393,7 +388,7 @@ function renderTlDetailUrl(ev, el) {
         ev.worldName ? `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;"${worldRowClick}><span style="color:var(--tx3);">${esc(t('timeline.detail.world', 'World'))}</span><span style="color:var(--accent-lt);text-align:right;">${esc(ev.worldName)}</span></div>` : '',
         _tlMr(esc(t('timeline.detail.url', 'URL')), `<span style="word-break:break-all;font-size:11px;color:var(--tx2);">${esc(url)}</span>`),
     ].filter(Boolean).join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${_tlBar(plat.name)}<div class="fd-content" style="padding:20px 0;">
         <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
             ${favicon}
             <div>
@@ -405,7 +400,6 @@ function renderTlDetailUrl(ev, el) {
         <div style="margin-top:14px;display:flex;gap:8px;">
             <button class="vrcn-button-round vrcn-btn-join" onclick="sendToCS({action:'openUrl',url:'${jsq(url)}'})">${esc(t('timeline.actions.open_url', 'Open URL'))}</button>
             <button class="vrcn-button-round" onclick="navigator.clipboard.writeText('${jsq(url)}').then(()=>showToast(true,t('timeline.toast.copied','Copied!')))">${esc(t('timeline.actions.copy', 'Copy'))}</button>
-            ${_tlClose()}
         </div>
     </div>`;
 }
@@ -422,13 +416,12 @@ function renderTlDetailModeration(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         _tlMr(esc(t('timeline.detail.moderation_type', 'Moderation Type')), `<span style="color:${active ? 'var(--err)' : 'var(--ok)'};font-weight:600;">${esc(label)}</span>`),
     ].filter(Boolean).join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${_tlBar(ev.userName || label)}<div class="fd-content" style="padding:20px 0;">
         ${_tlAvRow(ev.userImage, ev.userName, t('timeline.detail.moderation', 'MODERATION'), 'var(--err)')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">
-            ${ev.userId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>` : ''}
-            ${_tlClose()}
-        </div>
+        ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
+            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
+        </div>` : ''}
     </div>`;
 }
 
@@ -461,7 +454,7 @@ function renderTlDetailProfile(ev, el) {
         ${ev.message ? `<div class="fd-info-card" style="margin-top:10px;"><div class="fd-group-rep-label">${esc(t('timeline.detail.new_bio', 'NEW BIO'))}</div><div style="font-size:12px;color:var(--tx1);white-space:pre-wrap;">${esc(ev.message)}</div></div>` : ''}`;
     }
 
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${_tlBar(meta.label)}<div class="fd-content" style="padding:20px 0;">
         <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
             ${ev.userImage
                 ? `<div class="tl-detail-av" style="background-image:url('${cssUrl(ev.userImage)}')"></div>`
@@ -473,9 +466,6 @@ function renderTlDetailProfile(ev, el) {
         </div>
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoHtml)}
         ${extraCards}
-        <div style="margin-top:14px;display:flex;gap:8px;">
-            ${_tlClose()}
-        </div>
     </div>`;
 }
 
@@ -532,7 +522,7 @@ function renderFtGpsDetailModal(ev) {
 
     const banner = _tlBanner(!!ev.worldThumb);
     const el = document.getElementById('ftGpsDetailContent');
-    el.innerHTML = `${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:16px 0;">
+    el.innerHTML = `${renderModalBar(worldName, [modalCloseAction('closeFtGpsDetail()')])}${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:16px 0;">
         ${ftDetailAvRow(ev)}
         <h2 style="margin:0 0 4px;color:var(--tx0);font-size:18px;">${esc(worldName)}</h2>
         <div style="margin-bottom:12px;">${idBadge(ev.worldId || '')}</div>
@@ -547,7 +537,6 @@ function renderFtGpsDetailModal(ev) {
             ${_instanceLinkBtn(loc, '')}
             <span style="flex:1;"></span>
             ${ev.worldId ? `<button class="vrcn-button-round" onclick="closeFtGpsDetail();openWorldSearchDetail('${esc(ev.worldId)}')"><span class="msi" style="font-size:14px;">travel_explore</span> ${esc(t('timeline.actions.open_world', 'Open World'))}</button>` : ''}
-            <button class="vrcn-button-round" onclick="closeFtGpsDetail()">${esc(t('common.close', 'Close'))}</button>
         </div>
     </div>`;
 
@@ -645,8 +634,8 @@ function ftDetailAvRow(ev) {
         </div></div>`;
 }
 
-function ftDetailClose() {
-    return `<button class="vrcn-button-round" style="margin-left:auto;" onclick="document.getElementById('${_tlMid}').style.display='none'">${esc(t('common.close', 'Close'))}</button>`;
+function ftDetailBar(ev) {
+    return _tlBar(ev.friendName || t('timeline.unknown', 'Unknown'));
 }
 
 function ftDetailViewProfile(ev) {
@@ -665,13 +654,12 @@ function renderFtDetailGps(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;"${worldRowClick}><span style="color:var(--tx3);">${esc(t('timeline.detail.world', 'World'))}</span><span style="color:var(--accent-lt);text-align:right;">${esc(wname)}</span></div>`,
     ].join('');
-    el.innerHTML = `${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         <div style="margin-top:14px;display:flex;gap:8px;">
             ${ev.worldId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openWorldSearchDetail('${esc(ev.worldId)}')"><span class="msi" style="font-size:14px;">travel_explore</span> ${esc(t('timeline.actions.open_world', 'Open World'))}</button>` : ''}
             ${ftDetailViewProfile(ev)}
-            ${ftDetailClose()}
         </div>
     </div>`;
     _tlInsertBanner(el, ev.worldId || ev.id, ev.worldThumb);
@@ -686,10 +674,10 @@ function renderFtDetailStatus(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         _tlMr(esc(t('timeline.detail.change', 'Change')), `<span style="display:flex;align-items:center;gap:6px;"><span class="ft-status-chip ${oldCls}">${esc(statusLabel(ev.oldValue) || '?')}</span><span class="msi" style="font-size:12px;color:var(--tx3);">arrow_forward</span><span class="ft-status-chip ${newCls}">${esc(statusLabel(ev.newValue) || '?')}</span></span>`),
     ].join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}<div class="fd-content" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}${ftDetailClose()}</div>
+        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}</div>
     </div>`;
 }
 
@@ -700,10 +688,10 @@ function renderFtDetailOnline(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         _tlMr(esc(t('timeline.detail.event', 'Event')), `<span style="color:var(--ok);">${esc(t('timeline.friend.online_game', 'Online (Game)'))}</span>`),
     ].join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}<div class="fd-content" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}${ftDetailClose()}</div>
+        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}</div>
     </div>`;
 }
 
@@ -714,10 +702,10 @@ function renderFtDetailOffline(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         _tlMr(esc(t('timeline.detail.event', 'Event')), `<span style="color:var(--tx3);">${esc(t('timeline.friend.went_offline', 'Went Offline'))}</span>`),
     ].join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}<div class="fd-content" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}${ftDetailClose()}</div>
+        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}</div>
     </div>`;
 }
 
@@ -728,10 +716,10 @@ function renderFtDetailAdded(ev, el) {
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         _tlMr(esc(t('timeline.detail.event', 'Event')), `<span style="color:var(--ok);">${esc(t('timeline.friend.added_full', 'Friend Added'))}</span>`),
     ].join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}<div class="fd-content" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}${ftDetailClose()}</div>
+        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}</div>
     </div>`;
 }
 
@@ -743,10 +731,10 @@ function renderFtDetailRemoved(ev, el) {
         _tlMr(esc(t('timeline.detail.event', 'Event')), `<span style="color:var(--err);">${esc(t('timeline.friend.unfriended', 'Unfriended'))}</span>`),
         ev.friendId ? _tlMr(esc(t('timeline.detail.user_id', 'User ID')), `<span style="font-size:11px;opacity:.7;">${esc(ev.friendId)}</span>`) : '',
     ].filter(Boolean).join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}<div class="fd-content" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}${ftDetailClose()}</div>
+        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}</div>
     </div>`;
 }
 
@@ -756,12 +744,12 @@ function renderFtDetailStatusDesc(ev, el) {
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
     ].join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}<div class="fd-content" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         ${ev.oldValue ? `<div class="fd-info-card" style="margin-top:10px;"><div class="fd-group-rep-label">${esc(t('timeline.detail.previous_status_text', 'PREVIOUS STATUS TEXT'))}</div><div style="font-size:12px;color:var(--tx2);white-space:pre-wrap;">${esc(ev.oldValue)}</div></div>` : ''}
         ${ev.newValue !== undefined ? `<div class="fd-info-card" style="margin-top:10px;"><div class="fd-group-rep-label">${esc(t('timeline.detail.new_status_text', 'NEW STATUS TEXT'))}</div><div style="font-size:12px;color:var(--tx1);white-space:pre-wrap;">${ev.newValue ? esc(ev.newValue) : tlDetailClearedHtml()}</div></div>` : ''}
-        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}${ftDetailClose()}</div>
+        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}</div>
     </div>`;
 }
 
@@ -771,12 +759,12 @@ function renderFtDetailBio(ev, el) {
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
     ].join('');
-    el.innerHTML = `<div class="fd-content" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}<div class="fd-content" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         ${ev.oldValue ? `<div class="fd-info-card" style="margin-top:10px;"><div class="fd-group-rep-label">${esc(t('timeline.detail.previous_bio', 'PREVIOUS BIO'))}</div><div style="font-size:12px;color:var(--tx2);white-space:pre-wrap;">${esc(ev.oldValue)}</div></div>` : ''}
         ${ev.newValue ? `<div class="fd-info-card" style="margin-top:10px;"><div class="fd-group-rep-label">${esc(t('timeline.detail.new_bio', 'NEW BIO'))}</div><div style="font-size:12px;color:var(--tx1);white-space:pre-wrap;">${esc(ev.newValue)}</div></div>` : ''}
-        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}${ftDetailClose()}</div>
+        <div style="margin-top:14px;display:flex;gap:8px;">${ftDetailViewProfile(ev)}</div>
     </div>`;
 }
 
@@ -789,12 +777,12 @@ function renderFtDetailFriendAvatar(ev, el) {
         ev.worldName ? _tlMr(esc(t('timeline.detail.avatar', 'Avatar')), `<span style="color:var(--accent-lt);">${esc(ev.worldName)}</span>`) : '',
         ev.worldId   ? _tlMr(esc(t('timeline.detail.avatar_id', 'Avatar ID')), `<span style="font-size:11px;color:var(--tx3);">${esc(ev.worldId)}</span>`) : '',
     ].filter(Boolean).join('');
-    el.innerHTML = `${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:20px 0;">
+    el.innerHTML = `${ftDetailBar(ev)}${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         <div style="margin-top:14px;display:flex;gap:8px;">
             ${ev.worldId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openAvatarDetail('${jsq(ev.worldId)}')">${esc(t('timeline.actions.view_avatar', 'View Avatar'))}</button>` : ''}
-            ${ftDetailViewProfile(ev)}${ftDetailClose()}
+            ${ftDetailViewProfile(ev)}
         </div>
     </div>`;
     _tlInsertBanner(el, ev.worldId || ev.id, ev.worldThumb);

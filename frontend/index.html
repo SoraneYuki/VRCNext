@@ -123,7 +123,7 @@
     </div>
     <div class="app-body">
     <div class="sidebar" id="sidebarEl">
-        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.35.2</div></div></div>
+        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.35.3</div></div></div>
         <div class="nav vrcn-scrollbar" id="navEl"></div>
         <div class="clock-area"><div class="clock-time" id="clock">00:00:00</div><div class="clock-date" id="clockDate"></div></div>
         <div class="play-area"><button class="btn-play" onclick="playVRChat()"><span class="msi play-icon">play_arrow</span><span class="pl" data-i18n="sidebar.play_vrchat">Play VRChat</span></button></div>
@@ -531,15 +531,15 @@
     <!-- Export Modal -->
     <div class="modal-overlay" id="modalExport" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
         <div class="modal-box" style="width:640px;max-width:92%;">
-            <div class="modal-title" id="exportTitle" style="margin-bottom:4px;">Export</div>
-            <div class="modal-msg" id="exportDesc" style="margin-bottom:14px;"></div>
+            <div class="fd-modal-bar">
+                <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" id="exportTitle">Export</span></div>
+                <div class="fd-modal-bar-actions"><button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="document.getElementById('modalExport').style.display='none'"><span class="msi" style="font-size:20px;">close</span></button></div>
+            </div>
+            <div class="modal-msg" id="exportDesc" style="margin:20px 0 14px;"></div>
             <textarea id="exportText" readonly spellcheck="false" style="width:100%;height:320px;box-sizing:border-box;resize:vertical;background:var(--bg-input);color:var(--tx1);border:1px solid var(--brd-lt);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.5;white-space:pre;overflow:auto;"></textarea>
-            <div class="modal-btns" style="margin-top:16px;justify-content:space-between;">
-                <button class="vrcn-button-round" onclick="document.getElementById('modalExport').style.display='none'" data-i18n="common.close">Close</button>
-                <div style="display:flex;gap:8px;">
-                    <button class="vrcn-button-round" onclick="exportCopy()"><span class="msi" style="font-size:14px;">content_copy</span> <span data-i18n="export.copy">Copy</span></button>
-                    <button class="vrcn-button-round vrcn-btn-join" onclick="exportSaveCsv()"><span class="msi" style="font-size:14px;">download</span> <span data-i18n="export.export_csv">Export CSV</span></button>
-                </div>
+            <div class="modal-btns" style="margin-top:16px;">
+                <button class="vrcn-button-round" onclick="exportCopy()"><span class="msi" style="font-size:14px;">content_copy</span> <span data-i18n="export.copy">Copy</span></button>
+                <button class="vrcn-button-round vrcn-btn-join" onclick="exportSaveCsv()"><span class="msi" style="font-size:14px;">download</span> <span data-i18n="export.export_csv">Export CSV</span></button>
             </div>
         </div>
     </div>

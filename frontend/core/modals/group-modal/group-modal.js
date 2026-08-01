@@ -60,11 +60,11 @@ function confirmLeaveGroup(groupId, groupName) {
     o.id = 'leaveGroupModal';
     o.style.zIndex = '10003';
     o.onclick = e => { if (e.target === o) o.remove(); };
-    o.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">logout</span></div>
-        <div class="modal-title">${t('groups.leave_confirm.title', 'Leave Group')}</div>
+    o.innerHTML = `<div class="modal-box">
+        ${renderModalBar(t('groups.leave_confirm.title', 'Leave Group'), [modalCloseAction("document.getElementById('leaveGroupModal').remove()")])}
+        <div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">logout</span></div>
         <div class="modal-msg">${tf('groups.leave_confirm.message', { name: esc(groupName || '') }, 'Leave {name}?')}</div>
         <div class="modal-btns">
-            <button class="vrcn-button-round" onclick="document.getElementById('leaveGroupModal').remove()">${t('common.cancel', 'Cancel')}</button>
             <button class="vrcn-button-round vrcn-btn-danger" onclick="document.getElementById('leaveGroupModal').remove();sendToCS({action:'vrcLeaveGroup',groupId:'${jsq(groupId)}'});closeGroupDetail();">${t('groups.actions.leave_group', 'Leave Group')}</button>
         </div></div>`;
     document.body.appendChild(o);
@@ -926,10 +926,7 @@ function openGroupPostModal(groupId, editPost = null) {
     }
     overlay.innerHTML = `
     <div class="gp-modal" role="dialog" aria-label="${esc(modalAriaLabel)}">
-        <div class="gp-modal-header">
-            <span class="msi" style="font-size:20px;color:var(--accent);">edit</span>
-            <span>${esc(modalTitle)}</span>
-        </div>
+        ${renderModalBar(modalTitle, [modalCloseAction('closeGroupPostModal()')])}
         <div class="gp-modal-body">
             <label class="gp-label">${t('groups.posts.fields.title', 'Title')}</label>
             <input id="gpTitle" class="vrcn-edit-field" type="text" placeholder="${esc(t('groups.posts.fields.title_placeholder', 'Post title...'))}" maxlength="200" style="width:100%;">
@@ -957,7 +954,6 @@ function openGroupPostModal(groupId, editPost = null) {
         </div>
         <div class="gp-modal-footer">
             <button class="vrcn-button-round vrcn-btn-join" id="gpSubmitBtn" onclick="submitGroupPost()"><span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">send</span>${esc(submitLabel)}</button>
-            <button class="vrcn-button-round" onclick="closeGroupPostModal()" style="margin-left:auto;">${t('common.cancel', 'Cancel')}</button>
         </div>
     </div>`;
     initAllVnSelects();
@@ -1351,10 +1347,7 @@ function openGroupEventModal(groupId) {
     }
     overlay.innerHTML = `
     <div class="gp-modal" role="dialog" aria-label="${esc(t('groups.events.modal.aria_label', 'Create Group Event'))}" style="max-height:calc(100vh - var(--tb-h) - 32px);overflow-y:auto;">
-        <div class="gp-modal-header">
-            <span class="msi" style="font-size:20px;color:var(--accent);">event</span>
-            <span>${t('groups.events.modal.title', 'Create Group Event')}</span>
-        </div>
+        ${renderModalBar(t('groups.events.modal.title', 'Create Group Event'), [modalCloseAction('closeGroupEventModal()')])}
         <div class="gp-modal-body">
             <label class="gp-label">${t('groups.events.fields.name', 'Event Name')}</label>
             <input id="gevName" class="vrcn-edit-field" type="text" placeholder="${esc(t('groups.events.fields.name_placeholder', 'Event name...'))}" maxlength="64" style="width:100%;">
@@ -1418,7 +1411,6 @@ function openGroupEventModal(groupId) {
         </div>
         <div class="gp-modal-footer">
             <button class="vrcn-button-round vrcn-btn-join" id="gevSubmitBtn" onclick="submitGroupEvent()"><span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">event</span>${t('groups.events.submit', 'Create Event')}</button>
-            <button class="vrcn-button-round" onclick="closeGroupEventModal()" style="margin-left:auto;">${t('common.cancel', 'Cancel')}</button>
         </div>
     </div>`;
     initAllVnSelects();
@@ -1987,13 +1979,13 @@ function _renderGroupInviteBox() {
     const bannerUrl = gd.bannerUrl || '';
     const bannerBg = bannerUrl || groupIcon;
     box.innerHTML = `
+        ${renderModalBar(groupName, [modalCloseAction('closeInviteModal();_grpInvGroupId=null;')], { flush: true })}
         <div class="inv-world-banner" style="background-image:url('${esc(bannerBg)}')">
             <div class="inv-world-fade"></div>
             <div class="inv-world-info">
                 <div class="inv-world-name">${esc(groupName)}</div>
                 <div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:3px;">${esc(t('groups.invite.subtitle', 'Invite to this group'))}</div>
             </div>
-            <button class="inv-close-btn" onclick="closeInviteModal();_grpInvGroupId=null;" title="${esc(t('common.close', 'Close'))}"><span class="msi">close</span></button>
         </div>
         <div class="inv-search-wrap">
             <span class="msi inv-search-icon">search</span>

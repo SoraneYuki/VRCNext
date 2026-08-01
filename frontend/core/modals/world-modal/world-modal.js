@@ -882,8 +882,8 @@ function openWorldDetail(worldId) {
     const wiBar = renderModalActions([
         canJoin ? { icon: 'login', title: t('dashboard.instances.join_world', 'Join World'), onclick: `worldJoinAction('${loc}')` } : null,
         { icon: 'public', title: t('dashboard.instances.open_world', 'Open World'), onclick: `navOpenModal('worldSearch','${wid}','${esc(cached?.name || '')}')` },
+        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeWorldDetail()` },
     ]);
-    let actionsHtml = `<div class="fd-actions"><button class="vrcn-button-round" style="margin-left:auto;" onclick="closeWorldDetail()">${t('common.close', 'Close')}</button></div>`;
 
     c.innerHTML = `${wiBar}${bannerHtml}<div class="fd-content${thumb ? ' fd-has-banner' : ''}" style="padding:16px 0;">
         <h2 style="margin:0 0 4px;color:var(--tx0);font-size:18px;">${esc(worldName)}</h2>
@@ -892,7 +892,7 @@ function openWorldDetail(worldId) {
             const _ob = getOwnerBadgeHtml(_oid, myInst?.ownerName || '', myInst?.ownerGroup || '', 'closeWorldDetail()');
             return `<span class="vrcn-badge ${instClass}">${instLabel}</span>${singleRegionBadge}${_ob}${singleInstCopy}`;
         })()}</div>
-        ${friendsHtml}${actionsHtml}</div>`;
+        ${friendsHtml}</div>`;
     if (thumb) { const s = document.getElementById('wi-banner-slot'); const bi = _getWorldBannerImg(worldId, thumb); if (s && bi) s.insertBefore(bi, s.firstChild); }
     m.style.display = 'flex';
 }

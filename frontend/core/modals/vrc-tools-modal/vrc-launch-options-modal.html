@@ -1,6 +1,9 @@
         <div class="modal-box" style="width:616px;max-width:90%;">
-            <div class="modal-title" style="margin-bottom:4px;" data-i18n="vrc_launch.title">VRChat Launch Options</div>
-            <div class="modal-msg" style="margin-bottom:18px;" data-i18n="vrc_launch.desc">Extra arguments passed to VRChat on launch. Optional override path lets you launch a specific VRChat executable instead of going through Steam.</div>
+            <div class="fd-modal-bar">
+                <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" data-i18n="vrc_launch.title">VRChat Launch Options</span></div>
+                <div class="fd-modal-bar-actions"><button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="document.getElementById('modalVrcLaunchOptions').style.display='none'"><span class="msi" style="font-size:20px;">close</span></button></div>
+            </div>
+            <div class="modal-msg" style="margin:20px 0 18px;" data-i18n="vrc_launch.desc">Extra arguments passed to VRChat on launch. Optional override path lets you launch a specific VRChat executable instead of going through Steam.</div>
 
             <div style="background:var(--bg-input);border-radius:8px;padding:10px 12px;margin-bottom:18px;font-size:11.5px;color:var(--tx3);line-height:1.6;">
                 <div>--fps=144</div>
@@ -22,7 +25,6 @@
             <div class="modal-btns" style="margin-top:22px;justify-content:space-between;">
                 <button class="vrcn-button-round" onclick="sendToCS({action:'openUrl',url:'https://docs.vrchat.com/docs/launch-options'})"><span class="msi">open_in_new</span> <span data-i18n="vrc_launch.docs">VRChat Docs</span></button>
                 <div style="display:flex;gap:8px;">
-                    <button class="vrcn-button-round" onclick="document.getElementById('modalVrcLaunchOptions').style.display='none'" data-i18n="common.close">Close</button>
                     <button class="vrcn-button-round vrcn-btn-join" onclick="vrcLaSave()" data-i18n="common.save">Save</button>
                 </div>
             </div>

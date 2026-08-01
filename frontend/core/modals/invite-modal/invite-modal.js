@@ -63,6 +63,7 @@ function _renderInviteModal() {
     const ageGateBadge = ageGate
         ? `<span class="vrcn-badge" style="background:rgba(255,75,85,.15);color:var(--err);">${esc(t('worlds.instances.age_gated', 'Age Gated'))}</span>` : '';
     box.innerHTML = `
+        ${renderModalBar(worldName, [modalCloseAction('closeInviteModal()')], { flush: true })}
         <div class="inv-world-banner" style="background-image:url('${esc(worldThumb)}')">
             <div class="inv-world-fade"></div>
             <div class="inv-world-info">
@@ -70,7 +71,6 @@ function _renderInviteModal() {
                 <div class="inv-world-name">${esc(worldName)}</div>
                 <div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:3px;">${esc(t('invite.multi.subtitle', 'Invite to this instance'))}</div>
             </div>
-            <button class="inv-close-btn" onclick="closeInviteModal()" title="${esc(t('common.close', 'Close'))}"><span class="msi">close</span></button>
         </div>
         <div class="inv-search-wrap">
             <span class="msi inv-search-icon">search</span>

@@ -101,6 +101,25 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
     justify-content: flex-end;
 }
 
+/* === Shared Modal Title Bar === */
+
+.fd-modal-bar-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--tx0);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.fd-modal-bar.fd-modal-bar-flush { margin: 0; }
+.fd-modal-bar.fd-modal-bar-flush + .fd-banner { margin-left: 0; margin-right: 0; }
+
+.gp-modal > .fd-modal-bar { margin: 0; border-radius: 16px 16px 0 0; flex-shrink: 0; }
+
+.fd-modal-bar + .inv-world-banner { border-radius: 0; }
+
 /* === Shared Navigation Backdrop === */
 
 #modalNavBackdrop {

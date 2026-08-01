@@ -118,8 +118,8 @@ function openBoopModal(userId, displayName) {
     overlay.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     overlay.innerHTML = `
         <div class="modal-box wide narrow">
-            <div class="modal-title">${esc(t('boop.title', 'Send a Boop'))}</div>
-            <div class="modal-msg" style="margin-bottom:14px;">${esc(tf('boop.target', { name: _boopContext.displayName }, `To: ${_boopContext.displayName}`))}</div>
+            ${renderModalBar(t('boop.title', 'Send a Boop'), [modalCloseAction('closeBoopModal()')])}
+            <div class="modal-msg" style="margin:20px 0 14px;">${esc(tf('boop.target', { name: _boopContext.displayName }, `To: ${_boopContext.displayName}`))}</div>
             <div class="fd-tabs">
                 <button class="fd-tab active" id="boopTabDefault" onclick="switchBoopTab('default')">${esc(t('boop.tab_default', 'Default Emojis'))}</button>
                 ${boopHasVrcPlus() ? `<button class="fd-tab" id="boopTabCustom" onclick="switchBoopTab('custom')">${esc(t('boop.tab_custom', 'Custom'))}</button>` : ''}
@@ -132,7 +132,6 @@ function openBoopModal(userId, displayName) {
                 <button class="vrcn-button" id="boopRefreshBtn" onclick="refreshBoopCustomEmojis()" title="${esc(t('common.refresh', 'Refresh'))}" style="display:none;"><span class="msi">refresh</span></button>
             </div>
             <div class="modal-btns" style="margin-top:16px;">
-                <button class="vrcn-button" onclick="closeBoopModal()">${esc(t('common.cancel', 'Cancel'))}</button>
                 <button class="vrcn-button vrcn-btn-primary" id="boopSendBtn" onclick="sendBoopFromModal()">${esc(t('boop.send', 'Send Boop'))}</button>
             </div>
         </div>`;
