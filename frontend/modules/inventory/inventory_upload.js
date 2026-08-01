@@ -239,10 +239,8 @@ function _iuBuildHTML(tab) {
         </div>` : '';
 
     return `<div class="modal-box wide" id="invUploadContent" style="max-width:560px;">
-        <div style="margin-bottom:14px;">
-            <div style="font-size:16px;font-weight:700;color:var(--tx0);">${esc(tf('inventory.upload.title', { tab: tabLabel }, `Upload to ${tabLabel}`))}</div>
-        </div>
-        <div style="background:var(--bg-input);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--tx2);">${esc(req?.hint || '')}</div>
+        ${renderModalBar(tf('inventory.upload.title', { tab: tabLabel }, `Upload to ${tabLabel}`), [modalCloseAction('closeInvUploadModal()')])}
+        <div style="background:var(--bg-input);border-radius:8px;padding:10px 14px;margin:20px 0 14px;font-size:12px;color:var(--tx2);">${esc(req?.hint || '')}</div>
         <div id="iuDropZone" class="iu-dropzone"
             onclick="iuBrowse()"
             ondragover="event.preventDefault();this.classList.add('dragover')"
@@ -258,7 +256,6 @@ function _iuBuildHTML(tab) {
         ${emojiHtml}
         <div id="iuError" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(220,50,50,.12);border-radius:8px;font-size:12px;color:#e05252;"></div>
         <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
-            <button class="vrcn-button-round" onclick="closeInvUploadModal()">${esc(t('common.cancel', 'Cancel'))}</button>
             <button class="vrcn-button-round vrcn-btn-join" id="iuUploadBtn" style="display:none;" onclick="iuDoUpload()">${iuUploadButtonHtml()}</button>
         </div>
     </div>`;
