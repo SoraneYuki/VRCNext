@@ -35,6 +35,8 @@ function openTlDetail(id) {
     const el = document.getElementById(mainOpen ? 'detailModalContent2' : 'detailModalContent');
     if (!el) return;
 
+    if (!mainOpen && typeof navSetCurrent === 'function') navSetCurrent('tlEvent', id);
+
     switch (ev.type) {
         case 'instance_join': renderTlDetailJoin(ev, el);      break;
         case 'first_meet':    renderTlDetailMeet(ev, el);      break;
@@ -86,7 +88,14 @@ function _tlInfoCard(title, rowsHtml) {
     return `<div class="fd-info-card"><div class="fd-group-rep-label">${title}</div><div style="display:grid;gap:6px;">${rowsHtml}</div></div>`;
 }
 function _tlBar(title) {
-    return renderModalBar(title, [modalCloseAction(`document.getElementById('${_tlMid}').style.display='none'`)]);
+    if (_tlMid === 'modalDetail' && typeof navUpdateLabel === 'function') navUpdateLabel(title);
+    return renderModalBar(title, [modalCloseAction('closeTlDetail()')]);
+}
+
+function closeTlDetail(fromNav = false) {
+    const ov = document.getElementById(_tlMid);
+    if (ov) ov.style.display = 'none';
+    if (!fromNav && typeof navClear === 'function') navClear();
 }
 function _tlBanner(hasThumb) {
     return hasThumb ? `<div class="fd-banner" id="tl-banner-slot"><div class="fd-banner-fade"></div></div>` : '';
@@ -124,7 +133,7 @@ function _tlPlayerCard(p, instanceStart, instanceEnd) {
         ? `<div class="tl-player-card-av" style="background-image:url('${cssUrl(image)}')"></div>`
         : `<div class="tl-player-card-av">${esc(name[0].toUpperCase())}</div>`;
     const badge  = live ? `<span class="vrcn-badge bdg-friend"><span class="msi" style="font-size:10px;">check_circle</span>${t('profiles.badges.friend', 'Friend')}</span>` : '';
-    const onclick = p.userId ? `onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${jsq(p.userId)}')"` : '';
+    const onclick = p.userId ? `onclick="navOpenModal('friend','${jsq(p.userId)}','${jsq(name)}')"` : '';
     const clickCls = p.userId ? ' clickable' : '';
 
     const { joins, lefts } = _tlPlayerSessions(p);
@@ -233,7 +242,7 @@ function renderTlDetailJoin(ev, el) {
     const instIdMatch = loc.match(/:(\d+)/);
     const instanceId  = instIdMatch ? instIdMatch[1] : '';
 
-    const worldRowClick = ev.worldId ? ` onclick="document.getElementById('${_tlMid}').style.display='none';openWorldSearchDetail('${esc(ev.worldId)}')" style="cursor:pointer;"` : '';
+    const worldRowClick = ev.worldId ? ` onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')" style="cursor:pointer;"` : '';
     const infoRows = [
         fromStr ? _tlMr(esc(t('timeline.detail.from', 'From')), esc(fromStr)) : '',
         (fromStr && ev.tracked) ? _tlMr(esc(t('timeline.detail.to', 'To')), toStr ? esc(toStr) : `<span style="color:var(--ok);">&#9679;&nbsp;${esc(t('timeline.detail.ongoing', 'Ongoing'))}</span>`) : '',
@@ -252,7 +261,7 @@ function renderTlDetailJoin(ev, el) {
                 <div style="font-size:12px;color:var(--tx3);margin-bottom:12px;">${esc(dateStr)}</div>
             </div>
             <div class="fd-actions">
-                <button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="document.getElementById('${_tlMid}').style.display='none';sendToCS({action:'vrcJoinFriend',location:'${jsq(ev.location)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>
+                <button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="closeTlDetail();sendToCS({action:'vrcJoinFriend',location:'${jsq(ev.location)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>
                 ${canCopyLink ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.copy_instance_link', 'Copy Instance Link'))}" onclick="copyInstanceLink('${jsq(ev.location)}')"><span class="msi" style="font-size:16px;">content_copy</span></button>` : ''}
             </div>
             ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
@@ -290,7 +299,7 @@ function renderTlDetailJoin(ev, el) {
 function renderTlDetailMeet(ev, el) {
     const dateStr = tlFormatLongDate(ev.timestamp);
     const timeStr = tlFormatTime(ev.timestamp);
-    const worldRowClick = ev.worldId ? ` onclick="document.getElementById('${_tlMid}').style.display='none';openWorldSearchDetail('${esc(ev.worldId)}')" style="cursor:pointer;"` : '';
+    const worldRowClick = ev.worldId ? ` onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')" style="cursor:pointer;"` : '';
     const infoRows = [
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
@@ -300,7 +309,7 @@ function renderTlDetailMeet(ev, el) {
         ${_tlAvRow(ev.userImage, ev.userName, t('timeline.detail.first_meet', 'FIRST MEET'), 'var(--cyan)')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
-            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
+            <button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('friend','${jsq(ev.userId)}','${jsq(ev.userName || '')}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
         </div>` : ''}
     </div>`;
 }
@@ -310,7 +319,7 @@ function renderTlDetailMeet(ev, el) {
 function renderTlDetailMeetAgain(ev, el) {
     const dateStr = tlFormatLongDate(ev.timestamp);
     const timeStr = tlFormatTime(ev.timestamp);
-    const worldRowClick = ev.worldId ? ` onclick="document.getElementById('${_tlMid}').style.display='none';openWorldSearchDetail('${esc(ev.worldId)}')" style="cursor:pointer;"` : '';
+    const worldRowClick = ev.worldId ? ` onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')" style="cursor:pointer;"` : '';
     const infoRows = [
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
@@ -320,7 +329,7 @@ function renderTlDetailMeetAgain(ev, el) {
         ${_tlAvRow(ev.userImage, ev.userName, t('timeline.detail.met_again', 'MET AGAIN'), '#AB47BC')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
-            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
+            <button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('friend','${jsq(ev.userId)}','${jsq(ev.userName || '')}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
         </div>` : ''}
     </div>`;
 }
@@ -342,7 +351,7 @@ function renderTlDetailNotif(ev, el) {
         ${_tlAvRow(ev.senderImage, ev.senderName || typeLabel, typeLabel.toUpperCase(), 'var(--warn)')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         ${ev.senderId ? `<div style="margin-top:14px;display:flex;gap:8px;">
-            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.senderId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
+            <button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('friend','${jsq(ev.senderId)}','${jsq(ev.senderName || '')}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
         </div>` : ''}
     </div>`;
 }
@@ -362,7 +371,7 @@ function renderTlDetailAvatar(ev, el) {
         <h2 style="margin:0 0 12px;color:var(--tx0);font-size:18px;">${esc(ev.userName || t('timeline.unknown_avatar', 'Unknown Avatar'))}</h2>
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
-            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openAvatarDetail('${jsq(ev.userId)}')">${esc(t('timeline.actions.view_avatar', 'View Avatar'))}</button>
+            <button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('avatar','${jsq(ev.userId)}','${jsq(ev.userName || '')}')">${esc(t('timeline.actions.view_avatar', 'View Avatar'))}</button>
         </div>` : ''}
     </div>`;
     _tlInsertBanner(el, ev.userId || ev.id, ev.userImage);
@@ -376,7 +385,7 @@ function renderTlDetailUrl(ev, el) {
     const url     = ev.message || '';
     const plat    = _urlPlatform(url);
     const favicon = `<div style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:12px;background:var(--bg2);">${_urlFaviconHtml(plat)}</div>`;
-    const worldRowClick = ev.worldId ? ` onclick="document.getElementById('${_tlMid}').style.display='none';openWorldSearchDetail('${esc(ev.worldId)}')" style="cursor:pointer;"` : '';
+    const worldRowClick = ev.worldId ? ` onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')" style="cursor:pointer;"` : '';
     const infoRows = [
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
@@ -415,7 +424,7 @@ function renderTlDetailModeration(ev, el) {
         ${_tlAvRow(ev.userImage, ev.userName, t('timeline.detail.moderation', 'MODERATION'), 'var(--err)')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
-            <button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.userId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
+            <button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('friend','${jsq(ev.userId)}','${jsq(ev.userName || '')}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
         </div>` : ''}
     </div>`;
 }
@@ -468,8 +477,10 @@ function renderTlDetailProfile(ev, el) {
 /* === Friend GPS Instance Log Modal === */
 function openFtGpsDetail(evId) {
     const ev = friendTimelineEvents.find(e => e.id === evId)
-             || _ftlSearchEvents.find(e => e.id === evId);
+             || _ftlSearchEvents.find(e => e.id === evId)
+             || (typeof _fdUserActivityEvents !== 'undefined' ? _fdUserActivityEvents.find(e => e.id === evId) : null);
     if (!ev) return;
+    if (typeof navSetCurrent === 'function') navSetCurrent('ftGps', evId);
     renderFtGpsDetailModal(ev);
     _ftGpsShowModal();
 }
@@ -483,8 +494,9 @@ function _ftGpsShowModal() {
     ov.style.display = 'flex';
 }
 
-function closeFtGpsDetail() {
+function closeFtGpsDetail(fromNav = false) {
     document.getElementById('modalFtGpsDetail').style.display = 'none';
+    if (!fromNav && typeof navClear === 'function') navClear();
 }
 
 function renderFtGpsDetailModal(ev) {
@@ -527,7 +539,7 @@ function renderFtGpsDetailModal(ev) {
             <div class="fd-actions">
                 ${loc ? `<button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="closeFtGpsDetail();sendToCS({action:'vrcJoinFriend',location:'${jsq(loc)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>` : ''}
                 ${canCopyLink ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.copy_instance_link', 'Copy Instance Link'))}" onclick="copyInstanceLink('${jsq(loc)}')"><span class="msi" style="font-size:16px;">content_copy</span></button>` : ''}
-                ${ev.worldId ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.open_world', 'Open World'))}" onclick="closeFtGpsDetail();openWorldSearchDetail('${esc(ev.worldId)}')"><span class="msi" style="font-size:16px;">travel_explore</span></button>` : ''}
+                ${ev.worldId ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.open_world', 'Open World'))}" onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')"><span class="msi" style="font-size:16px;">travel_explore</span></button>` : ''}
             </div>
             ${infoHtml}
         </div>
@@ -541,6 +553,8 @@ function renderFtGpsDetailModal(ev) {
             <div style="font-size:12px;color:var(--tx3);padding:12px 0;">${esc(t('common.loading', 'Loading...'))}</div>
         </div>
     </div>`;
+
+    if (typeof navUpdateLabel === 'function') navUpdateLabel(worldName);
 
     const el = document.getElementById('ftGpsDetailContent');
     el.innerHTML = `${renderModalBar(worldName, [modalCloseAction('closeFtGpsDetail()')])}<div class="fd-layout">${leftHtml}${rightHtml}</div>`;
@@ -561,7 +575,7 @@ function renderFtAlsoWasHereResult(payload) {
         tab.innerHTML = friends.map(f =>
             renderProfileItemSmall(
                 { id: f.friendId, displayName: f.friendName || t('timeline.unknown', 'Unknown'), image: f.friendImage },
-                `closeFtGpsDetail();openFriendDetail('${jsq(f.friendId)}')`
+                `navOpenModal('friend','${jsq(f.friendId)}','${jsq(f.friendName || '')}')`
             )
         ).join('');
     }
@@ -570,11 +584,14 @@ function renderFtAlsoWasHereResult(payload) {
 
 function openFtDetail(id) {
     const ev = friendTimelineEvents.find(e => e.id === id)
-             || _ftlSearchEvents.find(e => e.id === id);
+             || _ftlSearchEvents.find(e => e.id === id)
+             || (typeof _fdUserActivityEvents !== 'undefined' ? _fdUserActivityEvents.find(e => e.id === id) : null);
     if (!ev) return;
     _tlMid = 'modalDetail';
     const el = document.getElementById('detailModalContent');
     if (!el) return;
+
+    if (typeof navSetCurrent === 'function') navSetCurrent('ftEvent', id);
 
     switch (ev.type) {
         case 'friend_gps':        renderFtDetailGps(ev, el);        break;
@@ -598,6 +615,7 @@ function openFdActivityDetail(id) {
     const ev = _fdUserActivityEvents.find(e => e.id === id);
     if (!ev) return;
     if (ev.type === 'friend_gps') {
+        if (typeof navSetCurrent === 'function') navSetCurrent('ftGps', id);
         renderFtGpsDetailModal(ev);
         _ftGpsShowModal();
         return;
@@ -605,6 +623,8 @@ function openFdActivityDetail(id) {
     _tlMid = 'modalDetail';
     const el = document.getElementById('detailModalContent');
     if (!el) return;
+
+    if (typeof navSetCurrent === 'function') navSetCurrent('ftEvent', id);
     switch (ev.type) {
         case 'friend_status':     renderFtDetailStatus(ev, el);     break;
         case 'friend_statusdesc': renderFtDetailStatusDesc(ev, el); break;
@@ -643,7 +663,7 @@ function ftDetailBar(ev) {
 
 function ftDetailViewProfile(ev) {
     return ev.friendId
-        ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openFriendDetail('${esc(ev.friendId)}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>`
+        ? `<button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('friend','${jsq(ev.friendId)}','${jsq(ev.friendName || '')}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>`
         : '';
 }
 
@@ -651,7 +671,7 @@ function renderFtDetailGps(ev, el) {
     const { dateStr, timeStr } = ftDetailDatetime(ev);
     const banner = _tlBanner(!!ev.worldThumb);
     const wname  = ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World');
-    const worldRowClick = ev.worldId ? ` onclick="document.getElementById('${_tlMid}').style.display='none';openWorldSearchDetail('${esc(ev.worldId)}')" style="cursor:pointer;"` : '';
+    const worldRowClick = ev.worldId ? ` onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')" style="cursor:pointer;"` : '';
     const infoRows = [
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
@@ -661,7 +681,7 @@ function renderFtDetailGps(ev, el) {
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         <div style="margin-top:14px;display:flex;gap:8px;">
-            ${ev.worldId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openWorldSearchDetail('${esc(ev.worldId)}')"><span class="msi" style="font-size:14px;">travel_explore</span> ${esc(t('timeline.actions.open_world', 'Open World'))}</button>` : ''}
+            ${ev.worldId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')"><span class="msi" style="font-size:14px;">travel_explore</span> ${esc(t('timeline.actions.open_world', 'Open World'))}</button>` : ''}
             ${ftDetailViewProfile(ev)}
         </div>
     </div>`;
@@ -784,7 +804,7 @@ function renderFtDetailFriendAvatar(ev, el) {
         ${ftDetailAvRow(ev)}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         <div style="margin-top:14px;display:flex;gap:8px;">
-            ${ev.worldId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="document.getElementById('${_tlMid}').style.display='none';openAvatarDetail('${jsq(ev.worldId)}')">${esc(t('timeline.actions.view_avatar', 'View Avatar'))}</button>` : ''}
+            ${ev.worldId ? `<button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('avatar','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')">${esc(t('timeline.actions.view_avatar', 'View Avatar'))}</button>` : ''}
             ${ftDetailViewProfile(ev)}
         </div>
     </div>`;

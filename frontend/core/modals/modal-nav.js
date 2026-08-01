@@ -259,6 +259,9 @@ function _navDoOpen(type, id, id2) {
         case 'instance':    if (typeof _reopenCachedInstance === 'function') _reopenCachedInstance(id); break;
         case 'myprofile':   if (typeof openMyProfileModal === 'function') openMyProfileModal(); break;
         case 'photo':       if (typeof openPhotoDetail === 'function') openPhotoDetail(id); break;
+        case 'tlEvent':     if (typeof openTlDetail === 'function') openTlDetail(id); break;
+        case 'ftEvent':     if (typeof openFtDetail === 'function') openFtDetail(id); break;
+        case 'ftGps':       if (typeof openFtGpsDetail === 'function') openFtGpsDetail(id); break;
     }
 }
 
@@ -273,6 +276,9 @@ function _navOverlayIdForType(type) {
         case 'instance':    return 'modalMyInstance';
         case 'myprofile':   return 'modalMyProfile';
         case 'photo':       return 'photoDetailModal';
+        case 'tlEvent':     return 'modalDetail';
+        case 'ftEvent':     return 'modalDetail';
+        case 'ftGps':       return 'modalFtGpsDetail';
         default:            return null;
     }
 }
@@ -453,6 +459,13 @@ function _navCloseForEntry(entry) {
         case 'photo':
             if (typeof closePhotoDetail === 'function') closePhotoDetail(true);
             break;
+        case 'tlEvent':
+        case 'ftEvent':
+            if (typeof closeTlDetail === 'function') closeTlDetail(true);
+            break;
+        case 'ftGps':
+            if (typeof closeFtGpsDetail === 'function') closeFtGpsDetail(true);
+            break;
     }
 }
 
@@ -494,6 +507,9 @@ function _navTypeLabel(type) {
         instance:    typeof t === 'function' ? t('nav.modal.instance',    'Instance'): 'Instance',
         myprofile:   typeof t === 'function' ? t('nav.modal.friend',      'Profile') : 'Profile',
         photo:       typeof t === 'function' ? t('timeline.photo',        'Photo')   : 'Photo',
+        tlEvent:     typeof t === 'function' ? t('nav.timeline',          'Timeline'): 'Timeline',
+        ftEvent:     typeof t === 'function' ? t('nav.timeline',          'Timeline'): 'Timeline',
+        ftGps:       typeof t === 'function' ? t('nav.modal.instance',    'Instance'): 'Instance',
     };
     return labels[type] || type;
 }
