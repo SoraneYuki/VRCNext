@@ -62,6 +62,7 @@ function openNotifRespondModal(notifId) {
     el.style.zIndex = '20003';
     el.innerHTML = `
         <div class="modal-box inv-single-modal">
+            ${renderModalBar(_nrModalSenderName, [modalCloseAction('closeNotifRespondModal()')], { flush: true })}
             <div class="inv-world-banner" style="${bannerImg ? `background-image:url('${cssUrl(bannerImg)}')` : ''}">
                 <div class="inv-world-fade"></div>
                 <div class="inv-world-info">
@@ -69,7 +70,6 @@ function openNotifRespondModal(notifId) {
                     <div class="inv-world-name">${tf('notifications.respond.answer', { name: esc(_nrModalSenderName) }, 'Answer {name}')}</div>
                     ${subLine ? `<div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px;">${subLine}</div>` : ''}
                 </div>
-                <button class="inv-close-btn" onclick="closeNotifRespondModal()"><span class="msi" style="font-size:18px;">close</span></button>
             </div>
             <div class="fd-tabs" style="margin:14px 16px 0;flex-shrink:0;">
                 <button class="fd-tab active" id="nrTab_message" onclick="_nrModalSetTab('message')">${t('profiles.invite.tab.message', 'With Message')}</button>

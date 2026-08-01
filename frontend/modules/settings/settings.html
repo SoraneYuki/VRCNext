@@ -296,6 +296,14 @@
                         </div>
                         <div class="set-desc" data-i18n="settings.decorations.theme_vrcn_override_desc">When enabled, VRCN+ profile colours take precedence over a player's VRC+ profile theme.</div>
                         <div class="sf-toggle-row" style="margin-top:14px;">
+                            <span data-i18n="settings.decorations.theme_contrast">Keep Theme Text Readable</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setProfileThemeContrast" onchange="settings.profileThemeContrast=this.checked;autoSave();if(typeof applyDecorationsSetting==='function')applyDecorationsSetting();">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-i18n="settings.decorations.theme_contrast_desc">When enabled, text and icons of a VRC+ profile theme are darkened or lightened just enough to stay readable on the theme's own background. Turn this off to show the raw theme colours.</div>
+                        <div class="sf-toggle-row" style="margin-top:14px;">
                             <span data-i18n="settings.decorations.transparent_cards">Transparent Profile Cards</span>
                             <label class="toggle">
                                 <input type="checkbox" id="setTransparentProfileCards" onchange="settings.transparentProfileCards=this.checked;autoSave();if(typeof applyDecorationsSetting==='function')applyDecorationsSetting();">

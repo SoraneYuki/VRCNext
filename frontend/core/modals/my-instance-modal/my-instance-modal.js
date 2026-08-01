@@ -264,7 +264,9 @@ function setInstanceModal(inst) {
 
     _miModalWorldId = worldId;
 
-    const miBar = (typeof renderModalActions === 'function') ? renderModalActions([]) : '';
+    const miBar = (typeof renderModalActions === 'function')
+        ? renderModalActions([{ icon: 'close', title: t('common.close', 'Close'), onclick: 'closeMyInstanceDetail()' }])
+        : '';
 
     const instanceGroups = {}; // locBase → { friends, instanceType, instId, location }
 
@@ -330,7 +332,6 @@ function setInstanceModal(inst) {
             </div>
             <div class="mi-left-actions">
                 <button class="vrcn-button-round mi-action-btn" onclick="navOpenModal('worldSearch','${jsq(worldId)}','')">${t('dashboard.instances.open_world', 'Open World')}</button>
-                <button class="vrcn-button-round mi-action-btn" onclick="closeMyInstanceDetail()">${t('common.close', 'Close')}</button>
             </div>
         </div>
         <div class="mi-right"><div class="mi-right-scroll"><div class="mi-instance-list">${rightHtml}</div></div></div>
@@ -357,7 +358,9 @@ function setOwnInstanceModal(inst) {
 
     _miModalWorldId = worldId;
 
-    const miBar = (typeof renderModalActions === 'function') ? renderModalActions([]) : '';
+    const miBar = (typeof renderModalActions === 'function')
+        ? renderModalActions([{ icon: 'close', title: t('common.close', 'Close'), onclick: 'closeMyInstanceDetail()' }])
+        : '';
 
     const locBase = (inst.location || '').split('~')[0];
     const instId  = locBase.includes(':') ? locBase.split(':')[1] : '';
@@ -405,7 +408,6 @@ function setOwnInstanceModal(inst) {
             </div>
             <div class="mi-left-actions">
                 <button class="vrcn-button-round mi-action-btn" onclick="navOpenModal('worldSearch','${jsq(worldId)}','')">${t('dashboard.instances.open_world', 'Open World')}</button>
-                <button class="vrcn-button-round mi-action-btn" onclick="closeMyInstanceDetail()">${t('common.close', 'Close')}</button>
             </div>
         </div>
         <div class="mi-right"><div class="mi-right-scroll"><div class="mi-instance-list">${_buildInstanceCard(locBase, groupData, true)}</div></div></div>

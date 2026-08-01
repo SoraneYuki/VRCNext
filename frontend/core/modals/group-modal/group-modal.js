@@ -60,14 +60,30 @@ function confirmLeaveGroup(groupId, groupName) {
     o.id = 'leaveGroupModal';
     o.style.zIndex = '10003';
     o.onclick = e => { if (e.target === o) o.remove(); };
-    o.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">logout</span></div>
-        <div class="modal-title">${t('groups.leave_confirm.title', 'Leave Group')}</div>
+    o.innerHTML = `<div class="modal-box">
+        ${renderModalBar(t('groups.leave_confirm.title', 'Leave Group'), [modalCloseAction("document.getElementById('leaveGroupModal').remove()")])}
+        <div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">logout</span></div>
         <div class="modal-msg">${tf('groups.leave_confirm.message', { name: esc(groupName || '') }, 'Leave {name}?')}</div>
         <div class="modal-btns">
-            <button class="vrcn-button-round" onclick="document.getElementById('leaveGroupModal').remove()">${t('common.cancel', 'Cancel')}</button>
             <button class="vrcn-button-round vrcn-btn-danger" onclick="document.getElementById('leaveGroupModal').remove();sendToCS({action:'vrcLeaveGroup',groupId:'${jsq(groupId)}'});closeGroupDetail();">${t('groups.actions.leave_group', 'Leave Group')}</button>
         </div></div>`;
     document.body.appendChild(o);
+}
+
+function _gdMoreDropdown(g, gidJs) {
+    const items = [];
+    if (g.isJoined) {
+        items.push({ icon: 'shield_person', label: t('context_menu.group.represent', 'Represent this group'), onclick: `sendToCS({action:'vrcRepresentGroup',groupId:'${gidJs}'})`, disabled: g.isRepresenting === true });
+        items.push({ icon: 'visibility', label: t('context_menu.group.visibility', 'Visibility'), submenu: [
+            { icon: 'public',         label: t('groups.visibility.visible', 'Visible for Everyone'), active: (g.visibility || 'visible') === 'visible', onclick: `setGroupVisibility('${gidJs}','visible')` },
+            { icon: 'people',         label: t('groups.visibility.friends', 'Visible for Friends'),  active: (g.visibility || 'visible') === 'friends', onclick: `setGroupVisibility('${gidJs}','friends')` },
+            { icon: 'visibility_off', label: t('groups.visibility.hidden',  'Visible for None'),     active: (g.visibility || 'visible') === 'hidden',  onclick: `setGroupVisibility('${gidJs}','hidden')` },
+        ] });
+    }
+    if ((g.roles || []).length) {
+        items.push({ icon: 'shield', label: t('groups.roles.show', 'Show Roles'), onclick: `openGroupRolesModal('${gidJs}')` });
+    }
+    return items.length ? { label: t('common.more', 'More'), dropdown: items } : null;
 }
 
 function renderGroupDetail(g) {
@@ -118,14 +134,7 @@ function renderGroupDetail(g) {
         (g.isJoined && canInvite) ? { icon: 'person_add', title: t('groups.actions.invite', 'Invite'), onclick: `openGroupInviteModal('${gidJs}')` } : null,
         (g.isJoined && canPost)   ? { icon: 'post_add',   title: t('groups.actions.post', 'Post'),     onclick: `openGroupPostModal('${gidJs}')` } : null,
         (g.isJoined && canEvent)  ? { icon: 'event',      title: t('groups.actions.events', 'Events'), onclick: `openGroupEventModal('${gidJs}')` } : null,
-        g.isJoined ? { label: t('common.more', 'More'), dropdown: [
-            { icon: 'shield_person', label: t('context_menu.group.represent', 'Represent this group'), onclick: `sendToCS({action:'vrcRepresentGroup',groupId:'${gidJs}'})`, disabled: g.isRepresenting === true },
-            { icon: 'visibility', label: t('context_menu.group.visibility', 'Visibility'), submenu: [
-                { icon: 'public',         label: t('groups.visibility.visible', 'Visible for Everyone'), active: (g.visibility || 'visible') === 'visible', onclick: `setGroupVisibility('${gidJs}','visible')` },
-                { icon: 'people',         label: t('groups.visibility.friends', 'Visible for Friends'),  active: (g.visibility || 'visible') === 'friends', onclick: `setGroupVisibility('${gidJs}','friends')` },
-                { icon: 'visibility_off', label: t('groups.visibility.hidden',  'Visible for None'),     active: (g.visibility || 'visible') === 'hidden',  onclick: `setGroupVisibility('${gidJs}','hidden')` },
-            ] },
-        ] } : null,
+        _gdMoreDropdown(g, gidJs),
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetGroup',groupId:'${gidJs}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/group/${esc(g.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeGroupDetail()` },
@@ -926,10 +935,7 @@ function openGroupPostModal(groupId, editPost = null) {
     }
     overlay.innerHTML = `
     <div class="gp-modal" role="dialog" aria-label="${esc(modalAriaLabel)}">
-        <div class="gp-modal-header">
-            <span class="msi" style="font-size:20px;color:var(--accent);">edit</span>
-            <span>${esc(modalTitle)}</span>
-        </div>
+        ${renderModalBar(modalTitle, [modalCloseAction('closeGroupPostModal()')])}
         <div class="gp-modal-body">
             <label class="gp-label">${t('groups.posts.fields.title', 'Title')}</label>
             <input id="gpTitle" class="vrcn-edit-field" type="text" placeholder="${esc(t('groups.posts.fields.title_placeholder', 'Post title...'))}" maxlength="200" style="width:100%;">
@@ -957,7 +963,6 @@ function openGroupPostModal(groupId, editPost = null) {
         </div>
         <div class="gp-modal-footer">
             <button class="vrcn-button-round vrcn-btn-join" id="gpSubmitBtn" onclick="submitGroupPost()"><span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">send</span>${esc(submitLabel)}</button>
-            <button class="vrcn-button-round" onclick="closeGroupPostModal()" style="margin-left:auto;">${t('common.cancel', 'Cancel')}</button>
         </div>
     </div>`;
     initAllVnSelects();
@@ -1351,10 +1356,7 @@ function openGroupEventModal(groupId) {
     }
     overlay.innerHTML = `
     <div class="gp-modal" role="dialog" aria-label="${esc(t('groups.events.modal.aria_label', 'Create Group Event'))}" style="max-height:calc(100vh - var(--tb-h) - 32px);overflow-y:auto;">
-        <div class="gp-modal-header">
-            <span class="msi" style="font-size:20px;color:var(--accent);">event</span>
-            <span>${t('groups.events.modal.title', 'Create Group Event')}</span>
-        </div>
+        ${renderModalBar(t('groups.events.modal.title', 'Create Group Event'), [modalCloseAction('closeGroupEventModal()')])}
         <div class="gp-modal-body">
             <label class="gp-label">${t('groups.events.fields.name', 'Event Name')}</label>
             <input id="gevName" class="vrcn-edit-field" type="text" placeholder="${esc(t('groups.events.fields.name_placeholder', 'Event name...'))}" maxlength="64" style="width:100%;">
@@ -1418,7 +1420,6 @@ function openGroupEventModal(groupId) {
         </div>
         <div class="gp-modal-footer">
             <button class="vrcn-button-round vrcn-btn-join" id="gevSubmitBtn" onclick="submitGroupEvent()"><span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">event</span>${t('groups.events.submit', 'Create Event')}</button>
-            <button class="vrcn-button-round" onclick="closeGroupEventModal()" style="margin-left:auto;">${t('common.cancel', 'Cancel')}</button>
         </div>
     </div>`;
     initAllVnSelects();
@@ -1548,6 +1549,90 @@ const ROLE_PERM_DEFS = [
 
 function getRolePermissionLabel(def) {
     return t(`groups.roles.permissions.${def.key}.label`, def.label);
+}
+
+function openGroupRolesModal(groupId) {
+    const g = (_groupDetailCache && _groupDetailCache[groupId])
+        || window._currentGroupDetailFull
+        || window._currentGroupDetail
+        || {};
+    const roles = Array.isArray(g.roles) ? g.roles : [];
+
+    document.getElementById('groupRolesOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'groupRolesOverlay';
+    overlay.style.zIndex = '10004';
+    overlay.style.display = 'flex';
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeGroupRolesModal(); });
+
+    const myRoleIds = new Set(Array.isArray(g.myRoleIds) ? g.myRoleIds : []);
+    const gid = g.id || groupId || '';
+    const body = roles.length
+        ? roles.map((r, i) => _buildRoleViewCard(r, i, myRoleIds.has(r.id), gid)).join('')
+        : `<div class="myp-empty">${t('groups.roles.empty', 'No roles found')}</div>`;
+
+    overlay.innerHTML = `<div class="gp-modal" style="width:460px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;">
+        ${renderModalBar(t('groups.tabs.roles', 'Roles'), [modalCloseAction('closeGroupRolesModal()')])}
+        <div class="gp-modal-body" style="flex:1;overflow-y:auto;">${body}</div>
+    </div>`;
+    document.body.appendChild(overlay);
+}
+
+function closeGroupRolesModal() {
+    document.getElementById('groupRolesOverlay')?.remove();
+}
+
+function _buildRoleViewCard(role, idx, isMine, groupId) {
+    const rid   = 'grv' + idx;
+    const badge = (isMine ? `<span class="vrcn-badge ok" style="margin-right:6px;">${t('groups.roles.yours', 'Your role')}</span>` : '')
+        + (role.isManagementRole ? `<span class="vrcn-badge" style="margin-right:6px;">${t('groups.roles.system', 'System')}</span>` : '');
+    const perms = role.permissions || [];
+    const known = new Set(ROLE_PERM_DEFS.map(p => p.key));
+
+    let permsHtml;
+    if (perms.includes('*')) {
+        permsHtml = `<div style="padding:8px 0;font-size:12px;color:var(--tx2);">${t('groups.roles.full_access', 'This role has full access (all permissions).')}</div>`;
+    } else if (!perms.length) {
+        permsHtml = `<div style="padding:8px 0;font-size:12px;color:var(--tx3);">${t('groups.roles.no_permissions', 'This role has no permissions.')}</div>`;
+    } else {
+        const rows = ROLE_PERM_DEFS.filter(p => perms.includes(p.key)).map(p =>
+            `<div class="gd-perm-row"><div class="gd-perm-info"><div class="gd-perm-label">${esc(getRolePermissionLabel(p))}</div><div class="gd-perm-desc">${esc(getRolePermissionDescription(p))}</div></div></div>`
+        );
+        perms.filter(k => !known.has(k)).forEach(k =>
+            rows.push(`<div class="gd-perm-row"><div class="gd-perm-info"><div class="gd-perm-label">${esc(k)}</div></div></div>`)
+        );
+        permsHtml = rows.join('');
+    }
+
+    return `<div class="gd-role-card" id="gdrole-${rid}">
+        <div class="gd-role-header" onclick="toggleGroupRoleView('${rid}','${jsq(role.id || '')}','${jsq(groupId || '')}')">
+            <div style="flex:1;min-width:0;">
+                <div class="gd-role-name">${badge}${esc(role.name || '')}</div>
+                <div class="gd-role-meta">${esc(getRoleMetaText(role))}</div>
+            </div>
+            <span class="msi gd-role-chevron" style="font-size:18px;color:var(--tx3);transition:transform .2s;">expand_more</span>
+        </div>
+        <div class="gd-role-body" id="gdrole-body-${rid}" style="display:none;">
+            ${role.description ? `<div class="gd-role-section"><div class="gd-role-section-title">${t('groups.sections.description', 'Description')}</div><div style="font-size:12px;color:var(--tx2);white-space:pre-wrap;">${esc(role.description)}</div></div>` : ''}
+            <div class="gd-role-section">
+                <div class="gd-role-section-title">${t('groups.roles.permissions', 'Permissions')}</div>
+                ${permsHtml}
+            </div>
+            <div class="gd-role-section">
+                <div class="gd-role-section-title">${t('groups.roles.tabs.members', 'Members')}</div>
+                <div id="grv-members-${esc(role.id || '')}"><div style="padding:8px 0;font-size:12px;color:var(--tx3);">${t('common.loading', 'Loading...')}</div></div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function toggleGroupRoleView(rid, roleId, groupId) {
+    toggleGdRoleExpand(rid);
+    const list = document.getElementById('grv-members-' + roleId);
+    if (!list || list.dataset.loaded || !groupId || !roleId) return;
+    list.dataset.loaded = '1';
+    sendToCS({ action: 'vrcGetGroupRoleMembers', groupId, roleId });
 }
 
 function getRolePermissionDescription(def) {
@@ -1698,13 +1783,15 @@ function switchGdRoleTab(roleId, tab, btn) {
 }
 
 function onGroupRoleMembers(data) {
-    const listEl = document.getElementById('gdrole-members-list-' + data.roleId);
-    if (!listEl) return;
-    if (!data.members || data.members.length === 0) {
-        listEl.innerHTML = renderGroupEmptyMessage('groups.roles.no_members', 'No members with this role.');
-        return;
-    }
-    listEl.innerHTML = data.members.map(m => renderGroupMemberCard(m)).join('');
+    const targets = [
+        document.getElementById('gdrole-members-list-' + data.roleId),
+        document.getElementById('grv-members-' + data.roleId),
+    ].filter(Boolean);
+    if (!targets.length) return;
+    const html = (!data.members || data.members.length === 0)
+        ? renderGroupEmptyMessage('groups.roles.no_members', 'No members with this role.')
+        : data.members.map(m => renderGroupMemberCard(m)).join('');
+    targets.forEach(el => { el.innerHTML = html; });
 }
 
 function openCreateRoleForm() {
@@ -1987,13 +2074,13 @@ function _renderGroupInviteBox() {
     const bannerUrl = gd.bannerUrl || '';
     const bannerBg = bannerUrl || groupIcon;
     box.innerHTML = `
+        ${renderModalBar(groupName, [modalCloseAction('closeInviteModal();_grpInvGroupId=null;')], { flush: true })}
         <div class="inv-world-banner" style="background-image:url('${esc(bannerBg)}')">
             <div class="inv-world-fade"></div>
             <div class="inv-world-info">
                 <div class="inv-world-name">${esc(groupName)}</div>
                 <div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:3px;">${esc(t('groups.invite.subtitle', 'Invite to this group'))}</div>
             </div>
-            <button class="inv-close-btn" onclick="closeInviteModal();_grpInvGroupId=null;" title="${esc(t('common.close', 'Close'))}"><span class="msi">close</span></button>
         </div>
         <div class="inv-search-wrap">
             <span class="msi inv-search-icon">search</span>

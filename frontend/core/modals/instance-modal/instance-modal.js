@@ -153,7 +153,7 @@ function openInstanceInfoModal() {
     const prevIimScroller = c.querySelector('.iim-scroll');
     const prevIimScrollTop = prevIimScroller?.scrollTop || 0;
     const prevIimScrollLeft = prevIimScroller?.scrollLeft || 0;
-    c.innerHTML = `${bannerHtml}
+    c.innerHTML = `${renderModalBar(name, [modalCloseAction('closeInstanceInfoModal()')])}${bannerHtml}
     <div class="fd-content${thumb ? ' fd-has-banner' : ''}" style="padding:16px;">
         <h2 style="margin:0 0 4px;color:var(--tx0);font-size:18px;">${esc(name)}</h2>
         <div class="fd-badges-row">
@@ -167,7 +167,6 @@ function openInstanceInfoModal() {
         <div class="fd-actions">
             <button class="vrcn-button-round" onclick="closeInstanceInfoModal();openInviteModal()"><span class="msi">person_add</span> ${t('instance.actions.invite', 'Invite')}</button>
             <button class="vrcn-button-round" onclick="closeInstanceInfoModal();openWorldSearchDetail('${wid}')">${t('dashboard.instances.open_world', 'Open World')}</button>
-            <button class="vrcn-button-round" style="margin-left:auto;" onclick="closeInstanceInfoModal()">${t('common.close', 'Close')}</button>
         </div>
     </div>`;
 

@@ -41,6 +41,18 @@ function renderModalActions(actions) {
     return header.length ? `<div class="fd-modal-actions">${_mnActionsHtml(header, false)}</div>` : '';
 }
 
+function renderModalBar(title, actions, opts) {
+    opts = opts || {};
+    const label = String(title == null ? '' : title);
+    const cls   = 'fd-modal-bar' + (opts.flush ? ' fd-modal-bar-flush' : '');
+    const idAttr = opts.titleId ? ` id="${_esc(opts.titleId)}"` : '';
+    return `<div class="${cls}"><div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title"${idAttr} title="${_esc(label)}">${_esc(label)}</span></div><div class="fd-modal-bar-actions">${opts.extra || ''}${_mnActionsHtml(actions, false)}</div></div>`;
+}
+
+function modalCloseAction(onclick) {
+    return { icon: 'close', title: typeof t === 'function' ? t('common.close', 'Close') : 'Close', onclick };
+}
+
 function refreshModalActions(actions) {
     actions = (actions || []).filter(Boolean);
     _mnActions = actions;
@@ -246,6 +258,10 @@ function _navDoOpen(type, id, id2) {
         case 'event':       openEventDetail(id, id2);       break;
         case 'instance':    if (typeof _reopenCachedInstance === 'function') _reopenCachedInstance(id); break;
         case 'myprofile':   if (typeof openMyProfileModal === 'function') openMyProfileModal(); break;
+        case 'photo':       if (typeof openPhotoDetail === 'function') openPhotoDetail(id); break;
+        case 'tlEvent':     if (typeof openTlDetail === 'function') openTlDetail(id); break;
+        case 'ftEvent':     if (typeof openFtDetail === 'function') openFtDetail(id); break;
+        case 'ftGps':       if (typeof openFtGpsDetail === 'function') openFtGpsDetail(id); break;
     }
 }
 
@@ -259,6 +275,10 @@ function _navOverlayIdForType(type) {
         case 'event':       return 'modalDetail';
         case 'instance':    return 'modalMyInstance';
         case 'myprofile':   return 'modalMyProfile';
+        case 'photo':       return 'photoDetailModal';
+        case 'tlEvent':     return 'modalDetail';
+        case 'ftEvent':     return 'modalDetail';
+        case 'ftGps':       return 'modalFtGpsDetail';
         default:            return null;
     }
 }
@@ -436,6 +456,16 @@ function _navCloseForEntry(entry) {
             if (mp) mp.style.display = 'none';
             break;
         }
+        case 'photo':
+            if (typeof closePhotoDetail === 'function') closePhotoDetail(true);
+            break;
+        case 'tlEvent':
+        case 'ftEvent':
+            if (typeof closeTlDetail === 'function') closeTlDetail(true);
+            break;
+        case 'ftGps':
+            if (typeof closeFtGpsDetail === 'function') closeFtGpsDetail(true);
+            break;
     }
 }
 
@@ -476,6 +506,10 @@ function _navTypeLabel(type) {
         event:       typeof t === 'function' ? t('nav.modal.event',       'Event')   : 'Event',
         instance:    typeof t === 'function' ? t('nav.modal.instance',    'Instance'): 'Instance',
         myprofile:   typeof t === 'function' ? t('nav.modal.friend',      'Profile') : 'Profile',
+        photo:       typeof t === 'function' ? t('timeline.photo',        'Photo')   : 'Photo',
+        tlEvent:     typeof t === 'function' ? t('nav.timeline',          'Timeline'): 'Timeline',
+        ftEvent:     typeof t === 'function' ? t('nav.timeline',          'Timeline'): 'Timeline',
+        ftGps:       typeof t === 'function' ? t('nav.modal.instance',    'Instance'): 'Instance',
     };
     return labels[type] || type;
 }

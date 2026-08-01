@@ -127,12 +127,21 @@
 /* === Compact two-column layout (instance detail) === */
 
 .modal-overlay.tl-style-compact #detailModalContent,
-.modal-overlay.tl-style-compact #detailModalContent2 {
+.modal-overlay.tl-style-compact #detailModalContent2,
+.modal-overlay.tl-style-compact #ftGpsDetailContent {
     padding: 0;
     height: min(calc(100vh - var(--tb-h, 0px) - 80px), 420px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+.modal-overlay.tl-style-compact #detailModalContent .fd-modal-bar,
+.modal-overlay.tl-style-compact #detailModalContent2 .fd-modal-bar,
+.modal-overlay.tl-style-compact #ftGpsDetailContent .fd-modal-bar {
+    margin: 0;
+    border-radius: 0;
+    flex-shrink: 0;
 }
 
 .modal-overlay.tl-style-compact .fd-layout {

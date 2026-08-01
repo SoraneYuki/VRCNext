@@ -20,18 +20,13 @@ function openImagePicker(type, targetId) {
     overlay.style.cssText = 'position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;animation:fadeIn .12s ease;backdrop-filter:blur(4px);';
     overlay.innerHTML = `
         <div class="gp-modal" style="width:460px;max-height:80vh;display:flex;flex-direction:column;">
-            <div class="gp-modal-header">
-                <span class="msi" style="font-size:20px;color:var(--accent);">edit</span>
-                <span id="imagePickerTitle">${esc(title)}</span>
-                <button class="vrcn-button-round" onclick="closeImagePicker()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:18px;">close</span></button>
-            </div>
+            ${renderModalBar(title, [modalCloseAction('closeImagePicker()')], { titleId: 'imagePickerTitle' })}
             <div class="gp-modal-body" style="flex:1;overflow-y:auto;">
                 <div id="imagePickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;padding:4px 0;">
                     <div style="grid-column:1/-1;text-align:center;padding:20px;font-size:11px;color:var(--tx3);">${t('common.loading', 'Loading...')}</div>
                 </div>
             </div>
             <div class="gp-modal-footer">
-                <button class="vrcn-button-round" onclick="closeImagePicker()">${t('common.cancel', 'Cancel')}</button>
                 <button class="vrcn-button-round vrcn-btn-join" id="imagePickerApply" disabled onclick="applyImagePicker()" style="opacity:.45;">
                     <span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">check</span>${t('common.apply', 'Apply')}
                 </button>
@@ -86,13 +81,12 @@ function refreshImagePickerTranslations() {
     if (!overlay || !_pickerContext) return;
     const isIcon = _pickerContext.type.endsWith('-icon');
     const titleEl = document.getElementById('imagePickerTitle');
-    if (titleEl) titleEl.textContent = isIcon
+    const newTitle = isIcon
         ? t('profiles.picker.select_icon', 'Select Icon')
         : t('profiles.picker.select_banner', 'Select Banner Photo');
-    const closeBtn = overlay.querySelector('.gp-modal-header .vrcn-button-round');
+    if (titleEl) { titleEl.textContent = newTitle; titleEl.title = newTitle; }
+    const closeBtn = overlay.querySelector('.fd-modal-bar-actions .fd-action-btn');
     if (closeBtn) closeBtn.title = t('common.close', 'Close');
-    const cancelBtn = overlay.querySelector('.gp-modal-footer .vrcn-button-round');
-    if (cancelBtn) cancelBtn.textContent = t('common.cancel', 'Cancel');
     const applyBtn = document.getElementById('imagePickerApply');
     if (applyBtn) applyBtn.innerHTML = `<span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">check</span>${t('common.apply', 'Apply')}`;
     const grid = document.getElementById('imagePickerGrid');

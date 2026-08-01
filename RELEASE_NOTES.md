@@ -1,28 +1,25 @@
-**2026.35.3**
+**2026.35.4**
 
-**User Profile Update**
+**Group Modal**
+* See roles of group even if you aren't have permissions.
 
-* Added support for the Compact and Classic designs on your own user profile.
-* Added a **Content** tab showing your own public and private avatars and worlds.
-* Added a **Groups** tab showing your owned and joined groups.
-* Added a **Favs.** tab showing your public and private favorite worlds.
-* Your own profile now has the same general layout and features as other user profiles.
+**VRC+ Decoration Improvements**
+* Added an option to improve readability on profiles with bad text colors.
+* Navbar badges do use icon color now on vrc+ decorated profiles.
 
-**VRChat Plus Decorations**
+**Photo Modal**
+* Hidden or blurred images now remain blurred when opened, preventing accidental clicks and photo leaks. Click the image again to reveal it.
+* Photo modals now support breadcrumb navigation. When opening a user profile from a photo, you can navigate back to the photo modal.
+* All images that can be inspected in any modal do use now the photo modal so you can resize, zoom-in/out/rotate and download the image and have a better "inspecting" experience.
 
-* Added profile theme customization options for buttons, text, icons, and modal colors.
-* The button color selected in-game or in VRCNext also affects the modal color. For example, a bright blue button color will create a darker blue modal theme.
-* Added an option to make profile elements semi-transparent, allowing them to blend better with custom backgrounds.
+**Timeline**
+* Photo, Instance and Location modals do support breadcrumb navigation.
 
-**Modal Navigation**
-
-* Modals now remember the last opened tab.
-* Breadcrumb navigation also remembers which tab was open in each modal. Returning to a profile, group, world, or avatar modal takes you back to the previously selected tab instead of resetting to the first one.
+**Design Refactor**
+* All modals now use the new header menu with action buttons, matching the design of the updated profile modals.
+* Avatar, Profile, Group, and World modals are now slightly taller and wider to display more content.
+* Refactored the **Timeline > Friends > Location** modal to match the design of the **Personal Instances** modal.
 
 **Bug Fixes**
-
-* Fixed profile status icons appearing behind VRC+ profile icon frame decorations.
-* Fixed status dots in profile modals appearing behind icon frame decorations.
-* Fixed moderation entries in the Timeline showing “Unknown” instead of the player’s name. Existing entries are filled in automatically the next time the Timeline loads.
-* Fixed #113 - using CTRl + Scroll / zoom in / zoom out caused buttons and text to be blurry.
-* Fixed status dots in profile modals.
+* Fixed the **Close**, **Customize Profile**, and **Change Banner** buttons appearing inside your own profile modal instead of in the taskbar when **Use Direct Modal Navigation** is disabled.
+* Fixed Log "Type" text being to long in gorup logs.

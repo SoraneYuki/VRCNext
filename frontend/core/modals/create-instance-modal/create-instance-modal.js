@@ -75,6 +75,7 @@ function openCreateInstanceModal() {
     if (!el) return;
 
     el.innerHTML = `
+        ${renderModalBar(worldName, [modalCloseAction('closeCreateInstanceModal()')], { flush: true })}
         ${thumb ? `<div class="fd-banner"><img src="${esc(thumb)}" onerror="this.parentElement.style.display='none'"><div class="fd-banner-fade"></div></div>` : ''}
         <div class="fd-content${thumb ? ' fd-has-banner' : ''}" style="padding:20px 32px;">
             <h2 style="margin:0 0 16px;color:var(--tx0);font-size:18px;">${esc(worldName)}</h2>
@@ -137,7 +138,6 @@ function openCreateInstanceModal() {
                 <button class="vrcn-button-round vrcn-btn-primary" id="ciCreateJoinBtn" onclick="doCreateInstance(true)">
                     <span class="msi" style="font-size:14px;">play_circle</span> ${t('worlds.instances.create_join', 'Create &amp; Join')}
                 </button>
-                <button class="vrcn-button-round" style="margin-left:auto;" onclick="closeCreateInstanceModal()">${t('common.close', 'Close')}</button>
             </div>
         </div>`;
 

@@ -30,13 +30,13 @@ function openFriendInviteModal(userId, displayName, initialTab) {
     el.style.zIndex = '10003';
     el.innerHTML = `
         <div class="modal-box inv-single-modal">
+            ${renderModalBar(_invModalDisplayName, [modalCloseAction('closeFriendInviteModal()')], { flush: true })}
             <div class="inv-world-banner" style="${thumb ? `background-image:url('${cssUrl(thumb)}')` : ''}">
                 <div class="inv-world-fade"></div>
                 <div class="inv-world-info">
                     <div style="font-size:11px;color:rgba(255,255,255,.65);margin-bottom:2px;">${inviteTitle}</div>
                     <div class="inv-world-name">${esc(worldName)}</div>
                 </div>
-                <button class="inv-close-btn" onclick="closeFriendInviteModal()"><span class="msi" style="font-size:18px;">close</span></button>
             </div>
             <div class="fd-tabs" style="margin:14px 16px 0;flex-shrink:0;">
                 <button class="fd-tab active" id="invTab_direct"  onclick="_invModalSetTab('direct')">${t('profiles.invite.tab.direct', 'Directly')}</button>

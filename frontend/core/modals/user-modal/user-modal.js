@@ -383,7 +383,7 @@ function renderUserFavWorlds(payload) {
     groups.forEach((g, i) => {
         const label = esc(g.displayName || g.name);
         const count = g.worlds ? g.worlds.length : 0;
-        pillsHtml += `<button class="fd-tab fd-content-pill${i === activePill ? ' active' : ''}" onclick="switchFavPill(${i},this)">${label} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${count}</span></button>`;
+        pillsHtml += `<button class="fd-tab fd-content-pill${i === activePill ? ' active' : ''}" onclick="switchFavPill(${i},this)">${label} <span class="vrcn-badge fd-tab-badge">${count}</span></button>`;
     });
     pillsHtml += `</div>`;
 
@@ -446,11 +446,11 @@ function renderFdUserAvatars(payload) {
     const avatars = payload.avatars || [];
 
     const avatarsPill = document.getElementById('fdAvatarsPill');
-    if (avatarsPill) avatarsPill.innerHTML = `${t('profiles.content.avatars_pill_label', 'Avatars')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${avatars.length}</span>`;
+    if (avatarsPill) avatarsPill.innerHTML = `${t('profiles.content.avatars_pill_label', 'Avatars')} <span class="vrcn-badge fd-tab-badge">${avatars.length}</span>`;
 
     const worldsCount = Array.isArray(currentFriendDetail?.userWorlds) ? currentFriendDetail.userWorlds.length : 0;
     const contentTab = document.getElementById('fdTabContentBtn');
-    if (contentTab) contentTab.innerHTML = `${t('profiles.tabs.content_label', 'Content')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${worldsCount + avatars.length}</span>`;
+    if (contentTab) contentTab.innerHTML = `${t('profiles.tabs.content_label', 'Content')} <span class="vrcn-badge fd-tab-badge">${worldsCount + avatars.length}</span>`;
 
     window._fdAllAvatars = avatars;
     window._fdAvatarsPage = 0;
@@ -875,8 +875,8 @@ function renderFriendDetail(d) {
 
     const mutualsContent = `
         <div class="fd-content-pills">
-            <button class="fd-tab fd-mutual-pill active" onclick="switchFdMutualsPill('friends',this)">${t('profiles.mutuals.pill_friends_label', 'Friends')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allMutuals.length}</span></button>
-            <button class="fd-tab fd-mutual-pill" onclick="switchFdMutualsPill('groups',this)">${t('profiles.mutuals.pill_groups_label', 'Groups')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allMutualGroups.length}</span></button>
+            <button class="fd-tab fd-mutual-pill active" onclick="switchFdMutualsPill('friends',this)">${t('profiles.mutuals.pill_friends_label', 'Friends')} <span class="vrcn-badge fd-tab-badge">${allMutuals.length}</span></button>
+            <button class="fd-tab fd-mutual-pill" onclick="switchFdMutualsPill('groups',this)">${t('profiles.mutuals.pill_groups_label', 'Groups')} <span class="vrcn-badge fd-tab-badge">${allMutualGroups.length}</span></button>
         </div>
         <div id="fdMutualsFriends">${mutualsFriendsHtml}</div>
         <div id="fdMutualsGroups" style="display:none;">${mutualsGroupsHtml}</div>`;
@@ -1030,7 +1030,7 @@ function renderFriendDetail(d) {
     const hasTabs = hasGroups || hasMutuals || hasContent;
     const groupsTabCount = (window._fdAllGroupsAll || allGroups).length;
 
-    const _tabBadge = (n) => `<span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${n}</span>`;
+    const _tabBadge = (n) => `<span class="vrcn-badge fd-tab-badge">${n}</span>`;
     let tabsHtml = '';
     if (hasTabs) {
         tabsHtml = `<div class="fd-tabs"><button class="fd-tab active" data-fdtab="info" onclick="switchFdTab('info',this)">${t('profiles.tabs.info', 'Info')}</button>`;
@@ -1048,8 +1048,8 @@ function renderFriendDetail(d) {
     const userId = d.id || '';
     const contentHtml = `
         <div class="fd-content-pills">
-            <button class="fd-tab fd-content-pill active" id="fdWorldsPill" onclick="switchFdContentPill('worlds',this)">${t('profiles.content.worlds_pill_label', 'Worlds')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allUserWorlds.length}</span></button>
-            <button class="fd-tab fd-content-pill" id="fdAvatarsPill" onclick="switchFdContentPill('avatars',this)">${t('profiles.content.avatars_pill_label', 'Avatars')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">0</span></button>
+            <button class="fd-tab fd-content-pill active" id="fdWorldsPill" onclick="switchFdContentPill('worlds',this)">${t('profiles.content.worlds_pill_label', 'Worlds')} <span class="vrcn-badge fd-tab-badge">${allUserWorlds.length}</span></button>
+            <button class="fd-tab fd-content-pill" id="fdAvatarsPill" onclick="switchFdContentPill('avatars',this)">${t('profiles.content.avatars_pill_label', 'Avatars')} <span class="vrcn-badge fd-tab-badge">0</span></button>
         </div>
         <div id="fdContentWorlds">
             <div id="fdWorldsGrid"></div>
@@ -1385,7 +1385,7 @@ function drawMiniTimeline(events, el) {
         const dt     = `${fmtShortDate(d)} | ${fmtTime(d)}`;
         const ei     = ev.id.replace(/'/g, "\\'");
         const detail = typeof _tlListData === 'function' ? (_tlListData(ev).detail || '') : '';
-        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--brd);cursor:pointer;" onclick="openTlDetail('${ei}')">
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--brd);cursor:pointer;" onclick="navOpenModal('tlEvent','${ei}','${jsq(meta.label || '')}')">
             <span style="font-size:11px;color:var(--tx3);white-space:nowrap;">${esc(dt)}</span>
             <span class="msi" style="font-size:14px;color:${color};flex-shrink:0;">${meta.icon}</span>
             <span style="font-size:12px;">${esc(meta.label)}</span>

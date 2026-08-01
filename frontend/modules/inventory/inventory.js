@@ -385,10 +385,10 @@ function showInvDeleteModal(type, id, versionId, name) {
     overlay.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     overlay.id = 'invDeleteModal';
     overlay.onclick = event => { if (event.target === overlay) closeInvDeleteModal(); };
-    overlay.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-title">${esc(t('inventory.modal.delete_title', 'Delete Item'))}</div><div class="modal-msg">${esc(t('inventory.modal.delete_message', 'Permanently delete from VRChat:'))}<br><span class="modal-fname">${esc(name)}</span><br><span style="font-size:11px;color:var(--tx3);">${esc(t('inventory.modal.delete_irreversible', 'This cannot be undone.'))}</span></div><div class="modal-btns"><button id="invDelCancelBtn" class="vrcn-button-round" onclick="closeInvDeleteModal()">${esc(t('common.cancel', 'Cancel'))}</button><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmInvDelete()">${esc(t('inventory.actions.delete', 'Delete'))}</button></div></div>`;
+    overlay.innerHTML = `<div class="modal-box">${renderModalBar(t('inventory.modal.delete_title', 'Delete Item'), [modalCloseAction('closeInvDeleteModal()')])}<div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-msg">${esc(t('inventory.modal.delete_message', 'Permanently delete from VRChat:'))}<br><span class="modal-fname">${esc(name)}</span><br><span style="font-size:11px;color:var(--tx3);">${esc(t('inventory.modal.delete_irreversible', 'This cannot be undone.'))}</span></div><div class="modal-btns"><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmInvDelete()">${esc(t('inventory.actions.delete', 'Delete'))}</button></div></div>`;
     document.body.appendChild(overlay);
 
-    overlay.querySelector('#invDelCancelBtn').focus();
+    overlay.querySelector('.fd-modal-bar-actions .fd-action-btn')?.focus();
 
     const handler = event => {
         if (event.key === 'Escape') {

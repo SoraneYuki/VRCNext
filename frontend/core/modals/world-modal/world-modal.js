@@ -135,9 +135,9 @@ function _wdUpdateInstancesInPlace(w) {
 
     // Update count label and tab button
     const countSpan = tab.querySelector('.wd-section-label span');
-    if (countSpan) countSpan.innerHTML = `${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allInstances.length}</span>`;
+    if (countSpan) countSpan.innerHTML = `${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span>`;
     const tabBtn = [...document.querySelectorAll('.fd-tab')].find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'instances'"));
-    if (tabBtn) tabBtn.innerHTML = `${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allInstances.length}</span>`;
+    if (tabBtn) tabBtn.innerHTML = `${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span>`;
 }
 
 function renderWorldSearchDetail(w) {
@@ -243,7 +243,7 @@ function renderWorldSearchDetail(w) {
 
     const tabsHtml = `<div class="fd-tabs" style="margin-bottom:14px;">
         <button class="fd-tab active" onclick="switchWdTab('info',this)">${t('worlds.tabs.info', 'Info')}</button>
-        <button class="fd-tab" onclick="switchWdTab('instances',this)">${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allInstances.length}</span></button>
+        <button class="fd-tab" onclick="switchWdTab('instances',this)">${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span></button>
         ${hasWorldPhotos ? `<button class="fd-tab" onclick="switchWdTab('photos',this)">${t('worlds.tabs.photos', 'Photos')}</button>` : ''}
         ${isOwnWorld ? `<button class="fd-tab" onclick="switchWdTab('insights',this)">${t('worlds.tabs.insights', 'Insights')}</button>` : ''}
         <button class="fd-tab" onclick="switchWdTab('json',this)">Json</button>
@@ -318,7 +318,7 @@ function renderWorldSearchDetail(w) {
     const wdInfoCompactRight = `<div class="fd-info-wrap">${wdDescCardCompact}${wdComPopRow}<div class="fd-info-card">${wdHistoryInner}</div></div>`;
 
     const wdInstancesTab = `<div id="wdTabInstances" style="display:none;">
-            <div class="wd-section-label wd-instances-label" style="margin-top:4px;"><span>${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allInstances.length}</span></span><button class="mi-refresh-btn" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances">&#8635;</button></div>
+            <div class="wd-section-label wd-instances-label" style="margin-top:4px;"><span>${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span></span><button class="mi-refresh-btn" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances">&#8635;</button></div>
             ${instancesHtml}
         </div>`;
     const wdPhotosTab = `<div id="wdTabPhotos" style="display:none;"><div id="wdPhotosGrid"></div><div id="wdPhotosPaginatorBar" class="mini-paginator"></div></div>`;
@@ -412,7 +412,7 @@ function renderWdInstanceHistory(worldId, events) {
         const dt     = `${fmtShortDate(d)} | ${fmtTime(d)}`;
         const ei     = ev.id.replace(/'/g, "\\'");
         const detail = typeof _tlListData === 'function' ? (_tlListData(ev).detail || '') : '';
-        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--brd);cursor:pointer;" onclick="openTlDetail('${ei}')">
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--brd);cursor:pointer;" onclick="navOpenModal('tlEvent','${ei}','${jsq(meta.label || '')}')">
             <span style="font-size:11px;color:var(--tx3);white-space:nowrap;">${esc(dt)}</span>
             <span class="msi" style="font-size:14px;color:${color};flex-shrink:0;">${meta.icon}</span>
             <span style="font-size:12px;">${esc(meta.label)}</span>
@@ -882,8 +882,8 @@ function openWorldDetail(worldId) {
     const wiBar = renderModalActions([
         canJoin ? { icon: 'login', title: t('dashboard.instances.join_world', 'Join World'), onclick: `worldJoinAction('${loc}')` } : null,
         { icon: 'public', title: t('dashboard.instances.open_world', 'Open World'), onclick: `navOpenModal('worldSearch','${wid}','${esc(cached?.name || '')}')` },
+        { icon: 'close', title: t('common.close', 'Close'), onclick: `closeWorldDetail()` },
     ]);
-    let actionsHtml = `<div class="fd-actions"><button class="vrcn-button-round" style="margin-left:auto;" onclick="closeWorldDetail()">${t('common.close', 'Close')}</button></div>`;
 
     c.innerHTML = `${wiBar}${bannerHtml}<div class="fd-content${thumb ? ' fd-has-banner' : ''}" style="padding:16px 0;">
         <h2 style="margin:0 0 4px;color:var(--tx0);font-size:18px;">${esc(worldName)}</h2>
@@ -892,7 +892,7 @@ function openWorldDetail(worldId) {
             const _ob = getOwnerBadgeHtml(_oid, myInst?.ownerName || '', myInst?.ownerGroup || '', 'closeWorldDetail()');
             return `<span class="vrcn-badge ${instClass}">${instLabel}</span>${singleRegionBadge}${_ob}${singleInstCopy}`;
         })()}</div>
-        ${friendsHtml}${actionsHtml}</div>`;
+        ${friendsHtml}</div>`;
     if (thumb) { const s = document.getElementById('wi-banner-slot'); const bi = _getWorldBannerImg(worldId, thumb); if (s && bi) s.insertBefore(bi, s.firstChild); }
     m.style.display = 'flex';
 }

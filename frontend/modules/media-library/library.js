@@ -763,9 +763,9 @@ function libEditDeleteSelected() {
     o.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     o.id        = 'deleteModal';
     o.onclick   = e => { if (e.target === o) closeDeleteModal(); };
-    o.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-title">${t('library.delete.title', 'Delete File')}</div><div class="modal-msg">${tf('library.edit.delete_confirm', { count }, 'Permanently delete {count} file(s) from disk?')}</div><div class="modal-btns"><button id="libDelCancelBtn" class="vrcn-button-round" onclick="closeDeleteModal()">${t('common.cancel', 'Cancel')}</button><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmLibEditDelete()">${t('library.delete.confirm', 'Delete')}</button></div></div>`;
+    o.innerHTML = `<div class="modal-box">${renderModalBar(t('library.delete.title', 'Delete File'), [modalCloseAction('closeDeleteModal()')])}<div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-msg">${tf('library.edit.delete_confirm', { count }, 'Permanently delete {count} file(s) from disk?')}</div><div class="modal-btns"><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmLibEditDelete()">${t('library.delete.confirm', 'Delete')}</button></div></div>`;
     document.body.appendChild(o);
-    o.querySelector('#libDelCancelBtn')?.focus();
+    o.querySelector('.fd-modal-bar-actions .fd-action-btn')?.focus();
 }
 
 function confirmLibEditDelete() {
@@ -843,6 +843,11 @@ function toggleHidden(p) {
     filterLibrary(true); // stay on current page
     renderDashRecentPhotos();
     if (typeof _wdRenderPhotosPage === 'function') _wdRenderPhotosPage();
+    const photoModal = document.getElementById('photoDetailModal');
+    if (photoModal && _photoState.item?.path === p) {
+        _photoState.revealed = false;
+        _photoApplyBlur(photoModal, _photoState.item);
+    }
 }
 
 async function setLibItemAsDashBg(path, url) {
@@ -889,15 +894,18 @@ function cacheVidThumb(v, fp) {
 
 // Photo detail modal — image on the left, info card on the right.
 // Accepts: number (libraryFiles index), string (file path → looked up in libraryFiles), or item object.
-const _photoState = { scale: 1, rotation: 0, tx: 0, ty: 0, item: null, drag: null };
+const _photoState = { scale: 1, rotation: 0, tx: 0, ty: 0, item: null, drag: null, revealed: false, shownPath: '', navOwned: false };
 let _photoKeyHandler = null;
+const _photoNavCache = {};
 
 function openPhotoDetail(target) {
     let x;
     if (typeof target === 'number')      x = libraryFiles[target];
-    else if (typeof target === 'string') x = libraryFiles.find(f => f.path === target);
+    else if (typeof target === 'string') x = libraryFiles.find(f => f.path === target) || _photoNavCache[target];
     else                                  x = target;
     if (!x) return;
+
+    if (x.path) _photoNavCache[x.path] = x;
 
     _photoState.item = x;
     _photoState.scale = 1;
@@ -905,6 +913,13 @@ function openPhotoDetail(target) {
     _photoState.tx = 0;
     _photoState.ty = 0;
     _photoState.drag = null;
+    _photoState.revealed = false;
+
+    _photoState.navOwned = !!x.path;
+    if (x.path && typeof navSetCurrent === 'function') {
+        navSetCurrent('photo', x.path);
+        if (typeof navUpdateLabel === 'function') navUpdateLabel(x.name || '');
+    }
 
     const existing = document.getElementById('photoDetailModal');
     if (existing) {
@@ -915,20 +930,44 @@ function openPhotoDetail(target) {
     }
 }
 
+function _photoIsBlurred(x) {
+    return !_photoState.revealed
+        && !!(x && x.path)
+        && typeof hiddenMedia !== 'undefined'
+        && hiddenMedia.has(x.path);
+}
+
+function _photoRevealClick(e) {
+    if (e.target.closest('.photo-detail-toolbar, .pd-video-controls-mount')) return;
+    if (!_photoIsBlurred(_photoState.item)) return;
+    e.stopPropagation();
+    _photoState.revealed = true;
+    const modal = document.getElementById('photoDetailModal');
+    if (modal) _photoApplyBlur(modal, _photoState.item);
+}
+
+function _photoApplyBlur(modal, x) {
+    const pane = modal.querySelector('.photo-detail-img-pane');
+    if (pane) pane.classList.toggle('pd-blurred', _photoIsBlurred(x));
+}
+
 function _photoCreateModal(x) {
     const o = document.createElement('div');
     o.className = 'modal-overlay photo-detail-overlay';
     o.id        = 'photoDetailModal';
     o.onclick   = e => { if (e.target === o) closePhotoDetail(); };
     o.innerHTML = `<div class="photo-detail-box">
-        <div class="fd-modal-actions"><button class="btn-notif fd-action-btn" onclick="closePhotoDetail()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:20px;">close</span></button></div>
-        <div class="photo-detail-img-pane">
-            <img class="photo-detail-img" alt="" draggable="false" style="display:none;" onerror="this.style.display='none'">
-            <video class="photo-detail-video" playsinline style="display:none;"></video>
-            <div class="pd-video-controls-mount"></div>
-            <div class="photo-detail-toolbar-mount"></div>
+        ${renderModalBar(x?.name || t('timeline.photo', 'Photo'), [modalCloseAction('closePhotoDetail()')], { flush: true })}
+        <div class="photo-detail-panes">
+            <div class="photo-detail-img-pane">
+                <img class="photo-detail-img" alt="" draggable="false" style="display:none;" onerror="this.style.display='none'">
+                <video class="photo-detail-video" playsinline style="display:none;"></video>
+                <div class="pd-blur-hint"><span class="msi">visibility_off</span><span>${esc(t('library.detail.click_to_reveal', 'Click to reveal'))}</span></div>
+                <div class="pd-video-controls-mount"></div>
+                <div class="photo-detail-toolbar-mount"></div>
+            </div>
+            <div class="photo-detail-info-pane"></div>
         </div>
-        <div class="photo-detail-info-pane"></div>
     </div>`;
     document.body.appendChild(o);
 
@@ -938,6 +977,7 @@ function _photoCreateModal(x) {
     if (imgPane) {
         imgPane.addEventListener('wheel',     _photoOnWheel, { passive: false });
         imgPane.addEventListener('mousedown', _photoOnMouseDown);
+        imgPane.addEventListener('click',     _photoRevealClick);
     }
 
     const ok = e => {
@@ -952,7 +992,32 @@ function _photoCreateModal(x) {
 function _photoRenderContent(modal, x) {
     const isVid = x.type === 'video';
     const box = modal.querySelector('.photo-detail-box');
-    if (box) box.classList.toggle('pd-is-video', isVid);
+    if (box) {
+        box.classList.toggle('pd-is-video', isVid);
+        box.classList.toggle('pd-no-info', !!x.remote);
+    }
+
+    const barTitle = modal.querySelector('.fd-modal-bar-title');
+    if (barTitle) {
+        const label = x.name || t('timeline.photo', 'Photo');
+        barTitle.textContent = label;
+        barTitle.title = label;
+    }
+
+    const prevPath = _photoState.shownPath || '';
+    if (prevPath && prevPath !== x.path && typeof hiddenMedia !== 'undefined' && hiddenMedia.has(prevPath)) {
+        const oldImg = modal.querySelector('.photo-detail-img');
+        const oldVid = modal.querySelector('.photo-detail-video');
+        if (oldImg) oldImg.src = PLACEHOLDER;
+        if (oldVid) {
+            try { oldVid.pause(); } catch {}
+            oldVid.removeAttribute('src');
+            try { oldVid.load(); } catch {}
+        }
+    }
+    _photoState.shownPath = x.path || '';
+
+    _photoApplyBlur(modal, x);
 
     const imgPane = modal.querySelector('.photo-detail-img-pane');
     if (imgPane) {
@@ -1000,7 +1065,7 @@ function _photoRenderContent(modal, x) {
     if (oldToolbar) oldToolbar.outerHTML = _photoBuildToolbar(x);
 
     const infoPane = modal.querySelector('.photo-detail-info-pane');
-    if (infoPane) infoPane.innerHTML = _photoBuildInfoPaneContent(x);
+    if (infoPane) infoPane.innerHTML = x.remote ? '' : _photoBuildInfoPaneContent(x);
 }
 
 function _photoBuildVideoControls() {
@@ -1069,17 +1134,27 @@ function _photoBuildToolbar(x) {
     const prevDisabled = (navIdx <= 0)                              ? ' disabled' : '';
     const nextDisabled = (navIdx < 0 || navIdx >= navList.length-1) ? ' disabled' : '';
 
+    const navBtns = x.remote
+        ? { prev: '', next: '' }
+        : {
+            prev: `<button class="pdt-btn" onclick="photoNavPrev()" title="${esc(t('library.detail.prev', 'Previous'))}"${prevDisabled}><span class="msi">chevron_left</span></button><span class="pdt-sep"></span>`,
+            next: `<span class="pdt-sep"></span><button class="pdt-btn" onclick="photoNavNext()" title="${esc(t('library.detail.next', 'Next'))}"${nextDisabled}><span class="msi">chevron_right</span></button>`,
+        };
+
+    const copyBtns = x.remote
+        ? `<button class="pdt-btn" onclick="photoDownload()" title="${esc(t('context_menu.image.download', 'Download Image'))}"><span class="msi">download</span></button>
+           <button class="pdt-btn" onclick="photoCopyLink()" title="${esc(t('common.share', 'Share'))}"><span class="msi">link</span></button>`
+        : `<button class="pdt-btn" onclick="photoCopy()" title="${esc(t('library.actions.copy_clipboard', 'Copy to clipboard'))}"><span class="msi">content_copy</span></button>`;
+
     return `<div class="photo-detail-toolbar" onmousedown="event.stopPropagation()">
-        <button class="pdt-btn" onclick="photoNavPrev()" title="${esc(t('library.detail.prev', 'Previous'))}"${prevDisabled}><span class="msi">chevron_left</span></button>
-        <span class="pdt-sep"></span>
-        <button class="pdt-btn" onclick="photoCopy()" title="${esc(t('library.actions.copy_clipboard', 'Copy to clipboard'))}"><span class="msi">content_copy</span></button>
+        ${navBtns.prev}
+        ${copyBtns}
         <button class="pdt-btn" onclick="photoZoom(1.25)" title="${esc(t('library.detail.zoom_in', 'Zoom In'))}"><span class="msi">zoom_in</span></button>
         <button class="pdt-btn" onclick="photoZoom(0.8)" title="${esc(t('library.detail.zoom_out', 'Zoom Out'))}"><span class="msi">zoom_out</span></button>
         <button class="pdt-btn" onclick="photoRotate(-90)" title="${esc(t('library.detail.rotate_left', 'Rotate Left'))}"><span class="msi">rotate_left</span></button>
         <button class="pdt-btn" onclick="photoRotate(90)" title="${esc(t('library.detail.rotate_right', 'Rotate Right'))}"><span class="msi">rotate_right</span></button>
         <button class="pdt-btn" onclick="photoReset()" title="${esc(t('library.detail.reset', 'Reset'))}"><span class="msi">refresh</span></button>
-        <span class="pdt-sep"></span>
-        <button class="pdt-btn" onclick="photoNavNext()" title="${esc(t('library.detail.next', 'Next'))}"${nextDisabled}><span class="msi">chevron_right</span></button>
+        ${navBtns.next}
     </div>`;
 }
 
@@ -1096,7 +1171,7 @@ function _photoBuildInfoPaneContent(x) {
         ? (resTag ? `${resTag} (${x.imgW}×${x.imgH})` : `${x.imgW}×${x.imgH}`)
         : resTag;
 
-    const worldRowClick = worldId ? ` onclick="closePhotoDetail();openWorldSearchDetail('${esc(worldId)}')"` : '';
+    const worldRowClick = worldId ? ` onclick="navOpenModal('worldSearch','${jsq(worldId)}','${jsq(worldName || '')}')"` : '';
     const worldCursor   = worldId ? 'cursor:pointer;' : '';
     const isFav = x.path && (typeof favorites !== 'undefined') && favorites.has(x.path);
     const favBadge = `<span class="vrcn-badge accent"><span class="msi" style="font-size:11px;">star</span>${esc(t('library.detail.favorited', 'Favorited'))}</span>`;
@@ -1107,7 +1182,7 @@ function _photoBuildInfoPaneContent(x) {
     if (authorName) {
         const authorLabel = esc(t('library.detail.author', 'Author'));
         if (authorId) {
-            authorRow = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;cursor:pointer;" onclick="closePhotoDetail();openFriendDetail('${jsq(authorId)}')"><span style="color:var(--tx3);">${authorLabel}</span><span style="color:var(--accent-lt);font-weight:700;text-align:right;">${esc(authorName)}</span></div>`;
+            authorRow = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;cursor:pointer;" onclick="navOpenModal('friend','${jsq(authorId)}','${jsq(authorName)}')"><span style="color:var(--tx3);">${authorLabel}</span><span style="color:var(--accent-lt);font-weight:700;text-align:right;">${esc(authorName)}</span></div>`;
         } else {
             authorRow = _tlMr(authorLabel, `<span style="font-weight:700;">${esc(authorName)}</span>`);
         }
@@ -1135,7 +1210,7 @@ function _photoBuildInfoPaneContent(x) {
                 ? `<div class="tl-player-card-av" style="background-image:url('${cssUrl(image)}')"></div>`
                 : `<div class="tl-player-card-av">${esc(name[0].toUpperCase())}</div>`;
             const badge   = live ? `<span class="vrcn-badge bdg-friend"><span class="msi" style="font-size:10px;">check_circle</span>${t('profiles.badges.friend', 'Friend')}</span>` : '';
-            const onclick = p.userId ? `onclick="closePhotoDetail();openFriendDetail('${jsq(p.userId)}')"` : '';
+            const onclick = p.userId ? `onclick="navOpenModal('friend','${jsq(p.userId)}','${jsq(name)}')"` : '';
             const clickCls = p.userId ? ' clickable' : '';
             grid += `<div class="tl-player-card${clickCls}" ${onclick}>${av}<div class="tl-player-card-info"><div class="tl-player-card-name"><span>${esc(name)}</span>${badge}</div></div></div>`;
         });
@@ -1150,9 +1225,10 @@ function _photoBuildInfoPaneContent(x) {
         ${playersHtml}`;
 }
 
-function closePhotoDetail() {
+function closePhotoDetail(fromNav = false) {
+    const clearNav = !fromNav && _photoState.navOwned && typeof navClear === 'function';
     const m = document.getElementById('photoDetailModal');
-    if (!m) return;
+    if (!m) { if (clearNav) navClear(); return; }
     if (_photoKeyHandler) { document.removeEventListener('keydown', _photoKeyHandler); _photoKeyHandler = null; }
     document.removeEventListener('mousemove', _photoOnMouseMove);
     document.removeEventListener('mouseup',   _photoOnMouseUp);
@@ -1161,6 +1237,9 @@ function closePhotoDetail() {
     if (vid) { try { vid.pause(); } catch {} if (vid._pdCleanup) vid._pdCleanup(); vid.removeAttribute('src'); }
     m.querySelectorAll('img').forEach(img => { img.src = PLACEHOLDER; });
     m.remove();
+    _photoState.shownPath = '';
+    _photoState.navOwned = false;
+    if (clearNav) navClear();
 }
 
 // === Photo modal interactions ===
@@ -1193,6 +1272,22 @@ function photoCopy() {
     const it = _photoState.item;
     if (!it || !it.path) return;
     copyToClipboard(it.url || '', it.path, it.type || 'image');
+}
+
+function photoDownload() {
+    const it = _photoState.item;
+    if (!it || !it.url) return;
+    const guess = (it.url.split('?')[0].split('/').pop() || '').trim();
+    const fileName = /\.[a-z0-9]{3,4}$/i.test(guess) ? guess : 'image.png';
+    sendToCS({ action: 'invDownload', url: it.url, fileName });
+}
+
+function photoCopyLink() {
+    const it = _photoState.item;
+    if (!it || !it.url) return;
+    navigator.clipboard.writeText(it.url)
+        .then(() => showToast(true, t('common.link_copied', 'Link copied!')))
+        .catch(() => {});
 }
 
 function photoNavPrev() { _photoNav(-1); }
@@ -1281,32 +1376,20 @@ function _photoOnMouseUp() {
     document.removeEventListener('mouseup',   _photoOnMouseUp);
 }
 
-// Lightbox.
-function openLightbox(u, t) {
-    const lb    = document.createElement('div');
-    lb.className = 'lib-lightbox';
-    const closeLb = () => {
-        // Clear src BEFORE removing element to release decoded bitmaps
-        lb.querySelectorAll('img').forEach(img => { img.src = PLACEHOLDER; });
-        lb.querySelectorAll('video').forEach(v => { try { v.pause(); } catch {} v.src = ''; });
-        lb.remove();
-        document.removeEventListener('keydown', ok);
-    };
-    lb.onclick = e => { if (e.target === lb) closeLb(); };
-    if (t === 'video') {
-        const v    = document.createElement('video');
-        v.src      = u;
-        v.controls = true;
-        v.autoplay = true;
-        v.style.cssText = 'max-width:90%;max-height:90%;border-radius:8px;';
-        v.onclick  = e => e.stopPropagation();
-        lb.appendChild(v);
-    } else {
-        lb.innerHTML = `<img src="${u}">`;
-    }
-    document.body.appendChild(lb);
-    const ok = e => { if (e.key === 'Escape') closeLb(); };
-    document.addEventListener('keydown', ok);
+// Lightbox — reuses the photo modal without the info sidebar.
+function openLightbox(u, kind) {
+    if (!u) return;
+    openPhotoDetail({
+        name:     '',
+        path:     '',
+        url:      u,
+        type:     kind === 'video' ? 'video' : 'image',
+        modified: Date.now(),
+        size:     '',
+        players:  [],
+        imgW: 0, imgH: 0,
+        remote:   true,
+    });
 }
 
 // Delete modal.
@@ -1319,9 +1402,9 @@ function showDeleteModal(fp, fn) {
     o.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     o.id        = 'deleteModal';
     o.onclick   = e => { if (e.target === o) closeDeleteModal(); };
-    o.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-title">${t('library.delete.title', 'Delete File')}</div><div class="modal-msg">${t('library.delete.message', 'Permanently delete from disk:')}<br><span class="modal-fname">${esc(fn)}</span></div><div class="modal-btns"><button id="libDelCancelBtn" class="vrcn-button-round" onclick="closeDeleteModal()">${t('common.cancel', 'Cancel')}</button><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmDelete()">${t('library.delete.confirm', 'Delete')}</button></div></div>`;
+    o.innerHTML = `<div class="modal-box">${renderModalBar(t('library.delete.title', 'Delete File'), [modalCloseAction('closeDeleteModal()')])}<div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-msg">${t('library.delete.message', 'Permanently delete from disk:')}<br><span class="modal-fname">${esc(fn)}</span></div><div class="modal-btns"><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmDelete()">${t('library.delete.confirm', 'Delete')}</button></div></div>`;
     document.body.appendChild(o);
-    o.querySelector('#libDelCancelBtn').focus();
+    o.querySelector('.fd-modal-bar-actions .fd-action-btn')?.focus();
     const ok = e => {
         if (e.key === 'Escape') { closeDeleteModal(); document.removeEventListener('keydown', ok); }
         if (e.key === 'Enter')  { confirmDelete();    document.removeEventListener('keydown', ok); }
@@ -1352,7 +1435,7 @@ function showDeleteAllModal() {
     o.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     o.id        = 'deleteModal';
     o.onclick   = e => { if (e.target === o) closeDeleteModal(); };
-    o.innerHTML = `<div class="modal-box"><div class="modal-icon danger"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-title">${t('library.delete_all.title', 'Delete All Posts')}</div><div class="modal-msg">${tf('library.delete_all.message', { count: postedFiles.length }, 'Delete all {count} post(s) from Discord?')}</div><div class="modal-btns"><button class="vrcn-button-round" onclick="closeDeleteModal()">${t('common.cancel', 'Cancel')}</button><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmDeleteAll()">${t('library.delete_all.confirm', 'Delete All')}</button></div></div>`;
+    o.innerHTML = `<div class="modal-box">${renderModalBar(t('library.delete_all.title', 'Delete All Posts'), [modalCloseAction('closeDeleteModal()')])}<div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-msg">${tf('library.delete_all.message', { count: postedFiles.length }, 'Delete all {count} post(s) from Discord?')}</div><div class="modal-btns"><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmDeleteAll()">${t('library.delete_all.confirm', 'Delete All')}</button></div></div>`;
     document.body.appendChild(o);
 }
 

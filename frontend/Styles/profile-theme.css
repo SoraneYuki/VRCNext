@@ -40,6 +40,11 @@
 }
 
 .has-profile-theme .vrcn-badge { background: #1C1C1F; }
+
+.has-profile-theme .vrcn-badge.fd-tab-badge {
+    background: var(--pt-icon, var(--accent));
+    color: var(--pt-icon-fg, #fff);
+}
 .has-profile-theme .fd-lang-tags .vrcn-badge { background: var(--bg-hover); }
 
 .has-profile-theme .vrcn-badge.public,
