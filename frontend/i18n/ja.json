@@ -1869,6 +1869,8 @@
   "groups.roles.name_placeholder": "ロール名...",
   "groups.roles.create_role": "ロールを作成",
   "groups.roles.empty": "ロールが見つかりません",
+  "groups.roles.show": "ロールを表示",
+  "groups.roles.no_permissions": "このロールには権限がありません。",
   "groups.roles.meta.all": "すべて",
   "groups.roles.meta.permission_one": "権限",
   "groups.roles.meta.permission_other": "権限",

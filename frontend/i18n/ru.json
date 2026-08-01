@@ -1855,6 +1855,8 @@
   "groups.roles.name_placeholder": "Название роли...",
   "groups.roles.create_role": "Создать роль",
   "groups.roles.empty": "Нет ролей",
+  "groups.roles.show": "Показать роли",
+  "groups.roles.no_permissions": "У этой роли нет разрешений.",
   "groups.roles.meta.all": "Все",
   "groups.roles.meta.permission_one": "разрешение",
   "groups.roles.meta.permission_other": "разрешений",

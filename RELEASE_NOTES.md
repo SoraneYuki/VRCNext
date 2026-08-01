@@ -1,5 +1,8 @@
 **2026.35.4**
 
+**Group Modal**
+* See roles of group even if you aren't have permissions.
+
 **VRC+ Decoration Improvements**
 * Added an option to improve readability on profiles with bad text colors.
 * Navbar badges do use icon color now on vrc+ decorated profiles.

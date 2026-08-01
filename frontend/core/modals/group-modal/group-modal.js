@@ -70,6 +70,22 @@ function confirmLeaveGroup(groupId, groupName) {
     document.body.appendChild(o);
 }
 
+function _gdMoreDropdown(g, gidJs) {
+    const items = [];
+    if (g.isJoined) {
+        items.push({ icon: 'shield_person', label: t('context_menu.group.represent', 'Represent this group'), onclick: `sendToCS({action:'vrcRepresentGroup',groupId:'${gidJs}'})`, disabled: g.isRepresenting === true });
+        items.push({ icon: 'visibility', label: t('context_menu.group.visibility', 'Visibility'), submenu: [
+            { icon: 'public',         label: t('groups.visibility.visible', 'Visible for Everyone'), active: (g.visibility || 'visible') === 'visible', onclick: `setGroupVisibility('${gidJs}','visible')` },
+            { icon: 'people',         label: t('groups.visibility.friends', 'Visible for Friends'),  active: (g.visibility || 'visible') === 'friends', onclick: `setGroupVisibility('${gidJs}','friends')` },
+            { icon: 'visibility_off', label: t('groups.visibility.hidden',  'Visible for None'),     active: (g.visibility || 'visible') === 'hidden',  onclick: `setGroupVisibility('${gidJs}','hidden')` },
+        ] });
+    }
+    if ((g.roles || []).length) {
+        items.push({ icon: 'shield', label: t('groups.roles.show', 'Show Roles'), onclick: `openGroupRolesModal('${gidJs}')` });
+    }
+    return items.length ? { label: t('common.more', 'More'), dropdown: items } : null;
+}
+
 function renderGroupDetail(g) {
     const _gdPrevBtn = document.querySelector('#detailModalContent .fd-tab.active[onclick^="switchGdTab("]');
     const _gdPrevTab = _gdPrevBtn ? ((/switchGdTab\('([^']+)'/.exec(_gdPrevBtn.getAttribute('onclick') || '') || [])[1] || '') : '';
@@ -118,14 +134,7 @@ function renderGroupDetail(g) {
         (g.isJoined && canInvite) ? { icon: 'person_add', title: t('groups.actions.invite', 'Invite'), onclick: `openGroupInviteModal('${gidJs}')` } : null,
         (g.isJoined && canPost)   ? { icon: 'post_add',   title: t('groups.actions.post', 'Post'),     onclick: `openGroupPostModal('${gidJs}')` } : null,
         (g.isJoined && canEvent)  ? { icon: 'event',      title: t('groups.actions.events', 'Events'), onclick: `openGroupEventModal('${gidJs}')` } : null,
-        g.isJoined ? { label: t('common.more', 'More'), dropdown: [
-            { icon: 'shield_person', label: t('context_menu.group.represent', 'Represent this group'), onclick: `sendToCS({action:'vrcRepresentGroup',groupId:'${gidJs}'})`, disabled: g.isRepresenting === true },
-            { icon: 'visibility', label: t('context_menu.group.visibility', 'Visibility'), submenu: [
-                { icon: 'public',         label: t('groups.visibility.visible', 'Visible for Everyone'), active: (g.visibility || 'visible') === 'visible', onclick: `setGroupVisibility('${gidJs}','visible')` },
-                { icon: 'people',         label: t('groups.visibility.friends', 'Visible for Friends'),  active: (g.visibility || 'visible') === 'friends', onclick: `setGroupVisibility('${gidJs}','friends')` },
-                { icon: 'visibility_off', label: t('groups.visibility.hidden',  'Visible for None'),     active: (g.visibility || 'visible') === 'hidden',  onclick: `setGroupVisibility('${gidJs}','hidden')` },
-            ] },
-        ] } : null,
+        _gdMoreDropdown(g, gidJs),
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetGroup',groupId:'${gidJs}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/group/${esc(g.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeGroupDetail()` },
@@ -1540,6 +1549,75 @@ const ROLE_PERM_DEFS = [
 
 function getRolePermissionLabel(def) {
     return t(`groups.roles.permissions.${def.key}.label`, def.label);
+}
+
+function openGroupRolesModal(groupId) {
+    const g = (_groupDetailCache && _groupDetailCache[groupId])
+        || window._currentGroupDetailFull
+        || window._currentGroupDetail
+        || {};
+    const roles = Array.isArray(g.roles) ? g.roles : [];
+
+    document.getElementById('groupRolesOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'groupRolesOverlay';
+    overlay.style.zIndex = '10004';
+    overlay.style.display = 'flex';
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeGroupRolesModal(); });
+
+    const body = roles.length
+        ? roles.map((r, i) => _buildRoleViewCard(r, i)).join('')
+        : `<div class="myp-empty">${t('groups.roles.empty', 'No roles found')}</div>`;
+
+    overlay.innerHTML = `<div class="gp-modal" style="width:460px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;">
+        ${renderModalBar(t('groups.tabs.roles', 'Roles'), [modalCloseAction('closeGroupRolesModal()')])}
+        <div class="gp-modal-body" style="flex:1;overflow-y:auto;">${body}</div>
+    </div>`;
+    document.body.appendChild(overlay);
+}
+
+function closeGroupRolesModal() {
+    document.getElementById('groupRolesOverlay')?.remove();
+}
+
+function _buildRoleViewCard(role, idx) {
+    const rid   = 'grv' + idx;
+    const badge = role.isManagementRole ? `<span class="vrcn-badge" style="margin-right:6px;">${t('groups.roles.system', 'System')}</span>` : '';
+    const perms = role.permissions || [];
+    const known = new Set(ROLE_PERM_DEFS.map(p => p.key));
+
+    let permsHtml;
+    if (perms.includes('*')) {
+        permsHtml = `<div style="padding:8px 0;font-size:12px;color:var(--tx2);">${t('groups.roles.full_access', 'This role has full access (all permissions).')}</div>`;
+    } else if (!perms.length) {
+        permsHtml = `<div style="padding:8px 0;font-size:12px;color:var(--tx3);">${t('groups.roles.no_permissions', 'This role has no permissions.')}</div>`;
+    } else {
+        const rows = ROLE_PERM_DEFS.filter(p => perms.includes(p.key)).map(p =>
+            `<div class="gd-perm-row"><div class="gd-perm-info"><div class="gd-perm-label">${esc(getRolePermissionLabel(p))}</div><div class="gd-perm-desc">${esc(getRolePermissionDescription(p))}</div></div></div>`
+        );
+        perms.filter(k => !known.has(k)).forEach(k =>
+            rows.push(`<div class="gd-perm-row"><div class="gd-perm-info"><div class="gd-perm-label">${esc(k)}</div></div></div>`)
+        );
+        permsHtml = rows.join('');
+    }
+
+    return `<div class="gd-role-card" id="gdrole-${rid}">
+        <div class="gd-role-header" onclick="toggleGdRoleExpand('${rid}')">
+            <div style="flex:1;min-width:0;">
+                <div class="gd-role-name">${badge}${esc(role.name || '')}</div>
+                <div class="gd-role-meta">${esc(getRoleMetaText(role))}</div>
+            </div>
+            <span class="msi gd-role-chevron" style="font-size:18px;color:var(--tx3);transition:transform .2s;">expand_more</span>
+        </div>
+        <div class="gd-role-body" id="gdrole-body-${rid}" style="display:none;">
+            ${role.description ? `<div class="gd-role-section"><div class="gd-role-section-title">${t('groups.sections.description', 'Description')}</div><div style="font-size:12px;color:var(--tx2);white-space:pre-wrap;">${esc(role.description)}</div></div>` : ''}
+            <div class="gd-role-section">
+                <div class="gd-role-section-title">${t('groups.roles.permissions', 'Permissions')}</div>
+                ${permsHtml}
+            </div>
+        </div>
+    </div>`;
 }
 
 function getRolePermissionDescription(def) {

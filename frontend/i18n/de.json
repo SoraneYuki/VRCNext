@@ -1874,6 +1874,8 @@
   "groups.roles.name_placeholder": "Rollenname...",
   "groups.roles.create_role": "Rolle erstellen",
   "groups.roles.empty": "Keine Rollen gefunden",
+  "groups.roles.show": "Rollen anzeigen",
+  "groups.roles.no_permissions": "Diese Rolle hat keine Berechtigungen.",
   "groups.roles.meta.all": "alle",
   "groups.roles.meta.permission_one": "Berechtigung",
   "groups.roles.meta.permission_other": "Berechtigungen",
