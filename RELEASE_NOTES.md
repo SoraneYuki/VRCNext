@@ -2,6 +2,7 @@
 
 **Design Refactor**
 * All Modals now use the new headline menu with option buttons so they match the design of the new profile modals.
+* Avatar, Profile, Group and World Modals are slightly higher to display more content.
 
 **Bug Fixes**
 

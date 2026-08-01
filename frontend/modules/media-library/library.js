@@ -921,14 +921,16 @@ function _photoCreateModal(x) {
     o.id        = 'photoDetailModal';
     o.onclick   = e => { if (e.target === o) closePhotoDetail(); };
     o.innerHTML = `<div class="photo-detail-box">
-        <div class="fd-modal-actions"><button class="btn-notif fd-action-btn" onclick="closePhotoDetail()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:20px;">close</span></button></div>
-        <div class="photo-detail-img-pane">
-            <img class="photo-detail-img" alt="" draggable="false" style="display:none;" onerror="this.style.display='none'">
-            <video class="photo-detail-video" playsinline style="display:none;"></video>
-            <div class="pd-video-controls-mount"></div>
-            <div class="photo-detail-toolbar-mount"></div>
+        ${renderModalBar(x?.name || t('timeline.photo', 'Photo'), [modalCloseAction('closePhotoDetail()')], { flush: true })}
+        <div class="photo-detail-panes">
+            <div class="photo-detail-img-pane">
+                <img class="photo-detail-img" alt="" draggable="false" style="display:none;" onerror="this.style.display='none'">
+                <video class="photo-detail-video" playsinline style="display:none;"></video>
+                <div class="pd-video-controls-mount"></div>
+                <div class="photo-detail-toolbar-mount"></div>
+            </div>
+            <div class="photo-detail-info-pane"></div>
         </div>
-        <div class="photo-detail-info-pane"></div>
     </div>`;
     document.body.appendChild(o);
 
@@ -953,6 +955,13 @@ function _photoRenderContent(modal, x) {
     const isVid = x.type === 'video';
     const box = modal.querySelector('.photo-detail-box');
     if (box) box.classList.toggle('pd-is-video', isVid);
+
+    const barTitle = modal.querySelector('.fd-modal-bar-title');
+    if (barTitle) {
+        const label = x.name || t('timeline.photo', 'Photo');
+        barTitle.textContent = label;
+        barTitle.title = label;
+    }
 
     const imgPane = modal.querySelector('.photo-detail-img-pane');
     if (imgPane) {
