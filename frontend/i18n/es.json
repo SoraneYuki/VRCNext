@@ -1871,6 +1871,7 @@
   "groups.roles.create_role": "Crear rol",
   "groups.roles.empty": "No se encontraron roles",
   "groups.roles.show": "Mostrar roles",
+  "groups.roles.yours": "Tu rol",
   "groups.roles.no_permissions": "Este rol no tiene permisos.",
   "groups.roles.meta.all": "todos",
   "groups.roles.meta.permission_one": "permiso",

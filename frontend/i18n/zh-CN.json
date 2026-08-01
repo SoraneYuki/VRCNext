@@ -1871,6 +1871,7 @@
   "groups.roles.create_role": "创建角色",
   "groups.roles.empty": "未找到角色",
   "groups.roles.show": "显示身份组",
+  "groups.roles.yours": "你的身份组",
   "groups.roles.no_permissions": "此身份组没有任何权限。",
   "groups.roles.meta.all": "全部",
   "groups.roles.meta.permission_one": "项权限",

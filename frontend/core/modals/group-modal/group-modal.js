@@ -1566,8 +1566,9 @@ function openGroupRolesModal(groupId) {
     overlay.style.display = 'flex';
     overlay.addEventListener('click', e => { if (e.target === overlay) closeGroupRolesModal(); });
 
+    const myRoleIds = new Set(Array.isArray(g.myRoleIds) ? g.myRoleIds : []);
     const body = roles.length
-        ? roles.map((r, i) => _buildRoleViewCard(r, i)).join('')
+        ? roles.map((r, i) => _buildRoleViewCard(r, i, myRoleIds.has(r.id))).join('')
         : `<div class="myp-empty">${t('groups.roles.empty', 'No roles found')}</div>`;
 
     overlay.innerHTML = `<div class="gp-modal" style="width:460px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;">
@@ -1581,9 +1582,10 @@ function closeGroupRolesModal() {
     document.getElementById('groupRolesOverlay')?.remove();
 }
 
-function _buildRoleViewCard(role, idx) {
+function _buildRoleViewCard(role, idx, isMine) {
     const rid   = 'grv' + idx;
-    const badge = role.isManagementRole ? `<span class="vrcn-badge" style="margin-right:6px;">${t('groups.roles.system', 'System')}</span>` : '';
+    const badge = (isMine ? `<span class="vrcn-badge ok" style="margin-right:6px;">${t('groups.roles.yours', 'Your role')}</span>` : '')
+        + (role.isManagementRole ? `<span class="vrcn-badge" style="margin-right:6px;">${t('groups.roles.system', 'System')}</span>` : '');
     const perms = role.permissions || [];
     const known = new Set(ROLE_PERM_DEFS.map(p => p.key));
 

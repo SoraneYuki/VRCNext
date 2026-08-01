@@ -393,6 +393,7 @@ public class GroupsController
                                 isJoined = g["myMember"] != null && g["myMember"].Type != JTokenType.Null,
                                 canPost, canEvent, canEdit, canInvite, canKick, canBan, canManageRoles, canAssignRoles,
                                 canViewAudit,
+                                myRoleIds = (myMember?["roleIds"] as JArray)?.Select(x => x.ToString()).ToArray() ?? Array.Empty<string>(),
                                 roles = (g["roles"] as JArray ?? new JArray()).Select(r => {
                                     var rPerms = (r["permissions"] as JArray)?.Select(p => p.ToString()).ToArray() ?? Array.Empty<string>();
                                     _core.SendToJS("log", new { msg = $"[ROLE] \"{r["name"]}\" perms: [{string.Join(", ", rPerms)}]", color = "sec" });
