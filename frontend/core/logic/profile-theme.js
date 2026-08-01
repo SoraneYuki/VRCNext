@@ -120,7 +120,7 @@ function profileThemeColors(user) {
 }
 
 const PT_VARS = ['--pt-accent', '--pt-accent-lt', '--pt-bg-card', '--pt-bg-hover',
-    '--pt-bg-input', '--pt-bg-btn', '--pt-bg-btn-h', '--pt-brd', '--pt-tx2', '--pt-tx3', '--pt-icon'];
+    '--pt-bg-input', '--pt-bg-btn', '--pt-bg-btn-h', '--pt-brd', '--pt-tx2', '--pt-tx3', '--pt-icon', '--pt-icon-fg'];
 
 function _ptPaint(el, c) {
     if (c.button) {
@@ -139,7 +139,11 @@ function _ptPaint(el, c) {
         el.style.setProperty('--pt-tx2', readable);
         el.style.setProperty('--pt-tx3', readable);
     }
-    if (c.icon) el.style.setProperty('--pt-icon', _ptReadable(c.icon, surface, 3));
+    if (c.icon) {
+        const iconColor = _ptReadable(c.icon, surface, 3);
+        el.style.setProperty('--pt-icon', iconColor);
+        el.style.setProperty('--pt-icon-fg', _ptLuminance(iconColor) > 0.4 ? '#111111' : '#ffffff');
+    }
     el.classList.add('has-profile-theme');
     el.classList.toggle('pt-has-button', !!c.button);
     el.classList.toggle('pt-has-text', !!c.subtext);

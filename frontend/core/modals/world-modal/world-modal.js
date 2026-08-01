@@ -135,9 +135,9 @@ function _wdUpdateInstancesInPlace(w) {
 
     // Update count label and tab button
     const countSpan = tab.querySelector('.wd-section-label span');
-    if (countSpan) countSpan.innerHTML = `${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allInstances.length}</span>`;
+    if (countSpan) countSpan.innerHTML = `${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span>`;
     const tabBtn = [...document.querySelectorAll('.fd-tab')].find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'instances'"));
-    if (tabBtn) tabBtn.innerHTML = `${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allInstances.length}</span>`;
+    if (tabBtn) tabBtn.innerHTML = `${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span>`;
 }
 
 function renderWorldSearchDetail(w) {
@@ -243,7 +243,7 @@ function renderWorldSearchDetail(w) {
 
     const tabsHtml = `<div class="fd-tabs" style="margin-bottom:14px;">
         <button class="fd-tab active" onclick="switchWdTab('info',this)">${t('worlds.tabs.info', 'Info')}</button>
-        <button class="fd-tab" onclick="switchWdTab('instances',this)">${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allInstances.length}</span></button>
+        <button class="fd-tab" onclick="switchWdTab('instances',this)">${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span></button>
         ${hasWorldPhotos ? `<button class="fd-tab" onclick="switchWdTab('photos',this)">${t('worlds.tabs.photos', 'Photos')}</button>` : ''}
         ${isOwnWorld ? `<button class="fd-tab" onclick="switchWdTab('insights',this)">${t('worlds.tabs.insights', 'Insights')}</button>` : ''}
         <button class="fd-tab" onclick="switchWdTab('json',this)">Json</button>
@@ -318,7 +318,7 @@ function renderWorldSearchDetail(w) {
     const wdInfoCompactRight = `<div class="fd-info-wrap">${wdDescCardCompact}${wdComPopRow}<div class="fd-info-card">${wdHistoryInner}</div></div>`;
 
     const wdInstancesTab = `<div id="wdTabInstances" style="display:none;">
-            <div class="wd-section-label wd-instances-label" style="margin-top:4px;"><span>${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${allInstances.length}</span></span><button class="mi-refresh-btn" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances">&#8635;</button></div>
+            <div class="wd-section-label wd-instances-label" style="margin-top:4px;"><span>${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span></span><button class="mi-refresh-btn" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances">&#8635;</button></div>
             ${instancesHtml}
         </div>`;
     const wdPhotosTab = `<div id="wdTabPhotos" style="display:none;"><div id="wdPhotosGrid"></div><div id="wdPhotosPaginatorBar" class="mini-paginator"></div></div>`;

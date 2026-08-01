@@ -429,8 +429,8 @@ function renderMyProfileContent() {
 
     const contentHtml = `
         <div class="fd-content-pills">
-            <button class="fd-tab myp-content-pill active" id="mypWorldsPill" onclick="switchMypContentPill('worlds',this)">${t('profiles.content.worlds_pill_label', 'Worlds')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">0</span></button>
-            <button class="fd-tab myp-content-pill" id="mypAvatarsPill" onclick="switchMypContentPill('avatars',this)">${t('profiles.content.avatars_pill_label', 'Avatars')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">0</span></button>
+            <button class="fd-tab myp-content-pill active" id="mypWorldsPill" onclick="switchMypContentPill('worlds',this)">${t('profiles.content.worlds_pill_label', 'Worlds')} <span class="vrcn-badge fd-tab-badge">0</span></button>
+            <button class="fd-tab myp-content-pill" id="mypAvatarsPill" onclick="switchMypContentPill('avatars',this)">${t('profiles.content.avatars_pill_label', 'Avatars')} <span class="vrcn-badge fd-tab-badge">0</span></button>
         </div>
         <div id="mypContentWorlds">
             <div id="mypWorldsGrid"><div class="empty-msg">${t('profiles.insights.loading', 'Loading...')}</div></div>
@@ -441,7 +441,7 @@ function renderMyProfileContent() {
             <div id="mypAvatarsPageBar" class="mini-paginator"></div>
         </div>`;
 
-    const _tabBadge = (n) => `<span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${n}</span>`;
+    const _tabBadge = (n) => `<span class="vrcn-badge fd-tab-badge">${n}</span>`;
     const _mypGroupCount = (typeof myGroups !== 'undefined' && Array.isArray(myGroups)) ? myGroups.length : 0;
     const tabsHtml = `<div class="fd-tabs"${useCompact ? '' : ' style="margin-bottom:14px;"'}>
         <button class="fd-tab active" data-myptab="info" onclick="switchMypTab('info',this)">${t('profiles.tabs.info', 'Info')}</button>
@@ -796,11 +796,11 @@ function mypOwnGroupsGoPage(page) {
 
 function _mypUpdateContentCounts() {
     const wp = document.getElementById('mypWorldsPill');
-    if (wp) wp.innerHTML = `${t('profiles.content.worlds_pill_label', 'Worlds')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${_mypAllWorlds.length}</span>`;
+    if (wp) wp.innerHTML = `${t('profiles.content.worlds_pill_label', 'Worlds')} <span class="vrcn-badge fd-tab-badge">${_mypAllWorlds.length}</span>`;
     const ap = document.getElementById('mypAvatarsPill');
-    if (ap) ap.innerHTML = `${t('profiles.content.avatars_pill_label', 'Avatars')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${_mypAllAvatars.length}</span>`;
+    if (ap) ap.innerHTML = `${t('profiles.content.avatars_pill_label', 'Avatars')} <span class="vrcn-badge fd-tab-badge">${_mypAllAvatars.length}</span>`;
     const tab = document.getElementById('mypTabContentBtn');
-    if (tab) tab.innerHTML = `${t('profiles.tabs.content_label', 'Content')} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${_mypAllWorlds.length + _mypAllAvatars.length}</span>`;
+    if (tab) tab.innerHTML = `${t('profiles.tabs.content_label', 'Content')} <span class="vrcn-badge fd-tab-badge">${_mypAllWorlds.length + _mypAllAvatars.length}</span>`;
 }
 
 function renderMypWorldsPage(page) {
@@ -910,7 +910,7 @@ function renderMypFavWorlds(payload) {
     let pillsHtml = `<div class="fd-content-pills">`;
     groups.forEach((g, i) => {
         const count = g.worlds ? g.worlds.length : 0;
-        pillsHtml += `<button class="fd-tab fd-content-pill${i === activePill ? ' active' : ''}" onclick="switchMypFavPill(${i},this)">${esc(g.displayName || g.name)} <span class="vrcn-badge" style="background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;margin-left:4px;">${count}</span></button>`;
+        pillsHtml += `<button class="fd-tab fd-content-pill${i === activePill ? ' active' : ''}" onclick="switchMypFavPill(${i},this)">${esc(g.displayName || g.name)} <span class="vrcn-badge fd-tab-badge">${count}</span></button>`;
     });
     pillsHtml += `</div>`;
 
