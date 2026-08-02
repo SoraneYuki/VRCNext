@@ -1637,7 +1637,7 @@ function drawOnlineHeatmap(payload, ids) {
             const intensity = max > 0 ? Math.sqrt(val / max) : 0;
             const title = `${dayLabels[d]} ${String(h).padStart(2, '0')}:00 · ${fdFmtMinutes(val)}`;
             const style = val > 0
-                ? `style="background:color-mix(in srgb, var(--accent) ${Math.round(20 + intensity * 80)}%, transparent);"`
+                ? `style="background:color-mix(in srgb, var(--hm-online, var(--accent)) ${Math.round(20 + intensity * 80)}%, transparent);"`
                 : '';
             cells += `<div class="fd-hm-cell" ${style} title="${esc(title)}"></div>`;
         }

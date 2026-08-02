@@ -2,10 +2,12 @@
 
 **Improvements**
 
-* The tab bar in Profile, World, Group and Avatar modals now stays fixed while the content below it scrolls.
-* Timeline list columns in Personal, Friends and Game Log can now be sorted by clicking a header and reordered by dragging the handle on the right. Sorting covers the whole history, not just the visible page, and your layout is remembered per list.
+* The tab bar in Profile, World, Group, and Avatar modals now stays fixed while the content below it scrolls.
+* Columns in the Timeline’s Personal, Friends, and Game Log lists can now be sorted by clicking their headers and reordered by dragging the handle on the right.
+* Sorting applies to the entire history, not just the currently visible page, and the column layout is remembered separately for each list.
 
 **Bug Fixes**
 
-* Fixed the column headers in timeline lists not lining up with the content below them.
-* Fixed copying an image from the photo modal putting a local cache link on the clipboard instead of the image itself. The image is now copied and can be pasted directly into Discord, chats or an image editor.
+* Fixed column headers in Timeline lists not aligning with the content below them.
+* Fixed copying images from the Photo Modal placing a local cache link on the clipboard instead of the actual image. Images can now be pasted directly into Discord, chats, or image editors.
+* Fixed the heatmap in user profiles using the button color instead of the VRC+ icon color.

@@ -444,6 +444,7 @@
     border-radius: 2px;
     background: var(--bg-hover);
 }
+.has-profile-theme { --hm-online: var(--pt-icon, var(--accent)); }
 .fd-hm-axis {
     display: flex;
     gap: 6px;
