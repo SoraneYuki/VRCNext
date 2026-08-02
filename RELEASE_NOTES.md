@@ -6,6 +6,7 @@
 * The list is now slightly more compact and easier to navigate.
 * Added World description to player list modal.
 * Added World Creator to player list
+* Playerlist can be now sorted with all cell filters.
 
 **Quality-of-Life Updates**
 

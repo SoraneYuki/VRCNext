@@ -978,13 +978,13 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     margin-bottom: 14px;
 }
 .iim-list {
-    --iim-grid-cols: 40px 70px minmax(78px, .72fr) 110px minmax(120px, 170px) 46px 62px minmax(82px, .8fr);
-    min-width: 808px;
+    --iim-grid-cols: 88px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr);
+    min-width: 812px;
     width: 100%;
 }
 .iim-list.has-timers {
-    --iim-grid-cols: 40px 72px 70px minmax(78px, .72fr) 110px minmax(120px, 170px) 46px 62px minmax(82px, .8fr);
-    min-width: 888px;
+    --iim-grid-cols: 88px 76px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr);
+    min-width: 892px;
 }
 .iim-list-head,
 .iim-user-row {
@@ -992,6 +992,33 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     grid-template-columns: var(--iim-grid-cols);
     align-items: center;
 }
+.iim-head-sortable {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+    transition: color .12s, background .12s;
+}
+.iim-head-sortable > span:not(.iim-head-arrow) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.iim-head-sortable:hover { color: var(--tx1); background: var(--bg-hover); }
+.iim-head-sorted { color: var(--tx1); }
+
+.iim-head-arrow {
+    font-size: 12px !important;
+    opacity: 0;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: opacity .12s;
+}
+.iim-head-sortable:hover .iim-head-arrow { opacity: .55; }
+.iim-head-sorted .iim-head-arrow { opacity: 1; color: var(--accent); }
+
 .iim-list-head {
     position: sticky;
     top: 0;
@@ -1005,6 +1032,7 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     font-weight: 700;
     color: var(--tx3);
     letter-spacing: .05em;
+    text-transform: uppercase;
     text-align: left;
     white-space: nowrap;
     font-family: inherit;
@@ -1036,7 +1064,7 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     min-width: 0;
 }
 .iim-profile-cell {
-    padding: 5px 6px 5px 10px;
+    padding: 5px 8px;
 }
 .iim-cell-right {
     text-align: right;
@@ -1102,6 +1130,19 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     font-weight: 700;
     color: var(--tx3);
 }
+.iim-status-cell {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+}
+.iim-status-cell > span:not(.vrc-status-dot) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
 .iim-name {
     color: var(--tx0);
     font-weight: 500;

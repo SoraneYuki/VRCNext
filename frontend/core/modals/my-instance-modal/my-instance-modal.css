@@ -22,6 +22,11 @@
     min-height: 0;
 }
 
+#instanceInfoContent .mi-instance-list,
+#instanceInfoContent .mi-instance-card {
+    min-width: max-content;
+}
+
 /* === Left Panel === */
 
 .mi-left {

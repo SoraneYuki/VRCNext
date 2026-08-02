@@ -372,6 +372,7 @@
   "timeline.list.header.user": "User",
   "timeline.list.header.detail": "Detail",
   "timeline.list.header.hint": "Click to sort, drag to reorder",
+  "timeline.list.header.sort_hint": "Click to sort",
   "timeline.list.header.reorder": "Drag to reorder",
   "timeline.list.from": "from {name}",
   "timeline.list.na": "N/A",
