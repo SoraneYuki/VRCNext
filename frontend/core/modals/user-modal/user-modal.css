@@ -335,6 +335,14 @@
     padding: 18px;
 }
 
+#modalFriendDetail.fd-style-compact .fd-right-scroll > .fd-tabs,
+#modalMyProfile.fd-style-compact .fd-right-scroll > .fd-tabs{
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    box-shadow: 0 -9px 0 18px var(--bg-card);
+}
+
 #modalFriendDetail.fd-style-compact #fdTabJson > .json-viewer,
 #modalMyProfile.fd-style-compact #mypTabJson > .json-viewer{
     max-height: none !important;
