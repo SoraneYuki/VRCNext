@@ -1623,6 +1623,8 @@
   "instance.no_player_data": "无玩家数据",
   "instance.no_player_data_available": "无可用的玩家数据。",
   "instance.actions.invite": "邀请",
+  "instance.actions.hide_world_panel": "隐藏世界面板",
+  "instance.actions.show_world_panel": "显示世界面板",
   "instance.actions.force_join": "强制加入",
   "instance.sections.friends_in_instance": "实例中的好友 ({count})",
   "instance.sections.players_in_instance": "实例中的玩家 ({count})",

@@ -1666,6 +1666,8 @@
   "instance.no_player_data": "No player data",
   "instance.no_player_data_available": "No player data available.",
   "instance.actions.invite": "Invite",
+  "instance.actions.hide_world_panel": "Hide world panel",
+  "instance.actions.show_world_panel": "Show world panel",
   "instance.actions.force_join": "Force-Join",
   "instance.sections.friends_in_instance": "FRIENDS IN INSTANCE ({count})",
   "instance.sections.players_in_instance": "PLAYERS IN INSTANCE ({count})",

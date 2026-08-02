@@ -190,7 +190,16 @@ function openInstanceInfoModal() {
     const prevScroller  = c.querySelector('.mi-right-scroll');
     const prevScrollTop = prevScroller?.scrollTop || 0;
 
-    c.innerHTML = `${renderModalBar(name, [modalCloseAction('closeInstanceInfoModal()')])}<div class="mi-layout">${leftHtml}${rightHtml}</div>`;
+    const leftHidden = _iimLeftHidden();
+    c.classList.toggle('iim-no-left', leftHidden);
+    const panelAction = {
+        icon: leftHidden ? 'left_panel_open' : 'left_panel_close',
+        title: leftHidden
+            ? t('instance.actions.show_world_panel', 'Show world panel')
+            : t('instance.actions.hide_world_panel', 'Hide world panel'),
+        onclick: 'iimToggleLeftPanel()',
+    };
+    c.innerHTML = `${renderModalBar(name, [panelAction, modalCloseAction('closeInstanceInfoModal()')])}<div class="mi-layout">${leftHtml}${rightHtml}</div>`;
 
     m.style.display = 'flex';
     if (prevScrollTop > 0) {
@@ -200,6 +209,17 @@ function openInstanceInfoModal() {
 }
 
 const IIM_SORT_KEY = 'vrcn_iim_sort';
+const IIM_LEFT_KEY = 'vrcn_iim_hide_left';
+
+function _iimLeftHidden() {
+    try { return localStorage.getItem(IIM_LEFT_KEY) === '1'; } catch { return false; }
+}
+
+function iimToggleLeftPanel() {
+    try { localStorage.setItem(IIM_LEFT_KEY, _iimLeftHidden() ? '0' : '1'); } catch {}
+    openInstanceInfoModal();
+}
+
 const IIM_STATUS_ORDER = ['join me', 'active', 'ask me', 'busy', 'offline'];
 let _iimSort = null;
 

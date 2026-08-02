@@ -7,6 +7,7 @@
 * Added World description to player list modal.
 * Added World Creator to player list
 * Playerlist can be now sorted with all cell filters.
+* Added Hide/SHow World Panel to player list.
 
 **Quality-of-Life Updates**
 

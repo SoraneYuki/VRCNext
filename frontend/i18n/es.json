@@ -1623,6 +1623,8 @@
   "instance.no_player_data": "Sin datos de jugadores",
   "instance.no_player_data_available": "No hay datos de jugadores disponibles.",
   "instance.actions.invite": "Invitar",
+  "instance.actions.hide_world_panel": "Ocultar panel del mundo",
+  "instance.actions.show_world_panel": "Mostrar panel del mundo",
   "instance.actions.force_join": "Unirse",
   "instance.sections.friends_in_instance": "AMIGOS EN LA INSTANCIA ({count})",
   "instance.sections.players_in_instance": "JUGADORES EN LA INSTANCIA ({count})",
