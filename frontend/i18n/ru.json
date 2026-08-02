@@ -376,6 +376,8 @@
   "timeline.list.header.profile": "Профиль",
   "timeline.list.header.user": "Пользователь",
   "timeline.list.header.detail": "Детали",
+  "timeline.list.header.hint": "Нажмите для сортировки, перетащите для перемещения",
+  "timeline.list.header.reorder": "Перетащите для перемещения",
   "timeline.list.from": "От",
   "timeline.list.na": "Н/Д",
   "timeline.value.cleared": "Очищено",

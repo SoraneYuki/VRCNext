@@ -373,6 +373,8 @@
   "timeline.list.header.profile": "プロフィール",
   "timeline.list.header.user": "ユーザー",
   "timeline.list.header.detail": "詳細",
+  "timeline.list.header.hint": "クリックで並べ替え、ドラッグで列を移動",
+  "timeline.list.header.reorder": "ドラッグして並べ替え",
   "timeline.list.from": "{name}から",
   "timeline.list.na": "N/A",
   "timeline.value.cleared": "(クリア済み)",

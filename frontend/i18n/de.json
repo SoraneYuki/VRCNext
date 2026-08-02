@@ -373,6 +373,8 @@
   "timeline.list.header.profile": "Profil",
   "timeline.list.header.user": "Benutzer",
   "timeline.list.header.detail": "Detail",
+  "timeline.list.header.hint": "Klicken zum Sortieren, ziehen zum Verschieben",
+  "timeline.list.header.reorder": "Zum Verschieben ziehen",
   "timeline.list.from": "von {name}",
   "timeline.list.na": "k. A.",
   "timeline.value.cleared": "(geleert)",
