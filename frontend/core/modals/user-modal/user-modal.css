@@ -445,6 +445,7 @@
     background: var(--bg-hover);
 }
 .has-profile-theme { --hm-online: var(--pt-icon, var(--accent)); }
+.has-profile-theme .ts-bar { background: var(--pt-icon, var(--accent)); }
 .fd-hm-axis {
     display: flex;
     gap: 6px;

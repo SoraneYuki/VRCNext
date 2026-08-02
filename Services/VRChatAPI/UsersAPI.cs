@@ -237,7 +237,18 @@ public class UsersAPI(VRChatApiService ctx)
             var resp = await ctx._http.PutAsync($"{VRChatApiService.BASE}/profile/theme/{Uri.EscapeDataString(themeId)}", content);
             var text = await resp.Content.ReadAsStringAsync();
             ctx.Log($"UpdateProfileTheme({themeId}): {(int)resp.StatusCode}");
-            if (resp.IsSuccessStatusCode) return JObject.Parse(text);
+            if (resp.IsSuccessStatusCode)
+            {
+                if ((text ?? "").TrimStart().StartsWith("{")) return JObject.Parse(text);
+                return new JObject
+                {
+                    ["id"]           = themeId,
+                    ["name"]         = name,
+                    ["buttonColor"]  = NormalizeThemeColor(button),
+                    ["iconColor"]    = NormalizeThemeColor(icon),
+                    ["subtextColor"] = NormalizeThemeColor(subtext),
+                };
+            }
         }
         catch (Exception ex) { ctx.Log($"UpdateProfileTheme exception: {ex.Message}"); }
         return null;

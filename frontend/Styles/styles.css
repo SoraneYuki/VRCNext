@@ -399,7 +399,8 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
 .fd-modal-bar-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 .fd-modal-bar-actions .btn-notif { color: var(--tx1); }
 .fd-modal-bar-actions .fd-action-danger:hover { color: var(--err); }
-#myInstanceContent .fd-modal-bar { margin: 0; border-radius: 0; }
+#myInstanceContent .fd-modal-bar,
+#instanceInfoContent .fd-modal-bar { margin: 0; border-radius: 0; }
 
 .fd-banner img {
     width: 100%;

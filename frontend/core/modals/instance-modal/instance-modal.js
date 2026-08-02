@@ -105,10 +105,8 @@ function openInstanceInfoModal() {
         if      (platform === 'standalonewindows') platIcon = `<span class="msi" title="${t('instance.platform.pc', 'PC')}" style="font-size:16px;color:var(--tx2);">computer</span>`;
         else if (platform === 'android')           platIcon = `<span class="msi" title="${t('instance.platform.quest', 'Quest')}" style="font-size:16px;color:var(--tx2);">view_in_ar</span>`;
         const platformCell = `<div class="iim-cell iim-cell-center">${platIcon}</div>`;
-        const langTags  = tags.filter(t => t.startsWith('language_'));
-        const langsHtml = langTags.map(t =>
-            `<span class="vrcn-badge">${esc(LANG_MAP[t] || t.replace('language_', '').toUpperCase())}</span>`
-        ).join('');
+        const langsHtml = tags.filter(x => x.startsWith('language_'))
+            .map(x => `<span class="vrcn-badge">${esc(LANG_MAP[x] || x.replace('language_', '').toUpperCase())}</span>`).join('');
         const langCell  = `<div class="iim-cell"><div class="iim-lang-cell">${langsHtml}</div></div>`;
         const nameCell  = `<div class="iim-cell"><span class="iim-name">${esc(displayName)}</span></div>`;
         const ageCell   = `<div class="iim-cell iim-cell-center">${ageVerified ? `<span class="vrcn-badge" style="font-size:10px;color:#3ba55d;border-color:#3ba55d30;background:#3ba55d18;">18+</span>` : ''}</div>`;
@@ -119,10 +117,10 @@ function openInstanceInfoModal() {
             const pEnd     = u.leftAt || now;
             const leftPct  = Math.max(0, Math.min(100, (pStart - iStart) / iTotal * 100));
             const widthPct = Math.max(0, Math.min(100 - leftPct, (pEnd - pStart) / iTotal * 100));
-            const barCls   = (u._friend || (currentVrcUser && u.id === currentVrcUser.id)) ? ' friend' : '';
+            const barCls   = (u._friend || isSelf) ? ' friend' : '';
             barHtml = `<div class="iim-user-bar"><div class="tl-player-bar-wrap"><div class="tl-player-bar${barCls}" style="left:${leftPct.toFixed(1)}%;width:${widthPct.toFixed(1)}%"></div></div></div>`;
         }
-        const itemClick = id ? ` onclick="openFriendDetail('${jsq(id)}')"` : '';
+        const itemClick    = id ? ` onclick="openFriendDetail('${jsq(id)}')"` : '';
         const clickableCls = id ? ' clickable' : '';
         return `<div class="iim-user-item${clickableCls}"${itemClick}>
             <div class="iim-user-row">
@@ -146,37 +144,60 @@ function openInstanceInfoModal() {
     if (othersEnriched.length > 0)
         bodyRows += `<div class="iim-section-label"><div class="fd-group-rep-label" style="margin:0;">${tf('instance.sections.players_in_instance', { count: othersEnriched.length }, 'PLAYERS IN INSTANCE ({count})')}</div></div>` + othersEnriched.map(makeRow).join('');
 
-    const tableHtml = enriched.length > 0
-        ? `<div class="iim-scroll"><div class="iim-list${hasTimers ? ' has-timers' : ''}">${listHead}<div class="iim-list-body">${bodyRows}</div></div></div>`
-        : `<div style="padding:14px 0;color:var(--tx3);font-size:12px;">${t('instance.no_player_data_available', 'No player data available.')}</div>`;
+    const wc = (typeof dashWorldCache !== 'undefined' && data.worldId) ? (dashWorldCache[data.worldId] || null) : null;
+    if (data.worldId && (!wc || (!wc.description && !wc._descFetched)) && typeof sendToCS === 'function') sendToCS({ action: 'vrcGetWorldInstancesDetail', worldId: data.worldId, locations: data.location ? [data.location] : [] });
+    const worldAuthor   = wc?.authorName || '';
+    const worldAuthorId = wc?.authorId || '';
+    const worldDesc     = wc?.description || '';
 
-    const prevIimScroller = c.querySelector('.iim-scroll');
-    const prevIimScrollTop = prevIimScroller?.scrollTop || 0;
-    const prevIimScrollLeft = prevIimScroller?.scrollLeft || 0;
-    c.innerHTML = `${renderModalBar(name, [modalCloseAction('closeInstanceInfoModal()')])}${bannerHtml}
-    <div class="fd-content${thumb ? ' fd-has-banner' : ''}" style="padding:16px;">
-        <h2 style="margin:0 0 4px;color:var(--tx0);font-size:18px;">${esc(name)}</h2>
-        <div class="fd-badges-row">
-            <span class="vrcn-badge ${instCls}">${instLabel}</span>
-            ${data.ageGate ? `<span class="vrcn-badge" style="background:rgba(255,75,85,.15);color:var(--err);">${esc(t('worlds.instances.age_gated', 'Age Gated'))}</span>` : ''}
-            ${getOwnerBadgeHtml(data.ownerId || '', data.ownerName || '', data.ownerGroup || '', 'closeInstanceInfoModal()')}
-            ${copyBadge}
-            <span style="font-size:11px;color:var(--tx3);margin-left:4px;"><span class="msi" style="font-size:12px;vertical-align:-2px;">person</span> ${users.length || data.nUsers || 0}${data.capacity ? '/' + data.capacity : ''}</span>
+    const bannerImg = thumb
+        ? `<img class="mi-world-banner" src="${thumb}" onerror="this.style.display='none'">`
+        : '';
+
+    const authorHtml = worldAuthor
+        ? `<div class="mi-world-author">${t('worlds.meta.by', 'by')} ${worldAuthorId
+            ? `<span onclick="closeInstanceInfoModal();navOpenModal('friend','${jsq(worldAuthorId)}','${jsq(worldAuthor)}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--bg-hover);font-size:11px;font-weight:600;color:var(--tx1);cursor:pointer;line-height:1.8;">${esc(worldAuthor)}</span>`
+            : esc(worldAuthor)}</div>`
+        : '';
+    const descHtml = worldDesc ? `<div class="mi-world-description">${esc(worldDesc)}</div>` : '';
+
+    const leftHtml = `<div class="mi-left">
+        <div class="mi-world-banner-wrap">${bannerImg}<div class="mi-world-banner-fade"></div></div>
+        <div class="mi-world-info">
+            <div class="mi-world-name">${esc(name)}</div>
+            ${authorHtml}
+            ${descHtml}
         </div>
-        ${tableHtml}
-        <div class="fd-actions">
-            <button class="vrcn-button-round" onclick="closeInstanceInfoModal();openInviteModal()"><span class="msi">person_add</span> ${t('instance.actions.invite', 'Invite')}</button>
-            <button class="vrcn-button-round" onclick="closeInstanceInfoModal();openWorldSearchDetail('${wid}')">${t('dashboard.instances.open_world', 'Open World')}</button>
+        <div class="mi-left-actions">
+            <button class="vrcn-button-round mi-action-btn" onclick="closeInstanceInfoModal();openInviteModal()"><span class="msi" style="font-size:14px;">person_add</span> ${t('instance.actions.invite', 'Invite')}</button>
+            <button class="vrcn-button-round mi-action-btn" onclick="closeInstanceInfoModal();openWorldSearchDetail('${wid}')">${t('dashboard.instances.open_world', 'Open World')}</button>
         </div>
     </div>`;
 
+    const cardHeader = `<div class="mi-instance-header">
+        <span class="vrcn-badge ${instCls}">${instLabel}</span>
+        ${copyBadge}
+        ${data.ageGate ? `<span class="vrcn-badge" style="background:rgba(255,75,85,.15);color:var(--err);">${esc(t('worlds.instances.age_gated', 'Age Gated'))}</span>` : ''}
+        ${getOwnerBadgeHtml(data.ownerId || '', data.ownerName || '', data.ownerGroup || '', 'closeInstanceInfoModal()')}
+        <span class="vrcn-badge"><span class="msi" style="font-size:11px;">person</span>&nbsp;${users.length || data.nUsers || 0}${data.capacity ? '/' + data.capacity : ''}</span>
+        <div class="mi-header-actions"><button class="vrcn-button-round vrcn-btn-join" title="${esc(t('dashboard.instances.join_world', 'Join World'))}" onclick="closeInstanceInfoModal();sendToCS({action:'vrcJoinFriend',location:'${jsq(data.location || '')}'})"><span class="msi" style="font-size:14px;">login</span></button></div>
+    </div>`;
+
+    const playersHtml = enriched.length > 0
+        ? `<div class="iim-list${hasTimers ? ' has-timers' : ''}">${listHead}<div class="iim-list-body">${bodyRows}</div></div>`
+        : `<div style="padding:14px;color:var(--tx3);font-size:12px;">${t('instance.no_player_data_available', 'No player data available.')}</div>`;
+
+    const rightHtml = `<div class="mi-right"><div class="mi-right-scroll" style="overflow:auto;"><div class="mi-instance-list"><div class="mi-instance-card" style="overflow:visible;">${cardHeader}${playersHtml}</div></div></div></div>`;
+
+    const prevScroller  = c.querySelector('.mi-right-scroll');
+    const prevScrollTop = prevScroller?.scrollTop || 0;
+
+    c.innerHTML = `${renderModalBar(name, [modalCloseAction('closeInstanceInfoModal()')])}<div class="mi-layout" style="height:min(88vh,420px);max-height:420px;">${leftHtml}${rightHtml}</div>`;
+
     m.style.display = 'flex';
-    if (prevIimScrollTop > 0 || prevIimScrollLeft > 0) {
-        const newIimScroll = c.querySelector('.iim-scroll');
-        if (newIimScroll) {
-            newIimScroll.scrollTop = prevIimScrollTop;
-            newIimScroll.scrollLeft = prevIimScrollLeft;
-        }
+    if (prevScrollTop > 0) {
+        const newScroll = c.querySelector('.mi-right-scroll');
+        if (newScroll) newScroll.scrollTop = prevScrollTop;
     }
 }
 

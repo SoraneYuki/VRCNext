@@ -1621,6 +1621,7 @@
   "context_menu.friend.invite_group": "Invite to Group",
   "context_menu.friend.invite_group_sent": "Invite sent!",
   "context_menu.friend.boop": "Boop!",
+  "context_menu.copy_theme": "Copy Theme",
   "context_menu.friend.messenger": "Messenger",
   "context_menu.friend.unfavorite": "Unfavorite",
   "context_menu.friend.move_group": "Move to Group",

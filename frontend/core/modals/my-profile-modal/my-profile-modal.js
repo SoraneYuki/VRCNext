@@ -1260,11 +1260,15 @@ function _mypApplyActiveThemeColors() {
 let _ptEditId = '';
 let _ptEditColors = { button: '#064b5c', icon: '#6ae3f9', subtext: '#a9a9a9' };
 
-function openProfileThemeEditor(themeId) {
+function openProfileThemeEditor(themeId, preset) {
     const u = currentVrcUser || {};
     const th = (Array.isArray(u.themes) ? u.themes : []).find(x => x.id === themeId);
     _ptEditId = themeId || '';
-    _ptEditColors = {
+    _ptEditColors = preset ? {
+        button:  ptHex(preset.button,  '#064b5c'),
+        icon:    ptHex(preset.icon,    '#6ae3f9'),
+        subtext: ptHex(preset.subtext, '#a9a9a9'),
+    } : {
         button:  ptHex(th && th.buttonColor,  '#064b5c'),
         icon:    ptHex(th && th.iconColor,    '#6ae3f9'),
         subtext: ptHex(th && th.subtextColor, '#a9a9a9'),
@@ -1293,7 +1297,7 @@ function openProfileThemeEditor(themeId) {
             <div class="pt-preview" id="ptPreview"></div>
             <div class="pt-row">
                 <span class="pt-label">${esc(t('profiles.theme.name', 'Name'))}</span>
-                <input type="text" id="ptName" class="vrcn-edit-field" style="flex:1;" maxlength="32" value="${esc((th && th.name) || '')}">
+                <input type="text" id="ptName" class="vrcn-edit-field" style="flex:1;" maxlength="32" value="${esc(preset ? (preset.name || '') : ((th && th.name) || ''))}">
             </div>
             ${rows}
         </div>

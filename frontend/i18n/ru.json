@@ -1564,6 +1564,7 @@
   "context_menu.friend.invite_group": "Пригласить в группу",
   "context_menu.friend.invite_group_sent": "Приглашение отправлено",
   "context_menu.friend.boop": "Boop",
+  "context_menu.copy_theme": "Копировать тему",
   "context_menu.friend.messenger": "Мессенджер",
   "context_menu.friend.unfavorite": "Убрать из избранного",
   "context_menu.friend.move_group": "Переместить в группу",
