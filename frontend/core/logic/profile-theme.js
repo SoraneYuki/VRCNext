@@ -65,8 +65,6 @@ function _ptBlend(hex, target, amount) {
     return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * amount).toString(16).padStart(2, '0')).join('');
 }
 
-// Keeps the theme hue but pushes it toward black or white until it reads on the
-// surface it is painted on. Bright themes on light surfaces are the bad case.
 function _ptReadable(color, bg, minRatio) {
     const c = ptHex(color);
     const b = ptHex(bg);

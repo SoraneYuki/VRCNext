@@ -449,7 +449,7 @@ function refreshTimeline() {
     }
     const typeParam = tlFilter === 'all' ? '' : tlFilter;
     if (tlDateFilter) sendToCS({ action: 'getTimelineByDate', date: tlDateFilter, type: typeParam });
-    else              sendToCS({ action: 'getTimeline', type: typeParam });
+    else              sendToCS({ action: 'getTimeline', type: typeParam, ...tlSortParams('personal') });
 }
 
 function renderTimeline(payload) {
@@ -532,7 +532,7 @@ function setTlFilter(f) {
     if (c) c.innerHTML = sk(tlViewMode === 'list' ? 'timeline-list' : 'timeline');
     const typeParam = f === 'all' ? '' : f;
     if (tlDateFilter) sendToCS({ action: 'getTimelineByDate', date: tlDateFilter, type: typeParam });
-    else              sendToCS({ action: 'getTimeline', type: typeParam });
+    else              sendToCS({ action: 'getTimeline', type: typeParam, ...tlSortParams('personal') });
 }
 
 function filterTimeline() {
@@ -583,7 +583,7 @@ function filterTimeline() {
     // Date filter: all events loaded at once → paginate client-side
     // Normal mode: server-side pagination (timelineEvents = current page only)
     const eventsToRender = tlDateFilter
-        ? timelineEvents.slice(tlListPage * 100, (tlListPage + 1) * 100)
+        ? tlSortEventsLocal('personal', timelineEvents).slice(tlListPage * 100, (tlListPage + 1) * 100)
         : timelineEvents;
     const totalCount = tlDateFilter ? timelineEvents.length : tlTotal;
     const totalPages = totalCount > 0
@@ -683,12 +683,26 @@ function loadMoreTimeline() {
     tlLoading = true;
     const btn = document.getElementById('tlLoadMoreBtn');
     if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;">hourglass_empty</span> ${esc(t('timeline.load_more.loading', 'Loading...'))}`; }
-    sendToCS({ action: 'getTimelinePage', offset: tlOffset, type: tlFilter === 'all' ? '' : tlFilter });
+    sendToCS({ action: 'getTimelinePage', offset: tlOffset, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal') });
 }
 
 function buildTlPagination(page, totalPages, hasMore) {
     const countHtml = tlTotal > 0 ? `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(tlTotal))}</span>` : '';
     return buildPaginator(page, totalPages, 'tlGoPage', countHtml, hasMore) || countHtml;
+}
+
+function reloadTimelineSorted() {
+    if (tlDateFilter) { filterTimeline(); return; }
+    tlListPage = 0;
+    tlOffset   = 0;
+    sendToCS({ action: 'getTimelinePage', offset: 0, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal') });
+}
+
+function reloadFriendTimelineSorted() {
+    if (tlDateFilter) { filterFriendTimeline(); return; }
+    ftlListPage = 0;
+    ftlOffset   = 0;
+    sendToCS({ action: 'getFriendTimelinePage', offset: 0, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends') });
 }
 
 function tlGoPage(page) {
@@ -715,7 +729,7 @@ function tlGoPage(page) {
     // Fetch this page directly from DB at absolute offset
     _tlPendingListPage = page;
     tlLoading = true;
-    sendToCS({ action: 'getTimelinePage', offset: page * 100, type: tlFilter === 'all' ? '' : tlFilter });
+    sendToCS({ action: 'getTimelinePage', offset: page * 100, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal') });
     const c = document.getElementById('tlContainer');
     if (c) c.scrollTop = 0;
 }
@@ -1274,7 +1288,7 @@ function refreshFriendTimeline() {
         c.innerHTML = sk(tlViewMode === 'list' ? 'timeline-list' : 'timeline');
     }
     if (tlDateFilter) sendToCS({ action: 'getFriendTimelineByDate', date: tlDateFilter, type: ftFilter === 'all' ? '' : ftFilter });
-    else              sendToCS({ action: 'getFriendTimeline', type: ftFilter === 'all' ? '' : ftFilter });
+    else              sendToCS({ action: 'getFriendTimeline', type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends') });
 }
 
 function renderFriendTimeline(payload) {
@@ -1345,7 +1359,7 @@ function setFtFilter(f) {
     const c = document.getElementById('tlContainer');
     if (c) c.innerHTML = sk(tlViewMode === 'list' ? 'timeline-list' : 'timeline');
     if (tlDateFilter) sendToCS({ action: 'getFriendTimelineByDate', date: tlDateFilter, type: f === 'all' ? '' : f });
-    else              sendToCS({ action: 'getFriendTimeline', type: f === 'all' ? '' : f });
+    else              sendToCS({ action: 'getFriendTimeline', type: f === 'all' ? '' : f, ...tlSortParams('friends') });
 }
 
 function filterFriendTimeline() {
@@ -1389,7 +1403,7 @@ function filterFriendTimeline() {
     // Date filter: all events loaded at once → paginate client-side
     // Normal mode: server-side pagination (friendTimelineEvents = current page only)
     const ftlEventsToRender = tlDateFilter
-        ? friendTimelineEvents.slice(ftlListPage * 100, (ftlListPage + 1) * 100)
+        ? tlSortEventsLocal('friends', friendTimelineEvents).slice(ftlListPage * 100, (ftlListPage + 1) * 100)
         : friendTimelineEvents;
     const ftlTotalCount = tlDateFilter ? friendTimelineEvents.length : ftlTotal;
     const totalPages = ftlTotalCount > 0
@@ -1473,7 +1487,7 @@ function loadMoreFriendTimeline() {
     ftlLoading = true;
     const btn = document.getElementById('ftlLoadMoreBtn');
     if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;">hourglass_empty</span> ${esc(t('timeline.load_more.loading', 'Loading...'))}`; }
-    sendToCS({ action: 'getFriendTimelinePage', offset: ftlOffset, type: ftFilter === 'all' ? '' : ftFilter });
+    sendToCS({ action: 'getFriendTimelinePage', offset: ftlOffset, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends') });
 }
 
 function ftlGoPage(page) {
@@ -1500,7 +1514,7 @@ function ftlGoPage(page) {
     // Fetch this page directly from DB at absolute offset
     _ftlPendingListPage = page;
     ftlLoading = true;
-    sendToCS({ action: 'getFriendTimelinePage', offset: page * 100, type: ftFilter === 'all' ? '' : ftFilter });
+    sendToCS({ action: 'getFriendTimelinePage', offset: page * 100, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends') });
     const c = document.getElementById('tlContainer');
     if (c) c.scrollTop = 0;
 }

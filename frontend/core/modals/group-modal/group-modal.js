@@ -1788,9 +1788,12 @@ function onGroupRoleMembers(data) {
         document.getElementById('grv-members-' + data.roleId),
     ].filter(Boolean);
     if (!targets.length) return;
-    const html = (!data.members || data.members.length === 0)
+
+    const members = (data.members || []).filter(m => Array.isArray(m.roleIds) && m.roleIds.includes(data.roleId));
+
+    const html = members.length === 0
         ? renderGroupEmptyMessage('groups.roles.no_members', 'No members with this role.')
-        : data.members.map(m => renderGroupMemberCard(m)).join('');
+        : members.map(m => renderGroupMemberCard(m)).join('');
     targets.forEach(el => { el.innerHTML = html; });
 }
 

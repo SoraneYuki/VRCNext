@@ -9,6 +9,28 @@
     max-height: 380px;
 }
 
+#instanceInfoContent {
+    display: flex;
+    flex-direction: column;
+    height: var(--fd-compact-h);
+}
+
+#instanceInfoContent > .mi-layout {
+    flex: 1 1 0;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+}
+
+#instanceInfoContent .mi-instance-list,
+#instanceInfoContent .mi-instance-card {
+    min-width: max-content;
+}
+
+#instanceInfoContent.iim-no-left > .mi-layout { grid-template-columns: minmax(0, 1fr); }
+#instanceInfoContent.iim-no-left .mi-left { display: none; }
+#instanceInfoContent.iim-no-left .mi-right { border-radius: 0 0 14px 14px; }
+
 /* === Left Panel === */
 
 .mi-left {

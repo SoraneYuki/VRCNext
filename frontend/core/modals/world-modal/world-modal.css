@@ -115,6 +115,14 @@
     padding: 18px;
 }
 
+#modalDetail.wd-style-compact .fd-right-scroll > .fd-tabs,
+#modalDetail.gd-style-compact .fd-right-scroll > .fd-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    box-shadow: 0 -9px 0 18px var(--bg-card);
+}
+
 #modalDetail.wd-style-compact #wdTabJson > .json-viewer,
 #modalDetail.gd-style-compact #gdTabJson > .json-viewer {
     max-height: none !important;
@@ -255,6 +263,13 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: 18px;
+}
+
+#modalAvatarDetail.av-style-compact .fd-right-scroll > .fd-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    box-shadow: 0 -9px 0 18px var(--bg-card);
 }
 #modalAvatarDetail.av-style-compact #avTabJson > .json-viewer {
     max-height: none !important;

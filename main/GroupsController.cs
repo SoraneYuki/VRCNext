@@ -547,6 +547,7 @@ public class GroupsController
                             status = m["user"]?["status"]?.ToString() ?? "",
                             statusDescription = m["user"]?["statusDescription"]?.ToString() ?? "",
                             currentAvatarThumbnailImageUrl = m["user"]?["currentAvatarThumbnailImageUrl"]?.ToString() ?? "",
+                            roleIds = (m["roleIds"] as JArray)?.Select(r => r.ToString()).ToArray() ?? Array.Empty<string>(),
                         }).ToList();
                         _core.SendToJS("vrcGroupRoleMembers", new { groupId = grmGroupId, roleId = grmRoleId, members = list });
                     });

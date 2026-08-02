@@ -1637,7 +1637,7 @@ function drawOnlineHeatmap(payload, ids) {
             const intensity = max > 0 ? Math.sqrt(val / max) : 0;
             const title = `${dayLabels[d]} ${String(h).padStart(2, '0')}:00 · ${fdFmtMinutes(val)}`;
             const style = val > 0
-                ? `style="background:color-mix(in srgb, var(--accent) ${Math.round(20 + intensity * 80)}%, transparent);"`
+                ? `style="background:color-mix(in srgb, var(--hm-online, var(--accent)) ${Math.round(20 + intensity * 80)}%, transparent);"`
                 : '';
             cells += `<div class="fd-hm-cell" ${style} title="${esc(title)}"></div>`;
         }
@@ -1942,6 +1942,31 @@ function renderFdModerationCard(userId) {
     if (card) card.innerHTML = _buildModCardInner(userId);
 }
 
+function _fdCopyableThemeColors(d) {
+    if (!d || typeof ptHex !== 'function') return null;
+    let button  = ptHex(d.themeButtonColor);
+    let icon    = ptHex(d.themeIconColor);
+    let subtext = ptHex(d.themeSubtextColor);
+    if (!button && !icon && !subtext) {
+        const th = Array.isArray(d.themes) && d.themeId ? d.themes.find(x => x && x.id === d.themeId) : null;
+        if (th) {
+            button  = ptHex(th.buttonColor);
+            icon    = ptHex(th.iconColor);
+            subtext = ptHex(th.subtextColor);
+        }
+    }
+    if (!button && !icon && !subtext) return null;
+    return { button, icon, subtext };
+}
+
+function copyProfileThemeFromDetail() {
+    const d = currentFriendDetail;
+    const c = _fdCopyableThemeColors(d);
+    if (!c) { showToast(false, t('profiles.theme.no_theme', 'This profile has no theme to copy.')); return; }
+    if (typeof openProfileThemeEditor !== 'function') return;
+    openProfileThemeEditor('', { button: c.button, icon: c.icon, subtext: c.subtext, name: d.displayName || '' });
+}
+
 function _fdBuildTaskbarActions(d) {
     const _fid  = jsq(d.id || '');
     const _mBlk = Array.isArray(blockedData)      && blockedData.some(x => x.targetUserId === d.id);
@@ -1960,6 +1985,7 @@ function _fdBuildTaskbarActions(d) {
             { icon: _mAvt ? 'visibility' : 'visibility_off', label: _mAvt ? t('context_menu.friend.show_avatar', 'Show Avatar')           : t('context_menu.friend.hide_avatar', 'Hide Avatar'),           onclick: `sendToCS({action:'${_mAvt ? 'vrcShowAvatar' : 'vrcHideAvatar'}',userId:'${_fid}'})` },
             { icon: _mInt ? 'touch_app' : 'do_not_touch',    label: _mInt ? t('context_menu.friend.interact_on', 'Turn On Interactions') : t('context_menu.friend.interact_off', 'Turn Off Interactions'), onclick: `sendToCS({action:'${_mInt ? 'vrcInteractOn' : 'vrcInteractOff'}',userId:'${_fid}'})` },
         ] },
+        _fdCopyableThemeColors(d) ? { icon: 'palette', label: t('context_menu.copy_theme', 'Copy Theme'), onclick: `copyProfileThemeFromDetail()` } : null,
     ].filter(Boolean);
     const out = [
         { icon: 'refresh', iconClass: _fdRefreshing ? 'fd-action-spin' : '', title: t('common.refresh', 'Refresh'), label: t('common.refresh', 'Refresh'), onclick: `refreshFriendDetailModal('${_fid}')` },

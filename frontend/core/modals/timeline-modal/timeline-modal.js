@@ -832,7 +832,7 @@ function _tlPersonalProfHtml(ev) {
     return _tlListProfHtml(ev.userImage, ev.userName);
 }
 
-function buildPersonalListHtml(events) {
+function buildPersonalListHtml(events, staticHeader) {
     if (!events.length) {
         return `<div class="empty-msg">${esc(t('timeline.list.empty.personal', 'No timeline events match your filter.'))}</div>`;
     }
@@ -846,24 +846,16 @@ function buildPersonalListHtml(events) {
         const listMeetCount = ev.type === 'meet_again' ? (ev.meetCount || 0) : 0;
         const listTypeLabel = listMeetCount > 0 ? `${meta.label} (${listMeetCount})` : meta.label;
 
-        rows += `<tr class="tl-list-row" data-tlid="${esc(ev.id)}" onclick="openTlDetail('${ei}')">
-            <td class="tl-list-dt">${esc(`${tlFormatShortDate(ev.timestamp)} | ${tlFormatTime(ev.timestamp)}`)}</td>
-            <td class="tl-list-type"><span class="msi tl-list-icon" style="color:${color}">${meta.icon}</span><span>${esc(listTypeLabel)}</span></td>
-            <td style="width:34px;padding:4px 8px;">${_tlPersonalProfHtml(ev)}</td>
-            <td class="tl-list-user">${userHtml || tlListNaHtml()}</td>
-            <td class="tl-list-detail">${detail || tlListNaHtml()}</td>
-        </tr>`;
+        rows += tlTableRow('personal', ` data-tlid="${esc(ev.id)}" onclick="openTlDetail('${ei}')"`, {
+            dt:      `<td class="tl-list-dt">${esc(`${tlFormatShortDate(ev.timestamp)} | ${tlFormatTime(ev.timestamp)}`)}</td>`,
+            type:    `<td class="tl-list-type"><span class="msi tl-list-icon" style="color:${color}">${meta.icon}</span><span>${esc(listTypeLabel)}</span></td>`,
+            profile: `<td class="tl-list-profile">${_tlPersonalProfHtml(ev)}</td>`,
+            user:    `<td class="tl-list-user">${userHtml || tlListNaHtml()}</td>`,
+            detail:  `<td class="tl-list-detail">${detail || tlListNaHtml()}</td>`,
+        });
     });
 
-    return `<div class="tl-list-wrap">
-        <table class="tl-list-table">
-            <colgroup><col style="width:155px"><col style="width:135px"><col style="width:80px"><col style="width:130px"><col></colgroup>
-            <thead><tr>
-                <th>${esc(t('timeline.list.header.date_time', 'Date / Time'))}</th><th>${esc(t('timeline.list.header.type', 'Type'))}</th><th>${esc(t('timeline.list.header.profile', 'Profile'))}</th><th>${esc(t('timeline.list.header.user', 'User'))}</th><th>${esc(t('timeline.list.header.detail', 'Detail'))}</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-        </table>
-    </div>`;
+    return tlTableHtml('personal', rows, staticHeader);
 }
 
 function _tlListPlayerAvatars(players, max) {
@@ -938,7 +930,7 @@ function _tlListData(ev) {
 // List View — Friends Timeline
 // ═══════════════════════════════════════════════════════════════════
 
-function buildFriendListHtml(events) {
+function buildFriendListHtml(events, staticHeader) {
     if (!events.length) {
         return `<div class="empty-msg">${esc(t('timeline.list.empty.friends', 'No friend activity logged yet.'))}</div>`;
     }
@@ -953,24 +945,16 @@ function buildFriendListHtml(events) {
             ? `openFtGpsDetail('${ei}')`
             : `openFtDetail('${ei}')`;
 
-        rows += `<tr class="tl-list-row" data-ftid="${esc(ev.id)}" onclick="${clickAction}">
-            <td class="tl-list-dt">${esc(`${tlFormatShortDate(ev.timestamp)} | ${tlFormatTime(ev.timestamp)}`)}</td>
-            <td class="tl-list-type"><span class="msi tl-list-icon" style="color:${color}">${meta.icon}</span><span>${esc(meta.label)}</span></td>
-            <td style="width:34px;padding:4px 8px;">${_tlListProfHtml(ev.friendImage, ev.friendName)}</td>
-            <td class="tl-list-user">${esc(ev.friendName || t('timeline.unknown', 'Unknown'))}</td>
-            <td class="tl-list-detail">${detail || tlListNaHtml()}</td>
-        </tr>`;
+        rows += tlTableRow('friends', ` data-ftid="${esc(ev.id)}" onclick="${clickAction}"`, {
+            dt:      `<td class="tl-list-dt">${esc(`${tlFormatShortDate(ev.timestamp)} | ${tlFormatTime(ev.timestamp)}`)}</td>`,
+            type:    `<td class="tl-list-type"><span class="msi tl-list-icon" style="color:${color}">${meta.icon}</span><span>${esc(meta.label)}</span></td>`,
+            profile: `<td class="tl-list-profile">${_tlListProfHtml(ev.friendImage, ev.friendName)}</td>`,
+            user:    `<td class="tl-list-user">${esc(ev.friendName || t('timeline.unknown', 'Unknown'))}</td>`,
+            detail:  `<td class="tl-list-detail">${detail || tlListNaHtml()}</td>`,
+        });
     });
 
-    return `<div class="tl-list-wrap">
-        <table class="tl-list-table">
-            <colgroup><col style="width:155px"><col style="width:135px"><col style="width:80px"><col style="width:130px"><col></colgroup>
-            <thead><tr>
-                <th>${esc(t('timeline.list.header.date_time', 'Date / Time'))}</th><th>${esc(t('timeline.list.header.type', 'Type'))}</th><th>${esc(t('timeline.list.header.profile', 'Profile'))}</th><th>${esc(t('timeline.list.header.user', 'User'))}</th><th>${esc(t('timeline.list.header.detail', 'Detail'))}</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-        </table>
-    </div>`;
+    return tlTableHtml('friends', rows, staticHeader);
 }
 
 function _ftListDetail(ev) {

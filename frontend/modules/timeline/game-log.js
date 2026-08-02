@@ -76,29 +76,26 @@ function renderGameLog() {
 function buildGlListHtml(entries) {
     if (!entries.length) return `<div class="empty-msg">${esc(t('gamelog.empty', 'No game log entries yet.'))}</div>`;
 
-    let rows = '';
-    entries.forEach(ev => {
-        const meta  = GL_META[ev.type] ?? { icon: 'circle', color: 'var(--tx3)', label: ev.type };
-        const dateStr = tlFormatShortDate(ev.timestamp);
-        const timeStr = tlFormatTime(ev.timestamp);
-        rows += `<tr class="tl-list-row">
-            <td class="tl-list-dt">${esc(`${dateStr} | ${timeStr}`)}</td>
-            <td class="tl-list-type"><span class="msi tl-list-icon" style="color:${meta.color}">${meta.icon}</span><span>${esc(meta.label)}</span></td>
-            <td class="tl-list-detail" colspan="2">${esc(ev.message || '')}${ev.detail ? `<span class="tl-list-na" style="margin-left:6px;font-size:10px;">${esc(ev.detail.length > 80 ? ev.detail.slice(0, 80) + '…' : ev.detail)}</span>` : ''}</td>
-        </tr>`;
+    const glMeta = ev => GL_META[ev.type] ?? { icon: 'circle', color: 'var(--tx3)', label: ev.type };
+    const sorted = tlTableSortLocal('gamelog', entries, {
+        dt:    e => e.timestamp || '',
+        type:  e => (glMeta(e).label || '').toLowerCase(),
+        event: e => (e.message || '').toLowerCase(),
     });
 
-    return `<div class="tl-list-wrap">
-        <table class="tl-list-table">
-            <colgroup><col style="width:155px"><col style="width:120px"><col></colgroup>
-            <thead><tr>
-                <th>${esc(t('timeline.list.header.date_time', 'Date / Time'))}</th>
-                <th>${esc(t('timeline.list.header.type', 'Type'))}</th>
-                <th>${esc(t('gamelog.header.event', 'Event'))}</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-        </table>
-    </div>`;
+    let rows = '';
+    sorted.forEach(ev => {
+        const meta  = glMeta(ev);
+        const dateStr = tlFormatShortDate(ev.timestamp);
+        const timeStr = tlFormatTime(ev.timestamp);
+        rows += tlTableRow('gamelog', '', {
+            dt:    `<td class="tl-list-dt">${esc(`${dateStr} | ${timeStr}`)}</td>`,
+            type:  `<td class="tl-list-type"><span class="msi tl-list-icon" style="color:${meta.color}">${meta.icon}</span><span>${esc(meta.label)}</span></td>`,
+            event: `<td class="tl-list-detail">${esc(ev.message || '')}${ev.detail ? `<span class="tl-list-na" style="margin-left:6px;font-size:10px;">${esc(ev.detail.length > 80 ? ev.detail.slice(0, 80) + '…' : ev.detail)}</span>` : ''}</td>`,
+        });
+    });
+
+    return tlTableHtml('gamelog', rows);
 }
 
 // ── Card / Timeline view ──────────────────────────────────────────────

@@ -1096,9 +1096,26 @@ public class TimelineService : IDisposable
         return result;
     }
 
-    public (List<TimelineEvent> Events, bool HasMore) GetEventsPaged(int limit, int offset, string typeFilter = "")
+    private static readonly HashSet<string> _eventSortCols =
+        new(StringComparer.OrdinalIgnoreCase) { "timestamp", "type", "user_name", "message", "world_name" };
+
+    private static string EventOrderBy(string? sortBy, string? sortDir)
     {
-        if (_optimizeMode && string.IsNullOrEmpty(typeFilter))
+        var col = !string.IsNullOrEmpty(sortBy) && _eventSortCols.Contains(sortBy) ? sortBy : "timestamp";
+        var dir = string.Equals(sortDir, "asc", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
+        return col == "timestamp"
+            ? $"ORDER BY timestamp {dir}"
+            : $"ORDER BY {col} {dir}, timestamp DESC";
+    }
+
+    public (List<TimelineEvent> Events, bool HasMore) GetEventsPaged(
+        int limit, int offset, string typeFilter = "", string? sortBy = null, string? sortDir = null)
+    {
+        var defaultSort = string.IsNullOrEmpty(sortBy)
+            || (string.Equals(sortBy, "timestamp", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(sortDir, "asc", StringComparison.OrdinalIgnoreCase));
+
+        if (_optimizeMode && string.IsNullOrEmpty(typeFilter) && defaultSort)
         {
             lock (_lock)
             {
@@ -1112,7 +1129,7 @@ public class TimelineService : IDisposable
         {
             using var cmd = _db.CreateCommand();
             var typeClause = string.IsNullOrEmpty(typeFilter) ? "" : "WHERE type = $type";
-            cmd.CommandText = $"SELECT id FROM events {typeClause} ORDER BY timestamp DESC LIMIT $limit OFFSET $offset";
+            cmd.CommandText = $"SELECT id FROM events {typeClause} {EventOrderBy(sortBy, sortDir)} LIMIT $limit OFFSET $offset";
             cmd.Parameters.AddWithValue("$limit",  limit + 1);
             cmd.Parameters.AddWithValue("$offset", offset);
             if (!string.IsNullOrEmpty(typeFilter)) cmd.Parameters.AddWithValue("$type", typeFilter);
@@ -1198,6 +1215,11 @@ public class TimelineService : IDisposable
             }
         }
         catch { }
+
+        var rank = new Dictionary<string, int>(ids.Count);
+        for (int i = 0; i < ids.Count; i++) rank[ids[i]] = i;
+        result = result.OrderBy(e => rank.TryGetValue(e.Id, out var i) ? i : int.MaxValue).ToList();
+
         return (result, hasMore);
     }
 
@@ -1800,11 +1822,27 @@ public class TimelineService : IDisposable
         }
     }
 
+    private static readonly HashSet<string> _friendSortCols =
+        new(StringComparer.OrdinalIgnoreCase) { "timestamp", "type", "friend_name", "world_name" };
+
+    private static string FriendOrderBy(string? sortBy, string? sortDir)
+    {
+        var col = !string.IsNullOrEmpty(sortBy) && _friendSortCols.Contains(sortBy) ? sortBy : "timestamp";
+        var dir = string.Equals(sortDir, "asc", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
+        return col == "timestamp"
+            ? $"ORDER BY timestamp {dir}"
+            : $"ORDER BY {col} {dir}, timestamp DESC";
+    }
+
     public (List<FriendTimelineEvent> Events, bool HasMore) GetFriendEventsPaged(
-        int limit, int offset, string? type = null)
+        int limit, int offset, string? type = null, string? sortBy = null, string? sortDir = null)
     {
         var hasType = !string.IsNullOrEmpty(type) && type != "all";
-        if (_optimizeMode && !hasType)
+        var defaultSort = string.IsNullOrEmpty(sortBy)
+            || (string.Equals(sortBy, "timestamp", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(sortDir, "asc", StringComparison.OrdinalIgnoreCase));
+
+        if (_optimizeMode && !hasType && defaultSort)
         {
             lock (_lock)
             {
@@ -1816,16 +1854,17 @@ public class TimelineService : IDisposable
         var result = new List<FriendTimelineEvent>();
         try
         {
+            var orderBy = FriendOrderBy(sortBy, sortDir);
             using var cmd = _db.CreateCommand();
             cmd.CommandText = hasType
-                ? @"SELECT id,type,timestamp,friend_id,friend_name,friend_image,
+                ? $@"SELECT id,type,timestamp,friend_id,friend_name,friend_image,
                        world_id,world_name,world_thumb,location,old_value,new_value,left_at,tracked
                        FROM friend_events WHERE type=$type
-                       ORDER BY timestamp DESC LIMIT $limit OFFSET $offset"
-                : @"SELECT id,type,timestamp,friend_id,friend_name,friend_image,
+                       {orderBy} LIMIT $limit OFFSET $offset"
+                : $@"SELECT id,type,timestamp,friend_id,friend_name,friend_image,
                        world_id,world_name,world_thumb,location,old_value,new_value,left_at,tracked
                        FROM friend_events
-                       ORDER BY timestamp DESC LIMIT $limit OFFSET $offset";
+                       {orderBy} LIMIT $limit OFFSET $offset";
             cmd.Parameters.AddWithValue("$limit",  limit + 1);
             cmd.Parameters.AddWithValue("$offset", offset);
             if (hasType) cmd.Parameters.AddWithValue("$type", type);

@@ -1143,7 +1143,7 @@ function _photoBuildToolbar(x) {
 
     const copyBtns = x.remote
         ? `<button class="pdt-btn" onclick="photoDownload()" title="${esc(t('context_menu.image.download', 'Download Image'))}"><span class="msi">download</span></button>
-           <button class="pdt-btn" onclick="photoCopyLink()" title="${esc(t('common.share', 'Share'))}"><span class="msi">link</span></button>`
+           <button class="pdt-btn" onclick="photoCopyImage()" title="${esc(t('library.actions.copy_clipboard', 'Copy to clipboard'))}"><span class="msi">content_copy</span></button>`
         : `<button class="pdt-btn" onclick="photoCopy()" title="${esc(t('library.actions.copy_clipboard', 'Copy to clipboard'))}"><span class="msi">content_copy</span></button>`;
 
     return `<div class="photo-detail-toolbar" onmousedown="event.stopPropagation()">
@@ -1282,12 +1282,36 @@ function photoDownload() {
     sendToCS({ action: 'invDownload', url: it.url, fileName });
 }
 
-function photoCopyLink() {
+function _photoBlobToPng(blob) {
+    return new Promise((resolve, reject) => {
+        const objUrl = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width  = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            URL.revokeObjectURL(objUrl);
+            canvas.toBlob(b => b ? resolve(b) : reject(new Error('encode failed')), 'image/png');
+        };
+        img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error('load failed')); };
+        img.src = objUrl;
+    });
+}
+
+async function photoCopyImage() {
     const it = _photoState.item;
     if (!it || !it.url) return;
-    navigator.clipboard.writeText(it.url)
-        .then(() => showToast(true, t('common.link_copied', 'Link copied!')))
-        .catch(() => {});
+    try {
+        const resp = await fetch(it.url);
+        if (!resp.ok) throw new Error('fetch failed');
+        let blob = await resp.blob();
+        if (blob.type !== 'image/png') blob = await _photoBlobToPng(blob);
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast(true, t('export.copied', 'Copied to clipboard'));
+    } catch {
+        showToast(false, t('export.copy_failed', 'Copy failed'));
+    }
 }
 
 function photoNavPrev() { _photoNav(-1); }

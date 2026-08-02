@@ -1192,11 +1192,11 @@ function _dashTlRows(events, isFriend) {
     const sliced = events.slice(0, 8);
     if (isFriend) {
         return typeof buildFriendListHtml === 'function'
-            ? buildFriendListHtml(sliced)
+            ? buildFriendListHtml(sliced, true)
             : `<div class="empty-msg">${t('dashboard.timeline.empty', 'No events yet')}</div>`;
     }
     return typeof buildPersonalListHtml === 'function'
-        ? buildPersonalListHtml(sliced)
+        ? buildPersonalListHtml(sliced, true)
         : `<div class="empty-msg">${t('dashboard.timeline.empty', 'No events yet')}</div>`;
 }
 

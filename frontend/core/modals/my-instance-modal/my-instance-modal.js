@@ -58,6 +58,24 @@ function handleWorldInstancesDetail(payload) {
         });
     }
 
+    if (payload.world && payload.worldId && typeof dashWorldCache !== 'undefined') {
+        const w = payload.world;
+        dashWorldCache[payload.worldId] = Object.assign({}, dashWorldCache[payload.worldId], {
+            name:              w.name || dashWorldCache[payload.worldId]?.name || '',
+            authorName:        w.authorName || '',
+            authorId:          w.authorId || '',
+            description:       w.description || '',
+            thumbnailImageUrl: w.thumb || dashWorldCache[payload.worldId]?.thumbnailImageUrl || '',
+            _descFetched:      true,
+        });
+        const iim = document.getElementById('modalInstanceInfo');
+        if (iim && iim.style.display !== 'none'
+            && typeof currentInstanceData !== 'undefined' && currentInstanceData?.worldId === payload.worldId
+            && typeof openInstanceInfoModal === 'function') {
+            openInstanceInfoModal();
+        }
+    }
+
     const m = document.getElementById('modalMyInstance');
     if (!m || m.style.display === 'none' || _miModalWorldId !== payload.worldId) return;
 

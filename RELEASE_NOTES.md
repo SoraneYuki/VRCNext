@@ -1,25 +1,28 @@
-**2026.35.4**
+**2026.35.6**
 
-**Group Modal**
-* See roles of group even if you aren't have permissions.
+**Player List**
 
-**VRC+ Decoration Improvements**
-* Added an option to improve readability on profiles with bad text colors.
-* Navbar badges do use icon color now on vrc+ decorated profiles.
+* Updated the Instance Player List to use the new VRCN v2 design.
+* The list is now slightly more compact and easier to navigate.
+* Added World description to player list modal.
+* Added World Creator to player list
+* Playerlist can be now sorted with all cell filters.
+* Added Hide/SHow World Panel to player list.
 
-**Photo Modal**
-* Hidden or blurred images now remain blurred when opened, preventing accidental clicks and photo leaks. Click the image again to reveal it.
-* Photo modals now support breadcrumb navigation. When opening a user profile from a photo, you can navigate back to the photo modal.
-* All images that can be inspected in any modal do use now the photo modal so you can resize, zoom-in/out/rotate and download the image and have a better "inspecting" experience.
+**Quality-of-Life Updates**
 
-**Timeline**
-* Photo, Instance and Location modals do support breadcrumb navigation.
+* Added **Copy Theme** to the **Show More** menu on user profiles. This copies the profile’s colors and applies them to your own profile.
 
-**Design Refactor**
-* All modals now use the new header menu with action buttons, matching the design of the updated profile modals.
-* Avatar, Profile, Group, and World modals are now slightly taller and wider to display more content.
-* Refactored the **Timeline > Friends > Location** modal to match the design of the **Personal Instances** modal.
+**Improvements**
+
+* The tab bar in Profile, World, Group, and Avatar modals now stays fixed while the content below it scrolls.
+* Columns in the Timeline’s Personal, Friends, and Game Log lists can now be sorted by clicking their headers and reordered by dragging the handle on the right.
+* Sorting applies to the entire history, not just the currently visible page. Column layouts are remembered separately for each list.
 
 **Bug Fixes**
-* Fixed the **Close**, **Customize Profile**, and **Change Banner** buttons appearing inside your own profile modal instead of in the taskbar when **Use Direct Modal Navigation** is disabled.
-* Fixed Log "Type" text being to long in gorup logs.
+
+* Fixed column headers in Timeline lists not aligning with the content below them.
+* Fixed copying images from the Photo Modal placing a local cache link on the clipboard instead of the actual image. Images can now be pasted directly into Discord, chats, and image editors.
+* Fixed the heatmap in user profiles using the button color instead of the VRC+ icon color.
+* Fixed an issue that prevented profile theme colors from being updated.
+* Fixed the "Most visited World" progress bars on vrc+ decorated profiles.
