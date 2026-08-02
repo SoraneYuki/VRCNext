@@ -192,7 +192,7 @@ function openInstanceInfoModal() {
     const prevScroller  = c.querySelector('.mi-right-scroll');
     const prevScrollTop = prevScroller?.scrollTop || 0;
 
-    c.innerHTML = `${renderModalBar(name, [modalCloseAction('closeInstanceInfoModal()')])}<div class="mi-layout" style="height:min(88vh,420px);max-height:420px;">${leftHtml}${rightHtml}</div>`;
+    c.innerHTML = `${renderModalBar(name, [modalCloseAction('closeInstanceInfoModal()')])}<div class="mi-layout">${leftHtml}${rightHtml}</div>`;
 
     m.style.display = 'flex';
     if (prevScrollTop > 0) {

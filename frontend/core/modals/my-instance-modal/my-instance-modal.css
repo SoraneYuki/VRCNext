@@ -9,6 +9,19 @@
     max-height: 380px;
 }
 
+#instanceInfoContent {
+    display: flex;
+    flex-direction: column;
+    height: var(--fd-compact-h);
+}
+
+#instanceInfoContent > .mi-layout {
+    flex: 1 1 0;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+}
+
 /* === Left Panel === */
 
 .mi-left {
