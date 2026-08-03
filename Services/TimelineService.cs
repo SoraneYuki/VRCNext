@@ -575,11 +575,14 @@ public class TimelineService : IDisposable
         {
             try
             {
+                var have = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var e in _events) have.Add(e.Id);
+
                 using var tx = _db.BeginTransaction();
                 foreach (var ev in events)
                 {
                     DbInsertIgnoreEvent(ev, tx);
-                    if (!_events.Any(e => e.Id == ev.Id)) _events.Add(ev);
+                    if (have.Add(ev.Id)) _events.Add(ev);
                 }
                 tx.Commit();
             }
@@ -599,11 +602,14 @@ public class TimelineService : IDisposable
         {
             try
             {
+                var have = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var e in _friendEvents) have.Add(e.Id);
+
                 using var tx = _db.BeginTransaction();
                 foreach (var ev in events)
                 {
                     DbInsertIgnoreFriendEvent(ev, tx);
-                    if (!_friendEvents.Any(e => e.Id == ev.Id)) _friendEvents.Add(ev);
+                    if (have.Add(ev.Id)) _friendEvents.Add(ev);
                 }
                 tx.Commit();
             }
@@ -1223,7 +1229,7 @@ public class TimelineService : IDisposable
         return (result, hasMore);
     }
 
-    public (List<TimelineEvent> Events, bool HasMore) SearchEvents(string query, string typeFilter = "", string date = "", int offset = 0)
+    public (List<TimelineEvent> Events, bool HasMore) SearchEvents(string query, string typeFilter = "", string date = "", int offset = 0, int limit = 100)
     {
         if (string.IsNullOrWhiteSpace(query)) return (new List<TimelineEvent>(), false);
         var like = "%" + query.Replace("%", "\\%").Replace("_", "\\_") + "%";
@@ -1259,7 +1265,7 @@ public class TimelineService : IDisposable
                 ORDER BY e.timestamp DESC
                 LIMIT $limit OFFSET $offset";
             cmd.Parameters.AddWithValue("$q",      like);
-            cmd.Parameters.AddWithValue("$limit",  101);
+            cmd.Parameters.AddWithValue("$limit",  limit + 1);
             cmd.Parameters.AddWithValue("$offset", offset);
             if (!string.IsNullOrEmpty(typeFilter))
                 cmd.Parameters.AddWithValue("$type", typeFilter);
@@ -1280,7 +1286,7 @@ public class TimelineService : IDisposable
             if (ids.Count > remaining) ids = ids.Take(remaining).ToList();
         }
 
-        var hasMore = ids.Count > 100;
+        var hasMore = ids.Count > limit;
         if (hasMore) ids.RemoveAt(ids.Count - 1);
         if (ids.Count == 0) return (new List<TimelineEvent>(), hasMore);
 
@@ -2023,7 +2029,7 @@ public class TimelineService : IDisposable
         return result;
     }
 
-    public (List<FriendTimelineEvent> Events, bool HasMore) SearchFriendEvents(string query, string date = "", int offset = 0, string typeFilter = "")
+    public (List<FriendTimelineEvent> Events, bool HasMore) SearchFriendEvents(string query, string date = "", int offset = 0, string typeFilter = "", int limit = 100)
     {
         if (string.IsNullOrWhiteSpace(query)) return (new List<FriendTimelineEvent>(), false);
         var like = "%" + query.Replace("%", "\\%").Replace("_", "\\_") + "%";
@@ -2059,7 +2065,7 @@ public class TimelineService : IDisposable
                 ORDER BY timestamp DESC
                 LIMIT $limit OFFSET $offset";
             cmd.Parameters.AddWithValue("$q",      like);
-            cmd.Parameters.AddWithValue("$limit",  101);
+            cmd.Parameters.AddWithValue("$limit",  limit + 1);
             cmd.Parameters.AddWithValue("$offset", offset);
             if (!string.IsNullOrEmpty(typeFilter)) cmd.Parameters.AddWithValue("$type", typeFilter);
             if (!string.IsNullOrEmpty(utcStart))
@@ -2094,7 +2100,7 @@ public class TimelineService : IDisposable
             if (remaining <= 0) return (new List<FriendTimelineEvent>(), false);
             if (result.Count > remaining) result.RemoveRange(remaining, result.Count - remaining);
         }
-        var hasMore = result.Count > 100;
+        var hasMore = result.Count > limit;
         if (hasMore) result.RemoveAt(result.Count - 1);
         return (result, hasMore);
     }

@@ -377,6 +377,7 @@
   "timeline.list.header.user": "Пользователь",
   "timeline.list.header.detail": "Детали",
   "timeline.list.header.hint": "Нажмите для сортировки, перетащите для перемещения",
+  "timeline.page_size": "Записей на странице",
   "timeline.list.header.sort_hint": "Нажмите для сортировки",
   "timeline.list.header.reorder": "Перетащите для перемещения",
   "timeline.list.from": "От",

@@ -33,5 +33,9 @@ function buildPaginator(page, totalPages, onPageFn, countHtml = '', hasMore = fa
 
 function setPaginator(barId, html) {
     const bar = document.getElementById(barId);
-    if (bar) bar.innerHTML = html;
+    if (!bar) return;
+    bar.innerHTML = html;
+    if (typeof initVnSelect === 'function') {
+        bar.querySelectorAll('select.vrcn-dropdown').forEach(sel => initVnSelect(sel));
+    }
 }
