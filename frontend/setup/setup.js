@@ -372,6 +372,8 @@ function onBackendMessage(e) {
                 var vrcHint = document.getElementById('vrcPathHint');
                 if (vrcHint) vrcHint.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:middle;color:var(--accent);">info</span> VRChat runs via Proton. Steam handles the launch automatically.';
 
+                var welcomeStepTitle = document.getElementById('welcomeStep10Title');
+                if (welcomeStepTitle) welcomeStepTitle.textContent = 'Start with System';
                 var pageTitle = document.getElementById('startupPageTitle');
                 if (pageTitle) pageTitle.textContent = 'Start with System';
                 var pageDesc = document.getElementById('startupPageDesc');
