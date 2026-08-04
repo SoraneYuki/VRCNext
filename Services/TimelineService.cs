@@ -3388,6 +3388,127 @@ public class TimelineService : IDisposable
         return (personal, friends);
     }
 
+    public List<int[]> GetSharedSessionWeights(List<string> ids, int days = 180, double halfLifeDays = 60)
+    {
+        var result = new List<int[]>();
+        if (ids == null || ids.Count < 2) return result;
+
+        var index = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < ids.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(ids[i]) && !index.ContainsKey(ids[i])) index[ids[i]] = i;
+        }
+
+        var now    = DateTime.UtcNow;
+        var cutoff = now.AddDays(-days).ToString("o");
+        long n     = ids.Count;
+
+        var seen = new List<(long Key, long Ticks)>();
+
+        void Collect(List<int> group, DateTime when)
+        {
+            if (group.Count < 2 || group.Count > 64) return;
+            group.Sort();
+            for (int a = 0; a < group.Count; a++)
+            {
+                for (int b = a + 1; b < group.Count; b++)
+                {
+                    if (group[a] == group[b]) continue;
+                    seen.Add((group[a] * n + group[b], when.Ticks));
+                }
+            }
+        }
+
+        try
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = @"SELECT p.event_id, e.timestamp, p.user_id
+                FROM event_players p
+                JOIN events e ON e.id = p.event_id
+                WHERE e.type='instance_join' AND e.timestamp >= $cut
+                ORDER BY e.timestamp ASC, p.event_id ASC";
+            cmd.Parameters.AddWithValue("$cut", cutoff);
+            using var r = cmd.ExecuteReader();
+
+            var curId    = "";
+            var curWhen  = DateTime.MinValue;
+            var curGroup = new List<int>();
+            while (r.Read())
+            {
+                var eid = r.GetString(0);
+                if (eid != curId)
+                {
+                    Collect(curGroup, curWhen);
+                    curGroup = new List<int>();
+                    curId    = eid;
+                    DateTime.TryParse(r.GetString(1), null, System.Globalization.DateTimeStyles.RoundtripKind, out curWhen);
+                }
+                if (index.TryGetValue(r.GetString(2), out var ix)) curGroup.Add(ix);
+            }
+            Collect(curGroup, curWhen);
+        }
+        catch { }
+
+        try
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = @"SELECT e.id, e.timestamp, e.friend_id, c.friend_id
+                FROM friend_events e
+                JOIN friend_event_colocated c ON c.event_id = e.id
+                WHERE e.type='friend_gps' AND e.timestamp >= $cut
+                ORDER BY e.timestamp ASC, e.id ASC";
+            cmd.Parameters.AddWithValue("$cut", cutoff);
+            using var r = cmd.ExecuteReader();
+
+            var curId    = "";
+            var curWhen  = DateTime.MinValue;
+            var curGroup = new List<int>();
+            while (r.Read())
+            {
+                var eid = r.GetString(0);
+                if (eid != curId)
+                {
+                    Collect(curGroup, curWhen);
+                    curGroup = new List<int>();
+                    curId    = eid;
+                    DateTime.TryParse(r.GetString(1), null, System.Globalization.DateTimeStyles.RoundtripKind, out curWhen);
+                    if (index.TryGetValue(r.GetString(2), out var self)) curGroup.Add(self);
+                }
+                if (index.TryGetValue(r.GetString(3), out var ix)) curGroup.Add(ix);
+            }
+            Collect(curGroup, curWhen);
+        }
+        catch { }
+
+        if (seen.Count == 0) return result;
+
+        seen.Sort((x, y) => x.Ticks != y.Ticks ? x.Ticks.CompareTo(y.Ticks) : x.Key.CompareTo(y.Key));
+
+        var sessionGap = TimeSpan.FromMinutes(20).Ticks;
+        var lastSeen   = new Dictionary<long, long>();
+        var weights    = new Dictionary<long, double>();
+
+        foreach (var (key, ticks) in seen)
+        {
+            if (lastSeen.TryGetValue(key, out var prev) && ticks - prev < sessionGap) continue;
+            lastSeen[key] = ticks;
+
+            var age = (now - new DateTime(ticks, DateTimeKind.Utc)).TotalDays;
+            if (age < 0) age = 0;
+            var mult = Math.Pow(0.5, age / halfLifeDays);
+            weights[key] = weights.TryGetValue(key, out var w) ? w + mult : mult;
+        }
+
+        foreach (var kv in weights)
+        {
+            var a = (int)(kv.Key / n);
+            var b = (int)(kv.Key % n);
+            var w = (int)Math.Round(kv.Value * 1000);
+            if (w > 0) result.Add(new[] { a, b, w });
+        }
+        return result;
+    }
+
     // Disposal
 
     public void Dispose()

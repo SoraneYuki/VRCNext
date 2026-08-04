@@ -2404,6 +2404,11 @@ public partial class AppShell
                 case "vrcSaveMutualCache":
                 case "vrcLoadMutualCache":
                 case "vrcClearMutualCache":
+                case "vrcGetGroupsForNetwork":
+                case "vrcGetNetworkSessions":
+                case "vrcSaveNetworkCache":
+                case "vrcLoadNetworkCache":
+                case "vrcClearNetworkCache":
                     await _groups.HandleMessage(action, msg);
                     break;
 
