@@ -648,7 +648,8 @@ public class TimelineController
                     }
                 }
 
-                var (events, hasMore) = _core.Timeline.GetEventsPaged(100, 0, tlTypeFilter, msg["sortBy"]?.ToString(), msg["sortDir"]?.ToString());
+                var pageLimit = Math.Clamp(msg["limit"]?.Value<int>() ?? 100, 10, 100);
+                var (events, hasMore) = _core.Timeline.GetEventsPaged(pageLimit, 0, tlTypeFilter, msg["sortBy"]?.ToString(), msg["sortDir"]?.ToString());
                 var total   = _core.Timeline.GetEventCount(tlTypeFilter);
                 var payload = events.Select(e => _instance.BuildTimelinePayload(e)).ToList();
                 _core.SendToJS("timelineData", new { events = payload, hasMore, offset = 0, total, type = tlTypeFilter });
@@ -675,7 +676,8 @@ public class TimelineController
             {
                 var pageOffset   = msg["offset"]?.Value<int>() ?? 0;
                 var tlTypeFilter = msg["type"]?.ToString() ?? "";
-                var (events, hasMore) = _core.Timeline.GetEventsPaged(100, pageOffset, tlTypeFilter, msg["sortBy"]?.ToString(), msg["sortDir"]?.ToString());
+                var pageLimit = Math.Clamp(msg["limit"]?.Value<int>() ?? 100, 10, 100);
+                var (events, hasMore) = _core.Timeline.GetEventsPaged(pageLimit, pageOffset, tlTypeFilter, msg["sortBy"]?.ToString(), msg["sortDir"]?.ToString());
                 var total   = _core.Timeline.GetEventCount(tlTypeFilter);
                 var payload = events.Select(e => _instance.BuildTimelinePayload(e)).ToList();
                 _core.SendToJS("timelineData", new { events = payload, hasMore, offset = pageOffset, total, type = tlTypeFilter });
@@ -696,7 +698,8 @@ public class TimelineController
                 var srchDate   = msg["date"]?.ToString() ?? "";
                 var srchOffset = msg["offset"]?.Value<int>() ?? 0;
                 var srchType   = msg["type"]?.ToString() ?? "";
-                var (events, _) = _core.Timeline.SearchEvents(srchQuery, srchType, srchDate, srchOffset);
+                var srchLimit = Math.Clamp(msg["limit"]?.Value<int>() ?? 100, 10, 100);
+                var (events, _) = _core.Timeline.SearchEvents(srchQuery, srchType, srchDate, srchOffset, srchLimit);
                 var total   = _core.Timeline.SearchEventsCount(srchQuery, srchType, srchDate);
                 var payload = events.Select(e => _instance.BuildTimelinePayload(e)).ToList();
                 _core.SendToJS("timelineSearchResults", new { events = payload, query = srchQuery, date = srchDate, total, offset = srchOffset });
@@ -717,7 +720,8 @@ public class TimelineController
                 var srchDate   = msg["date"]?.ToString() ?? "";
                 var srchOffset = msg["offset"]?.Value<int>() ?? 0;
                 var srchType   = msg["type"]?.ToString() ?? "";
-                var (events, _) = _core.Timeline.SearchFriendEvents(srchQuery, srchDate, srchOffset, srchType);
+                var srchLimit = Math.Clamp(msg["limit"]?.Value<int>() ?? 100, 10, 100);
+                var (events, _) = _core.Timeline.SearchFriendEvents(srchQuery, srchDate, srchOffset, srchType, srchLimit);
                 var total   = _core.Timeline.SearchFriendEventsCount(srchQuery, srchDate, srchType);
                 var payload = events.Select(e => _friends.BuildFriendTimelinePayload(e)).ToList();
                 _core.SendToJS("friendTimelineSearchResults", new { events = payload, query = srchQuery, date = srchDate, total, offset = srchOffset });
@@ -738,7 +742,8 @@ public class TimelineController
             try
             {
                 var typeFilter = msg["type"]?.ToString() ?? "";
-                var (fevents, hasMore) = _core.Timeline.GetFriendEventsPaged(100, 0, typeFilter, msg["sortBy"]?.ToString(), msg["sortDir"]?.ToString());
+                var pageLimit = Math.Clamp(msg["limit"]?.Value<int>() ?? 100, 10, 100);
+                var (fevents, hasMore) = _core.Timeline.GetFriendEventsPaged(pageLimit, 0, typeFilter, msg["sortBy"]?.ToString(), msg["sortDir"]?.ToString());
                 var ftTotal  = _core.Timeline.GetFriendEventCount(typeFilter);
                 var fpayload = fevents.Select(e => _friends.BuildFriendTimelinePayload(e)).ToList();
                 _core.SendToJS("friendTimelineData", new { events = fpayload, hasMore, offset = 0, total = ftTotal, type = typeFilter });
@@ -862,7 +867,8 @@ public class TimelineController
             {
                 var pageOffset = msg["offset"]?.Value<int>() ?? 0;
                 var typeFilter = msg["type"]?.ToString() ?? "";
-                var (fevents, hasMore) = _core.Timeline.GetFriendEventsPaged(100, pageOffset, typeFilter, msg["sortBy"]?.ToString(), msg["sortDir"]?.ToString());
+                var pageLimit = Math.Clamp(msg["limit"]?.Value<int>() ?? 100, 10, 100);
+                var (fevents, hasMore) = _core.Timeline.GetFriendEventsPaged(pageLimit, pageOffset, typeFilter, msg["sortBy"]?.ToString(), msg["sortDir"]?.ToString());
                 var ftTotal  = _core.Timeline.GetFriendEventCount(typeFilter);
                 var fpayload = fevents.Select(e => _friends.BuildFriendTimelinePayload(e)).ToList();
                 _core.SendToJS("friendTimelineData", new { events = fpayload, hasMore, offset = pageOffset, total = ftTotal, type = typeFilter });

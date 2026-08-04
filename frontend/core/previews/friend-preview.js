@@ -258,7 +258,7 @@
         if (!data?.id) return;
         _fpCache[data.id] = {
             bio: data.bio || '',
-            banner: data.profilePicOverride || '',
+            banner: data.bannerUrl || data.profilePicOverride || '',
             backgroundType:           data.backgroundType || '',
             backgroundTextureId:      data.backgroundTextureId || '',
             backgroundTextureUrl:     data.backgroundTextureUrl || '',
@@ -299,7 +299,7 @@
         window.renderFriendDetail = function (d) {
             if (d?.id) _fpCache[d.id] = {
                 bio: d.bio || '',
-                banner: d.profilePicOverride || '',
+                banner: d.bannerUrl || d.profilePicOverride || '',
                 backgroundType:           d.backgroundType || '',
                 backgroundTextureId:      d.backgroundTextureId || '',
                 backgroundTextureUrl:     d.backgroundTextureUrl || '',

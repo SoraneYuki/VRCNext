@@ -459,8 +459,12 @@ public partial class AppShell
                     _authCtrl.HandleGetGameLog();
                     break;
 
-                // Setup / Auth / Settings — delegated to AuthController
                 case "setupReady":
+                    _windowCtrl.InstallChrome();
+                    await _authCtrl.HandleMessage(action, msg);
+                    break;
+
+                // Setup / Auth / Settings — delegated to AuthController
                 case "setupDone":
                 case "forceTrim":
                 case "resetSetup":
@@ -478,6 +482,7 @@ public partial class AppShell
                 case "setupSaveStartWithWindows":
                 case "setupSaveVrcPath":
                 case "setupSavePhotoDir":
+                case "setupSavePrefs":
                 case "setupBrowsePhotoDir":
                     await _authCtrl.HandleMessage(action, msg);
                     break;
@@ -748,6 +753,28 @@ public partial class AppShell
                                 backgroundGradientBottom = bgBody["backgroundGradientBottom"]?.ToString() ?? "",
                             });
                             SendToJS("log", new { msg = ok != null ? "VRChat: Profile background updated" : "VRChat: Failed to update profile background", color = ok != null ? "ok" : "err" });
+                        });
+                    });
+                    break;
+                }
+
+                case "vrcUpdateProfileBanner":
+                {
+                    var bnUrl    = msg["bannerCustomUrl"]?.ToString() ?? "";
+                    var bnSelfId = _core.VrcApi.CurrentUserId ?? "";
+                    _ = Task.Run(async () =>
+                    {
+                        var ok = string.IsNullOrEmpty(bnUrl) || string.IsNullOrEmpty(bnSelfId)
+                            ? null
+                            : await _core.Users.SetProfileBannerAsync(bnSelfId, bnUrl);
+                        Invoke(() =>
+                        {
+                            SendToJS("vrcProfileBannerUpdated", new
+                            {
+                                success   = ok != null,
+                                bannerUrl = ok != null ? ImageCacheHelper.GetUserBannerUrl(bnSelfId, bnUrl) : "",
+                            });
+                            SendToJS("log", new { msg = ok != null ? "VRChat: Profile banner updated" : "VRChat: Failed to update profile banner", color = ok != null ? "ok" : "err" });
                         });
                     });
                     break;
@@ -2404,6 +2431,11 @@ public partial class AppShell
                 case "vrcSaveMutualCache":
                 case "vrcLoadMutualCache":
                 case "vrcClearMutualCache":
+                case "vrcGetGroupsForNetwork":
+                case "vrcGetNetworkSessions":
+                case "vrcSaveNetworkCache":
+                case "vrcLoadNetworkCache":
+                case "vrcClearNetworkCache":
                     await _groups.HandleMessage(action, msg);
                     break;
 

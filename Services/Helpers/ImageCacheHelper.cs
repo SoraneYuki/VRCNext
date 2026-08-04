@@ -210,6 +210,9 @@ public static class ImageCacheHelper
     public static string? GetUserBannerCached(string? userId)
         => FindCachedFile("Users", userId == null ? null : userId + "_banner");
 
+    public static string? GetUserPicOverrideCached(string? userId)
+        => FindCachedFile("Users", userId == null ? null : userId + "_pfp");
+
     public static Task<string?> CacheUserAsync(string? userId, string? iconUrl, bool forceRefresh = false)
         => CacheAsync("Users", userId, iconUrl, forceRefresh);
 
@@ -258,6 +261,28 @@ public static class ImageCacheHelper
         if (!string.IsNullOrWhiteSpace(bannerId) && !string.IsNullOrWhiteSpace(bannerUrl))
             _ = CacheAsync("Users", bannerId, bannerUrl, false);
         return RawOrEmpty(bannerUrl);
+    }
+
+    public static string GetUserPicOverrideUrl(string? userId, string? picUrl)
+    {
+        picUrl = StripLocalhostUrl(picUrl);
+        var picId = userId == null ? null : userId + "_pfp";
+        var cached = GetUserPicOverrideCached(userId);
+        if (cached != null)
+        {
+            if (!string.IsNullOrWhiteSpace(picUrl) && picId != null)
+            {
+                var normalized = NormalizeTo512(picUrl);
+                var storedUrl  = GetStoredUrl("Users", picId);
+                if (storedUrl == normalized) return ToLocalUrl(cached);
+                _ = CacheAsync("Users", picId, picUrl, forceRefresh: true);
+                return normalized;
+            }
+            return ToLocalUrl(cached);
+        }
+        if (!string.IsNullOrWhiteSpace(picId) && !string.IsNullOrWhiteSpace(picUrl))
+            _ = CacheAsync("Users", picId, picUrl, false);
+        return RawOrEmpty(picUrl);
     }
 
 // Badges

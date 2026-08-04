@@ -23,3 +23,6 @@
     z-index: 1;
 }
 .tl-paginator-bar:empty { display: none; }
+
+.tl-paginator-bar .vn-select { margin-right: 6px; }
+.tl-paginator-bar .vn-select-trigger { min-width: 62px; }

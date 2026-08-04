@@ -575,11 +575,14 @@ public class TimelineService : IDisposable
         {
             try
             {
+                var have = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var e in _events) have.Add(e.Id);
+
                 using var tx = _db.BeginTransaction();
                 foreach (var ev in events)
                 {
                     DbInsertIgnoreEvent(ev, tx);
-                    if (!_events.Any(e => e.Id == ev.Id)) _events.Add(ev);
+                    if (have.Add(ev.Id)) _events.Add(ev);
                 }
                 tx.Commit();
             }
@@ -599,11 +602,14 @@ public class TimelineService : IDisposable
         {
             try
             {
+                var have = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var e in _friendEvents) have.Add(e.Id);
+
                 using var tx = _db.BeginTransaction();
                 foreach (var ev in events)
                 {
                     DbInsertIgnoreFriendEvent(ev, tx);
-                    if (!_friendEvents.Any(e => e.Id == ev.Id)) _friendEvents.Add(ev);
+                    if (have.Add(ev.Id)) _friendEvents.Add(ev);
                 }
                 tx.Commit();
             }
@@ -1223,7 +1229,7 @@ public class TimelineService : IDisposable
         return (result, hasMore);
     }
 
-    public (List<TimelineEvent> Events, bool HasMore) SearchEvents(string query, string typeFilter = "", string date = "", int offset = 0)
+    public (List<TimelineEvent> Events, bool HasMore) SearchEvents(string query, string typeFilter = "", string date = "", int offset = 0, int limit = 100)
     {
         if (string.IsNullOrWhiteSpace(query)) return (new List<TimelineEvent>(), false);
         var like = "%" + query.Replace("%", "\\%").Replace("_", "\\_") + "%";
@@ -1259,7 +1265,7 @@ public class TimelineService : IDisposable
                 ORDER BY e.timestamp DESC
                 LIMIT $limit OFFSET $offset";
             cmd.Parameters.AddWithValue("$q",      like);
-            cmd.Parameters.AddWithValue("$limit",  101);
+            cmd.Parameters.AddWithValue("$limit",  limit + 1);
             cmd.Parameters.AddWithValue("$offset", offset);
             if (!string.IsNullOrEmpty(typeFilter))
                 cmd.Parameters.AddWithValue("$type", typeFilter);
@@ -1280,7 +1286,7 @@ public class TimelineService : IDisposable
             if (ids.Count > remaining) ids = ids.Take(remaining).ToList();
         }
 
-        var hasMore = ids.Count > 100;
+        var hasMore = ids.Count > limit;
         if (hasMore) ids.RemoveAt(ids.Count - 1);
         if (ids.Count == 0) return (new List<TimelineEvent>(), hasMore);
 
@@ -2023,7 +2029,7 @@ public class TimelineService : IDisposable
         return result;
     }
 
-    public (List<FriendTimelineEvent> Events, bool HasMore) SearchFriendEvents(string query, string date = "", int offset = 0, string typeFilter = "")
+    public (List<FriendTimelineEvent> Events, bool HasMore) SearchFriendEvents(string query, string date = "", int offset = 0, string typeFilter = "", int limit = 100)
     {
         if (string.IsNullOrWhiteSpace(query)) return (new List<FriendTimelineEvent>(), false);
         var like = "%" + query.Replace("%", "\\%").Replace("_", "\\_") + "%";
@@ -2059,7 +2065,7 @@ public class TimelineService : IDisposable
                 ORDER BY timestamp DESC
                 LIMIT $limit OFFSET $offset";
             cmd.Parameters.AddWithValue("$q",      like);
-            cmd.Parameters.AddWithValue("$limit",  101);
+            cmd.Parameters.AddWithValue("$limit",  limit + 1);
             cmd.Parameters.AddWithValue("$offset", offset);
             if (!string.IsNullOrEmpty(typeFilter)) cmd.Parameters.AddWithValue("$type", typeFilter);
             if (!string.IsNullOrEmpty(utcStart))
@@ -2094,7 +2100,7 @@ public class TimelineService : IDisposable
             if (remaining <= 0) return (new List<FriendTimelineEvent>(), false);
             if (result.Count > remaining) result.RemoveRange(remaining, result.Count - remaining);
         }
-        var hasMore = result.Count > 100;
+        var hasMore = result.Count > limit;
         if (hasMore) result.RemoveAt(result.Count - 1);
         return (result, hasMore);
     }
@@ -3380,6 +3386,127 @@ public class TimelineService : IDisposable
         catch { }
 
         return (personal, friends);
+    }
+
+    public List<int[]> GetSharedSessionWeights(List<string> ids, int days = 180, double halfLifeDays = 60)
+    {
+        var result = new List<int[]>();
+        if (ids == null || ids.Count < 2) return result;
+
+        var index = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < ids.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(ids[i]) && !index.ContainsKey(ids[i])) index[ids[i]] = i;
+        }
+
+        var now    = DateTime.UtcNow;
+        var cutoff = now.AddDays(-days).ToString("o");
+        long n     = ids.Count;
+
+        var seen = new List<(long Key, long Ticks)>();
+
+        void Collect(List<int> group, DateTime when)
+        {
+            if (group.Count < 2 || group.Count > 64) return;
+            group.Sort();
+            for (int a = 0; a < group.Count; a++)
+            {
+                for (int b = a + 1; b < group.Count; b++)
+                {
+                    if (group[a] == group[b]) continue;
+                    seen.Add((group[a] * n + group[b], when.Ticks));
+                }
+            }
+        }
+
+        try
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = @"SELECT p.event_id, e.timestamp, p.user_id
+                FROM event_players p
+                JOIN events e ON e.id = p.event_id
+                WHERE e.type='instance_join' AND e.timestamp >= $cut
+                ORDER BY e.timestamp ASC, p.event_id ASC";
+            cmd.Parameters.AddWithValue("$cut", cutoff);
+            using var r = cmd.ExecuteReader();
+
+            var curId    = "";
+            var curWhen  = DateTime.MinValue;
+            var curGroup = new List<int>();
+            while (r.Read())
+            {
+                var eid = r.GetString(0);
+                if (eid != curId)
+                {
+                    Collect(curGroup, curWhen);
+                    curGroup = new List<int>();
+                    curId    = eid;
+                    DateTime.TryParse(r.GetString(1), null, System.Globalization.DateTimeStyles.RoundtripKind, out curWhen);
+                }
+                if (index.TryGetValue(r.GetString(2), out var ix)) curGroup.Add(ix);
+            }
+            Collect(curGroup, curWhen);
+        }
+        catch { }
+
+        try
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = @"SELECT e.id, e.timestamp, e.friend_id, c.friend_id
+                FROM friend_events e
+                JOIN friend_event_colocated c ON c.event_id = e.id
+                WHERE e.type='friend_gps' AND e.timestamp >= $cut
+                ORDER BY e.timestamp ASC, e.id ASC";
+            cmd.Parameters.AddWithValue("$cut", cutoff);
+            using var r = cmd.ExecuteReader();
+
+            var curId    = "";
+            var curWhen  = DateTime.MinValue;
+            var curGroup = new List<int>();
+            while (r.Read())
+            {
+                var eid = r.GetString(0);
+                if (eid != curId)
+                {
+                    Collect(curGroup, curWhen);
+                    curGroup = new List<int>();
+                    curId    = eid;
+                    DateTime.TryParse(r.GetString(1), null, System.Globalization.DateTimeStyles.RoundtripKind, out curWhen);
+                    if (index.TryGetValue(r.GetString(2), out var self)) curGroup.Add(self);
+                }
+                if (index.TryGetValue(r.GetString(3), out var ix)) curGroup.Add(ix);
+            }
+            Collect(curGroup, curWhen);
+        }
+        catch { }
+
+        if (seen.Count == 0) return result;
+
+        seen.Sort((x, y) => x.Ticks != y.Ticks ? x.Ticks.CompareTo(y.Ticks) : x.Key.CompareTo(y.Key));
+
+        var sessionGap = TimeSpan.FromMinutes(20).Ticks;
+        var lastSeen   = new Dictionary<long, long>();
+        var weights    = new Dictionary<long, double>();
+
+        foreach (var (key, ticks) in seen)
+        {
+            if (lastSeen.TryGetValue(key, out var prev) && ticks - prev < sessionGap) continue;
+            lastSeen[key] = ticks;
+
+            var age = (now - new DateTime(ticks, DateTimeKind.Utc)).TotalDays;
+            if (age < 0) age = 0;
+            var mult = Math.Pow(0.5, age / halfLifeDays);
+            weights[key] = weights.TryGetValue(key, out var w) ? w + mult : mult;
+        }
+
+        foreach (var kv in weights)
+        {
+            var a = (int)(kv.Key / n);
+            var b = (int)(kv.Key % n);
+            var w = (int)Math.Round(kv.Value * 1000);
+            if (w > 0) result.Add(new[] { a, b, w });
+        }
+        return result;
     }
 
     // Disposal

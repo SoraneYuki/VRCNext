@@ -921,7 +921,7 @@ function renderFriendDetail(d) {
         <div class="fd-hm-grid-wrap" id="fdHmGridWrap"><div style="padding:16px 0;font-size:12px;color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div></div>
         <div class="fd-hm-status-wrap" id="fdHmStatusWrap" style="display:none;"></div>`;
 
-    const bannerSrc = d.profilePicOverride || d.currentAvatarImageUrl || d.image || '';
+    const bannerSrc = d.bannerUrl || d.profilePicOverride || d.currentAvatarImageUrl || d.image || '';
     const fdHeaderActions = renderModalActions(_fdBuildTaskbarActions(d));
 
     const fdLocation = d.location || '';
@@ -1247,12 +1247,13 @@ function patchFriendDetailLive(f) {
         currentFriendDetail.tags = f.tags;
     }
 
-    // banner (profilePicOverride / currentAvatarImageUrl)
-    if (f.profilePicOverride !== undefined || f.currentAvatarImageUrl !== undefined) {
-        const newSrc = f.profilePicOverride || f.currentAvatarImageUrl || currentFriendDetail.profilePicOverride || currentFriendDetail.currentAvatarImageUrl || '';
-        if (newSrc) _getFdBannerImg(f.id, newSrc);
+    // banner (bannerUrl / profilePicOverride / currentAvatarImageUrl)
+    if (f.bannerUrl !== undefined || f.profilePicOverride !== undefined || f.currentAvatarImageUrl !== undefined) {
+        if (f.bannerUrl !== undefined) currentFriendDetail.bannerUrl = f.bannerUrl;
         if (f.profilePicOverride !== undefined) currentFriendDetail.profilePicOverride = f.profilePicOverride;
         if (f.currentAvatarImageUrl !== undefined) currentFriendDetail.currentAvatarImageUrl = f.currentAvatarImageUrl;
+        const newSrc = currentFriendDetail.bannerUrl || currentFriendDetail.profilePicOverride || currentFriendDetail.currentAvatarImageUrl || '';
+        if (newSrc) _getFdBannerImg(f.id, newSrc);
     }
 
     // VRC badges

@@ -1,12 +1,19 @@
 /* VRCNext Setup Wizard */
 
 var currentPage = 0;
-var totalPages = 7;
+var totalPages = 12;
 var isLoggedIn = false;
 var loggedInName = '';
 var vrc2faType = 'totp';
 var selectedLanguage = 'en';
+var setupModalStyle = 'classic';
 var _setupTr = {};
+
+var PAGE_VRCPLUS   = 6;
+var PAGE_SIDEBAR   = 7;
+var PAGE_PREVIEW   = 8;
+var PAGE_NAVIGATION = 9;
+var PAGE_DIRECTNAV = 10;
 
 function t(key, fallback) {
     return _setupTr[key] || fallback || '';
@@ -60,6 +67,10 @@ function sendToCS(obj) {
     window.external.sendMessage(JSON.stringify(obj));
 }
 
+function savePrefs(prefs) {
+    sendToCS({ action: 'setupSavePrefs', prefs: prefs });
+}
+
 // Language grid
 function renderSetupLangGrid() {
     var grid = document.getElementById('setupLangGrid');
@@ -78,6 +89,47 @@ function selectSetupLang(key) {
     sendToCS({ action: 'loadTranslation', language: key });
 }
 
+function vrcPlusDecoPrefs(on) {
+    if (on) {
+        return {
+            enableProfileIconFrames: true,
+            squareIconFrames: true,
+            enableNameplateDecoration: true,
+            enableProfileBackgrounds: true,
+            enableProfileThemes: true,
+            profileThemeContrast: true,
+            showDecorationsOnDashboard: true,
+            enableProfileEffects: false,
+            profileThemeVrcnOverride: false,
+            transparentProfileCards: false,
+        };
+    }
+    return {
+        enableProfileIconFrames: false,
+        squareIconFrames: false,
+        enableNameplateDecoration: false,
+        enableProfileBackgrounds: false,
+        enableProfileThemes: false,
+        showDecorationsOnDashboard: false,
+        enableProfileEffects: false,
+        profileThemeVrcnOverride: false,
+        transparentProfileCards: false,
+    };
+}
+
+function onVrcPlusDecoToggle(on) {
+    document.querySelectorAll('#decoPillList .deco-pill').forEach(function(el) {
+        el.classList.toggle('on', !!on);
+    });
+}
+
+function setSetupModalStyle(style) {
+    setupModalStyle = (style === 'compact') ? 'compact' : 'classic';
+    document.querySelectorAll('#setupStylePicker .profile-style-option').forEach(function(el) {
+        el.classList.toggle('active', el.getAttribute('data-style') === setupModalStyle);
+    });
+}
+
 // Page navigation
 function showPage(idx) {
     currentPage = idx;
@@ -88,6 +140,8 @@ function showPage(idx) {
         void page.offsetWidth; // force reflow for animation
         page.classList.add('active');
     }
+    var pagesWrap = document.getElementById('setupPages');
+    if (pagesWrap) pagesWrap.scrollTop = 0;
     document.getElementById('progressFill').style.width = ((idx + 1) / totalPages * 100) + '%';
     document.getElementById('stepCounter').textContent = 'STEP ' + (idx + 1) + ' OF ' + totalPages;
 
@@ -117,6 +171,31 @@ function nextPage() {
     if (currentPage === 4) {
         var dirVal = document.getElementById('photoDirInput').value.trim();
         if (dirVal) sendToCS({ action: 'setupSavePhotoDir', path: dirVal });
+    }
+    if (currentPage === PAGE_VRCPLUS) {
+        savePrefs(vrcPlusDecoPrefs(document.getElementById('setupVrcPlusDeco').checked));
+    }
+    if (currentPage === PAGE_SIDEBAR) {
+        savePrefs({
+            friendsSidebarRankColor: document.getElementById('setupSidebarRankColor').checked,
+            friendsSidebarLocationOnly: document.getElementById('setupSidebarLocationOnly').checked,
+        });
+    }
+    if (currentPage === PAGE_PREVIEW) {
+        savePrefs({
+            friendsSidebarPreviewCollapsed: document.getElementById('setupSidebarPreviewCollapsed').checked,
+        });
+    }
+    if (currentPage === PAGE_NAVIGATION) {
+        savePrefs({
+            profileModalStyle: setupModalStyle,
+            worldModalStyle: setupModalStyle,
+            groupModalStyle: setupModalStyle,
+            avatarModalStyle: setupModalStyle,
+        });
+    }
+    if (currentPage === PAGE_DIRECTNAV) {
+        savePrefs({ directModalNav: document.getElementById('setupDirectModalNav').checked });
     }
     if (currentPage >= totalPages - 1) {
         var startWithWin = document.getElementById('setupStartWithWindows').checked;
@@ -205,6 +284,10 @@ function onBackendMessage(e) {
             }
             break;
 
+        case 'windowMaxState':
+            document.body.classList.toggle('maximized', !!p);
+            break;
+
         case 'setupState':
             if (p && p.vrcPath) document.getElementById('vrcPathInput').value = p.vrcPath;
             if (p && p.photoDir) document.getElementById('photoDirInput').value = p.photoDir;
@@ -213,6 +296,18 @@ function onBackendMessage(e) {
                 renderSetupLangGrid();
                 sendToCS({ action: 'loadTranslation', language: p.language });
             }
+            if (p && p.prefs) {
+                var pr = p.prefs;
+                var decoOn = !!pr.enableProfileIconFrames;
+                document.getElementById('setupVrcPlusDeco').checked = decoOn;
+                onVrcPlusDecoToggle(decoOn);
+                document.getElementById('setupSidebarRankColor').checked = !!pr.friendsSidebarRankColor;
+                document.getElementById('setupSidebarLocationOnly').checked = !!pr.friendsSidebarLocationOnly;
+                document.getElementById('setupSidebarPreviewCollapsed').checked = !!pr.friendsSidebarPreviewCollapsed;
+                document.getElementById('setupDirectModalNav').checked = !!pr.directModalNav;
+                setSetupModalStyle(pr.profileModalStyle);
+            }
+            if (p && p.startWithSystem) document.getElementById('setupStartWithWindows').checked = true;
             if (p && p.loggedIn && p.displayName) {
                 isLoggedIn = true;
                 loggedInName = p.displayName;
@@ -261,6 +356,7 @@ function onBackendMessage(e) {
         case 'setPlatform':
             if (p && p.isLinux) {
                 document.querySelectorAll('[data-windows-only]').forEach(function(el) { el.style.display = 'none'; });
+                document.documentElement.style.setProperty('--tb-h', '0px');
 
                 // Page 4: VRChat path — Linux uses steam command, no browse needed
                 var vrcInput = document.getElementById('vrcPathInput');
@@ -274,9 +370,10 @@ function onBackendMessage(e) {
                 var vrcDesc = document.getElementById('vrcPathDesc');
                 if (vrcDesc) vrcDesc.innerHTML = 'VRChat is launched through <strong>Steam</strong> on Linux. VRCNext automatically uses the Steam command below &mdash; no manual path selection needed.';
                 var vrcHint = document.getElementById('vrcPathHint');
-                if (vrcHint) vrcHint.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:middle;color:rgba(106,90,249,.5);">info</span> VRChat runs via Proton. Steam handles the launch automatically.';
+                if (vrcHint) vrcHint.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:middle;color:var(--accent);">info</span> VRChat runs via Proton. Steam handles the launch automatically.';
 
-                // Page 7: Start with system (Linux uses XDG autostart)
+                var welcomeStepTitle = document.getElementById('welcomeStep10Title');
+                if (welcomeStepTitle) welcomeStepTitle.textContent = 'Start with System';
                 var pageTitle = document.getElementById('startupPageTitle');
                 if (pageTitle) pageTitle.textContent = 'Start with System';
                 var pageDesc = document.getElementById('startupPageDesc');
@@ -290,6 +387,39 @@ function onBackendMessage(e) {
     }
 }
 
+(function () {
+    var B = 6;
+    var cursorMap = { n: 'n-resize', s: 's-resize', e: 'e-resize', w: 'w-resize', ne: 'ne-resize', nw: 'nw-resize', se: 'se-resize', sw: 'sw-resize' };
+    function getDir(x, y) {
+        var w = window.innerWidth, h = window.innerHeight;
+        var l = x < B, r = x > w - B, t = y < B, b = y > h - B;
+        if (t && l) return 'nw'; if (t && r) return 'ne';
+        if (b && l) return 'sw'; if (b && r) return 'se';
+        if (l) return 'w'; if (r) return 'e';
+        if (t) return 'n'; if (b) return 's';
+        return null;
+    }
+    [
+        'top:0;left:' + B + 'px;right:' + B + 'px;height:' + B + 'px;cursor:n-resize',
+        'top:0;left:0;width:' + B + 'px;height:' + B + 'px;cursor:nw-resize',
+        'top:0;right:0;width:' + B + 'px;height:' + B + 'px;cursor:ne-resize',
+    ].forEach(function (style) {
+        var el = document.createElement('div');
+        el.style.cssText = 'position:fixed;' + style + ';z-index:99999;background:transparent;';
+        document.body.appendChild(el);
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        var dir = getDir(e.clientX, e.clientY);
+        document.documentElement.style.cursor = dir ? cursorMap[dir] : '';
+    });
+    document.addEventListener('mousedown', function (e) {
+        if (e.button !== 0) return;
+        var dir = getDir(e.clientX, e.clientY);
+        if (dir) { e.preventDefault(); sendToCS({ action: 'windowResizeStart', direction: dir }); }
+    });
+})();
+
 // Init
 window.external.receiveMessage(rawMsg => { onBackendMessage({ data: JSON.parse(rawMsg) }); });
 
@@ -297,11 +427,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var bar = document.getElementById('titlebar');
     if (bar) {
         bar.addEventListener('mousedown', function(e) {
-            if (e.target.closest('.win-dot')) return;
-            if (e.button === 0) sendToCS({ action: 'windowDragStart' });
+            if (e.target.closest('.tb-win-btn')) return;
+            if (e.clientY < 6) return;
+            if (e.button === 0 && e.detail === 1) sendToCS({ action: 'windowDragStart' });
+        });
+        bar.addEventListener('dblclick', function(e) {
+            if (e.target.closest('.tb-win-btn')) return;
+            sendToCS({ action: 'windowMaximize' });
         });
     }
     renderSetupLangGrid();
+    setSetupModalStyle(setupModalStyle);
     showPage(0);
     sendToCS({ action: 'setupReady' });
     sendToCS({ action: 'loadTranslation', language: selectedLanguage });

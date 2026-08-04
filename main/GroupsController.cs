@@ -20,6 +20,13 @@ public class GroupsController
 
     // Newtonsoft turns date-time fields into JTokenType.Date, whose ToString() emits the
     // machine's locale format - which new Date() in JS cannot parse. Force ISO-8601.
+    private static string? NetworkCacheFile(string name)
+    {
+        if (string.IsNullOrEmpty(name) || name.Any(c => !char.IsLetterOrDigit(c) && c != '_' && c != '-')) return null;
+        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext", "Caches");
+        return Path.Combine(dir, $"network_{name}.json");
+    }
+
     private static string GroupIsoDate(JToken? t)
     {
         if (t == null) return "";
@@ -1015,6 +1022,84 @@ public class GroupsController
                         var ids = optedOut ? Array.Empty<string>()
                                            : arr.Select(m => m["id"]?.ToString() ?? "").Where(s => s != "").ToArray();
                         _core.SendToJS("vrcMutualsForNetwork", new { userId = mnUid, mutualIds = ids, optedOut });
+                    });
+                }
+                break;
+            }
+
+            case "vrcGetGroupsForNetwork":
+            {
+                var gnUid = msg["userId"]?.ToString() ?? "";
+                if (!string.IsNullOrEmpty(gnUid))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        var arr = await _core.Users.GetUserGroupsByIdAsync(gnUid);
+                        var groups = arr.Select(g => new
+                        {
+                            id      = g["groupId"]?.ToString() ?? g["id"]?.ToString() ?? "",
+                            members = g["memberCount"]?.Value<int?>() ?? 0,
+                        }).Where(g => !string.IsNullOrEmpty(g.id)).ToArray();
+                        _core.SendToJS("vrcGroupsForNetwork", new { userId = gnUid, groups });
+                    });
+                }
+                break;
+            }
+
+            case "vrcGetNetworkSessions":
+            {
+                var nsIds = msg["ids"]?.ToObject<List<string>>() ?? new List<string>();
+                _ = Task.Run(() =>
+                {
+                    List<int[]> pairs;
+                    try { pairs = _core.Timeline.GetSharedSessionWeights(nsIds); }
+                    catch { pairs = new List<int[]>(); }
+                    _core.SendToJS("vrcNetworkSessions", new { pairs });
+                });
+                break;
+            }
+
+            case "vrcSaveNetworkCache":
+            {
+                var ncName = msg["name"]?.ToString() ?? "";
+                var ncJson = msg["cache"]?.ToString() ?? "{}";
+                if (NetworkCacheFile(ncName) is string ncPath)
+                {
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(ncPath)!);
+                            File.WriteAllText(ncPath, ncJson, System.Text.Encoding.UTF8);
+                        }
+                        catch { }
+                    });
+                }
+                break;
+            }
+
+            case "vrcLoadNetworkCache":
+            {
+                var nlName = msg["name"]?.ToString() ?? "";
+                var nlPath = NetworkCacheFile(nlName);
+                _ = Task.Run(() =>
+                {
+                    var json = "{}";
+                    try { if (nlPath != null && File.Exists(nlPath)) json = File.ReadAllText(nlPath, System.Text.Encoding.UTF8); }
+                    catch { json = "{}"; }
+                    _core.SendToJS("vrcNetworkCacheLoaded", new { name = nlName, json });
+                });
+                break;
+            }
+
+            case "vrcClearNetworkCache":
+            {
+                var nxPath = NetworkCacheFile(msg["name"]?.ToString() ?? "");
+                if (nxPath != null)
+                {
+                    _ = Task.Run(() =>
+                    {
+                        try { if (File.Exists(nxPath)) File.Delete(nxPath); } catch { }
                     });
                 }
                 break;

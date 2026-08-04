@@ -5,6 +5,34 @@
 let _tlScrollTarget = null;
 
 // Personal Timeline pagination state
+const TL_PAGE_SIZES = [10, 15, 20, 25, 50, 100];
+const TL_PAGE_SIZE_KEY = 'vrcn_tl_page_size';
+let tlPageSize = (() => {
+    try {
+        const v = parseInt(localStorage.getItem(TL_PAGE_SIZE_KEY), 10);
+        return TL_PAGE_SIZES.includes(v) ? v : 100;
+    } catch { return 100; }
+})();
+
+function tlPageSizeSelectHtml(onChangeFn) {
+    const opts = TL_PAGE_SIZES.map(n => `<option value="${n}"${n === tlPageSize ? ' selected' : ''}>${n}</option>`).join('');
+    return `<select class="vrcn-dropdown tl-page-size" onchange="${onChangeFn}(this.value)" title="${esc(t('timeline.page_size', 'Entries per page'))}">${opts}</select>`;
+}
+
+function setTlPageSize(value) {
+    const n = parseInt(value, 10);
+    if (!TL_PAGE_SIZES.includes(n) || n === tlPageSize) return;
+    tlPageSize = n;
+    try { localStorage.setItem(TL_PAGE_SIZE_KEY, String(n)); } catch {}
+    if (tlMode === 'friends') {
+        ftlListPage = 0; ftlOffset = 0;
+        if (tlDateFilter) filterFriendTimeline(); else reloadFriendTimelineSorted();
+    } else {
+        tlListPage = 0; tlOffset = 0;
+        if (tlDateFilter) filterTimeline(); else reloadTimelineSorted();
+    }
+}
+
 let tlOffset = 0, tlLoading = false, tlHasMore = false;
 // Total count from server (for accurate paginator)
 let tlTotal = 0;
@@ -448,8 +476,8 @@ function refreshTimeline() {
         c.innerHTML = sk(tlViewMode === 'list' ? 'timeline-list' : 'timeline');
     }
     const typeParam = tlFilter === 'all' ? '' : tlFilter;
-    if (tlDateFilter) sendToCS({ action: 'getTimelineByDate', date: tlDateFilter, type: typeParam });
-    else              sendToCS({ action: 'getTimeline', type: typeParam, ...tlSortParams('personal') });
+    if (tlDateFilter) sendToCS({ action: 'getTimelineByDate', date: tlDateFilter, type: typeParam, limit: tlPageSize });
+    else              sendToCS({ action: 'getTimeline', type: typeParam, ...tlSortParams('personal'), limit: tlPageSize });
 }
 
 function renderTimeline(payload) {
@@ -531,8 +559,8 @@ function setTlFilter(f) {
     const c = document.getElementById('tlContainer');
     if (c) c.innerHTML = sk(tlViewMode === 'list' ? 'timeline-list' : 'timeline');
     const typeParam = f === 'all' ? '' : f;
-    if (tlDateFilter) sendToCS({ action: 'getTimelineByDate', date: tlDateFilter, type: typeParam });
-    else              sendToCS({ action: 'getTimeline', type: typeParam, ...tlSortParams('personal') });
+    if (tlDateFilter) sendToCS({ action: 'getTimelineByDate', date: tlDateFilter, type: typeParam, limit: tlPageSize });
+    else              sendToCS({ action: 'getTimeline', type: typeParam, ...tlSortParams('personal'), limit: tlPageSize });
 }
 
 function filterTimeline() {
@@ -558,7 +586,7 @@ function filterTimeline() {
         clearTimeout(_tlSearchTimer);
         _tlSearchTimer = setTimeout(() => {
             const typeParam = tlFilter === 'all' ? '' : tlFilter;
-            sendToCS({ action: 'searchTimeline', query: search, date: tlDateFilter, offset: 0, type: typeParam });
+            sendToCS({ action: 'searchTimeline', query: search, date: tlDateFilter, offset: 0, type: typeParam, limit: tlPageSize });
         }, 300);
         return;
     }
@@ -583,11 +611,11 @@ function filterTimeline() {
     // Date filter: all events loaded at once → paginate client-side
     // Normal mode: server-side pagination (timelineEvents = current page only)
     const eventsToRender = tlDateFilter
-        ? tlSortEventsLocal('personal', timelineEvents).slice(tlListPage * 100, (tlListPage + 1) * 100)
+        ? tlSortEventsLocal('personal', timelineEvents).slice(tlListPage * tlPageSize, (tlListPage + 1) * tlPageSize)
         : timelineEvents;
     const totalCount = tlDateFilter ? timelineEvents.length : tlTotal;
     const totalPages = totalCount > 0
-        ? Math.ceil(totalCount / 100)
+        ? Math.ceil(totalCount / tlPageSize)
         : Math.max(tlListPage + 1, 1) + (tlHasMore ? 1 : 0);
 
     const contentHtml = tlViewMode === 'list'
@@ -631,7 +659,7 @@ function _renderTlSearchResults(search) {
     }
 
     const total      = _tlSearchTotal;
-    const totalPages = total > 0 ? Math.ceil(total / 100) : 1;
+    const totalPages = total > 0 ? Math.ceil(total / tlPageSize) : 1;
     const banner = `<div style="padding:6px 12px;font-size:11px;color:var(--tx3);border-bottom:1px solid var(--brd);">`
         + `${esc(tlSearchSummary(total, search))}</div>`;
     let html = banner + (tlViewMode === 'list' ? buildPersonalListHtml(events) : buildTimelineHtml(events));
@@ -651,7 +679,7 @@ function handleTlSearchResults(payload) {
     // Always replace — each page nav fetches the exact page, no appending
     _tlSearchEvents = payload.events || [];
     _tlSearchTotal  = payload.total ?? 0;
-    _tlSearchPage   = Math.floor(offset / 100);
+    _tlSearchPage   = Math.floor(offset / tlPageSize);
     _tlSearchMode   = true;
     _tlSearchQuery  = q;
     _tlSearchDate   = payload.date || '';
@@ -661,12 +689,13 @@ function handleTlSearchResults(payload) {
 function tlGoSearchPage(page) {
     if (page < 0) return;
     const typeParam = tlFilter === 'all' ? '' : tlFilter;
-    sendToCS({ action: 'searchTimeline', query: _tlSearchQuery, date: _tlSearchDate, offset: page * 100, type: typeParam });
+    sendToCS({ action: 'searchTimeline', query: _tlSearchQuery, date: _tlSearchDate, offset: page * tlPageSize, type: typeParam, limit: tlPageSize });
 }
 
 function buildSearchPagination(page, totalPages, onPageFn, total = 0) {
     const countHtml = total > 0 ? `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(total))}</span>` : '';
-    return buildPaginator(page, totalPages, onPageFn, countHtml) || countHtml;
+    const bar = buildPaginator(page, totalPages, onPageFn, countHtml) || countHtml;
+    return tlPageSizeSelectHtml('setTlPageSize') + bar;
 }
 
 // Personal Timeline pagination helpers
@@ -683,33 +712,34 @@ function loadMoreTimeline() {
     tlLoading = true;
     const btn = document.getElementById('tlLoadMoreBtn');
     if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;">hourglass_empty</span> ${esc(t('timeline.load_more.loading', 'Loading...'))}`; }
-    sendToCS({ action: 'getTimelinePage', offset: tlOffset, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal') });
+    sendToCS({ action: 'getTimelinePage', offset: tlOffset, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal'), limit: tlPageSize });
 }
 
 function buildTlPagination(page, totalPages, hasMore) {
     const countHtml = tlTotal > 0 ? `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(tlTotal))}</span>` : '';
-    return buildPaginator(page, totalPages, 'tlGoPage', countHtml, hasMore) || countHtml;
+    const bar = buildPaginator(page, totalPages, 'tlGoPage', countHtml, hasMore) || countHtml;
+    return tlPageSizeSelectHtml('setTlPageSize') + bar;
 }
 
 function reloadTimelineSorted() {
     if (tlDateFilter) { filterTimeline(); return; }
     tlListPage = 0;
     tlOffset   = 0;
-    sendToCS({ action: 'getTimelinePage', offset: 0, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal') });
+    sendToCS({ action: 'getTimelinePage', offset: 0, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal'), limit: tlPageSize });
 }
 
 function reloadFriendTimelineSorted() {
     if (tlDateFilter) { filterFriendTimeline(); return; }
     ftlListPage = 0;
     ftlOffset   = 0;
-    sendToCS({ action: 'getFriendTimelinePage', offset: 0, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends') });
+    sendToCS({ action: 'getFriendTimelinePage', offset: 0, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends'), limit: tlPageSize });
 }
 
 function tlGoPage(page) {
     if (page < 0) return;
     // Date filter active: all events in memory, paginate client-side
     if (tlDateFilter) {
-        const totalPages = Math.ceil(timelineEvents.length / 100) || 1;
+        const totalPages = Math.ceil(timelineEvents.length / tlPageSize) || 1;
         if (page >= totalPages) return;
         if (page === tlListPage) { const c = document.getElementById('tlContainer'); if (c) c.scrollTop = 0; return; }
         tlListPage = page;
@@ -718,7 +748,7 @@ function tlGoPage(page) {
         if (c) c.scrollTop = 0;
         return;
     }
-    const totalPages = tlTotal > 0 ? Math.ceil(tlTotal / 100) : null;
+    const totalPages = tlTotal > 0 ? Math.ceil(tlTotal / tlPageSize) : null;
     if (totalPages !== null && page >= totalPages) return;
     if (page === tlListPage && _tlPendingListPage === null && !tlLoading) {
         // Already on this page — just scroll top
@@ -729,7 +759,7 @@ function tlGoPage(page) {
     // Fetch this page directly from DB at absolute offset
     _tlPendingListPage = page;
     tlLoading = true;
-    sendToCS({ action: 'getTimelinePage', offset: page * 100, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal') });
+    sendToCS({ action: 'getTimelinePage', offset: page * tlPageSize, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal'), limit: tlPageSize });
     const c = document.getElementById('tlContainer');
     if (c) c.scrollTop = 0;
 }
@@ -932,7 +962,7 @@ function applyTlDateFilter(dateStr) {
         if (activeSearch) { filterFriendTimeline(); return; }
         const c = document.getElementById('tlContainer');
         if (c) c.innerHTML = sk(tlViewMode === 'list' ? 'timeline-list' : 'timeline');
-        sendToCS({ action: 'getFriendTimelineByDate', date: dateStr, type: ftFilter === 'all' ? '' : ftFilter });
+        sendToCS({ action: 'getFriendTimelineByDate', date: dateStr, type: ftFilter === 'all' ? '' : ftFilter, limit: tlPageSize });
     } else {
         timelineEvents  = [];
         tlOffset        = 0;
@@ -1287,8 +1317,8 @@ function refreshFriendTimeline() {
     if (c && !(_ftlSearchMode && activeSearch)) {
         c.innerHTML = sk(tlViewMode === 'list' ? 'timeline-list' : 'timeline');
     }
-    if (tlDateFilter) sendToCS({ action: 'getFriendTimelineByDate', date: tlDateFilter, type: ftFilter === 'all' ? '' : ftFilter });
-    else              sendToCS({ action: 'getFriendTimeline', type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends') });
+    if (tlDateFilter) sendToCS({ action: 'getFriendTimelineByDate', date: tlDateFilter, type: ftFilter === 'all' ? '' : ftFilter, limit: tlPageSize });
+    else              sendToCS({ action: 'getFriendTimeline', type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends'), limit: tlPageSize });
 }
 
 function renderFriendTimeline(payload) {
@@ -1359,7 +1389,7 @@ function setFtFilter(f) {
     const c = document.getElementById('tlContainer');
     if (c) c.innerHTML = sk(tlViewMode === 'list' ? 'timeline-list' : 'timeline');
     if (tlDateFilter) sendToCS({ action: 'getFriendTimelineByDate', date: tlDateFilter, type: f === 'all' ? '' : f });
-    else              sendToCS({ action: 'getFriendTimeline', type: f === 'all' ? '' : f, ...tlSortParams('friends') });
+    else              sendToCS({ action: 'getFriendTimeline', type: f === 'all' ? '' : f, ...tlSortParams('friends'), limit: tlPageSize });
 }
 
 function filterFriendTimeline() {
@@ -1381,7 +1411,7 @@ function filterFriendTimeline() {
         setPaginator('tlPaginatorBar','');
         clearTimeout(_ftlSearchTimer);
         _ftlSearchTimer = setTimeout(() => {
-            sendToCS({ action: 'searchFriendTimeline', query: search, date: tlDateFilter, offset: 0, type: ftFilter === 'all' ? '' : ftFilter });
+            sendToCS({ action: 'searchFriendTimeline', query: search, date: tlDateFilter, offset: 0, type: ftFilter === 'all' ? '' : ftFilter, limit: tlPageSize });
         }, 300);
         return;
     }
@@ -1403,11 +1433,11 @@ function filterFriendTimeline() {
     // Date filter: all events loaded at once → paginate client-side
     // Normal mode: server-side pagination (friendTimelineEvents = current page only)
     const ftlEventsToRender = tlDateFilter
-        ? tlSortEventsLocal('friends', friendTimelineEvents).slice(ftlListPage * 100, (ftlListPage + 1) * 100)
+        ? tlSortEventsLocal('friends', friendTimelineEvents).slice(ftlListPage * tlPageSize, (ftlListPage + 1) * tlPageSize)
         : friendTimelineEvents;
     const ftlTotalCount = tlDateFilter ? friendTimelineEvents.length : ftlTotal;
     const totalPages = ftlTotalCount > 0
-        ? Math.ceil(ftlTotalCount / 100)
+        ? Math.ceil(ftlTotalCount / tlPageSize)
         : Math.max(ftlListPage + 1, 1) + (ftlHasMore ? 1 : 0);
 
     const contentHtml = tlViewMode === 'list'
@@ -1422,7 +1452,8 @@ function filterFriendTimeline() {
 
 function buildFtlPagination(page, totalPages, hasMore) {
     const countHtml = ftlTotal > 0 ? `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(ftlTotal))}</span>` : '';
-    return buildPaginator(page, totalPages, 'ftlGoPage', countHtml, hasMore) || countHtml;
+    const bar = buildPaginator(page, totalPages, 'ftlGoPage', countHtml, hasMore) || countHtml;
+    return tlPageSizeSelectHtml('setTlPageSize') + bar;
 }
 
 function _renderFtlSearchResults(search) {
@@ -1438,7 +1469,7 @@ function _renderFtlSearchResults(search) {
     }
 
     const total      = _ftlSearchTotal;
-    const totalPages = total > 0 ? Math.ceil(total / 100) : 1;
+    const totalPages = total > 0 ? Math.ceil(total / tlPageSize) : 1;
     const banner = `<div style="padding:6px 12px;font-size:11px;color:var(--tx3);border-bottom:1px solid var(--brd);">`
         + `${esc(tlSearchSummary(total, search))}</div>`;
     let html = banner + (tlViewMode === 'list' ? buildFriendListHtml(events) : buildFriendTimelineHtml(events));
@@ -1456,7 +1487,7 @@ function handleFtlSearchResults(payload) {
     // Always replace — each page nav fetches the exact page, no appending
     _ftlSearchEvents = payload.events || [];
     _ftlSearchTotal  = payload.total ?? 0;
-    _ftlSearchPage   = Math.floor(offset / 100);
+    _ftlSearchPage   = Math.floor(offset / tlPageSize);
     _ftlSearchMode   = true;
     _ftlSearchQuery  = q;
     _ftlSearchDate   = payload.date || '';
@@ -1465,7 +1496,7 @@ function handleFtlSearchResults(payload) {
 
 function ftlGoSearchPage(page) {
     if (page < 0) return;
-    sendToCS({ action: 'searchFriendTimeline', query: _ftlSearchQuery, date: _ftlSearchDate, offset: page * 100, type: ftFilter === 'all' ? '' : ftFilter });
+    sendToCS({ action: 'searchFriendTimeline', query: _ftlSearchQuery, date: _ftlSearchDate, offset: page * tlPageSize, type: ftFilter === 'all' ? '' : ftFilter, limit: tlPageSize });
 }
 
 function ftSearchable(e) {
@@ -1487,14 +1518,14 @@ function loadMoreFriendTimeline() {
     ftlLoading = true;
     const btn = document.getElementById('ftlLoadMoreBtn');
     if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;">hourglass_empty</span> ${esc(t('timeline.load_more.loading', 'Loading...'))}`; }
-    sendToCS({ action: 'getFriendTimelinePage', offset: ftlOffset, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends') });
+    sendToCS({ action: 'getFriendTimelinePage', offset: ftlOffset, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends'), limit: tlPageSize });
 }
 
 function ftlGoPage(page) {
     if (page < 0) return;
     // Date filter active: all events in memory, paginate client-side
     if (tlDateFilter) {
-        const totalPages = Math.ceil(friendTimelineEvents.length / 100) || 1;
+        const totalPages = Math.ceil(friendTimelineEvents.length / tlPageSize) || 1;
         if (page >= totalPages) return;
         if (page === ftlListPage) { const c = document.getElementById('tlContainer'); if (c) c.scrollTop = 0; return; }
         ftlListPage = page;
@@ -1503,7 +1534,7 @@ function ftlGoPage(page) {
         if (c) c.scrollTop = 0;
         return;
     }
-    const totalPages = ftlTotal > 0 ? Math.ceil(ftlTotal / 100) : null;
+    const totalPages = ftlTotal > 0 ? Math.ceil(ftlTotal / tlPageSize) : null;
     if (totalPages !== null && page >= totalPages) return;
     if (page === ftlListPage && _ftlPendingListPage === null && !ftlLoading) {
         // Already on this page — just scroll top
@@ -1514,7 +1545,7 @@ function ftlGoPage(page) {
     // Fetch this page directly from DB at absolute offset
     _ftlPendingListPage = page;
     ftlLoading = true;
-    sendToCS({ action: 'getFriendTimelinePage', offset: page * 100, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends') });
+    sendToCS({ action: 'getFriendTimelinePage', offset: page * tlPageSize, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends'), limit: tlPageSize });
     const c = document.getElementById('tlContainer');
     if (c) c.scrollTop = 0;
 }

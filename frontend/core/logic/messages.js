@@ -207,6 +207,9 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcProfileBackgroundUpdated':
                 if (typeof onProfileBackgroundUpdated === 'function') onProfileBackgroundUpdated(payload);
                 break;
+            case 'vrcProfileBannerUpdated':
+                if (typeof onProfileBannerUpdated === 'function') onProfileBannerUpdated(payload);
+                break;
             case 'vrcProfileThemeSaved':
                 if (typeof onProfileThemeSaved === 'function') onProfileThemeSaved(payload);
                 break;
@@ -1102,6 +1105,15 @@ case 'vrcNews':
                 break;
             case 'vrcMutualCacheLoaded':
                 if (typeof networkCacheLoaded === 'function') networkCacheLoaded(payload.json);
+                break;
+            case 'vrcGroupsForNetwork':
+                if (typeof networkAddGroups === 'function') networkAddGroups(payload);
+                break;
+            case 'vrcNetworkSessions':
+                if (typeof networkSessionsLoaded === 'function') networkSessionsLoaded(payload);
+                break;
+            case 'vrcNetworkCacheLoaded':
+                if (typeof networkSubCacheLoaded === 'function') networkSubCacheLoaded(payload);
                 break;
             case 'vrcTimeSpentData':
                 if (typeof tsOnData === 'function') tsOnData(payload);

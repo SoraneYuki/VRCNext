@@ -106,7 +106,6 @@ public class UsersAPI(VRChatApiService ctx)
             if (resp.IsSuccessStatusCode)
             {
                 var user = JObject.Parse(body);
-                if (profilePicOverride != null) user["profilePicOverride"] = profilePicOverride;
                 ctx.CurrentUserRaw = user;
                 return user;
             }
@@ -171,6 +170,13 @@ public class UsersAPI(VRChatApiService ctx)
         catch (Exception ex) { ctx.Log($"GetProfileAppearance exception: {ex.Message}"); }
         return null;
     }
+
+    public async Task<JObject?> SetProfileBannerAsync(string userId, string fileUrl)
+        => await UpdateProfileAppearanceAsync(userId, new JObject
+        {
+            ["bannerType"]      = "customImage",
+            ["bannerCustomUrl"] = fileUrl,
+        });
 
     // PUT profile/{userId}. Bodies observed in the web client:
     //   { backgroundType: "default" }

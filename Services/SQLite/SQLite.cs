@@ -705,6 +705,7 @@ public class UnifiedTimeEngine : IDisposable
         public string ProfileCurrentAvatarId  { get; set; } = "";
         public string ProfileAvatarFileId     { get; set; } = "";
         public string ProfilePicOverride      { get; set; } = "";
+        public string ProfileBannerUrl        { get; set; } = "";
         public string ProfileTags             { get; set; } = "[]";
         public string ProfileNote             { get; set; } = "";
         public string ProfileFriendKey        { get; set; } = "";
@@ -757,7 +758,7 @@ public class UnifiedTimeEngine : IDisposable
                     profile_last_login, profile_last_activity, profile_date_joined,
                     profile_world_name, profile_world_thumb, profile_instance_type,
                     profile_user_count, profile_world_capacity, profile_can_join, profile_can_request_invite, profile_can_invite,
-                    profile_current_avatar_id, profile_avatar_file_id, profile_pic_override,
+                    profile_current_avatar_id, profile_avatar_file_id, profile_pic_override, profile_banner_url,
                     profile_tags, profile_note, profile_friend_key, profile_traveling_to, profile_state,
                     profile_last_platform, profile_platform, profile_user_note, profile_in_same_instance,
                     profile_pronouns, profile_age_verification, profile_age_verified,
@@ -800,6 +801,7 @@ public class UnifiedTimeEngine : IDisposable
                     ProfileCurrentAvatarId = S("profile_current_avatar_id"),
                     ProfileAvatarFileId    = S("profile_avatar_file_id"),
                     ProfilePicOverride     = S("profile_pic_override"),
+                    ProfileBannerUrl       = S("profile_banner_url"),
                     ProfileTags            = SA("profile_tags", "[]"),
                     ProfileNote            = S("profile_note"),
                     ProfileFriendKey       = S("profile_friend_key"),
@@ -867,6 +869,7 @@ public class UnifiedTimeEngine : IDisposable
                     profile_user_count=$uc, profile_world_capacity=$wc, profile_can_join=$cj,
                     profile_can_request_invite=$cri, profile_can_invite=$ci,
                     profile_current_avatar_id=$caid, profile_avatar_file_id=$afid, profile_pic_override=$po,
+                    profile_banner_url=$bnu,
                     profile_tags=$tags, profile_note=$note, profile_friend_key=$fk, profile_traveling_to=$tt,
                     profile_state=$state, profile_last_platform=$lp, profile_platform=$pl, profile_user_note=$un,
                     profile_in_same_instance=$isi, profile_pronouns=$pro, profile_age_verification=$av,
@@ -901,6 +904,7 @@ public class UnifiedTimeEngine : IDisposable
                 cmd.Parameters.AddWithValue("$caid",  p["currentAvatarId"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$afid",  p["avatarFileId"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$po",    p["profilePicOverride"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$bnu",   p["bannerUrl"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$tags",  p["tags"]?.ToString() ?? "[]");
                 cmd.Parameters.AddWithValue("$note",  p["note"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$fk",    p["friendKey"]?.ToString() ?? "");
@@ -1726,6 +1730,7 @@ public class UnifiedTimeEngine : IDisposable
             "profile_current_avatar_id   TEXT    NOT NULL DEFAULT ''",
             "profile_avatar_file_id      TEXT    NOT NULL DEFAULT ''",
             "profile_pic_override        TEXT    NOT NULL DEFAULT ''",
+            "profile_banner_url          TEXT    NOT NULL DEFAULT ''",
             "profile_tags                TEXT    NOT NULL DEFAULT '[]'",
             "profile_note                TEXT    NOT NULL DEFAULT ''",
             "profile_friend_key          TEXT    NOT NULL DEFAULT ''",

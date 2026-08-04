@@ -11,7 +11,7 @@ public class VROverlayController : IDisposable
 {
     private readonly CoreLibrary _core;
     private readonly FriendsController _friends;
-    private bool _eventsWired;
+    private VRSubprocessHost? _wiredHost;
     private bool _disposed;
 
     // Callbacks set by AppShell
@@ -32,13 +32,12 @@ public class VROverlayController : IDisposable
         {
             _core.VrOverlay = new VRSubprocessHost(
                 s => Invoke(() => _core.SendToJS("log", new { msg = s, color = "sec" })));
-            _eventsWired = false;
         }
 
-        if (!_eventsWired)
+        var h = _core.VrOverlay;
+        if (!ReferenceEquals(_wiredHost, h))
         {
-            _eventsWired = true;
-            var h = _core.VrOverlay;
+            _wiredHost = h;
 
             h.OnVroState += d => Invoke(() => _core.SendToJS("vroState", d));
 
@@ -128,8 +127,7 @@ public class VROverlayController : IDisposable
 
             h.OnVroQuit += () =>
             {
-                _eventsWired = false;
-                if (!h.SfConnected) _core.VrOverlay = null;
+                if (!h.AnyConnected) _core.VrOverlay = null;
                 Invoke(() =>
                 {
                     _core.SendToJS("vroState", new { connected = false });
@@ -219,9 +217,8 @@ public class VROverlayController : IDisposable
             {
                 if (_core.VrOverlay != null)
                 {
-                    _eventsWired = false;
-                    _core.VrOverlay.VroDisconnect(); // kills subprocess if SF also disconnected
-                    if (!_core.VrOverlay.SfConnected) _core.VrOverlay = null;
+                    _core.VrOverlay.VroDisconnect();
+                    if (!_core.VrOverlay.AnyConnected) _core.VrOverlay = null;
                 }
                 _core.SendToJS("vroState", new { connected = false, visible = false, recording = false });
                 break;
@@ -385,8 +382,8 @@ public class VROverlayController : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        _disposed    = true;
-        _eventsWired = false;
+        _disposed  = true;
+        _wiredHost = null;
         _core.VrOverlay?.Dispose();
         _core.VrOverlay = null;
     }
