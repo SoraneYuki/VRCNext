@@ -230,6 +230,16 @@ public class AuthController
                     displayName = _core.VrcApi.IsLoggedIn ? (_core.VrcApi.CurrentUserRaw?["displayName"]?.ToString() ?? "") : "",
                     platform = OperatingSystem.IsWindows() ? "windows" : "linux",
                     language = _core.Settings.Language ?? "en",
+                    startWithSystem = _core.Settings.StartWithWindows,
+                    prefs = new
+                    {
+                        enableProfileIconFrames        = _core.Settings.EnableProfileIconFrames,
+                        friendsSidebarRankColor        = _core.Settings.FriendsSidebarRankColor,
+                        friendsSidebarLocationOnly     = _core.Settings.FriendsSidebarLocationOnly,
+                        friendsSidebarPreviewCollapsed = _core.Settings.FriendsSidebarPreviewCollapsed,
+                        directModalNav                 = _core.Settings.DirectModalNav,
+                        profileModalStyle              = _core.Settings.ProfileModalStyle,
+                    },
                 });
                 _ = VrcTryResumeAsync();
                 break;
@@ -412,6 +422,13 @@ public class AuthController
                 {
                     _core.Settings.WatchFolders.Add(setupPhotoDir);
                     _core.Settings.Save();
+                }
+                break;
+
+            case "setupSavePrefs":
+                {
+                    var prefs = msg["prefs"] as JObject;
+                    if (prefs != null) ApplySetupPrefs(prefs);
                 }
                 break;
 
@@ -1760,6 +1777,41 @@ public class AuthController
     }
 
     // Settings
+
+    private void ApplySetupPrefs(JObject prefs)
+    {
+        void Flag(string key, Action<bool> set)
+        {
+            var v = prefs[key];
+            if (v != null && v.Type != JTokenType.Null) set(v.Value<bool>());
+        }
+        void Style(string key, Action<string> set)
+        {
+            var v = prefs[key]?.ToString();
+            if (v == "classic" || v == "compact") set(v);
+        }
+
+        Flag("enableProfileIconFrames",        v => _core.Settings.EnableProfileIconFrames = v);
+        Flag("squareIconFrames",               v => _core.Settings.SquareIconFrames = v);
+        Flag("enableNameplateDecoration",      v => _core.Settings.EnableNameplateDecoration = v);
+        Flag("enableProfileEffects",           v => _core.Settings.EnableProfileEffects = v);
+        Flag("enableProfileBackgrounds",       v => _core.Settings.EnableProfileBackgrounds = v);
+        Flag("enableProfileThemes",            v => _core.Settings.EnableProfileThemes = v);
+        Flag("profileThemeVrcnOverride",       v => _core.Settings.ProfileThemeVrcnOverride = v);
+        Flag("profileThemeContrast",           v => _core.Settings.ProfileThemeContrast = v);
+        Flag("transparentProfileCards",        v => _core.Settings.TransparentProfileCards = v);
+        Flag("showDecorationsOnDashboard",     v => _core.Settings.ShowDecorationsOnDashboard = v);
+        Flag("friendsSidebarRankColor",        v => _core.Settings.FriendsSidebarRankColor = v);
+        Flag("friendsSidebarLocationOnly",     v => _core.Settings.FriendsSidebarLocationOnly = v);
+        Flag("friendsSidebarPreviewCollapsed", v => _core.Settings.FriendsSidebarPreviewCollapsed = v);
+        Flag("directModalNav",                 v => _core.Settings.DirectModalNav = v);
+        Style("profileModalStyle",             v => _core.Settings.ProfileModalStyle = v);
+        Style("worldModalStyle",               v => _core.Settings.WorldModalStyle = v);
+        Style("groupModalStyle",               v => _core.Settings.GroupModalStyle = v);
+        Style("avatarModalStyle",              v => _core.Settings.AvatarModalStyle = v);
+
+        _core.Settings.Save();
+    }
 
     private void ApplySettings(JToken data)
     {

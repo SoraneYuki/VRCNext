@@ -459,8 +459,12 @@ public partial class AppShell
                     _authCtrl.HandleGetGameLog();
                     break;
 
-                // Setup / Auth / Settings — delegated to AuthController
                 case "setupReady":
+                    _windowCtrl.InstallChrome();
+                    await _authCtrl.HandleMessage(action, msg);
+                    break;
+
+                // Setup / Auth / Settings — delegated to AuthController
                 case "setupDone":
                 case "forceTrim":
                 case "resetSetup":
@@ -478,6 +482,7 @@ public partial class AppShell
                 case "setupSaveStartWithWindows":
                 case "setupSaveVrcPath":
                 case "setupSavePhotoDir":
+                case "setupSavePrefs":
                 case "setupBrowsePhotoDir":
                     await _authCtrl.HandleMessage(action, msg);
                     break;

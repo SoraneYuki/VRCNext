@@ -9,6 +9,43 @@
 }
 .mini-paginator:empty { display: none; }
 
+#modalFriendDetail .fd-right-scroll:has(.mini-paginator:last-child),
+#modalMyProfile .fd-right-scroll:has(.mini-paginator:last-child),
+#modalDetail .fd-right-scroll:has(.mini-paginator:last-child) {
+    display: flex;
+    flex-direction: column;
+}
+#modalFriendDetail .fd-right-scroll:has(.mini-paginator:last-child) > .fd-tabs,
+#modalMyProfile .fd-right-scroll:has(.mini-paginator:last-child) > .fd-tabs,
+#modalDetail .fd-right-scroll:has(.mini-paginator:last-child) > .fd-tabs {
+    flex-shrink: 0;
+}
+#modalFriendDetail .fd-right-scroll > div:has(.mini-paginator:last-child),
+#modalMyProfile .fd-right-scroll > div:has(.mini-paginator:last-child),
+#modalDetail .fd-right-scroll > div:has(.mini-paginator:last-child),
+#modalFriendDetail .fd-right-scroll > div > div:has(> .mini-paginator:last-child),
+#modalMyProfile .fd-right-scroll > div > div:has(> .mini-paginator:last-child),
+#modalDetail .fd-right-scroll > div > div:has(> .mini-paginator:last-child) {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+#modalFriendDetail .fd-right-scroll *:has(+ .mini-paginator:last-child),
+#modalMyProfile .fd-right-scroll *:has(+ .mini-paginator:last-child),
+#modalDetail .fd-right-scroll *:has(+ .mini-paginator:last-child) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    align-content: start;
+}
+#modalFriendDetail .fd-right-scroll .mini-paginator:last-child,
+#modalMyProfile .fd-right-scroll .mini-paginator:last-child,
+#modalDetail .fd-right-scroll .mini-paginator:last-child {
+    flex-shrink: 0;
+}
+
 @keyframes miniPageFadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }

@@ -17,10 +17,21 @@
 
     <!-- Titlebar (draggable, Windows only — Linux uses native window frame) -->
     <div class="setup-titlebar" id="titlebar" data-windows-only>
-        <div class="win-dots">
-            <button class="win-dot win-dot-min"   onclick="winMin()"   title="Minimize"></button>
-            <button class="win-dot win-dot-max"   onclick="winMax()"   title="Maximize"></button>
-            <button class="win-dot win-dot-close" onclick="winClose()" title="Close"></button>
+        <div class="tb-brand">VRCNext</div>
+        <div class="tb-drag"></div>
+        <div class="tb-win-group">
+            <button class="tb-win-btn" title="Minimize" onclick="winMin()">
+                <svg width="12" height="2" viewBox="0 0 12 2"><rect width="12" height="1.5" y="0.25" fill="currentColor"/></svg>
+            </button>
+            <button class="tb-win-btn" id="tbMaximize" title="Maximize / Restore" onclick="winMax()">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <rect class="tb-icon-max" x="0.5" y="0.5" width="9" height="9" stroke="currentColor" stroke-width="1.1"/>
+                    <path class="tb-icon-restore" d="M3.5 0.5h6v6M0.5 3.5v6h6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="tb-win-btn tb-close" title="Close" onclick="winClose()">
+                <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </button>
         </div>
     </div>
 
@@ -28,9 +39,10 @@
     <div class="setup-container">
         <div class="setup-card">
             <!-- Progress Bar -->
-            <div class="setup-progress"><div class="setup-progress-fill" id="progressFill" style="width:14%"></div></div>
-            <div class="setup-step" id="stepCounter">STEP 1 OF 7</div>
+            <div class="setup-progress"><div class="setup-progress-fill" id="progressFill" style="width:8%"></div></div>
+            <div class="setup-step" id="stepCounter">STEP 1 OF 12</div>
 
+            <div class="setup-pages" id="setupPages">
             <!-- ═══ Page 1: Language ═══ -->
             <div class="setup-page active" data-page="0">
                 <div class="setup-icon"><span class="msi">language</span></div>
@@ -60,6 +72,10 @@
                     <div class="step-item">
                         <div class="step-num">4</div>
                         <div class="step-text"><strong data-i18n="setup.page2.step4_title">Camera Settings</strong><br><span data-i18n="setup.page2.step4_desc">Enable metadata for photo world tracking</span></div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">5</div>
+                        <div class="step-text"><strong data-i18n="setup.page2.step5_title">Personalize VRCNext</strong><br><span data-i18n="setup.page2.step5_desc">Pick your decorations, sidebar and navigation style</span></div>
                     </div>
                 </div>
             </div>
@@ -91,7 +107,7 @@
                     </button>
                 </div>
                 <div class="path-hint" id="vrcPathHint">
-                    <span class="msi" style="font-size:13px;vertical-align:middle;color:rgba(106,90,249,.5);">info</span>
+                    <span class="msi" style="font-size:13px;vertical-align:middle;color:var(--accent);">info</span>
                     Default: <code>C:\Program Files (x86)\Steam\steamapps\common\VRChat\launch.exe</code>
                 </div>
             </div>
@@ -108,7 +124,7 @@
                     </button>
                 </div>
                 <div class="path-hint">
-                    <span class="msi" style="font-size:13px;vertical-align:middle;color:rgba(106,90,249,.5);">info</span>
+                    <span class="msi" style="font-size:13px;vertical-align:middle;color:var(--accent);">info</span>
                     Default: <code>C:\Users\YourName\Pictures\VRChat</code>
                 </div>
             </div>
@@ -138,14 +154,190 @@
                 </div>
             </div>
 
-            <!-- ═══ Page 7: Start with System ═══ -->
+            <!-- ═══ Page 7: VRChat Plus Decorations ═══ -->
             <div class="setup-page" data-page="6">
+                <div class="setup-icon"><span class="msi">workspace_premium</span></div>
+                <div class="setup-title" data-i18n="setup.vrcplus.title">VRChat Plus Decorations</div>
+                <div class="setup-desc" data-i18n="setup.vrcplus.desc">VRChat Plus users can decorate their profile with icon frames, name plates, backgrounds and themes. VRCNext can show all of that inside the app.</div>
+                <div class="setup-question" data-i18n="setup.vrcplus.question">Do you want to use the new VRChat Plus profile decorations?</div>
+                <div class="startup-toggle-card">
+                    <div class="startup-toggle-label">
+                        <span class="msi">auto_awesome</span>
+                        <div>
+                            <div class="startup-toggle-title" data-i18n="setup.vrcplus.toggle_title">Show VRChat Plus decorations</div>
+                            <div class="startup-toggle-sub" data-i18n="setup.vrcplus.toggle_sub">Turns on the recommended set of decoration options</div>
+                        </div>
+                    </div>
+                    <label class="sw-toggle">
+                        <input type="checkbox" id="setupVrcPlusDeco" onchange="onVrcPlusDecoToggle(this.checked)">
+                        <div class="sw-track"><div class="sw-knob"></div></div>
+                    </label>
+                </div>
+                <div class="deco-list" id="decoPillList">
+                    <div class="deco-pill"><span class="msi">crop_free</span><span data-i18n="setup.vrcplus.item.frames">Profile Frames</span></div>
+                    <div class="deco-pill"><span class="msi">crop_square</span><span data-i18n="setup.vrcplus.item.square">Non-Frame Profiles as Square</span></div>
+                    <div class="deco-pill"><span class="msi">badge</span><span data-i18n="setup.vrcplus.item.nameplate">Name Plate Decoration</span></div>
+                    <div class="deco-pill"><span class="msi">wallpaper</span><span data-i18n="setup.vrcplus.item.background">Profile Backgrounds</span></div>
+                    <div class="deco-pill"><span class="msi">palette</span><span data-i18n="setup.vrcplus.item.theme">Profile Themes</span></div>
+                    <div class="deco-pill"><span class="msi">contrast</span><span data-i18n="setup.vrcplus.item.contrast">Keep Theme Text Readable</span></div>
+                    <div class="deco-pill"><span class="msi">dashboard</span><span data-i18n="setup.vrcplus.item.dashboard">Effects on Dashboard</span></div>
+                </div>
+                <div class="setup-note" data-i18n="setup.vrcplus.note">You can fine-tune every single one of these later in Settings → VRC+ Decorations.</div>
+            </div>
+
+            <!-- ═══ Page 8: Friends Sidebar ═══ -->
+            <div class="setup-page" data-page="7">
+                <div class="setup-icon"><span class="msi">groups</span></div>
+                <div class="setup-title" data-i18n="setup.sidebar.title">Friends Sidebar</div>
+                <div class="setup-desc" data-i18n="setup.sidebar.desc">The friends sidebar lists everyone you are friends with. Choose how much you want to see at a glance.</div>
+
+                <div class="setup-question" data-i18n="setup.sidebar.rank_question">Do you want to see the Trusted rank as a badge or as a colored name?</div>
+                <div class="startup-toggle-card">
+                    <div class="startup-toggle-label">
+                        <span class="msi">military_tech</span>
+                        <div>
+                            <div class="startup-toggle-title" data-i18n="setup.sidebar.rank_toggle_title">Use Trusted Rank color instead of badge</div>
+                            <div class="startup-toggle-sub" data-i18n="setup.sidebar.rank_toggle_sub">Off: the rank is shown as a badge. On: the name is colored instead.</div>
+                        </div>
+                    </div>
+                    <label class="sw-toggle">
+                        <input type="checkbox" id="setupSidebarRankColor">
+                        <div class="sw-track"><div class="sw-knob"></div></div>
+                    </label>
+                </div>
+
+                <div class="setup-question" style="margin-top:18px;" data-i18n="setup.sidebar.location_question">Do you want to see the location or the status?</div>
+                <div class="startup-toggle-card">
+                    <div class="startup-toggle-label">
+                        <span class="msi">location_on</span>
+                        <div>
+                            <div class="startup-toggle-title" data-i18n="setup.sidebar.location_toggle_title">Show only location when available</div>
+                            <div class="startup-toggle-sub" data-i18n="setup.sidebar.location_toggle_sub">Friends in a world show the world name, everyone else keeps their status.</div>
+                        </div>
+                    </div>
+                    <label class="sw-toggle">
+                        <input type="checkbox" id="setupSidebarLocationOnly">
+                        <div class="sw-track"><div class="sw-knob"></div></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ═══ Page 9: Preview Profiles ═══ -->
+            <div class="setup-page" data-page="8">
+                <div class="setup-icon"><span class="msi">preview</span></div>
+                <div class="setup-title" data-i18n="setup.preview.title">Preview Profiles</div>
+                <div class="setup-desc" data-i18n="setup.preview.desc">When the friends sidebar is collapsed you only see the profile pictures. A preview shows you who that is without opening the full profile.</div>
+                <div class="setup-question" data-i18n="setup.preview.question">Do you want to see a profile preview of your friend when the sidebar is collapsed?</div>
+                <div class="startup-toggle-card">
+                    <div class="startup-toggle-label">
+                        <span class="msi">contact_page</span>
+                        <div>
+                            <div class="startup-toggle-title" data-i18n="setup.preview.toggle_title">Show preview profile when collapsed</div>
+                            <div class="startup-toggle-sub" data-i18n="setup.preview.toggle_sub">Hovering a friend opens a small profile card next to the sidebar.</div>
+                        </div>
+                    </div>
+                    <label class="sw-toggle">
+                        <input type="checkbox" id="setupSidebarPreviewCollapsed">
+                        <div class="sw-track"><div class="sw-knob"></div></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ═══ Page 10: Navigation (modal style) ═══ -->
+            <div class="setup-page" data-page="9">
+                <div class="setup-icon"><span class="msi">alt_route</span></div>
+                <div class="setup-title" data-i18n="setup.navigation.title">Navigation</div>
+                <div class="setup-desc" data-i18n="setup.navigation.desc">Choose how profiles, worlds, groups and avatars are laid out. Classic shows a wide top banner with a single column below, Compact splits the details onto a left column with the content next to it. Your choice is used for all four modals.</div>
+                <div class="profile-style-picker" id="setupStylePicker">
+                    <button type="button" class="profile-style-option" data-style="classic" onclick="setSetupModalStyle('classic')">
+                        <div class="profile-style-skeleton sk-classic">
+                            <div class="sk-banner"></div>
+                            <div class="sk-row sk-row-header">
+                                <div class="sk-avatar"></div>
+                                <div class="sk-name-block">
+                                    <div class="sk-name"></div>
+                                    <div class="sk-line short"></div>
+                                </div>
+                            </div>
+                            <div class="sk-badges">
+                                <div class="sk-chip"></div>
+                                <div class="sk-chip"></div>
+                                <div class="sk-chip"></div>
+                            </div>
+                            <div class="sk-tabs">
+                                <div class="sk-tab"></div>
+                                <div class="sk-tab"></div>
+                                <div class="sk-tab"></div>
+                            </div>
+                            <div class="sk-content">
+                                <div class="sk-block"></div>
+                                <div class="sk-block short"></div>
+                            </div>
+                        </div>
+                        <div class="profile-style-label" data-i18n="setup.navigation.classic">Classic</div>
+                    </button>
+                    <button type="button" class="profile-style-option" data-style="compact" onclick="setSetupModalStyle('compact')">
+                        <div class="profile-style-skeleton sk-compact">
+                            <div class="sk-left">
+                                <div class="sk-banner sk-banner-left"></div>
+                                <div class="sk-row sk-row-tight">
+                                    <div class="sk-avatar small"></div>
+                                    <div class="sk-name-block">
+                                        <div class="sk-name short"></div>
+                                        <div class="sk-line tiny"></div>
+                                    </div>
+                                </div>
+                                <div class="sk-mini-card"></div>
+                                <div class="sk-mini-card short"></div>
+                                <div class="sk-mini-card"></div>
+                            </div>
+                            <div class="sk-right">
+                                <div class="sk-tabs">
+                                    <div class="sk-tab"></div>
+                                    <div class="sk-tab"></div>
+                                    <div class="sk-tab"></div>
+                                </div>
+                                <div class="sk-content">
+                                    <div class="sk-block"></div>
+                                    <div class="sk-block short"></div>
+                                    <div class="sk-block"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="profile-style-label" data-i18n="setup.navigation.compact">Compact</div>
+                    </button>
+                </div>
+                <div class="setup-note" data-i18n="setup.navigation.note">Applies to the profile, world, group and avatar modal. Each one can still be changed separately in Settings.</div>
+            </div>
+
+            <!-- ═══ Page 11: Direct Modal Navigation ═══ -->
+            <div class="setup-page" data-page="10">
+                <div class="setup-icon"><span class="msi">low_priority</span></div>
+                <div class="setup-title" data-i18n="setup.directnav.title">Use Direct Modal Navigation</div>
+                <div class="setup-desc" data-i18n="setup.directnav.desc">With direct modal navigation the breadcrumb history and all modal actions sit in a bar at the top of the modal instead of in the taskbar. This makes navigating easier in fullscreen or on larger screens.</div>
+                <div class="startup-toggle-card">
+                    <div class="startup-toggle-label">
+                        <span class="msi">low_priority</span>
+                        <div>
+                            <div class="startup-toggle-title" data-i18n="setup.directnav.toggle_title">Use Direct Modal Navigation</div>
+                            <div class="startup-toggle-sub" data-i18n="setup.directnav.toggle_sub">Recommended when you run VRCNext in fullscreen.</div>
+                        </div>
+                    </div>
+                    <label class="sw-toggle">
+                        <input type="checkbox" id="setupDirectModalNav">
+                        <div class="sw-track"><div class="sw-knob"></div></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ═══ Page 12: Start with System ═══ -->
+            <div class="setup-page" data-page="11">
                 <div class="setup-icon"><span class="msi">rocket_launch</span></div>
                 <div class="setup-title" id="startupPageTitle" data-i18n="setup.page7.title">Start with Windows</div>
                 <div class="setup-desc" id="startupPageDesc" data-i18n="setup.page7.desc">Should VRCNext launch automatically when Windows starts? It will open minimized in the taskbar so it is ready when you need it.</div>
                 <div class="startup-toggle-card">
                     <div class="startup-toggle-label">
-                        <span class="msi" style="font-size:20px;color:#8b7aff;">power_settings_new</span>
+                        <span class="msi">power_settings_new</span>
                         <div>
                             <div class="startup-toggle-title" id="startupToggleTitle" data-i18n="setup.page7.toggle_title">Auto-start with Windows</div>
                             <div class="startup-toggle-sub" id="startupToggleSub" data-i18n="setup.page7.toggle_sub">Opens minimized when Windows boots</div>
@@ -156,6 +348,7 @@
                         <div class="sw-track"><div class="sw-knob"></div></div>
                     </label>
                 </div>
+            </div>
             </div>
 
             <!-- Navigation -->

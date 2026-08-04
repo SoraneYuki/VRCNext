@@ -1,5 +1,9 @@
 **2026.36.0**
 
+**Setup Update**
+
+* Updated the Setup Quiz when starting VRCN for the first time.
+
 **Mutual Network**
 
 * Added Communities to automatically group strongly connected people.
