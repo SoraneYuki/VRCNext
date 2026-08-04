@@ -9,7 +9,7 @@ public class SpaceFlightController : IDisposable
 {
     private readonly CoreLibrary _core;
     private readonly VROverlayController _vroCtrl;
-    private bool _sfEventsWired;
+    private VRSubprocessHost? _sfWiredHost;
 
     public bool IsConnected => _core.VrOverlay?.SfConnected ?? false;
 
@@ -28,17 +28,16 @@ public class SpaceFlightController : IDisposable
                 s => _core.SendToJS("log", new { msg = s, color = "sec" }));
         }
 
-        if (!_sfEventsWired)
+        var h = _core.VrOverlay;
+        if (!ReferenceEquals(_sfWiredHost, h))
         {
-            _sfEventsWired = true;
-            var h = _core.VrOverlay;
+            _sfWiredHost = h;
 
             h.OnSfUpdate += d => _core.SendToJS("sfUpdate", d);
 
             h.OnSfQuit += () =>
             {
-                _sfEventsWired = false;
-                if (!h.VroConnected) _core.VrOverlay = null;
+                if (!h.AnyConnected) _core.VrOverlay = null;
                 _core.SendToJS("sfUpdate", new
                 {
                     connected = false, dragging = false,
@@ -77,9 +76,8 @@ public class SpaceFlightController : IDisposable
             case "sfDisconnect":
                 if (_core.VrOverlay != null)
                 {
-                    _sfEventsWired = false;
-                    _core.VrOverlay.SfDisconnect(); // kills subprocess if VRO also disconnected
-                    if (!_core.VrOverlay.VroConnected) _core.VrOverlay = null;
+                    _core.VrOverlay.SfDisconnect();
+                    if (!_core.VrOverlay.AnyConnected) _core.VrOverlay = null;
                 }
                 _core.SendToJS("sfUpdate", new
                 {
@@ -119,9 +117,8 @@ public class SpaceFlightController : IDisposable
 #if WINDOWS
         if (_core.VrOverlay?.SfConnected == true)
         {
-            _sfEventsWired = false;
             _core.VrOverlay.SfDisconnect();
-            if (!_core.VrOverlay.VroConnected) _core.VrOverlay = null;
+            if (!_core.VrOverlay.AnyConnected) _core.VrOverlay = null;
             _core.SendToJS("sfUpdate", new
             {
                 connected = false, dragging = false,
@@ -147,7 +144,6 @@ public class SpaceFlightController : IDisposable
 
     public void Dispose()
     {
-        _sfEventsWired = false;
-        // Subprocess disposal is owned by VROverlayController; we just untrack SF state.
+        _sfWiredHost = null;
     }
 }

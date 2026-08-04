@@ -1,21 +1,22 @@
 **2026.36.0**
 
-**Setup Update**
+**Setup**
 
-* Updated the Setup Quiz when starting VRCN for the first time.
+* Updated the first-time setup.
 
 **Mutual Network**
 
-* Added Communities to automatically group strongly connected people.
-* Communities use mutual friends, shared instances, and shared groups to calculate connections.
-* Each community has its own color and central member.
-* Added a community list for filtering and adjusting the minimum connection score.
-* Select and hover over users to view their connection details.
-* Fixed the graph shaking while loading.
-* Fixed communities drifting far apart until nothing was visible. Every person now stays inside their own community area, and the view zooms to fit whenever the grouping changes or you press Reset.
+* Added Communities to group closely connected people.
+* Connections are based on mutual friends, shared instances, and shared groups.
+* Added community colors, filtering, and connection details.
+* Improved graph stability and automatic zooming.
 
 **Improvements**
 
-* Significantly improved VRCX database import speed.
-* Improved Mutual Network performance and frame rate.
-* Added more page-size options to Timeline lists.
+* Faster VRCX database imports.
+* Improved Mutual Network performance.
+* Added more Timeline page-size options.
+
+**Bug Fixes**
+
+* Fixed several crashes and issues related to VR Overlay, Space Flight, and FrameShot.

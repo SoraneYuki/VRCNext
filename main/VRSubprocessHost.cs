@@ -28,6 +28,8 @@ public sealed class VRSubprocessHost : IDisposable
     public bool SfConnected  { get; private set; }
     public bool FsConnected  { get; private set; }
 
+    public bool AnyConnected => VroConnected || SfConnected || FsConnected;
+
     // Events fired when the subprocess sends a message over stdout.
     public event Action<JObject>? OnVroState;
     public event Action<List<uint>, List<string>, int, int>? OnVroKeybindRecorded;
@@ -405,6 +407,7 @@ public sealed class VRSubprocessHost : IDisposable
     public bool VroConnected { get; private set; }
     public bool SfConnected  { get; private set; }
     public bool FsConnected  { get; private set; }
+    public bool AnyConnected => VroConnected || SfConnected || FsConnected;
 
     public VRSubprocessHost(Action<string> log) { }
     public void EnsureRunning(string c, int p, string? a, string? t) { }

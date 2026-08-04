@@ -11,7 +11,7 @@ public class FrameShotController : IDisposable
     private readonly CoreLibrary _core;
     private readonly VROverlayController _vroCtrl;
     private readonly PhotosController _photos;
-    private bool _fsEventsWired;
+    private VRSubprocessHost? _fsWiredHost;
 
     public bool IsConnected => _core.VrOverlay?.FsConnected ?? false;
 
@@ -31,10 +31,10 @@ public class FrameShotController : IDisposable
                 s => _core.SendToJS("log", new { msg = s, color = "sec" }));
         }
 
-        if (!_fsEventsWired)
+        var h = _core.VrOverlay;
+        if (!ReferenceEquals(_fsWiredHost, h))
         {
-            _fsEventsWired = true;
-            var h = _core.VrOverlay;
+            _fsWiredHost = h;
 
             h.OnFsUpdate += d => _core.SendToJS("fsUpdate", d);
 
@@ -58,8 +58,7 @@ public class FrameShotController : IDisposable
 
             h.OnFsQuit += () =>
             {
-                _fsEventsWired = false;
-                if (!h.VroConnected && !h.SfConnected) _core.VrOverlay = null;
+                if (!h.AnyConnected) _core.VrOverlay = null;
                 _core.SendToJS("fsUpdate", new
                 {
                     connected = false, framing = false,
@@ -105,9 +104,8 @@ public class FrameShotController : IDisposable
             case "fsDisconnect":
                 if (_core.VrOverlay != null)
                 {
-                    _fsEventsWired = false;
                     _core.VrOverlay.FsDisconnect();
-                    if (!_core.VrOverlay.VroConnected && !_core.VrOverlay.SfConnected) _core.VrOverlay = null;
+                    if (!_core.VrOverlay.AnyConnected) _core.VrOverlay = null;
                 }
                 _core.SendToJS("fsUpdate", new
                 {
@@ -255,9 +253,8 @@ public class FrameShotController : IDisposable
 #if WINDOWS
         if (_core.VrOverlay?.FsConnected == true)
         {
-            _fsEventsWired = false;
             _core.VrOverlay.FsDisconnect();
-            if (!_core.VrOverlay.VroConnected && !_core.VrOverlay.SfConnected) _core.VrOverlay = null;
+            if (!_core.VrOverlay.AnyConnected) _core.VrOverlay = null;
             _core.SendToJS("fsUpdate", new
             {
                 connected = false, framing = false,
@@ -277,6 +274,6 @@ public class FrameShotController : IDisposable
 
     public void Dispose()
     {
-        _fsEventsWired = false;
+        _fsWiredHost = null;
     }
 }
