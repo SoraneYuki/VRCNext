@@ -106,7 +106,7 @@ function applyImagePicker() {
 
     // Profile: pass URL (VRChat user API accepts CDN URLs directly)
     if (type === 'profile-icon')        sendToCS({ action: 'vrcUpdateProfile', userIcon: url });
-    else if (type === 'profile-banner') sendToCS({ action: 'vrcUpdateProfile', profilePicOverride: url });
+    else if (type === 'profile-banner') sendToCS({ action: 'vrcUpdateProfileBanner', bannerCustomUrl: url });
     // Groups: VRChat group API requires file IDs (iconId/bannerId), not URLs
     else if (type === 'group-icon')     sendToCS({ action: 'vrcUpdateGroup', groupId: targetId, iconId:   fileId });
     else if (type === 'group-banner')   sendToCS({ action: 'vrcUpdateGroup', groupId: targetId, bannerId: fileId });

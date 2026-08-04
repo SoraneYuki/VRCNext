@@ -147,7 +147,7 @@ function renderMyProfileContent() {
     const addLanguageLabel  = t('profiles.my_profile.add_language', 'Add language...');
 
     // Banner
-    const bannerSrc = u.profilePicOverride || u.currentAvatarImageUrl || u.image || '';
+    const bannerSrc = u.bannerUrl || u.profilePicOverride || u.currentAvatarImageUrl || u.image || '';
     const _mypEffect = (typeof profileEffectHtml === 'function') ? profileEffectHtml(u.profileEffectUrl) : '';
     const bannerHtml = bannerSrc
         ? `<div class="fd-banner" id="myp-banner-slot"><div class="fd-banner-fade"></div>${_mypEffect}</div>`
@@ -1217,6 +1217,13 @@ function onProfileBackgroundUpdated(data) {
     showToast(true, t('profiles.deco.updated', 'Profile updated!'));
     if (typeof renderMyProfileContent === 'function') renderMyProfileContent();
     renderProfileDecoPicker(false);
+}
+
+function onProfileBannerUpdated(data) {
+    if (!data?.success) { showToast(false, t('profiles.banner.failed', 'Could not update banner')); return; }
+    if (currentVrcUser) currentVrcUser.bannerUrl = data.bannerUrl || '';
+    showToast(true, t('profiles.banner.updated', 'Banner updated!'));
+    if (typeof renderMyProfileContent === 'function') renderMyProfileContent();
 }
 
 function _mypThemeSection() {

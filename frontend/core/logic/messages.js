@@ -207,6 +207,9 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcProfileBackgroundUpdated':
                 if (typeof onProfileBackgroundUpdated === 'function') onProfileBackgroundUpdated(payload);
                 break;
+            case 'vrcProfileBannerUpdated':
+                if (typeof onProfileBannerUpdated === 'function') onProfileBannerUpdated(payload);
+                break;
             case 'vrcProfileThemeSaved':
                 if (typeof onProfileThemeSaved === 'function') onProfileThemeSaved(payload);
                 break;

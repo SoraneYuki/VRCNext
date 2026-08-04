@@ -133,7 +133,7 @@ function mediaSetAsProfileIcon(url, name) {
 
 function mediaSetAsProfileBanner(url, name) {
     mediaLibUploadFlow('photos', url, name, file => {
-        if (file?.fileUrl) sendToCS({ action: 'vrcUpdateProfile', profilePicOverride: file.fileUrl });
+        if (file?.fileUrl) sendToCS({ action: 'vrcUpdateProfileBanner', bannerCustomUrl: file.fileUrl });
     });
 }
 

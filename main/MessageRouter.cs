@@ -758,6 +758,28 @@ public partial class AppShell
                     break;
                 }
 
+                case "vrcUpdateProfileBanner":
+                {
+                    var bnUrl    = msg["bannerCustomUrl"]?.ToString() ?? "";
+                    var bnSelfId = _core.VrcApi.CurrentUserId ?? "";
+                    _ = Task.Run(async () =>
+                    {
+                        var ok = string.IsNullOrEmpty(bnUrl) || string.IsNullOrEmpty(bnSelfId)
+                            ? null
+                            : await _core.Users.SetProfileBannerAsync(bnSelfId, bnUrl);
+                        Invoke(() =>
+                        {
+                            SendToJS("vrcProfileBannerUpdated", new
+                            {
+                                success   = ok != null,
+                                bannerUrl = ok != null ? ImageCacheHelper.GetUserBannerUrl(bnSelfId, bnUrl) : "",
+                            });
+                            SendToJS("log", new { msg = ok != null ? "VRChat: Profile banner updated" : "VRChat: Failed to update profile banner", color = ok != null ? "ok" : "err" });
+                        });
+                    });
+                    break;
+                }
+
                 case "vrcUpdateProfile":
                     var upBio = msg["bio"] != null ? msg["bio"]!.ToString() : (string?)null;
                     var upPronouns = msg["pronouns"] != null ? msg["pronouns"]!.ToString() : (string?)null;

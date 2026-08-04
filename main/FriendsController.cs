@@ -305,7 +305,8 @@ public class FriendsController
                         ["lastActivity"]          = ParseIsoDate(ubUser["last_activity"]),
                         ["currentAvatarId"]       = ubUser["currentAvatar"]?.ToString() ?? "",
                         ["currentAvatarImageUrl"] = ImageCacheHelper.GetAvatarUrl(ubUser["currentAvatar"]?.ToString(), ubUser["currentAvatarImageUrl"]?.ToString()),
-                        ["profilePicOverride"]    = ImageCacheHelper.GetUserBannerUrl(ubId, ubUser["profilePicOverride"]?.ToString()),
+                        ["profilePicOverride"]    = ImageCacheHelper.GetUserPicOverrideUrl(ubId, ubUser["profilePicOverride"]?.ToString()),
+                        ["bannerUrl"]             = ImageCacheHelper.GetUserBannerUrl(ubId, ubUser["bannerUrl"]?.ToString()),
                         ["pronouns"]              = ubUser["pronouns"]?.ToString() ?? "",
                         ["tags"]                  = ubUser["tags"] as JArray ?? new JArray(),
                         ["badges"]                = ubUser["badges"] as JArray ?? new JArray(),
@@ -330,6 +331,7 @@ public class FriendsController
                 {
                     var bio = "";
                     var profilePicOverride = "";
+                    var bannerUrl = "";
 
                     // SQLite cache
                     var bgType = ""; var bgTexture = ""; var bgTop = ""; var bgBottom = "";
@@ -339,6 +341,7 @@ public class FriendsController
                     {
                         bio = prevSqlite.ProfileBio;
                         profilePicOverride = prevSqlite.ProfilePicOverride;
+                        bannerUrl          = prevSqlite.ProfileBannerUrl;
                         bgType    = prevSqlite.ProfileBgType;
                         bgTexture = prevSqlite.ProfileBgTexture;
                         bgTop     = prevSqlite.ProfileBgGradTop;
@@ -351,7 +354,7 @@ public class FriendsController
                     // Live API fallback if no SQLite cache yet
                     if (string.IsNullOrEmpty(bio))
                     {
-                        _core.SendToJS("vrcFriendPreview", new { id = prevId, bio, profilePicOverride });
+                        _core.SendToJS("vrcFriendPreview", new { id = prevId, bio, profilePicOverride, bannerUrl });
                         var user = await _core.Users.GetUserAsync(prevId);
                         if (user != null)
                         {
@@ -384,7 +387,8 @@ public class FriendsController
                     _core.SendToJS("vrcFriendPreview", new {
                         id = prevId,
                         bio,
-                        profilePicOverride = ImageCacheHelper.GetUserBannerUrl(prevId, profilePicOverride),
+                        profilePicOverride = ImageCacheHelper.GetUserPicOverrideUrl(prevId, profilePicOverride),
+                        bannerUrl          = ImageCacheHelper.GetUserBannerUrl(prevId, bannerUrl),
                         backgroundType           = bgType,
                         backgroundTextureId      = bgTexture,
                         backgroundTextureUrl     = ProfileBackgroundHelper.UrlFor(bgTexture),
@@ -1610,6 +1614,7 @@ public class FriendsController
             pronouns = f["pronouns"]?.ToString() ?? "",
             bioLinks = f["bioLinks"]?.ToObject<List<string>>() ?? new List<string>(),
             profilePicOverride = f["profilePicOverride"]?.ToString() ?? "",
+            bannerUrl = f["bannerUrl"]?.ToString() ?? "",
             currentAvatarImageUrl = f["currentAvatarImageUrl"]?.ToString() ?? f["currentAvatarThumbnailImageUrl"]?.ToString() ?? "",
             badges = f["badges"] ?? new JArray(),
         });
@@ -1817,6 +1822,7 @@ public class FriendsController
             var livePronouns        = live?["pronouns"]?.ToString();
             var liveAvatarImg       = live?["currentAvatarImageUrl"]?.ToString() ?? live?["currentAvatarThumbnailImageUrl"]?.ToString();
             var livePicOverride     = live?["profilePicOverride"]?.ToString();
+            var liveBannerUrl       = live?["bannerUrl"]?.ToString();
             var liveTags            = live?["tags"] as JArray;
             var liveBioLinks        = live?["bioLinks"] as JArray;
             var liveBadges          = live?["badges"] as JArray;
@@ -1868,7 +1874,8 @@ public class FriendsController
                 ["currentAvatarImageUrl"] = !string.IsNullOrEmpty(liveAvatarImg) ? ImageCacheHelper.GetAvatarUrl(liveAvatarId, liveAvatarImg) : cachedEntry.ProfileAvatarImg,
                 ["currentAvatarId"]       = liveAvatarId,
                 ["avatarFileId"]          = liveFileId,
-                ["profilePicOverride"]    = !string.IsNullOrEmpty(livePicOverride) ? ImageCacheHelper.GetUserBannerUrl(userId, livePicOverride) : cachedEntry.ProfilePicOverride,
+                ["profilePicOverride"]    = !string.IsNullOrEmpty(livePicOverride) ? ImageCacheHelper.GetUserPicOverrideUrl(userId, livePicOverride) : cachedEntry.ProfilePicOverride,
+                ["bannerUrl"]             = !string.IsNullOrEmpty(liveBannerUrl) ? ImageCacheHelper.GetUserBannerUrl(userId, liveBannerUrl) : cachedEntry.ProfileBannerUrl,
                 ["tags"]                  = liveTags ?? TryParseJArray(cachedEntry.ProfileTags) ?? new JArray(),
                 ["note"]                  = cachedEntry.ProfileNote,
                 ["friendKey"]             = cachedEntry.ProfileFriendKey,
@@ -2345,7 +2352,8 @@ public class FriendsController
             currentAvatarImageUrl = ImageCacheHelper.GetAvatarUrl(user["currentAvatar"]?.ToString(), user["currentAvatarImageUrl"]?.ToString()),
             currentAvatarId = user["currentAvatar"]?.ToString() ?? "",
             avatarFileId = ExtractAvatarFileId(user),
-            profilePicOverride = ImageCacheHelper.GetUserBannerUrl(user["id"]?.ToString(), user["profilePicOverride"]?.ToString()),
+            profilePicOverride = ImageCacheHelper.GetUserPicOverrideUrl(user["id"]?.ToString(), user["profilePicOverride"]?.ToString()),
+            bannerUrl = ImageCacheHelper.GetUserBannerUrl(user["id"]?.ToString(), user["bannerUrl"]?.ToString()),
             tags = user["tags"]?.ToObject<List<string>>() ?? new(),
             note = user["note"]?.ToString() ?? "",
             friendKey = user["friendKey"]?.ToString() ?? "",

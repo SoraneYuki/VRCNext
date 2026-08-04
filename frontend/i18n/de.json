@@ -2891,6 +2891,8 @@
   "profiles.deco.empty": "Du besitzt keine davon",
   "profiles.deco.updated": "Profil aktualisiert!",
   "profiles.deco.failed": "Dekoration konnte nicht geaendert werden",
+  "profiles.banner.updated": "Banner aktualisiert!",
+  "profiles.banner.failed": "Banner konnte nicht geaendert werden",
   "settings.decorations.square_frames": "Profile ohne Icon-Rahmen eckig anzeigen",
   "settings.decorations.square_frames_desc": "Wenn aktiviert, bleibt jedes Profil ohne Icon-Rahmen-Dekoration ein eckiges Bild. Nur Profile mit einer Dekoration bekommen ein rundes Bild.",
   "settings.decorations.on_dashboard": "Effekte im Dashboard anzeigen",

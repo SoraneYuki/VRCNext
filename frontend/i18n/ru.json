@@ -2911,6 +2911,8 @@
   "profiles.deco.empty": "You do not own any of these",
   "profiles.deco.updated": "Profile updated!",
   "profiles.deco.failed": "Could not update decoration",
+  "profiles.banner.updated": "Banner updated!",
+  "profiles.banner.failed": "Could not update banner",
   "settings.decorations.square_frames": "Show Non-Icon-Frame Profiles as Square",
   "settings.decorations.square_frames_desc": "When enabled, every profile without an icon frame decoration stays a square image. Only profiles that have a decoration get a round image.",
   "settings.decorations.on_dashboard": "Show Effects on Dashboard",

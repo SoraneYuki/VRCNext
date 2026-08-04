@@ -1,5 +1,11 @@
 **2026.36.0**
 
+**VRChat API**
+
+* Profile banners now use VRChat's banner endpoint, so changes show up on vrchat.com.
+* Banners set via the image picker or the media gallery save correctly.
+* Profile updates now show what VRChat actually saved instead of assuming success.
+
 **Setup**
 
 * Updated the first-time setup.
