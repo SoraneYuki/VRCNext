@@ -1,6 +1,6 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                     <div id="worldFilterBtns" style="display:flex;gap:8px;align-items:center;">
-                        <button class="vrcn-button sub-tab-btn active" id="worldFilterFav" onclick="setWorldFilter('favorites')"><span class="msi" style="font-size:16px;">star</span> <span data-i18n="worlds.filters.favorites">Favorites</span></button>
+                        <button class="vrcn-button sub-tab-btn active" id="worldFilterFav" onclick="setWorldFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="worlds.filters.favorites">Favorites</span></button>
                         <button class="vrcn-button sub-tab-btn" id="worldFilterRecent" onclick="setWorldFilter('recent')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="worlds.filters.recent">Recently Visited</span></button>
                         <button class="vrcn-button sub-tab-btn" id="worldFilterMine" onclick="setWorldFilter('mine')"><span class="msi" style="font-size:16px;">cloud_upload</span> <span data-i18n="worlds.filters.mine">My Worlds</span></button>
                         <button class="vrcn-button sub-tab-btn" id="worldFilterSearch" onclick="setWorldFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="worlds.filters.search">Search</span></button>
@@ -12,7 +12,7 @@
                             <button id="worldEditMoveBtn" class="vrcn-button wd-edit-action" disabled onclick="worldEditShowMoveMenu(this)"><span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="worlds.edit.move_to">Move to...</span></button>
                             <div id="worldEditMovePicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
                         </div>
-                        <button id="worldEditRemoveBtn" class="vrcn-button wd-edit-action" disabled onclick="worldEditRemoveSelected()"><span class="msi" style="font-size:14px;">star_border</span> <span data-i18n="worlds.edit.remove">Remove</span></button>
+                        <button id="worldEditRemoveBtn" class="vrcn-button wd-edit-action" disabled onclick="worldEditRemoveSelected()"><span class="msi" style="font-size:14px;">favorite_border</span> <span data-i18n="worlds.edit.remove">Remove</span></button>
                         <div style="position:relative;">
                             <button id="worldCreateLocalBtn" class="vrcn-button" onclick="worldShowCreateLocalGroup(this)"><span class="msi" style="font-size:14px;">create_new_folder</span> <span data-i18n="favorites.create_local_group">Create Local Group</span></button>
                             <div id="worldCreateLocalPanel" class="vn-select-panel" style="display:none;min-width:220px;z-index:1200;padding:8px;">

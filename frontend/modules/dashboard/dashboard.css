@@ -80,7 +80,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     font-size: 17px;
     font-weight: 700;
     color: #fff;
-    font-family: 'Google Sans', sans-serif;
+    font-family: var(--font-app);
     letter-spacing: -0.3px;
     line-height: 1;
     text-shadow: 0 1px 6px rgba(0,0,0,.4);

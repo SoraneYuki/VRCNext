@@ -35,6 +35,30 @@ function updateDashSub() {
     document.getElementById('dashSub').textContent = status;
 }
 
+function renderDashBgPreview() {
+    const hero = document.getElementById('dashBgPreviewHero');
+    if (!hero) return;
+    const isVideo = !!dashBgPath && dashBgPath.toLowerCase().endsWith('.mp4');
+    const src = dashBgDataUri || (dashBgPath ? 'file:///' + dashBgPath.replace(/\\/g, '/') : '');
+    const existingVid = hero.querySelector('video');
+    if (isVideo && src) {
+        if (existingVid && existingVid.getAttribute('data-src') === src) return;
+        if (existingVid) existingVid.remove();
+        hero.style.backgroundImage = '';
+        const vid = document.createElement('video');
+        vid.setAttribute('data-src', src);
+        vid.src = src;
+        vid.autoplay = true;
+        vid.loop = true;
+        vid.muted = true;
+        vid.playsInline = true;
+        hero.insertBefore(vid, hero.firstChild);
+    } else {
+        if (existingVid) existingVid.remove();
+        hero.style.backgroundImage = `url('${src || 'fallback_bg.png'}')`;
+    }
+}
+
 function renderDashboard() {
     const name = currentVrcUser?.displayName;
     document.getElementById('dashWelcome').innerHTML = name
@@ -76,6 +100,7 @@ function renderDashboard() {
         }
     }
     if (currentSpecialTheme === 'auto') applyAutoColor();
+    renderDashBgPreview();
 
     renderDashWorlds();
     renderDashFriendsFeed();

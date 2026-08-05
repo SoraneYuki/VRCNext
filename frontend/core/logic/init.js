@@ -45,6 +45,7 @@ initAllVnSelects();
 renderWebhookCards([{}, {}, {}, {}]);
 renderLanguageChips();
 renderThemeChips();
+renderFontGrid();
 renderDashboard();
 tryLoadLogo();
 tryInitNotifySound();

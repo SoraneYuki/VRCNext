@@ -27,6 +27,8 @@
     --status-ask:    #FFA726;
     --status-busy:   #EF5350;
     --status-offline:#747F8D;
+    --font-app: 'Google Sans', sans-serif;
+    --font-mono: 'Google Sans Mono', monospace;
 }
 
 .clock-date,
@@ -150,7 +152,7 @@
 
 html { overflow: hidden; }
 body {
-    font-family: 'Google Sans', sans-serif;
+    font-family: var(--font-app);
     background: var(--bg-base);
     color: var(--tx1);
     display: flex;
@@ -175,7 +177,7 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+    font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
 }
 
 .main {
@@ -340,7 +342,7 @@ html.nameplate-deco-on .vrcn-user-item > .vrcn-user-item-info,
 html.nameplate-deco-on .vrcn-user-item > .vrcn-user-item-stats { position: relative; z-index: 1; }
 
 .profile-effect-deco {
-    display: none;
+    display: none !important;
     position: absolute;
     inset: 0;
     width: 100%;
@@ -352,7 +354,7 @@ html.nameplate-deco-on .vrcn-user-item > .vrcn-user-item-stats { position: relat
     -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
 }
-html.profile-effect-on .profile-effect-deco { display: block; }
+html.profile-effect-on .profile-effect-deco { display: block !important; }
 html.profile-effect-on .fd-banner,
 html.profile-effect-on .fd-left-banner { position: relative; }
 
@@ -545,7 +547,7 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     align-items: center;
     gap: 3px;
     font-size: 9px;
-    font-family: 'Google Sans Mono', monospace;
+    font-family: var(--font-mono);
     color: var(--tx3);
     background: var(--bg-input);
     border-radius: 5px;

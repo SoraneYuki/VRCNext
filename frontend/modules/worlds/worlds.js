@@ -261,7 +261,7 @@ function renderWorldCard(w) {
             <div class="cc-content">
                 <div class="cc-name">${esc(w.name)}</div>
                 <div class="cc-bottom-row">
-                    <div class="cc-meta">${esc(w.authorName)} · <span class="msi">person</span>${w.occupants} · <span class="msi">star</span>${w.favorites}</div>
+                    <div class="cc-meta">${esc(w.authorName)} · <span class="msi">person</span>${w.occupants} · <span class="msi">favorite</span>${w.favorites}</div>
                     ${tagsHtml}
                 </div>
             </div>
@@ -274,7 +274,7 @@ function renderWorldCard(w) {
         <div class="cc-content">
             <div class="cc-name">${esc(w.name)}</div>
             <div class="cc-bottom-row">
-                <div class="cc-meta">${esc(w.authorName)} · <span class="msi">person</span>${w.occupants} · <span class="msi">star</span>${w.favorites}</div>
+                <div class="cc-meta">${esc(w.authorName)} · <span class="msi">person</span>${w.occupants} · <span class="msi">favorite</span>${w.favorites}</div>
                 ${tagsHtml}
             </div>
         </div>

@@ -106,6 +106,7 @@ function profileEffectHtml(url) {
 }
 let currentPlayBtnTheme = '';
 let currentCursorTheme = '';
+let currentAppFont = 'google-sans';
 let _localHttpPort = 0;
 let _cursorFiles = [];
 let _customThemes = [];
@@ -873,16 +874,70 @@ function updateCurrentPageTitle() {
     pageTitle.addEventListener('transitionend', done);
 }
 
+const THEME_SKELETON_KEYS = ['bg-base', 'bg-side', 'bg-card', 'bg-input', 'accent', 'tx0', 'tx2', 'brd'];
+
+function _themePreviewColors(theme) {
+    const c = { ...(theme?.c || {}) };
+    if (theme?.light && theme.cLight) {
+        for (const k of _LIGHT_VARS) if (theme.cLight[k]) c[k] = theme.cLight[k];
+    }
+    return c;
+}
+
+function _liveThemeColors() {
+    const style = getComputedStyle(document.documentElement);
+    const c = {};
+    THEME_SKELETON_KEYS.forEach(k => { c[k] = style.getPropertyValue('--' + k).trim(); });
+    return c;
+}
+
+function themeSkeleton(c, accentOverride) {
+    const v = k => esc(c[k] || '#000');
+    const accent = accentOverride || v('accent');
+    return `<span class="theme-skeleton" style="background:${v('bg-base')};border-color:${v('brd')}">`
+        + `<span class="tsk-side" style="background:${v('bg-side')};border-color:${v('brd')}">`
+            + `<span class="tsk-badge" style="background:${accent}"></span>`
+            + `<span class="tsk-line w85" style="background:${v('tx2')}"></span>`
+            + `<span class="tsk-line w70" style="background:${v('tx2')}"></span>`
+            + `<span class="tsk-line w45" style="background:${v('tx2')}"></span>`
+        + `</span>`
+        + `<span class="tsk-main">`
+            + `<span class="tsk-bar" style="background:${v('bg-side')};border-color:${v('brd')}"></span>`
+            + `<span class="tsk-body">`
+                + `<span class="tsk-card" style="background:${v('bg-card')}">`
+                    + `<span class="tsk-line w70" style="background:${v('tx0')}"></span>`
+                    + `<span class="tsk-line w45" style="background:${v('tx2')}"></span>`
+                    + `<span class="tsk-pill" style="background:${accent}"></span>`
+                + `</span>`
+                + `<span class="tsk-card" style="background:${v('bg-input')}">`
+                    + `<span class="tsk-line w85" style="background:${v('tx2')}"></span>`
+                    + `<span class="tsk-line w45" style="background:${v('tx2')}"></span>`
+                + `</span>`
+            + `</span>`
+        + `</span>`
+        + `</span>`;
+}
+
 function renderThemeChips() {
-    const builtIn = Object.entries(THEMES).map(([k, t]) =>
-        `<button class="theme-chip${currentTheme === k ? ' active' : ''}" onclick="selectTheme('${k}')"><span class="theme-dot" style="background:${t.dot}"></span>${getThemeLabel(k, t.label)}</button>`
+    const builtIn = Object.entries(THEMES).map(([k, th]) =>
+        `<button class="theme-option${currentTheme === k ? ' active' : ''}" onclick="selectTheme('${k}')">`
+        + themeSkeleton(_themePreviewColors(th))
+        + `<span class="theme-option-name">${esc(getThemeLabel(k, th.label))}</span>`
+        + `</button>`
     ).join('');
     const removeLabel = t('common.remove', 'Remove');
-    const custom = customThemes.map(t =>
-        `<button class="theme-chip theme-chip-custom${currentTheme === t.key ? ' active' : ''}" data-ckey="${t.key}" onclick="selectCustomTheme('${t.key}')"><span class="theme-dot" style="background:${t.dot}"></span><span class="theme-chip-label">${esc(t.label)}</span><span class="theme-chip-del" onclick="event.stopPropagation();deleteCustomTheme('${t.key}')" title="${esc(removeLabel)}">×</span></button>`
+    const custom = customThemes.map(th =>
+        `<button class="theme-option theme-chip-custom${currentTheme === th.key ? ' active' : ''}" data-ckey="${th.key}" onclick="selectCustomTheme('${th.key}')">`
+        + themeSkeleton(_themePreviewColors(th))
+        + `<span class="theme-option-name theme-chip-label">${esc(th.label)}</span>`
+        + `<span class="theme-chip-del" onclick="event.stopPropagation();deleteCustomTheme('${th.key}')" title="${esc(removeLabel)}">×</span>`
+        + `</button>`
     ).join('');
     const addBtn = currentSpecialTheme === 'auto'
-        ? `<button class="theme-chip theme-chip-add" onclick="addCustomThemeFromAuto()"><span class="theme-dot" style="background:var(--accent)"></span>${t('settings.design.add_plus', 'Add +')}</button>`
+        ? `<button class="theme-option theme-chip-add" onclick="addCustomThemeFromAuto()">`
+          + themeSkeleton(_liveThemeColors())
+          + `<span class="theme-option-name">${esc(t('settings.design.add_plus', 'Add +'))}</span>`
+          + `</button>`
         : '';
 
     const themeGrid = document.getElementById('themeGrid');
@@ -898,11 +953,73 @@ function renderThemeChips() {
     else if (themeGrid) themeGrid.innerHTML = builtIn + custom + addBtn;
 }
 
+const APP_FONTS = [
+    { key: 'google-sans', label: 'Google Sans', stack: "'Google Sans', sans-serif" },
+    { key: 'inter',       label: 'Inter',       stack: "'Inter', sans-serif" },
+    { key: 'roboto',      label: 'Roboto',      stack: "'Roboto', sans-serif" },
+    { key: 'open-sans',   label: 'Open Sans',   stack: "'Open Sans', sans-serif" },
+    { key: 'lato',        label: 'Lato',        stack: "'Lato', sans-serif" },
+    { key: 'montserrat',  label: 'Montserrat',  stack: "'Montserrat', sans-serif" },
+    { key: 'poppins',     label: 'Poppins',     stack: "'Poppins', sans-serif" },
+    { key: 'nunito',      label: 'Nunito',      stack: "'Nunito', sans-serif" },
+    { key: 'rubik',       label: 'Rubik',       stack: "'Rubik', sans-serif" },
+    { key: 'manrope',     label: 'Manrope',     stack: "'Manrope', sans-serif" },
+    { key: 'quicksand',   label: 'Quicksand',   stack: "'Quicksand', sans-serif" },
+];
+const APP_FONT_DEFAULT = 'google-sans';
+
+function getAppFontStack(key) {
+    const f = APP_FONTS.find(x => x.key === key);
+    return (f || APP_FONTS[0]).stack;
+}
+
+function applyAppFont(key) {
+    currentAppFont = APP_FONTS.some(f => f.key === key) ? key : APP_FONT_DEFAULT;
+    document.documentElement.style.setProperty('--font-app', getAppFontStack(currentAppFont));
+}
+
+let _fontPreviewObserver = null;
+
+function renderFontGrid() {
+    const grid = document.getElementById('fontGrid');
+    if (!grid) return;
+    const defaultTag = t('settings.design.fonts.default', 'Default');
+    grid.innerHTML = APP_FONTS.map(f =>
+        `<button class="font-option${currentAppFont === f.key ? ' active' : ''}" data-font="${f.key}" data-stack="${esc(f.stack)}" onclick="selectAppFont('${f.key}')">`
+        + `<span class="font-preview">Aa</span>`
+        + `<span class="font-option-name">${esc(f.label)}</span>`
+        + (f.key === APP_FONT_DEFAULT ? `<span class="font-option-tag">${esc(defaultTag)}</span>` : '')
+        + `</button>`
+    ).join('');
+
+    if (!_fontPreviewObserver) {
+        _fontPreviewObserver = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (!e.isIntersecting) return;
+                const btn = e.target;
+                const prev = btn.querySelector('.font-preview');
+                if (prev) prev.style.fontFamily = btn.dataset.stack;
+                _fontPreviewObserver.unobserve(btn);
+            });
+        }, { rootMargin: '80px' });
+    }
+    grid.querySelectorAll('.font-option').forEach(el => _fontPreviewObserver.observe(el));
+}
+
+function selectAppFont(key) {
+    applyAppFont(key);
+    document.querySelectorAll('#fontGrid .font-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.font === currentAppFont);
+    });
+    autoSave();
+}
+
 function selectTheme(n) {
     currentTheme = n;
     if (currentSpecialTheme === 'auto') applyAutoColor();
     else applyColors(THEMES[n].c, THEMES[n].light ? { on: true, colors: THEMES[n].cLight } : null);
     renderThemeChips();
+    renderSpecialThemeChips();
     autoSave();
 }
 
@@ -1098,12 +1215,17 @@ function applyAutoColor() {
 function renderSpecialThemeChips() {
     const el = document.getElementById('specialThemeGrid');
     if (!el) return;
+    const live = _liveThemeColors();
     const chips = [
-        { key: '',     label: t('settings.design.special.standard', 'Standard'), dot: 'var(--accent)' },
-        { key: 'auto', label: t('settings.design.special.auto_color', 'Auto Color'), dot: 'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)' },
+        { key: '',     label: t('settings.design.special.standard', 'Standard'), accent: null },
+        { key: 'auto', label: t('settings.design.special.auto_color', 'Auto Color'),
+          accent: 'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)' },
     ];
-    el.innerHTML = chips.map(t =>
-        `<button class="theme-chip${currentSpecialTheme === t.key ? ' active' : ''}" onclick="applySpecialTheme('${t.key}')"><span class="theme-dot" style="background:${t.dot}"></span>${t.label}</button>`
+    el.innerHTML = chips.map(ch =>
+        `<button class="theme-option${currentSpecialTheme === ch.key ? ' active' : ''}" onclick="applySpecialTheme('${ch.key}')">`
+        + themeSkeleton(live, ch.accent)
+        + `<span class="theme-option-name">${esc(ch.label)}</span>`
+        + `</button>`
     ).join('');
 }
 

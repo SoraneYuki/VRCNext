@@ -1,5 +1,87 @@
 let _navIsLinux = false;
 
+const _navBadgeCache = { worlds: '', groups: '', people: '', avatars: '', calendar: '' };
+let _navMyWorldsRequested = false;
+let _navMyWorldsCount = null;
+
+function _navLen(v) { return Array.isArray(v) ? v.length : null; }
+
+function navSetMyWorldsCount(worlds) {
+    _navMyWorldsCount = _navLen(worlds) ?? 0;
+    navUpdateBadges();
+}
+
+function _navCalendarMonthCount() {
+    const src = (typeof _calEvents !== 'undefined' && _calEvents.length) ? _calEvents
+              : (typeof _calDashRawEvents !== 'undefined' ? _calDashRawEvents : null);
+    if (!Array.isArray(src) || !src.length) return null;
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    let n = 0;
+    for (const evt of src) {
+        const d = new Date(evt.startsAt || evt.startDate || '');
+        if (!isNaN(d) && d.getFullYear() === y && d.getMonth() === m) n++;
+    }
+    return n;
+}
+
+function _navApplyBadge(kind, value) {
+    if (value === null || value === undefined) return;
+    const text = String(value);
+    _navBadgeCache[kind] = text;
+    document.querySelectorAll(`[data-nav-badge="${kind}"]`).forEach(el => {
+        el.textContent = text;
+        el.style.display = '';
+    });
+}
+
+function navUpdateBadges() {
+    if (typeof currentVrcUser === 'undefined' || !currentVrcUser) return;
+
+    if (!_navMyWorldsRequested && typeof sendToCS === 'function') {
+        _navMyWorldsRequested = true;
+        sendToCS({ action: 'vrcGetMyWorlds' });
+    }
+
+    const favW = typeof favWorldsData !== 'undefined' ? _navLen(favWorldsData) : null;
+    if (favW !== null || _navMyWorldsCount !== null)
+        _navApplyBadge('worlds', (favW ?? 0) + (_navMyWorldsCount ?? 0));
+
+    _navApplyBadge('people', typeof vrcFriendsData !== 'undefined' ? _navLen(vrcFriendsData) : null);
+    _navApplyBadge('groups', typeof myGroups !== 'undefined' ? _navLen(myGroups) : null);
+
+    const ownA = typeof avatarsData    !== 'undefined' ? _navLen(avatarsData)    : null;
+    const favA = typeof favAvatarsData !== 'undefined' ? _navLen(favAvatarsData) : null;
+    if (ownA !== null || favA !== null)
+        _navApplyBadge('avatars', (ownA ?? 0) + (favA ?? 0));
+
+    _navApplyBadge('calendar', _navCalendarMonthCount());
+}
+
+function navUpdatePlaySubtitle() {
+    const el = document.getElementById('playSubText');
+    if (!el) return;
+    if (typeof window !== 'undefined' && window.vrcGameRunning) {
+        el.textContent = (typeof t === 'function')
+            ? t('sidebar.currently_playing', 'Currently playing…')
+            : 'Currently playing…';
+        return;
+    }
+    const name = (typeof currentVrcUser !== 'undefined' && currentVrcUser)
+        ? (currentVrcUser.displayName || '') : '';
+    el.textContent = name
+        ? (typeof tf === 'function' ? tf('sidebar.play_with', { name }, `Start with ${name}`) : `Start with ${name}`)
+        : '';
+}
+
+(function () {
+    function pollGameRunning() {
+        if (typeof sendToCS === 'function') sendToCS({ action: 'afGetGameRunning' });
+    }
+    pollGameRunning();
+    setInterval(pollGameRunning, 5000);
+}());
+
 function navSetLinux(v) {
     _navIsLinux = v;
     navRender();
@@ -32,7 +114,9 @@ function navRender() {
     navEl.innerHTML = '';
 
     for (const entry of layout) {
-        if (entry.type === 'item') {
+        if (entry.type === 'separator') {
+            navEl.appendChild(_navMakeSeparator(entry));
+        } else if (entry.type === 'item') {
             const def = NAV_ITEMS_DEF[entry.key];
             if (!def || hiddenSet.has(entry.key)) continue;
             if (def.windowsOnly && _navIsLinux) continue;
@@ -180,6 +264,19 @@ function openNavFolderPopout(groupId, anchorEl) {
     }, 0);
 }
 
+function _navMakeSeparator(entry) {
+    const sep = document.createElement('div');
+    sep.className = 'nav-sep';
+    sep.dataset.sepId = entry.id || '';
+
+    const lbl = document.createElement('span');
+    lbl.className = 'nav-sep-label nl';
+    lbl.textContent = entry.name || '';
+    sep.appendChild(lbl);
+
+    return sep;
+}
+
 function _navMakeItemBtn(key, icon, tab, i18nKey, labelFallback) {
     const btn = document.createElement('button');
     btn.className = 'nav-btn';
@@ -196,6 +293,16 @@ function _navMakeItemBtn(key, icon, tab, i18nKey, labelFallback) {
     nl.dataset.i18n = i18nKey;
     nl.textContent = labelFallback || '';
     btn.appendChild(nl);
+
+    const badgeKind = NAV_ITEMS_DEF[key]?.badge;
+    if (badgeKind) {
+        const nb = document.createElement('span');
+        nb.className = 'nav-badge nl';
+        nb.dataset.navBadge = badgeKind;
+        nb.textContent = _navBadgeCache[badgeKind] ?? '';
+        if (!nb.textContent) nb.style.display = 'none';
+        btn.appendChild(nb);
+    }
 
     if (key === 'dashboard') btn.dataset.nav = 'dashboard';
     if (key === 'vr-overlay') {

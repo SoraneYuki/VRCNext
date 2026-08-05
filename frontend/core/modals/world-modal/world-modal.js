@@ -232,8 +232,8 @@ function renderWorldSearchDetail(w) {
 
     const isFavWorld = favWorldsData.some(fw => fw.id === w.id);
     const favBtnLabel = isFavWorld
-        ? `<span class="msi" style="font-size:16px;">star</span>${t('worlds.favorites.unfavorite', 'Unfavorite')}`
-        : `<span class="msi" style="font-size:16px;">star_outline</span>${t('worlds.favorites.favorite', 'Favorite')}`;
+        ? `<span class="msi" style="font-size:16px;">favorite</span>${t('worlds.favorites.unfavorite', 'Unfavorite')}`
+        : `<span class="msi" style="font-size:16px;">favorite_border</span>${t('worlds.favorites.favorite', 'Favorite')}`;
 
     const isOwnWorld = currentVrcUser && w.authorId === currentVrcUser.id;
     _wdCurrentWorldId = wid;
@@ -276,7 +276,7 @@ function renderWorldSearchDetail(w) {
     const useWdCompact = (typeof settings !== 'undefined' && settings.worldModalStyle === 'compact');
 
     const wdStatsBadges = `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">person</span> ${w.occupants} ${t('worlds.meta.active', 'Active')}</span>
-            <span class="vrcn-badge"><span class="msi" style="font-size:11px;">star</span> ${w.favorites}</span>
+            <span class="vrcn-badge"><span class="msi" style="font-size:11px;">favorite</span> ${w.favorites}</span>
             <span class="vrcn-badge"><span class="msi" style="font-size:11px;">visibility</span> ${w.visits}</span>
             ${w.pcSize > 0 ? `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">computer</span> ${formatFileSize(w.pcSize)}</span>` : ''}
             ${w.androidSize > 0 ? `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">android</span> ${formatFileSize(w.androidSize)}</span>` : ''}
@@ -304,7 +304,7 @@ function renderWorldSearchDetail(w) {
     const wdStatsBadgesRow = `<div class="fd-badges-row">${wdStatsBadges}</div>`;
     const wdActionsCompact = `<div class="fd-actions">
             <button class="vrcn-button-round" onclick="openCreateInstanceModal()" title="${esc(t('worlds.instances.create_title', 'Create Instance'))}"><span class="msi" style="font-size:16px;">add_circle_outline</span></button>
-            <button class="vrcn-button-round${isFavWorld ? ' active' : ''}" id="wdFavBtn" onclick="toggleWorldFavPicker('${wid}')" title="${isFavWorld ? esc(t('worlds.favorites.unfavorite', 'Unfavorite')) : esc(t('worlds.favorites.favorite', 'Favorite'))}"><span class="msi" style="font-size:16px;">${isFavWorld ? 'star' : 'star_outline'}</span></button>
+            <button class="vrcn-button-round${isFavWorld ? ' active' : ''}" id="wdFavBtn" onclick="toggleWorldFavPicker('${wid}')" title="${isFavWorld ? esc(t('worlds.favorites.unfavorite', 'Unfavorite')) : esc(t('worlds.favorites.favorite', 'Favorite'))}"><span class="msi" style="font-size:16px;">${isFavWorld ? 'favorite' : 'favorite_border'}</span></button>
         </div>`;
     const wdDescTransBtn = (desc && window._kxdProfileTranslationEnabled !== false) ? `<button class="fd-bio-translate myp-edit-btn" onclick="fdTranslateBio(this)" title="${esc(t('profiles.bio.translate', 'Translate'))}"><span class="msi" style="font-size:14px;">translate</span></button>` : '';
     const wdDescCardCompact = `<div class="fd-info-card">
@@ -601,7 +601,7 @@ function onWorldUnfavoriteResult(data) {
         if (btn) {
             btn.disabled = false;
             btn.classList.remove('active');
-            btn.innerHTML = `<span class="msi" style="font-size:16px;">star_outline</span>${t('worlds.favorites.favorite', 'Favorite')}`;
+            btn.innerHTML = `<span class="msi" style="font-size:16px;">favorite_border</span>${t('worlds.favorites.favorite', 'Favorite')}`;
         }
         filterFavWorlds();
         _scheduleBgFavRefresh();
@@ -697,7 +697,7 @@ function onWorldFavoriteResult(data) {
         const btn = document.getElementById('wdFavBtn');
         if (btn) {
             btn.classList.add('active');
-            btn.innerHTML = `<span class="msi" style="font-size:16px;">star</span>${t('worlds.favorites.unfavorite', 'Unfavorite')}`;
+            btn.innerHTML = `<span class="msi" style="font-size:16px;">favorite</span>${t('worlds.favorites.unfavorite', 'Unfavorite')}`;
         }
         const list = document.getElementById('wdFavGroupList');
         if (list) renderWorldFavPicker(data.worldId);
@@ -1283,7 +1283,7 @@ function _wiRenderCharts() {
                 <canvas id="wiChartActive" height="120"></canvas>
             </div>
             <div class="wi-chart-card">
-                <div class="wi-chart-title"><span class="msi" style="font-size:13px;color:var(--ok);">star</span> ${t('world_insights.chart.favorites', 'Favorites')}</div>
+                <div class="wi-chart-title"><span class="msi" style="font-size:13px;color:var(--ok);">favorite</span> ${t('world_insights.chart.favorites', 'Favorites')}</div>
                 <canvas id="wiChartFavorites" height="120"></canvas>
             </div>
         </div>

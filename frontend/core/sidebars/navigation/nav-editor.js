@@ -52,6 +52,16 @@ function _edAddFolder() {
     }, 30);
 }
 
+function _edAddSeparator() {
+    _edSyncLayoutFromDom();
+    _edLayout.push({ type: 'separator', id: _navMakeSeparatorId(), name: _edT('nav.editor.new_separator', 'New Section') });
+    _edRenderList();
+    setTimeout(() => {
+        const inputs = document.querySelectorAll('#navEditorList .ne-sep-name');
+        if (inputs.length) { inputs[inputs.length - 1].focus(); inputs[inputs.length - 1].select(); }
+    }, 30);
+}
+
 // ===== Render =====
 
 function _edRenderList() {
@@ -61,7 +71,9 @@ function _edRenderList() {
 
     for (let i = 0; i < _edLayout.length; i++) {
         const entry = _edLayout[i];
-        if (entry.type === 'item') {
+        if (entry.type === 'separator') {
+            list.appendChild(_edMakeSeparatorRow(entry));
+        } else if (entry.type === 'item') {
             list.appendChild(_edMakeItemRow(entry.key, entry.icon, i, null));
         } else if (entry.type === 'folder') {
             list.appendChild(_edMakeFolderSection(entry, i));
@@ -139,6 +151,45 @@ function _edMakeItemRow(key, iconOverride, topIdx, folderId) {
         });
         row.appendChild(hideBtn);
     }
+
+    return row;
+}
+
+function _edMakeSeparatorRow(entry) {
+    const row = document.createElement('div');
+    row.className = 'ne-row ne-sep-row';
+    row.dataset.sepId = entry.id;
+
+    const handle = document.createElement('span');
+    handle.className = 'ne-handle msi';
+    handle.textContent = 'drag_indicator';
+    row.appendChild(handle);
+
+    const iconEl = document.createElement('span');
+    iconEl.className = 'ne-icon msi ne-sep-icon';
+    iconEl.textContent = 'horizontal_rule';
+    row.appendChild(iconEl);
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'ne-sep-name vrcn-edit-field';
+    nameInput.value = entry.name || '';
+    nameInput.placeholder = _edT('nav.editor.separator_name', 'Separator name');
+    nameInput.addEventListener('mousedown', e => e.stopPropagation());
+    row.appendChild(nameInput);
+
+    row.appendChild(Object.assign(document.createElement('span'), { className: 'ne-spacer' }));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'ne-btn ne-del-btn';
+    delBtn.title = _edT('nav.editor.delete_separator', 'Delete separator');
+    delBtn.innerHTML = '<span class="msi">delete</span>';
+    delBtn.addEventListener('click', () => {
+        _edSyncLayoutFromDom();
+        _edLayout = _edLayout.filter(e => !(e.type === 'separator' && e.id === entry.id));
+        _edRenderList();
+    });
+    row.appendChild(delBtn);
 
     return row;
 }
@@ -266,7 +317,14 @@ function _edSyncLayoutFromDom() {
     const newLayout = [];
     for (const child of list.children) {
         if (child.classList.contains('ne-hidden-sep')) break;
-        if (child.classList.contains('ne-folder-section')) {
+        if (child.classList.contains('ne-sep-row')) {
+            const nameInput = child.querySelector('.ne-sep-name');
+            newLayout.push({
+                type: 'separator',
+                id: child.dataset.sepId || _navMakeSeparatorId(),
+                name: nameInput ? nameInput.value : '',
+            });
+        } else if (child.classList.contains('ne-folder-section')) {
             const folderId = child.dataset.folderId;
             const old = _edLayout.find(e => e.type === 'folder' && e.id === folderId);
             if (!old) continue;
@@ -306,6 +364,7 @@ function _edInitDrag(list) {
     const isFolderSection = el => el && el.classList.contains('ne-folder-section');
     const isFolderRow     = el => el && el.classList.contains('ne-folder-row');
     const isSubRow        = el => el && el.classList.contains('ne-sub');
+    const isSepRow        = el => el && el.classList.contains('ne-sep-row');
     const isHiddenRow     = el => el && el.classList.contains('ne-hidden-row');
     const isHiddenSep     = el => el && el.classList.contains('ne-hidden-sep');
 
@@ -353,14 +412,14 @@ function _edInitDrag(list) {
 
     function resolveTarget(clientY, draggedBlock) {
         const blocks = collectBlocks().filter(b => b.el !== draggedBlock);
-        const isDraggingFolder = isFolderSection(draggedBlock);
+        const noNest = isFolderSection(draggedBlock) || isSepRow(draggedBlock);
         let best = null;
 
         for (const b of blocks) {
             const rect = b.row.getBoundingClientRect();
             const mid  = rect.top + rect.height / 2;
 
-            if (b.type === 'folder' && !isDraggingFolder) {
+            if (b.type === 'folder' && !noNest) {
                 const hasOtherItems = [...b.el.querySelectorAll(':scope > .ne-sub')]
                     .some(s => s !== draggedBlock);
                 const intoTop = rect.top + rect.height * 0.25;
@@ -381,10 +440,10 @@ function _edInitDrag(list) {
     function applyMove(draggedBlock, drop) {
         if (!drop) return;
         const { mode, target, block } = drop;
-        const isDraggingFolder = isFolderSection(draggedBlock);
+        const noNest = isFolderSection(draggedBlock) || isSepRow(draggedBlock);
 
         if (mode === 'into') {
-            if (isDraggingFolder) return;
+            if (noNest) return;
             draggedBlock.classList.add('ne-sub');
             const placeholder = target.querySelector('.ne-folder-empty');
             if (placeholder) target.insertBefore(draggedBlock, placeholder);
@@ -395,7 +454,7 @@ function _edInitDrag(list) {
         const targetIsSub = block && block.type === 'sub';
         const targetParent = target.parentElement;
 
-        if (!isDraggingFolder) {
+        if (!noNest) {
             if (targetIsSub) draggedBlock.classList.add('ne-sub');
             else             draggedBlock.classList.remove('ne-sub');
         } else {

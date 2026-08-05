@@ -1,7 +1,7 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                     <div id="avatarFilterBtns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <button class="vrcn-button sub-tab-btn active" id="avatarFilterOwn" onclick="setAvatarFilter('own')"><span class="msi" style="font-size:16px;">person</span> <span data-i18n="avatars.filters.own">My Avatars</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="avatarFilterFav" onclick="setAvatarFilter('favorites')"><span class="msi" style="font-size:16px;">star</span> <span data-i18n="avatars.filters.favorites">Favorites</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="avatarFilterFav" onclick="setAvatarFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="avatars.filters.favorites">Favorites</span></button>
                         <button class="vrcn-button sub-tab-btn" id="avatarFilterRecent" onclick="setAvatarFilter('recent')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="avatars.filters.recent">Recently Used</span></button>
                         <button class="vrcn-button sub-tab-btn" id="avatarFilterRose" onclick="setAvatarFilter('rose')"><span class="msi" style="font-size:16px;">local_florist</span> <span data-i18n="avatars.filters.rose">Rose Database</span></button>
                         <button class="vrcn-button sub-tab-btn" id="avatarFilterSearch" onclick="setAvatarFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
@@ -15,7 +15,7 @@
                             <button class="vrcn-button av-edit-action" disabled onclick="avEditShowMoveMenu(this)"><span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="avatars.edit.move_to">Move to...</span></button>
                             <div id="avatarEditMovePicker" class="vn-select-panel" style="display:none;position:absolute;top:100%;left:0;min-width:180px;z-index:200;"></div>
                         </div>
-                        <button id="avatarEditRemoveBtn" class="vrcn-button av-edit-action" disabled onclick="avEditRemoveSelected()"><span class="msi" style="font-size:14px;">star_border</span> <span data-i18n="avatars.edit.remove">Remove</span></button>
+                        <button id="avatarEditRemoveBtn" class="vrcn-button av-edit-action" disabled onclick="avEditRemoveSelected()"><span class="msi" style="font-size:14px;">favorite_border</span> <span data-i18n="avatars.edit.remove">Remove</span></button>
                         <div style="position:relative;">
                             <button id="avatarCreateLocalBtn" class="vrcn-button" onclick="avatarShowCreateLocalGroup(this)"><span class="msi" style="font-size:14px;">create_new_folder</span> <span data-i18n="favorites.create_local_group">Create Local Group</span></button>
                             <div id="avatarCreateLocalPanel" class="vn-select-panel" style="display:none;position:absolute;top:100%;left:0;min-width:220px;z-index:200;padding:8px;">

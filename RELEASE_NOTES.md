@@ -1,28 +1,27 @@
-**2026.36.0**
+**2026.37.0**
 
-**VRChat API**
+# VRCN v2 Design Overhaul
 
-* Profile banners now use VRChat's banner endpoint, so changes show up on vrchat.com.
-* Banners set via the image picker or the media gallery save correctly.
-* Profile updates now show what VRChat actually saved instead of assuming success.
+**Fonts**
 
-**Setup**
+* Added more fonts to VRCN. You can find them under **Settings > Appearance > Fonts**.
 
-* Updated the first-time setup.
+**Design Overhaul**
 
-**Mutual Network**
-
-* Added Communities to group closely connected people.
-* Connections are based on mutual friends, shared instances, and shared groups.
-* Added community colors, filtering, and connection details.
-* Improved graph stability and automatic zooming.
+* Added badge counters to the left sidebar. These show the number of favorite and owned worlds, joined groups, owned and favorited avatars, and events taking place during the current month.
+* Added adjustable separators to the left sidebar, allowing you to better organize your sidebar.
+* Replaced the favorite star icon with a heart icon.
+* Updated the **Play VRChat** button in both the expanded and collapsed sidebar to match the new VRCN v2 design.
+* Redesigned the "Appearance" Tab and added some theme previews.
 
 **Improvements**
 
-* Faster VRCX database imports.
-* Improved Mutual Network performance.
-* Added more Timeline page-size options.
+* Icons and symbols are now stored locally instead of being downloaded from Google's CDN.
+* Fonts are now stored locally instead of being downloaded from Google's CDN.
+* Fonts, icons, and symbols are now loaded dynamically, slightly reducing memory usage. This is only a minor performance improvement.
+* Left and Right sidebars can now be resized. To reset the size you can navigate to the Taskbar > View > Reset Sidebars.
+* Added "Lock Sidebars" to Taskbar > View to disable sidebar resizing.
 
 **Bug Fixes**
 
-* Fixed several crashes and issues related to VR Overlay, Space Flight, and FrameShot.
+* Fixed an issue where profile frames were still displayed when the setting was disabled.

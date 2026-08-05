@@ -140,6 +140,29 @@
                     <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">wallpaper</span> <span data-i18n="settings.design.tabs.background">Background</span></div>
                         <div class="sf-section-label" style="margin-top:14px;" data-i18n="settings.design.dashboard_background">Dashboard Background</div>
+                        <div class="bg-skeleton">
+                            <div class="bgsk-side">
+                                <div class="bgsk-badge"></div>
+                                <div class="bgsk-line w85"></div>
+                                <div class="bgsk-line w65"></div>
+                                <div class="bgsk-line w45"></div>
+                            </div>
+                            <div class="bgsk-main">
+                                <div class="bgsk-bar"></div>
+                                <div class="bgsk-hero" id="dashBgPreviewHero">
+                                    <div class="bgsk-hero-fade"></div>
+                                    <div class="bgsk-hero-text">
+                                        <div class="bgsk-line bgsk-line-lg w45"></div>
+                                        <div class="bgsk-line w65"></div>
+                                    </div>
+                                </div>
+                                <div class="bgsk-body">
+                                    <div class="bgsk-card"></div>
+                                    <div class="bgsk-card"></div>
+                                    <div class="bgsk-card"></div>
+                                </div>
+                            </div>
+                        </div>
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                             <button class="vrcn-button" onclick="browseDashBg()"><span class="msi" style="font-size:16px;">perm_media</span> <span data-i18n="settings.design.choose_background">Choose Image / Video</span></button>
                             <span id="dashBgName" style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;"></span>
@@ -151,10 +174,10 @@
                     <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">palette</span> <span data-i18n="settings.design.tabs.colors">Colors</span></div>
                         <div class="sf-section-label" style="margin-top:14px;" data-i18n="settings.design.theme">Theme</div>
-                        <div class="theme-grid" id="themeGrid"></div>
+                        <div class="theme-grid theme-preview-grid" id="themeGrid"></div>
                         <div id="customThemeSection" style="display:none;">
                             <div class="sf-section-label" style="margin-top:16px;" data-i18n="settings.design.custom_theme">Custom Theme</div>
-                            <div class="theme-grid" id="customThemeGrid"></div>
+                            <div class="theme-grid theme-preview-grid" id="customThemeGrid"></div>
                         </div>
                         <div style="margin-top:12px;margin-bottom:4px;">
                             <button class="vrcn-button" onclick="openThemeEditor()">
@@ -163,7 +186,7 @@
                             </button>
                         </div>
                         <div class="sf-section-label" style="margin-top:16px;" data-i18n="settings.design.special_themes">Special Themes</div>
-                        <div class="theme-grid" id="specialThemeGrid"></div>
+                        <div class="theme-grid theme-preview-grid" id="specialThemeGrid"></div>
                         <div class="sf-section-label" style="margin-top:16px;" data-i18n="settings.design.custom_cursor">Custom Cursor</div>
                         <div class="theme-grid" id="cursorThemeGrid"></div>
                         <div class="sf-row" id="autoAccuracyRow" style="margin-top:8px;display:none;">
@@ -171,6 +194,13 @@
                             <input type="range" id="setAutoAccuracy" min="0" max="100" value="50" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('autoAccuracyVal').textContent=this.value+'%';setAutoColorAccuracy(this.value);autoSave()">
                             <span id="autoAccuracyVal" style="font-size:12px;color:var(--tx2);margin-left:8px;min-width:35px;text-align:right;">50%</span>
                         </div>
+                    </div>
+
+                    <!-- FONTS -->
+                    <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">text_fields</span> <span data-i18n="settings.design.fonts.title">Fonts</span></div>
+                        <div class="set-desc" style="margin:12px 0 14px;" data-i18n="settings.design.fonts.desc">Choose the font VRCNext uses for its interface. All fonts ship with the app, so nothing is downloaded while you browse them.</div>
+                        <div class="font-grid" id="fontGrid"></div>
                     </div>
 
                     <!-- OTHER -->
@@ -1363,7 +1393,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
                             <!-- FONTS -->
                             <div style="margin-top:8px;padding-top:12px;border-top:1px solid var(--brd);">
-                                <div style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;" data-i18n="settings.attribution.fonts">Fonts (via Google Fonts CDN)</div>
+                                <div style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;" data-i18n="settings.attribution.fonts">Fonts (bundled)</div>
                                 <div style="display:flex;flex-direction:column;gap:4px;">
 
                                     <!-- Material Symbols Rounded -->
@@ -1377,6 +1407,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                                             <div class="attrib-copy">© Google LLC</div>
                                             <pre class="attrib-license-text">Apache License
 Version 2.0, January 2004
+
+Material Symbols Rounded is bundled with VRCNext in the Fonts folder, subsetted to the icons the app actually uses. It is not fetched from the Google Fonts API at runtime.
 
 Copyright (c) Google LLC
 
@@ -1398,13 +1430,34 @@ Unless required by applicable law or agreed to in writing, software distributed 
                                         </div>
                                         <div class="attrib-body">
                                             <div class="attrib-copy">© Google LLC</div>
-                                            <pre class="attrib-license-text">Google Sans and Google Sans Mono are served via the Google Fonts API (fonts.googleapis.com).
+                                            <pre class="attrib-license-text">Google Sans and Google Sans Mono are bundled with VRCNext in the Fonts folder. They are not fetched from the Google Fonts API at runtime.
 
 Copyright (c) Google LLC
 
 Use of these fonts is subject to the Google Fonts Terms of Service:
 https://developers.google.com/fonts/terms</pre>
                                             <button class="vrcn-button attrib-src-btn" onclick="sendToCS({action:'openUrl',url:'https://fonts.google.com/'})"><span class="msi" style="font-size:15px;">open_in_new</span> View on Google Fonts</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Interface fonts -->
+                                    <div class="attrib-item">
+                                        <div class="attrib-header" onclick="toggleAttrib(this)">
+                                            <div class="attrib-name">Interface Fonts</div>
+                                            <span class="attrib-badge attrib-gfonts">SIL Open Font License 1.1</span>
+                                            <span class="msi attrib-chevron">expand_more</span>
+                                        </div>
+                                        <div class="attrib-body">
+                                            <div class="attrib-copy">© the respective font authors</div>
+                                            <pre class="attrib-license-text">The fonts selectable under Appearance &gt; Fonts are bundled with VRCNext in the Fonts folder and are never fetched at runtime:
+
+Inter, Roboto, Open Sans, Lato, Montserrat, Poppins, Nunito, Rubik, Manrope, Quicksand
+
+Each is licensed under the SIL Open Font License, Version 1.1. Copyright remains with the respective authors.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at:
+https://openfontlicense.org</pre>
+                                            <button class="vrcn-button attrib-src-btn" onclick="sendToCS({action:'openUrl',url:'https://openfontlicense.org'})"><span class="msi" style="font-size:15px;">open_in_new</span> View License</button>
                                         </div>
                                     </div>
 
