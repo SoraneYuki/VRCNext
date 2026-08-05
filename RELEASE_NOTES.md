@@ -13,7 +13,6 @@
 * Replaced the favorite star icon with a heart icon.
 * Updated the **Play VRChat** button in both the expanded and collapsed sidebar to match the new VRCN v2 design.
 * Redesigned the "Appearance" Tab and added some theme previews.
-* Redesigned navbars in all tabs to the new v2 Navbar.
 
 **Improvements**
 

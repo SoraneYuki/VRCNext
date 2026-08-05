@@ -1,13 +1,11 @@
                 <div style="display:flex;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-                    <div class="vrcn-slide-navbar">
-                        <button class="vrcn-slide-tab sub-tab-btn active" id="groupFilterMine" onclick="setGroupFilter('mine')"><span class="msi" style="font-size:16px;">groups</span> <span data-i18n="groups.filters.mine">My Groups</span></button>
-                        <button class="vrcn-slide-tab sub-tab-btn" id="groupFilterSearch" onclick="setGroupFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="vrcn-button sub-tab-btn active" id="groupFilterMine" onclick="setGroupFilter('mine')"><span class="msi" style="font-size:16px;">groups</span> <span data-i18n="groups.filters.mine">My Groups</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="groupFilterSearch" onclick="setGroupFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
                     </div>
                     <button id="groupsRefreshBtn" class="vrcn-button" onclick="refreshGroups()" title="Refresh my groups" data-i18n-title="groups.mine.refresh_title" style="margin-left:auto;"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
-                    <div class="vrcn-slide-navbar">
-                        <button class="vrcn-slide-tab sub-tab-btn icon-only active" id="groupGridLarge" onclick="setGridSize('groups','default')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
-                        <button class="vrcn-slide-tab sub-tab-btn icon-only" id="groupGridSmall" onclick="setGridSize('groups','compact')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
-                    </div>
+                    <button class="vrcn-button sub-tab-btn active" id="groupGridLarge" onclick="setGridSize('groups','default')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
+                    <button class="vrcn-button sub-tab-btn" id="groupGridSmall" onclick="setGridSize('groups','compact')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
                 </div>
                 <div id="groupMineArea">
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">

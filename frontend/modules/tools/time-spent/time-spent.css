@@ -16,7 +16,8 @@
 }
 
 .ts-tab-btns {
-    align-items: center;
+    display: flex;
+    gap: 6px;
 }
 
 .ts-tab-btn {

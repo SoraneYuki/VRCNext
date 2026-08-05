@@ -29,11 +29,9 @@ function _renderCalUI() {
                 <button class="vrcn-button" onclick="_calNavMonth(-1)"><span class="msi" style="font-size:18px;">chevron_left</span></button>
                 <span id="calMonthLabel" style="min-width:140px;text-align:center;font-size:14px;font-weight:700;color:var(--tx0);"></span>
                 <button class="vrcn-button" onclick="_calNavMonth(1)"><span class="msi" style="font-size:18px;">chevron_right</span></button>
-                <div class="vrcn-slide-navbar">
-                    <button class="vrcn-slide-tab sub-tab-btn cal-filter-btn${calendarFilter === 'all' ? ' active' : ''}" data-filter="all" onclick="setCalFilter('all')"><span class="msi" style="font-size:14px;">calendar_month</span> ${esc(t('calendar.filters.all', 'All'))}</button>
-                    <button class="vrcn-slide-tab sub-tab-btn cal-filter-btn${calendarFilter === 'featured' ? ' active' : ''}" data-filter="featured" onclick="setCalFilter('featured')"><span class="msi" style="font-size:14px;">star</span> ${esc(t('calendar.filters.featured', 'Featured'))}</button>
-                    <button class="vrcn-slide-tab sub-tab-btn cal-filter-btn${calendarFilter === 'following' ? ' active' : ''}" data-filter="following" onclick="setCalFilter('following')"><span class="msi" style="font-size:14px;">notifications_active</span> ${esc(t('calendar.filters.following', 'Following'))}</button>
-                </div>
+                <button class="vrcn-button sub-tab-btn cal-filter-btn${calendarFilter === 'all' ? ' active' : ''}" data-filter="all" onclick="setCalFilter('all')"><span class="msi" style="font-size:14px;">calendar_month</span> ${esc(t('calendar.filters.all', 'All'))}</button>
+                <button class="vrcn-button sub-tab-btn cal-filter-btn${calendarFilter === 'featured' ? ' active' : ''}" data-filter="featured" onclick="setCalFilter('featured')"><span class="msi" style="font-size:14px;">star</span> ${esc(t('calendar.filters.featured', 'Featured'))}</button>
+                <button class="vrcn-button sub-tab-btn cal-filter-btn${calendarFilter === 'following' ? ' active' : ''}" data-filter="following" onclick="setCalFilter('following')"><span class="msi" style="font-size:14px;">notifications_active</span> ${esc(t('calendar.filters.following', 'Following'))}</button>
                 <button class="vrcn-button" id="calRefreshBtn" onclick="refreshCalendar()" title="${refreshTitle}"${refreshDisabled}><span class="msi" style="font-size:18px;">${refreshIcon}</span></button>
             </div>
         </div>
