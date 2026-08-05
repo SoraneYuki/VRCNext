@@ -831,6 +831,7 @@ public partial class AppShell
                     "friend_bio"        => !string.IsNullOrEmpty(newValue) ? newValue : "Updated bio",
                     "friend_added"      => "Friend added",
                     "friend_removed"    => "Removed you",
+                    "friend_joined"     => "Joined your instance",
                     _                   => null   // ignore unknown events (e.g. "friend_updated")
                 };
                 if (evText == null) return;

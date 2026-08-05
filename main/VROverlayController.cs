@@ -176,7 +176,8 @@ public class VROverlayController : IDisposable
                     _core.Settings.VroToastGps, _core.Settings.VroToastStatus,
                     _core.Settings.VroToastStatusDesc, _core.Settings.VroToastBio,
                     _core.Settings.VroToastDuration, _core.Settings.VroToastStack,
-                    _core.Settings.VroToastFriendReq, _core.Settings.VroToastInvite, _core.Settings.VroToastGroupInv);
+                    _core.Settings.VroToastFriendReq, _core.Settings.VroToastInvite, _core.Settings.VroToastGroupInv,
+                    _core.Settings.VroToastJoined);
 
                 // Send language (for weekday localization in dashboard)
                 host.VroSetLanguage(_core.Settings.Language ?? "en");
@@ -315,6 +316,7 @@ public class VROverlayController : IDisposable
                 bool friendReq  = msg["friendReq"]?.Value<bool>()  ?? true;
                 bool invite     = msg["invite"]?.Value<bool>()     ?? true;
                 bool groupInv   = msg["groupInv"]?.Value<bool>()   ?? true;
+                bool joined     = msg["joined"]?.Value<bool>()     ?? true;
 
                 _core.Settings.VroToastTtsOnline = msg["ttsOnline"]?.Value<bool>() ?? false;
                 _core.Settings.VroToastTtsOffline = msg["ttsOffline"]?.Value<bool>() ?? false;
@@ -325,6 +327,7 @@ public class VROverlayController : IDisposable
                 _core.Settings.VroToastTtsFriendReq = msg["ttsFriendReq"]?.Value<bool>() ?? false;
                 _core.Settings.VroToastTtsInvite = msg["ttsInvite"]?.Value<bool>() ?? false;
                 _core.Settings.VroToastTtsGroupInv = msg["ttsGroupInv"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsJoined = msg["ttsJoined"]?.Value<bool>() ?? false;
                 _core.Settings.VroTtsDevice = msg["ttsDevice"]?.Value<int>() ?? -1;
                 _core.Settings.VroTtsVoice  = msg["ttsVoice"]?.ToString() ?? "";
                 _core.Settings.VroTtsEngine = msg["ttsEngine"]?.ToString() ?? "sapi";
@@ -344,11 +347,12 @@ public class VROverlayController : IDisposable
                 _core.Settings.VroToastFriendReq  = friendReq;
                 _core.Settings.VroToastInvite     = invite;
                 _core.Settings.VroToastGroupInv   = groupInv;
+                _core.Settings.VroToastJoined     = joined;
                 _core.Settings.Save();
 
                 _core.VrOverlay?.VroApplyToastConfig(enabled, favOnly, size, offX, offY,
                     online, offline, gps, status, statusDesc, bio, duration, stack,
-                    friendReq, invite, groupInv);
+                    friendReq, invite, groupInv, joined);
                 break;
             }
 
@@ -395,6 +399,7 @@ public class VROverlayController : IDisposable
         "notif_friendreq"   => _core.Settings.VroToastTtsFriendReq,
         "notif_invite"      => _core.Settings.VroToastTtsInvite,
         "notif_groupinvite" => _core.Settings.VroToastTtsGroupInv,
+        "friend_joined"     => _core.Settings.VroToastTtsJoined,
         _                   => false,
     };
 

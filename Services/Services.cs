@@ -506,6 +506,7 @@ public class AppSettings
     public bool       VroToastFriendReq    { get; set; } = true;
     public bool       VroToastInvite       { get; set; } = true;
     public bool       VroToastGroupInv     { get; set; } = true;
+    public bool       VroToastJoined       { get; set; } = true;
     public bool       VroToastTtsOnline     { get; set; } = false;
     public bool       VroToastTtsOffline    { get; set; } = false;
     public bool       VroToastTtsGps        { get; set; } = false;
@@ -515,6 +516,7 @@ public class AppSettings
     public bool       VroToastTtsFriendReq  { get; set; } = false;
     public bool       VroToastTtsInvite     { get; set; } = false;
     public bool       VroToastTtsGroupInv   { get; set; } = false;
+    public bool       VroToastTtsJoined     { get; set; } = false;
     public int        VroTtsDevice         { get; set; } = -1;
     public string     VroTtsVoice          { get; set; } = "";
     public string     VroTtsEngine         { get; set; } = "sapi";

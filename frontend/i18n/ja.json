@@ -2051,6 +2051,7 @@
   "vro.notifications.online": "フレンドがオンライン（ゲーム）になった",
   "vro.notifications.offline": "フレンドがオフライン（ゲーム）になった",
   "vro.notifications.joined_world": "フレンドがワールドに参加した",
+  "vro.notifications.joined_instance": "フレンドが自分のインスタンスに参加",
   "vro.notifications.changed_status": "フレンドがステータスを変更した",
   "vro.notifications.changed_status_text": "フレンドがステータステキストを変更した",
   "vro.notifications.updated_bio": "フレンドが自己紹介を更新した",

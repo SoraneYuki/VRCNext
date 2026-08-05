@@ -2052,6 +2052,7 @@
   "vro.notifications.online": "好友上线（游戏中）",
   "vro.notifications.offline": "好友离线（游戏中）",
   "vro.notifications.joined_world": "好友加入了世界",
+  "vro.notifications.joined_instance": "好友加入你的房间",
   "vro.notifications.changed_status": "好友更改了状态",
   "vro.notifications.changed_status_text": "好友更改了状态文本",
   "vro.notifications.updated_bio": "好友更新了简介",

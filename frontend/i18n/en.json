@@ -2097,6 +2097,7 @@
   "vro.notifications.online": "Friend comes online (Game)",
   "vro.notifications.offline": "Friend goes offline (Game)",
   "vro.notifications.joined_world": "Friend joined a world",
+  "vro.notifications.joined_instance": "Friend joins your instance",
   "vro.notifications.changed_status": "Friend changed status",
   "vro.notifications.changed_status_text": "Friend changed status text",
   "vro.notifications.updated_bio": "Friend updated bio",

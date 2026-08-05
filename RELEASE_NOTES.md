@@ -1,4 +1,5 @@
-**2026.37.1**
+
+**2026.38.0 BETA**
 
 **VR Overlay**
 
@@ -43,3 +44,13 @@
 **Bug Fixes**
 
 * Fixed an issue where profile frames were still displayed when the setting was disabled.
+* Fixed column headers in Timeline lists not aligning with the content below them.
+* Fixed copying images from the Photo Modal placing a local cache link on the clipboard instead of the actual image. Images can now be pasted directly into Discord, chats, and image editors.
+* Fixed the heatmap in user profiles using the button color instead of the VRC+ icon color.
+* Fixed an issue that prevented profile theme colors from being updated.
+* Fixed the "Most visited World" progress bars on vrc+ decorated profiles.
+* Fixed VRCNDb avatar ID searches using `avtr_...`.
+* Fixed VRChat+ world favorite groups showing only 4 instead of 8 groups.
+* Fixed the avatar favorite group picker not reopening after pressing Cancel.
+* Fixed KikitanXD sending audio below the Gemini noise gate threshold, which could capture nearby players.
+* Fixed SteamVR Overlay crashes caused by Space Flight.

@@ -2052,6 +2052,7 @@
   "vro.notifications.online": "Un amigo se conecta (Juego)",
   "vro.notifications.offline": "Un amigo se desconecta (Juego)",
   "vro.notifications.joined_world": "Un amigo se unió a un mundo",
+  "vro.notifications.joined_instance": "Un amigo entra en tu instancia",
   "vro.notifications.changed_status": "Un amigo cambió de estado",
   "vro.notifications.changed_status_text": "Un amigo cambió el texto de estado",
   "vro.notifications.updated_bio": "Un amigo actualizó su bio",

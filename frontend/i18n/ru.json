@@ -2037,6 +2037,7 @@
   "vro.notifications.online": "Онлайн",
   "vro.notifications.offline": "Офлайн",
   "vro.notifications.joined_world": "Вход в мир",
+  "vro.notifications.joined_instance": "Друг заходит в ваш инстанс",
   "vro.notifications.changed_status": "Смена статуса",
   "vro.notifications.changed_status_text": "Смена текста статуса",
   "vro.notifications.updated_bio": "Обновление био",

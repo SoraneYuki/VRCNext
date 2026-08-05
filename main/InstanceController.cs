@@ -1242,6 +1242,28 @@ public class InstanceController
         }, null, 15_000, System.Threading.Timeout.Infinite);
     }
 
+    private void NotifyFriendJoinedInstance(string userId, string displayName)
+    {
+#if WINDOWS
+        if (_core.VrOverlay == null) return;
+        if (!_friends.TryGetNameImage(userId, out var fi)) return;
+
+        var name  = !string.IsNullOrEmpty(fi.name) ? fi.name : displayName;
+        var text  = "Joined your instance";
+        var time  = VRCNext.Services.Helpers.DateTimeHelper.FormatTime(DateTime.Now);
+        var loc   = _core.LogWatcher.CurrentLocation ?? "";
+
+        try
+        {
+            _core.VrOverlay.AddNotification("friend_joined", name, text, time, fi.image, userId, loc);
+            _core.VrOverlay.EnqueueToast("friend_joined", name, text, time, fi.image,
+                                         _friends.IsFavorited(userId));
+            _core.SpeakToast?.Invoke("friend_joined", name, text);
+        }
+        catch { }
+#endif
+    }
+
     public void HandlePlayerJoinedOnUiThread(string userId, string displayName)
     {
         // Skip events for the local player; VRChat logs OnPlayerJoined for self too
@@ -1267,6 +1289,8 @@ public class InstanceController
         }
         joinList.Add(joinedAtUtc.ToString("o"));
         _core.TimeEngine.OnPlayerJoined(userId, joinedAtUtc);
+
+        NotifyFriendJoinedInstance(userId, displayName);
 
         // Live-update the instance_join timeline event so the UI shows players immediately
         if (_pendingInstanceEventId != null)

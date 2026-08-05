@@ -264,10 +264,10 @@ public sealed class VRSubprocessHost : IDisposable
 
     public void VroApplyToastConfig(bool enabled, bool favOnly, int size, float offX, float offY,
         bool online, bool offline, bool gps, bool status, bool statusDesc, bool bio,
-        int durationSec, int stackSize, bool friendReq, bool invite, bool groupInv)
+        int durationSec, int stackSize, bool friendReq, bool invite, bool groupInv, bool joined)
         => Send("vro_toast_config", new { enabled, favOnly, size, offX, offY,
             online, offline, gps, status, statusDesc, bio, durationSec, stackSize,
-            friendReq, invite, groupInv });
+            friendReq, invite, groupInv, joined });
 
     public void VroThemeColors(Dictionary<string, string> colors)
         => Send("vro_theme_colors", new { colors });
@@ -424,7 +424,7 @@ public sealed class VRSubprocessHost : IDisposable
         System.Collections.Generic.List<uint> m, int n, float o,
         bool p, float q) { }
     public void VroApplyToastConfig(bool a, bool b, int c, float d, float e,
-        bool f, bool g, bool h, bool i, bool j, bool k, int l, int m, bool n, bool o, bool p) { }
+        bool f, bool g, bool h, bool i, bool j, bool k, int l, int m, bool n, bool o, bool p, bool q) { }
     public void VroThemeColors(System.Collections.Generic.Dictionary<string, string> colors) { }
     public void AddNotification(string a, string b, string c, string d,
         string e = "", string f = "", string g = "", string h = "", string i = "") { }

@@ -1883,6 +1883,8 @@ public class AuthController
             _core.Settings.VroToastTtsFriendReq = data["vroToastTtsFriendReq"]?.Value<bool>() ?? false;
             _core.Settings.VroToastTtsInvite = data["vroToastTtsInvite"]?.Value<bool>() ?? false;
             _core.Settings.VroToastTtsGroupInv = data["vroToastTtsGroupInv"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsJoined = data["vroToastTtsJoined"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastJoined = data["vroToastJoined"]?.Value<bool>() ?? true;
             _core.Settings.VroTtsDevice = data["vroTtsDevice"]?.Value<int>() ?? -1;
             _core.Settings.VroTtsVoice  = data["vroTtsVoice"]?.ToString() ?? "";
             _core.Settings.VroTtsEngine = data["vroTtsEngine"]?.ToString() ?? "sapi";

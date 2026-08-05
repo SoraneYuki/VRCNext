@@ -198,6 +198,7 @@ namespace VRCNext.Services
         private bool  _toastFriendReq  = true;
         private bool  _toastInvite     = true;
         private bool  _toastGroupInv   = true;
+        private bool  _toastJoined     = true;
 
         // Toast animation state
         private record ToastItem(string EvType, string FriendName, string EvText, string Time, string ImageUrl);
@@ -378,7 +379,7 @@ namespace VRCNext.Services
             bool online, bool offline,
             bool gps, bool status, bool statusDesc, bool bio,
             int durationSec = 8, int stackSize = 2,
-            bool friendReq = true, bool invite = true, bool groupInv = true)
+            bool friendReq = true, bool invite = true, bool groupInv = true, bool joined = true)
         {
             bool wasEnabled = _toastEnabled;
             _toastEnabled    = enabled;
@@ -395,6 +396,7 @@ namespace VRCNext.Services
             _toastFriendReq  = friendReq;
             _toastInvite     = invite;
             _toastGroupInv   = groupInv;
+            _toastJoined     = joined;
             _toastVisibleMs  = Math.Clamp(durationSec, 2, 10) * 1000.0;
             int newStack     = Math.Clamp(stackSize, 1, MAX_STACK);
 
@@ -440,6 +442,7 @@ namespace VRCNext.Services
             "notif_friendreq"    => _toastFriendReq,
             "notif_invite"       => _toastInvite,
             "notif_groupinvite"  => _toastGroupInv,
+            "friend_joined"      => _toastJoined,
             _                    => false,
         };
 
