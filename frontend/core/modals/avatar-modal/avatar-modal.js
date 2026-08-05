@@ -228,7 +228,7 @@ function renderAvatarDetail(a) {
     const avHeaderActions = renderModalActions([
         (isOwn && !useAvCompact) ? { icon: 'edit', title: t('avatars.detail.actions.change_image', 'Change Image'), onclick: `avUploadBannerImage('${aid}')`, header: true } : null,
         { icon: 'checkroom', title: t('avatars.detail.actions.use_avatar', 'Use Avatar'), onclick: `selectAvatar('${aid}');closeAvatarDetail()` },
-        { icon: _avIsFav ? 'star' : 'star_outline', iconClass: _avIsFav ? 'fd-action-fav' : '', title: avatarFavoriteActionLabel(_avIsFav), onclick: `openAvFavPicker('${aid}',this)` },
+        { icon: _avIsFav ? 'favorite' : 'favorite_border', iconClass: _avIsFav ? 'fd-action-fav' : '', title: avatarFavoriteActionLabel(_avIsFav), onclick: `openAvFavPicker('${aid}',this)` },
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetAvatarDetail',avatarId:'${aid}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/avatar/${esc(a.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeAvatarDetail()` },
@@ -307,7 +307,7 @@ function updateAvatarModalFavBtn(avatarId) {
     document.querySelectorAll('button[onclick^="openAvFavPicker("]').forEach(btn => {
         const icon = btn.querySelector('.msi');
         if (icon) {
-            icon.textContent = isFav ? 'star' : 'star_outline';
+            icon.textContent = isFav ? 'favorite' : 'favorite_border';
             icon.classList.toggle('fd-action-fav', isFav);
         } else {
             btn.textContent = avatarFavoriteActionLabel(isFav);

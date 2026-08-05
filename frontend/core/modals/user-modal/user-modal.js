@@ -403,7 +403,7 @@ function renderUserFavWorlds(payload) {
                     <div class="vwcs-scrim"></div>
                     <div class="vwcs-info">
                         <div class="vwcs-name">${esc(w.name)}</div>
-                        <div class="vwcs-meta"><span class="msi" style="font-size:11px;">person</span>${w.occupants} <span class="msi" style="font-size:11px;">star</span>${w.favorites}</div>
+                        <div class="vwcs-meta"><span class="msi" style="font-size:11px;">person</span>${w.occupants} <span class="msi" style="font-size:11px;">favorite</span>${w.favorites}</div>
                     </div>
                 </div>`;
             }
@@ -523,7 +523,7 @@ function renderFdWorldsPage(page) {
             <div class="vrcn-mini-content-thumb" style="background-image:url('${cssUrl(thumb)}')"></div>
             <div class="vrcn-mini-content-info">
                 <div class="vrcn-mini-content-name">${esc(w.name || '')}</div>
-                <div class="vrcn-mini-content-meta">${esc(w.authorName || '')}<span class="msi">person</span>${w.occupants ?? ''}<span class="msi">star</span>${w.favorites ?? ''}</div>
+                <div class="vrcn-mini-content-meta">${esc(w.authorName || '')}<span class="msi">person</span>${w.occupants ?? ''}<span class="msi">favorite</span>${w.favorites ?? ''}</div>
                 ${tagsHtml ? `<div class="vrcn-mini-content-badges">${tagsHtml}</div>` : ''}
             </div>
         </div>`;
@@ -718,7 +718,7 @@ function renderFriendDetail(d) {
         if (d.canRequestInvite) actionsHtml += `<button class="vrcn-button-round" onclick="friendAction('requestInvite','${loc}','${uid}')" title="${esc(t('profiles.actions.request_invite', 'Request Invite'))}"><span class="msi" style="font-size:16px;">outbox</span></button>`;
         const myInInstance = currentInstanceData && currentInstanceData.location && !currentInstanceData.empty && !currentInstanceData.error;
         if (myInInstance) actionsHtml += `<button class="vrcn-button-round" onclick="openFriendInviteModal('${uid}','${esc(d.displayName).replace(/'/g, "\\'")}')" title="${esc(t('instance.actions.invite', 'Invite'))}"><span class="msi" style="font-size:16px;">mail</span></button>`;
-        actionsHtml += `<button class="vrcn-button-round${d.isFavorited ? ' active' : ''}" id="fdFavBtn" onclick="toggleFriendFavPicker('${uid}')" title="${d.isFavorited ? t('profiles.actions.unfavorite', 'Unfavorite') : t('profiles.actions.favorite', 'Favorite')}"><span class="msi" style="font-size:16px;">${d.isFavorited ? 'star' : 'star_outline'}</span></button>`;
+        actionsHtml += `<button class="vrcn-button-round${d.isFavorited ? ' active' : ''}" id="fdFavBtn" onclick="toggleFriendFavPicker('${uid}')" title="${d.isFavorited ? t('profiles.actions.unfavorite', 'Unfavorite') : t('profiles.actions.favorite', 'Favorite')}"><span class="msi" style="font-size:16px;">${d.isFavorited ? 'favorite' : 'favorite_border'}</span></button>`;
     } else {
         actionsHtml += `<button class="vrcn-button-round vrcn-btn-primary" id="fdAddFriend" onclick="sendToCS({action:'vrcSendFriendRequest',userId:'${uid}'});this.disabled=true;this.textContent='${esc(t('profiles.actions.request_sent', 'Request Sent'))}';">${t('profiles.actions.add_friend', 'Add Friend')}</button>`;
     }
@@ -1862,7 +1862,7 @@ function handleFavFriendToggled(payload) {
         btn.disabled = false;
         btn.classList.toggle('active', isFavorited);
         btn.title = isFavorited ? t('profiles.actions.unfavorite', 'Unfavorite') : t('profiles.actions.favorite', 'Favorite');
-        btn.innerHTML = `<span class="msi" style="font-size:16px;">${isFavorited ? 'star' : 'star_outline'}</span>`;
+        btn.innerHTML = `<span class="msi" style="font-size:16px;">${isFavorited ? 'favorite' : 'favorite_border'}</span>`;
     }
     const picker = document.getElementById('fdFavPicker');
     if (isFavorited) {

@@ -340,7 +340,7 @@ html.nameplate-deco-on .vrcn-user-item > .vrcn-user-item-info,
 html.nameplate-deco-on .vrcn-user-item > .vrcn-user-item-stats { position: relative; z-index: 1; }
 
 .profile-effect-deco {
-    display: none;
+    display: none !important;
     position: absolute;
     inset: 0;
     width: 100%;
@@ -352,7 +352,7 @@ html.nameplate-deco-on .vrcn-user-item > .vrcn-user-item-stats { position: relat
     -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
 }
-html.profile-effect-on .profile-effect-deco { display: block; }
+html.profile-effect-on .profile-effect-deco { display: block !important; }
 html.profile-effect-on .fd-banner,
 html.profile-effect-on .fd-left-banner { position: relative; }
 

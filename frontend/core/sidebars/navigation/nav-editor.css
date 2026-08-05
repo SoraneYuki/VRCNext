@@ -119,11 +119,22 @@
     background: rgba(255, 255, 255, .04);
 }
 
-.ne-folder-name {
+.ne-folder-name,
+.ne-sep-name {
     flex: 1;
     min-width: 0;
     height: 28px !important;
     font-size: 13px !important;
+}
+
+.ne-sep-name {
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+}
+
+.ne-sep-icon {
+    color: var(--tx3);
 }
 
 .ne-folder-empty {

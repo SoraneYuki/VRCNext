@@ -205,7 +205,7 @@ function tsRenderWorlds() {
                 <div class="ts-stat-label">${t('timespent.summary.unique_worlds', 'Unique Worlds')}</div>
             </div>
             <div class="ts-stat">
-                <span class="msi ts-stat-icon">star</span>
+                <span class="msi ts-stat-icon">favorite</span>
                 <div class="ts-stat-val">${_tsGlobalTopWorldName ? esc(_tsGlobalTopWorldName) : '-'}</div>
                 <div class="ts-stat-label">${t('timespent.summary.favourite_world', 'Favourite World')}</div>
             </div>

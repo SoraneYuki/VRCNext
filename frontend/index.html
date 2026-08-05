@@ -123,10 +123,10 @@
     </div>
     <div class="app-body">
     <div class="sidebar" id="sidebarEl">
-        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.35.6</div></div></div>
+        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.36.0</div></div></div>
         <div class="nav vrcn-scrollbar" id="navEl"></div>
         <div class="clock-area"><div class="clock-time" id="clock">00:00:00</div><div class="clock-date" id="clockDate"></div></div>
-        <div class="play-area"><button class="btn-play" onclick="playVRChat()"><span class="msi play-icon">play_arrow</span><span class="pl" data-i18n="sidebar.play_vrchat">Play VRChat</span></button></div>
+        <div class="play-area"><button class="btn-play" onclick="playVRChat()" data-i18n-title="sidebar.play_vrchat" title="Play VRChat"><span class="play-icon-wrap"><span class="msi play-icon">play_arrow</span></span><span class="play-copy pl"><strong class="play-title" data-i18n="sidebar.play_vrchat">Play VRChat</strong><span class="play-sub" id="playSubText"></span></span><span class="msi play-arrow pl">chevron_right</span></button></div>
     </div>
 
     <div class="main">
@@ -596,6 +596,7 @@
             <div id="navEditorList" class="ne-list vrcn-scrollbar" style="margin-top:20px;"></div>
             <div style="display:flex;gap:8px;align-items:center;">
                 <button class="vrcn-button" onclick="_edAddFolder()"><span class="msi" style="font-size:16px;">create_new_folder</span><span data-i18n="nav.editor.add_folder">Add Folder</span></button>
+                <button class="vrcn-button" onclick="_edAddSeparator()"><span class="msi" style="font-size:16px;">horizontal_rule</span><span data-i18n="nav.editor.add_separator">Add Separator</span></button>
                 <span style="flex:1;"></span>
                 <button class="vrcn-button" onclick="_edRestoreDefault()"><span class="msi" style="font-size:16px;">restore</span><span data-i18n="nav.editor.reset">Reset</span></button>
                 <button class="vrcn-button vrcn-btn-primary" onclick="_edConfirm()"><span class="msi" style="font-size:16px;">check</span><span data-i18n="common.save">Save</span></button>

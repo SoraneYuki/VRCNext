@@ -1161,7 +1161,7 @@
             }
             return [
                 { icon: 'drive_file_move', label: cm('avatar.move_to_category', 'Move to Category'), submenuFn: btn => showAvEditModeGroupSubmenu(btn) },
-                { icon: 'star_border', label: cm('avatar.remove_favorites', 'Remove from Favorites'), action: () => avEditRemoveSelected(), danger: true, confirm: true },
+                { icon: 'favorite_border', label: cm('avatar.remove_favorites', 'Remove from Favorites'), action: () => avEditRemoveSelected(), danger: true, confirm: true },
             ];
         }
 
@@ -1175,10 +1175,10 @@
             'sep',
         ];
         if (favEntry) {
-            items.push({ icon: 'star_border', label: cm('avatar.remove_favorites', 'Remove from Favorites'), action: () => removeAvatarFavorite(id, favEntry.favoriteId) });
+            items.push({ icon: 'favorite_border', label: cm('avatar.remove_favorites', 'Remove from Favorites'), action: () => removeAvatarFavorite(id, favEntry.favoriteId) });
             items.push({ icon: 'drive_file_move', label: cm('avatar.move_to_category', 'Move to Category'), submenuFn: btn => showAvMoveToGroupSubmenu(id, favEntry, btn) });
         } else {
-            items.push({ icon: 'star', label: cm('avatar.add_favorites', 'Add to Favorites'), submenuFn: btn => showAvFavGroupSubmenu(id, btn) });
+            items.push({ icon: 'favorite', label: cm('avatar.add_favorites', 'Add to Favorites'), submenuFn: btn => showAvFavGroupSubmenu(id, btn) });
         }
         const _pinAvatar = (typeof pinsContextItem === 'function') ? pinsContextItem('avatar', id, _pinCardData()) : null;
         if (_pinAvatar) { items.push('sep'); items.push(_pinAvatar); }
@@ -1212,13 +1212,13 @@
         items.push({ icon: 'home', label: cm('world.set_home', 'Set as Home'), action: () => sendToCS({ action: 'vrcSetHomeWorld', worldId }), confirm: true });
         items.push('sep');
         if (favEntry) {
-            items.push({ icon: 'star_border', label: cm('world.remove_favorites', 'Remove from Favorites'), action: () => removeWorldFavorite(worldId, favEntry.favoriteId) });
+            items.push({ icon: 'favorite_border', label: cm('world.remove_favorites', 'Remove from Favorites'), action: () => removeWorldFavorite(worldId, favEntry.favoriteId) });
             const otherGroups = (typeof favWorldGroups !== 'undefined') ? favWorldGroups.filter(g => g.name !== favEntry.favoriteGroup) : [];
             if (otherGroups.length > 0) {
                 items.push({ icon: 'drive_file_move', label: cm('world.move_to_category', 'Move to Category'), submenuFn: btn => showMoveToGroupSubmenu(worldId, favEntry, btn) });
             }
         } else {
-            items.push({ icon: 'star', label: cm('world.add_favorites', 'Add to Favorites'), submenuFn: btn => showFavGroupSubmenu(worldId, btn) });
+            items.push({ icon: 'favorite', label: cm('world.add_favorites', 'Add to Favorites'), submenuFn: btn => showFavGroupSubmenu(worldId, btn) });
         }
         return items;
     }
@@ -1258,7 +1258,7 @@
             }
             return [
                 { icon: 'drive_file_move', label: cm('world.move_to_category', 'Move to Category'), submenuFn: btn => showEditModeGroupSubmenu(btn) },
-                { icon: 'star_border', label: cm('world.remove_favorites', 'Remove from Favorites'), action: () => worldEditRemoveSelected(), danger: true, confirm: true },
+                { icon: 'favorite_border', label: cm('world.remove_favorites', 'Remove from Favorites'), action: () => worldEditRemoveSelected(), danger: true, confirm: true },
             ];
         }
 
@@ -1271,13 +1271,13 @@
             'sep',
         ];
         if (favEntry) {
-            items.push({ icon: 'star_border', label: cm('world.remove_favorites', 'Remove from Favorites'), action: () => removeWorldFavorite(id, favEntry.favoriteId) });
+            items.push({ icon: 'favorite_border', label: cm('world.remove_favorites', 'Remove from Favorites'), action: () => removeWorldFavorite(id, favEntry.favoriteId) });
             const otherGroups = (typeof favWorldGroups !== 'undefined') ? favWorldGroups.filter(g => g.name !== favEntry.favoriteGroup) : [];
             if (otherGroups.length > 0) {
                 items.push({ icon: 'drive_file_move', label: cm('world.move_to_category', 'Move to Category'), submenuFn: btn => showMoveToGroupSubmenu(id, favEntry, btn) });
             }
         } else {
-            items.push({ icon: 'star', label: cm('world.add_favorites', 'Add to Favorites'), submenuFn: btn => showFavGroupSubmenu(id, btn) });
+            items.push({ icon: 'favorite', label: cm('world.add_favorites', 'Add to Favorites'), submenuFn: btn => showFavGroupSubmenu(id, btn) });
         }
         const _pinWorld = (typeof pinsContextItem === 'function') ? pinsContextItem('world', id, _pinCardData()) : null;
         if (_pinWorld) { items.push('sep'); items.push(_pinWorld); }
@@ -1293,7 +1293,7 @@
             }
             return [
                 { icon: 'drive_file_move', label: cm('friend.move_group', 'Move to Group'), submenuFn: btn => showFriendEditModeGroupSubmenu(btn) },
-                { icon: 'star_border', label: cm('friend.remove_favorites', 'Remove from Favorites'), action: () => friendEditRemoveSelected(), danger: true, confirm: true },
+                { icon: 'favorite_border', label: cm('friend.remove_favorites', 'Remove from Favorites'), action: () => friendEditRemoveSelected(), danger: true, confirm: true },
             ];
         }
 
@@ -1338,7 +1338,7 @@
             const onFavTab = !!sourceEl?.closest('#favFriendsGrid');
             items.push('sep');
             if (isFav) {
-                items.push({ icon: 'star_border', label: cm('friend.unfavorite', 'Unfavorite'), action: () => sendToCS({ action: 'vrcRemoveFavoriteFriend', userId: id, fvrtId: favEntry?.fvrtId || '' }) });
+                items.push({ icon: 'favorite_border', label: cm('friend.unfavorite', 'Unfavorite'), action: () => sendToCS({ action: 'vrcRemoveFavoriteFriend', userId: id, fvrtId: favEntry?.fvrtId || '' }) });
                 if (onFavTab) {
                     const otherGroups = (typeof favFriendGroups !== 'undefined') ? favFriendGroups.filter(g => g.name !== favEntry?.groupName) : [];
                     if (otherGroups.length > 0) {
@@ -1346,7 +1346,7 @@
                     }
                 }
             } else {
-                items.push({ icon: 'star', label: cm('friend.favorite', 'Add to Favorites'), submenuFn: btn => showFavFriendGroupSubmenu(id, btn) });
+                items.push({ icon: 'favorite', label: cm('friend.favorite', 'Add to Favorites'), submenuFn: btn => showFavFriendGroupSubmenu(id, btn) });
             }
 
             items.push('sep');
@@ -1393,8 +1393,8 @@
         }
         items.push('sep');
         items.push(isFav
-            ? { icon: 'star_border', label: cm('library.remove_favorite', 'Remove Favorite'), action: () => toggleFavorite(path) }
-            : { icon: 'star', label: cm('library.favorite', 'Favorite'), action: () => toggleFavorite(path) }
+            ? { icon: 'favorite_border', label: cm('library.remove_favorite', 'Remove Favorite'), action: () => toggleFavorite(path) }
+            : { icon: 'favorite', label: cm('library.favorite', 'Favorite'), action: () => toggleFavorite(path) }
         );
         items.push(isHidden
             ? { icon: 'visibility', label: cm('library.unhide', 'Unhide'), action: () => toggleHidden(path) }
@@ -1420,8 +1420,8 @@
         items.push({ icon: 'folder_open', label: cm('library.reveal_in_explorer', 'Reveal in Explorer'), action: () => sendToCS({ action: 'revealInExplorer', path }) });
         items.push('sep');
         items.push(isFav
-            ? { icon: 'star_border', label: cm('library.remove_favorite', 'Remove Favorite'), action: () => toggleFavorite(path) }
-            : { icon: 'star',        label: cm('library.favorite',        'Favorite'),        action: () => toggleFavorite(path) }
+            ? { icon: 'favorite_border', label: cm('library.remove_favorite', 'Remove Favorite'), action: () => toggleFavorite(path) }
+            : { icon: 'favorite',        label: cm('library.favorite',        'Favorite'),        action: () => toggleFavorite(path) }
         );
         items.push('sep');
         items.push({ icon: 'delete', label: cm('library.delete', 'Delete'), danger: true, action: () => showDeleteModal(path, name) });

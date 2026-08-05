@@ -813,6 +813,7 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcMyWorlds':
                 renderMyWorlds(payload);
                 if (typeof onMypMyWorlds === 'function') onMypMyWorlds(payload);
+                if (typeof navSetMyWorldsCount === 'function') navSetMyWorldsCount(payload);
                 break;
             case 'worldInsights':
                 if (typeof wiHandleData === 'function') wiHandleData(payload);
@@ -1197,6 +1198,8 @@ case 'vrcNews':
             if (typeof window.vrcnPlusSaveResult === 'function') window.vrcnPlusSaveResult(payload);
             break;
     }
+    if (typeof navUpdateBadges === 'function') navUpdateBadges();
+    if (typeof navUpdatePlaySubtitle === 'function') navUpdatePlaySubtitle();
 });
 // 'ready' and 'kxdGetDevices' are sent by the fragment loader at the end of
 // index.html, AFTER all scripts have loaded. Sending them here would cause the

@@ -1,6 +1,6 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                        <button class="vrcn-button" id="libFavBtn" onclick="toggleFavFilter()"><span class="msi" style="font-size:16px;">star</span> <span data-i18n="library.favorites">Favorites</span></button>
+                        <button class="vrcn-button" id="libFavBtn" onclick="toggleFavFilter()"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="library.favorites">Favorites</span></button>
                         <div id="libFriendFilterWrap"></div>
                         <div id="libWorldFilterWrap"></div>
                         <select id="libFolderFilter" class="vrcn-dropdown" onchange="filterLibrary()"><option value="__all__" data-i18n="library.filters.all_folders">All Folders</option></select>
@@ -27,7 +27,7 @@
                     <span id="libEditCount" class="lib-edit-count">0 selected</span>
                     <button id="libEditSelectAllBtn" class="vrcn-button" onclick="libEditSelectAll()" data-i18n="library.edit.select_all">Select All</button>
                     <span class="lib-edit-spacer"></span>
-                    <button id="libEditFavBtn" class="vrcn-button lib-edit-action" disabled onclick="libEditFavoriteSelected()"><span class="msi" style="font-size:14px;">star</span> <span class="lib-edit-action-label">Favorite</span></button>
+                    <button id="libEditFavBtn" class="vrcn-button lib-edit-action" disabled onclick="libEditFavoriteSelected()"><span class="msi" style="font-size:14px;">favorite</span> <span class="lib-edit-action-label">Favorite</span></button>
                     <button id="libEditHideBtn" class="vrcn-button lib-edit-action" disabled onclick="libEditHideSelected()"><span class="msi" style="font-size:14px;">visibility_off</span> <span class="lib-edit-action-label">Hide</span></button>
                     <button id="libEditDeleteBtn" class="vrcn-button vrcn-btn-danger lib-edit-action" disabled onclick="libEditDeleteSelected()"><span class="msi" style="font-size:14px;">delete</span> <span class="lib-edit-action-label">Delete</span></button>
                 </div>

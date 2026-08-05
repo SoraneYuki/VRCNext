@@ -575,7 +575,7 @@ function _buildLibCard(x) {
     const iF     = favorites.has(x.path),  fc = iF ? ' active' : '';
     const iH     = hiddenMedia.has(x.path), hc = iH ? ' active' : '';
     const ac     = ['lib-actions', iF ? 'has-fav' : '', iH ? 'has-hidden' : ''].filter(Boolean).join(' ');
-    const acts   = `<div class="${ac}"><button class="vrcn-lib-button clip" onclick="event.stopPropagation();copyToClipboard('${suJs}','${sp}','${x.type}')" title="${esc(t('library.actions.copy_clipboard', 'Copy to clipboard'))}"><span class="msi" style="font-size:16px;">content_copy</span></button><button class="vrcn-lib-button fav${fc}" onclick="event.stopPropagation();toggleFavorite('${sp}')" title="${esc(t('library.actions.favorite', 'Favorite'))}"><span class="msi" style="font-size:16px;">star</span></button><button class="vrcn-lib-button hide${hc}" onclick="event.stopPropagation();toggleHidden('${sp}')" title="${esc(iH ? t('library.actions.unhide', 'Unhide') : t('library.actions.hide', 'Hide'))}"><span class="msi" style="font-size:16px;">${iH ? 'visibility' : 'visibility_off'}</span></button><button class="vrcn-lib-button del" onclick="event.stopPropagation();showDeleteModal('${sp}','${sn}')"><span class="msi" style="font-size:16px;">delete</span></button></div>`;
+    const acts   = `<div class="${ac}"><button class="vrcn-lib-button clip" onclick="event.stopPropagation();copyToClipboard('${suJs}','${sp}','${x.type}')" title="${esc(t('library.actions.copy_clipboard', 'Copy to clipboard'))}"><span class="msi" style="font-size:16px;">content_copy</span></button><button class="vrcn-lib-button fav${fc}" onclick="event.stopPropagation();toggleFavorite('${sp}')" title="${esc(t('library.actions.favorite', 'Favorite'))}"><span class="msi" style="font-size:16px;">favorite</span></button><button class="vrcn-lib-button hide${hc}" onclick="event.stopPropagation();toggleHidden('${sp}')" title="${esc(iH ? t('library.actions.unhide', 'Unhide') : t('library.actions.hide', 'Hide'))}"><span class="msi" style="font-size:16px;">${iH ? 'visibility' : 'visibility_off'}</span></button><button class="vrcn-lib-button del" onclick="event.stopPropagation();showDeleteModal('${sp}','${sn}')"><span class="msi" style="font-size:16px;">delete</span></button></div>`;
     const blurClass = iH ? ' lib-blurred' : '';
     const idx       = libraryFiles.indexOf(x);
 
@@ -714,7 +714,7 @@ function updateLibEditBar() {
     };
 
     const allFav = count > 0 && sel.every(p => favorites.has(p));
-    setBtn('libEditFavBtn', allFav ? 'star_border' : 'star',
+    setBtn('libEditFavBtn', allFav ? 'favorite_border' : 'favorite',
         allFav ? tf('library.edit.unfavorite', { count }, 'Unfavorite ({count})')
                : tf('library.edit.favorite',   { count }, 'Favorite ({count})'));
 
@@ -1174,7 +1174,7 @@ function _photoBuildInfoPaneContent(x) {
     const worldRowClick = worldId ? ` onclick="navOpenModal('worldSearch','${jsq(worldId)}','${jsq(worldName || '')}')"` : '';
     const worldCursor   = worldId ? 'cursor:pointer;' : '';
     const isFav = x.path && (typeof favorites !== 'undefined') && favorites.has(x.path);
-    const favBadge = `<span class="vrcn-badge accent"><span class="msi" style="font-size:11px;">star</span>${esc(t('library.detail.favorited', 'Favorited'))}</span>`;
+    const favBadge = `<span class="vrcn-badge accent"><span class="msi" style="font-size:11px;">favorite</span>${esc(t('library.detail.favorited', 'Favorited'))}</span>`;
 
     const authorName = x.authorName || '';
     const authorId   = x.authorId   || '';

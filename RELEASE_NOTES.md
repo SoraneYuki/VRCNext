@@ -1,28 +1,13 @@
-**2026.36.0**
+**2026.37.0**
 
-**VRChat API**
+VRCN v2 Design Overhaul
 
-* Profile banners now use VRChat's banner endpoint, so changes show up on vrchat.com.
-* Banners set via the image picker or the media gallery save correctly.
-* Profile updates now show what VRChat actually saved instead of assuming success.
+**Design Overhaul**
 
-**Setup**
+* Added badge counters to the left sidebar. These show the number of favorite and owned worlds, joined groups, owned and favorited avatars, and events taking place during the current month.
+* Added seperators to the left sidebar. those are adjustable and they should or can be used to organize your sidebar a little more.
+* Replaced the favorite star icon with a heart icon.
+* Updated the **Play VRChat** button in both the expanded and collapsed sidebar to match the new VRCN v2 design.
 
-* Updated the first-time setup.
-
-**Mutual Network**
-
-* Added Communities to group closely connected people.
-* Connections are based on mutual friends, shared instances, and shared groups.
-* Added community colors, filtering, and connection details.
-* Improved graph stability and automatic zooming.
-
-**Improvements**
-
-* Faster VRCX database imports.
-* Improved Mutual Network performance.
-* Added more Timeline page-size options.
-
-**Bug Fixes**
-
-* Fixed several crashes and issues related to VR Overlay, Space Flight, and FrameShot.
+**Fixed Bugs**
+* Fixed an bug where Profile Frames where still shown even if the setting was disabled.

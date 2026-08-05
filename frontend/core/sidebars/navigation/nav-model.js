@@ -1,10 +1,10 @@
 const NAV_ITEMS_DEF = {
     'dashboard':        { icon: 'dashboard',       tab: 0,  i18n: 'nav.dashboard',         label: 'Dashboard'        },
-    'worlds':           { icon: 'travel_explore',  tab: 1,  i18n: 'nav.worlds',             label: 'Worlds'           },
-    'groups':           { icon: 'groups',          tab: 2,  i18n: 'nav.groups',             label: 'Groups'           },
-    'people':           { icon: 'person_search',   tab: 3,  i18n: 'nav.people',             label: 'People'           },
-    'calendar':         { icon: 'calendar_month',  tab: 17, i18n: 'nav.calendar',           label: 'Calendar'         },
-    'avatars':          { icon: 'checkroom',       tab: 4,  i18n: 'nav.avatars',            label: 'Avatars'          },
+    'worlds':           { icon: 'travel_explore',  tab: 1,  i18n: 'nav.worlds',             label: 'Worlds',           badge: 'worlds'   },
+    'groups':           { icon: 'groups',          tab: 2,  i18n: 'nav.groups',             label: 'Groups',           badge: 'groups'   },
+    'people':           { icon: 'person_search',   tab: 3,  i18n: 'nav.people',             label: 'People',           badge: 'people'   },
+    'calendar':         { icon: 'calendar_month',  tab: 17, i18n: 'nav.calendar',           label: 'Calendar',         badge: 'calendar' },
+    'avatars':          { icon: 'checkroom',       tab: 4,  i18n: 'nav.avatars',            label: 'Avatars',          badge: 'avatars'  },
     'inventory':        { icon: 'inventory_2',     tab: 13, i18n: 'nav.inventory',          label: 'Inventory'        },
     'timeline':         { icon: 'timeline',        tab: 12, i18n: 'nav.timeline',           label: 'Timeline'         },
     'media-library':    { icon: 'photo_library',   tab: 7,  i18n: 'nav.media_library',      label: 'Media Library'    },
@@ -68,15 +68,18 @@ const NAV_ICON_OPTIONS = [
 ];
 
 const NAV_DEFAULT_LAYOUT = [
+    { type: 'separator', id: 'sep-overview', name: 'Overview' },
     { type: 'item', key: 'dashboard' },
     { type: 'item', key: 'worlds' },
     { type: 'item', key: 'groups' },
     { type: 'item', key: 'people' },
-    { type: 'item', key: 'calendar' },
     { type: 'item', key: 'avatars' },
-    { type: 'item', key: 'inventory' },
+    { type: 'separator', id: 'sep-activity', name: 'Activity' },
+    { type: 'item', key: 'calendar' },
     { type: 'item', key: 'timeline' },
     { type: 'item', key: 'media-library' },
+    { type: 'item', key: 'inventory' },
+    { type: 'separator', id: 'sep-tools', name: 'Tools' },
     {
         type: 'folder', id: 'folder-tools', name: 'Tools', icon: 'adjust',
         items: [
@@ -138,7 +141,9 @@ function navSanitizeLayout(layout, hidden = []) {
     const result = [];
 
     for (const entry of layout) {
-        if (entry.type === 'item') {
+        if (entry.type === 'separator') {
+            result.push({ type: 'separator', id: entry.id || _navMakeSeparatorId(), name: entry.name || '' });
+        } else if (entry.type === 'item') {
             if (!allKeys.includes(entry.key) || seen.has(entry.key)) continue;
             seen.add(entry.key);
             result.push({ type: 'item', key: entry.key, icon: entry.icon || null });
@@ -173,3 +178,4 @@ function navSanitizeLayout(layout, hidden = []) {
 
 function _navClone(o) { return JSON.parse(JSON.stringify(o)); }
 function _navMakeFolderId() { return 'folder-' + Math.random().toString(36).slice(2, 9); }
+function _navMakeSeparatorId() { return 'sep-' + Math.random().toString(36).slice(2, 9); }

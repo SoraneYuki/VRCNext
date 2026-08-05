@@ -826,7 +826,7 @@ function renderMypWorldsPage(page) {
             <div class="vrcn-mini-content-thumb" style="background-image:url('${cssUrl(thumb)}')"></div>
             <div class="vrcn-mini-content-info">
                 <div class="vrcn-mini-content-name">${esc(w.name || '')}</div>
-                <div class="vrcn-mini-content-meta">${esc(w.authorName || '')}<span class="msi">person</span>${w.occupants ?? ''}<span class="msi">star</span>${w.favorites ?? ''}</div>
+                <div class="vrcn-mini-content-meta">${esc(w.authorName || '')}<span class="msi">person</span>${w.occupants ?? ''}<span class="msi">favorite</span>${w.favorites ?? ''}</div>
                 <div class="vrcn-mini-content-badges">${tagsHtml}${pubBadge}</div>
             </div>
         </div>`;
@@ -928,7 +928,7 @@ function renderMypFavWorlds(payload) {
                     <div class="vwcs-scrim"></div>
                     <div class="vwcs-info">
                         <div class="vwcs-name">${esc(w.name)}</div>
-                        <div class="vwcs-meta"><span class="msi" style="font-size:11px;">person</span>${w.occupants} <span class="msi" style="font-size:11px;">star</span>${w.favorites}</div>
+                        <div class="vwcs-meta"><span class="msi" style="font-size:11px;">person</span>${w.occupants} <span class="msi" style="font-size:11px;">favorite</span>${w.favorites}</div>
                     </div>
                 </div>`;
             }
