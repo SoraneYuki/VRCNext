@@ -994,6 +994,7 @@ public class NotificationsController
                 _core.VrOverlay?.AddNotification(capturedEvType, capturedName, capturedEvText, time,
                     capturedImg, senderId, "", capturedNotifId, capturedData);
                 _core.VrOverlay?.EnqueueToast(capturedEvType, capturedName, capturedEvText, time, capturedImg, isFavorited: false);
+                _core.SpeakToast?.Invoke(capturedEvType, capturedName, capturedEvText);
             }
             catch { }
         });

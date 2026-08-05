@@ -66,9 +66,9 @@ function openNotifRespondModal(notifId) {
             <div class="inv-world-banner" style="${bannerImg ? `background-image:url('${cssUrl(bannerImg)}')` : ''}">
                 <div class="inv-world-fade"></div>
                 <div class="inv-world-info">
-                    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-bottom:2px;">${titleLine}</div>
+                    <div style="font-size:calc(11px + var(--fs-off, 0px));color:rgba(255,255,255,.65);margin-bottom:2px;">${titleLine}</div>
                     <div class="inv-world-name">${tf('notifications.respond.answer', { name: esc(_nrModalSenderName) }, 'Answer {name}')}</div>
-                    ${subLine ? `<div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px;">${subLine}</div>` : ''}
+                    ${subLine ? `<div style="font-size:calc(11px + var(--fs-off, 0px));color:rgba(255,255,255,.75);margin-top:3px;">${subLine}</div>` : ''}
                 </div>
             </div>
             <div class="fd-tabs" style="margin:14px 16px 0;flex-shrink:0;">

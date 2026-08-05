@@ -53,7 +53,7 @@ function renderAccountsList(payload) {
             <div class="vrcn-user-item" style="cursor:default;">
                 ${avatar ? `<img class="vrcn-user-item-avatar" src="${avatar}" alt="">` : `<div class="vrcn-user-item-avatar vrcn-user-item-avatar-letter"></div>`}
                 <div class="vrcn-user-item-info">
-                    <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx1);">${name}${badges.join('')}</div>
+                    <div style="display:flex;align-items:center;gap:6px;font-size:calc(13px + var(--fs-off, 0px));color:var(--tx1);">${name}${badges.join('')}</div>
                     <div class="vrcn-user-item-status">${userTag}</div>
                 </div>
                 <div style="display:flex;gap:6px;flex-shrink:0;">${buttons.join('')}</div>
@@ -163,7 +163,7 @@ function showReconnectModal(username) {
                 <div class="modal-title" data-i18n="settings.accounts.signin_title">Sign In</div>
                 <div class="modal-msg" id="modalReconnectMsg" style="word-break:normal;line-height:1.5;"></div>
                 <input type="password" id="modalReconnectPass" class="vrcn-edit-field" placeholder="VRChat password" data-i18n-placeholder="settings.api.password" style="margin:10px 0;width:100%;">
-                <div id="modalReconnectError" style="font-size:11px;color:var(--err);min-height:14px;margin-bottom:6px;"></div>
+                <div id="modalReconnectError" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--err);min-height:14px;margin-bottom:6px;"></div>
                 <div class="modal-btns">
                     <button class="vrcn-button-round" onclick="document.getElementById('modalReconnect').style.display='none'" data-i18n="common.cancel">Cancel</button>
                     <button class="vrcn-button-round vrcn-btn-join" id="modalReconnectConfirm" data-i18n="settings.accounts.btn.signin">Sign In</button>

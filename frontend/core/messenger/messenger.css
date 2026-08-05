@@ -42,8 +42,8 @@
     border: 2.5px solid var(--bg-side);
 }
 #msgrHeaderText { flex:1; min-width:0; }
-#msgrName { font-weight:600; font-size:14px; color:var(--tx1); }
-#msgrSub  { font-size:11px; color:var(--tx3); margin-top:2px; }
+#msgrName { font-weight:600; font-size: calc(14px + var(--fs-off, 0px)); color:var(--tx1); }
+#msgrSub  { font-size: calc(11px + var(--fs-off, 0px)); color:var(--tx3); margin-top:2px; }
 #msgrHeaderRight { display:flex; align-items:center; gap:6px; flex-shrink:0; }
 #msgrClose {
     background:none; border:none; cursor:pointer;
@@ -71,14 +71,14 @@
 .msgr-bubble {
     padding: 9px 14px;
     border-radius: 20px;
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     line-height: 1.45;
     word-break: break-word;
     white-space: pre-wrap;
 }
 .msgr-mine   .msgr-bubble { background:var(--accent); color:#fff; border-bottom-right-radius:6px; }
 .msgr-theirs .msgr-bubble { background:var(--bg-hover); color:var(--tx1); border-bottom-left-radius:6px; }
-.msgr-time { font-size:10px; color:var(--tx3); margin-top:3px; padding:0 5px; }
+.msgr-time { font-size: calc(10px + var(--fs-off, 0px)); color:var(--tx3); margin-top:3px; padding:0 5px; }
 
 .msgr-boop-event {
     display: flex;
@@ -98,7 +98,7 @@
     to   { opacity: 1; transform: scale(1); }
 }
 .msgr-boop-icon {
-    font-size: 26px;
+    font-size: calc(26px + var(--fs-off, 0px));
     color: #FF6B8A;
     animation: boop-pulse 1.8s ease-in-out 2;
 }
@@ -113,13 +113,13 @@
     animation: boop-pulse 1.8s ease-in-out 2;
 }
 .msgr-boop-text {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx1);
     letter-spacing: .2px;
 }
 .msgr-boop-time {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
 }
 
@@ -156,7 +156,7 @@
 }
 .scm-thumb img.scm-img-loaded { display: block; }
 .scm-thumb-icon {
-    font-size: 32px;
+    font-size: calc(32px + var(--fs-off, 0px));
     color: var(--tx3);
     opacity: .45;
 }
@@ -176,7 +176,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--accent);
     letter-spacing: .4px;
@@ -184,7 +184,7 @@
 }
 .scm-type-row .msi { font-size: 13px; }
 .scm-name {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx1);
     white-space: nowrap;
@@ -203,7 +203,7 @@
     color: #fff;
     border: none;
     cursor: pointer;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 600;
     font-family: inherit;
     transition: background .15s;
@@ -216,7 +216,7 @@
     align-items: center;
     gap: 6px;
     padding: 7px 14px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: #FFA726;
     background: rgba(255,167,38,.09);
     flex-shrink: 0;
@@ -241,7 +241,7 @@
     border-radius: 14px;
     padding: 9px 44px 9px 14px;
     color: var(--tx1);
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-family: inherit;
     resize: none;
     outline: none;
@@ -260,7 +260,7 @@
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     transition: color .2s;
     min-width: 24px;
@@ -300,7 +300,7 @@
 }
 
 #msgrSlotText {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     color: #2DD48C;
     font-weight: 600;
     line-height: 1;
@@ -323,13 +323,13 @@
     flex-shrink: 0;
 }
 .chat-inbox-row  { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
-.chat-inbox-name { font-size: 13px; font-weight: 600; color: var(--tx1); min-width: 0; }
-.chat-inbox-time { font-size: 10px; color: var(--tx3); flex-shrink: 0; }
-.chat-inbox-text { font-size: 12px; color: var(--tx3); margin-top: 2px; }
+.chat-inbox-name { font-size: calc(13px + var(--fs-off, 0px)); font-weight: 600; color: var(--tx1); min-width: 0; }
+.chat-inbox-time { font-size: calc(10px + var(--fs-off, 0px)); color: var(--tx3); flex-shrink: 0; }
+.chat-inbox-text { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx3); margin-top: 2px; }
 .chat-inbox-count {
     background: var(--accent);
     color: #fff;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     min-width: 18px; height: 18px;
     border-radius: 9px;

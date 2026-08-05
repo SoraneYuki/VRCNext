@@ -4,7 +4,7 @@
 .fs-howto {
     margin: 4px 0 8px;
     padding-left: 20px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx2);
     line-height: 1.5;
 }
@@ -16,7 +16,7 @@
     padding: 8px 10px;
     background: var(--bg-input);
     border-radius: 6px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     font-family: monospace;
 }
@@ -27,11 +27,11 @@
     gap: 8px;
     align-items: center;
     margin-bottom: 6px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx1);
 }
 .fs-keybind-grid label {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
 }
 .fs-keybind-head {
@@ -39,7 +39,7 @@
 }
 
 .fs-help {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     line-height: 1.45;
     margin-top: 8px;
@@ -48,7 +48,7 @@
     border-radius: 6px;
 }
 .fs-keybind-head > span {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     text-transform: uppercase;
     color: var(--tx3);
@@ -73,7 +73,7 @@
     row-gap: 6px;
 }
 .fs-gif-head > span {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     text-transform: uppercase;
     color: var(--tx3);
@@ -98,7 +98,7 @@
     width: 100%;
 }
 .fs-ctrl-cap {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx2);
 }

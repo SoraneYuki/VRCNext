@@ -195,11 +195,11 @@
                         <div style="margin-top:12px;padding:10px;background:var(--bg2);border-radius:6px;">
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                                 <span class="msi" style="font-size:16px;">video_settings</span>
-                                <span style="font-size:13px;font-weight:600;" data-i18n="frameshot.ffmpeg.title">Video Encoder (ffmpeg)</span>
-                                <span id="fsFfmpegStatus" style="font-size:11px;color:var(--tx3);margin-left:auto;"></span>
+                                <span style="font-size:calc(13px + var(--fs-off, 0px));font-weight:600;" data-i18n="frameshot.ffmpeg.title">Video Encoder (ffmpeg)</span>
+                                <span id="fsFfmpegStatus" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);margin-left:auto;"></span>
                             </div>
                             <div id="fsFfmpegProgressWrap" style="display:none;margin-bottom:8px;">
-                                <div style="font-size:11px;color:var(--tx2);margin-bottom:4px;" id="fsFfmpegProgressLabel" data-i18n="frameshot.ffmpeg.downloading">Downloading...</div>
+                                <div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:4px;" id="fsFfmpegProgressLabel" data-i18n="frameshot.ffmpeg.downloading">Downloading...</div>
                                 <div style="background:var(--brd);border-radius:4px;height:6px;overflow:hidden;">
                                     <div id="fsFfmpegProgressBar" style="height:100%;background:var(--accent);width:0%;transition:width .3s;border-radius:4px;"></div>
                                 </div>
@@ -240,7 +240,7 @@
                         <div class="sf-row">
                             <label data-i18n="frameshot.activation.label">Max Hand Distance</label>
                             <input type="range" id="fsActivationRadius" min="5" max="30" step="1" value="15" oninput="fsUpdateActivationRadius()">
-                            <span id="fsActivationRadiusVal" style="font-size:11px;color:var(--tx2);min-width:42px;text-align:right;">15 cm</span>
+                            <span id="fsActivationRadiusVal" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);min-width:42px;text-align:right;">15 cm</span>
                         </div>
                     </div>
 

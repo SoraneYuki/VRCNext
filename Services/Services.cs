@@ -292,6 +292,9 @@ public class AppSettings
     public string PlayBtnTheme { get; set; } = "";
     public string CursorTheme { get; set; } = "";
     public string AppFont { get; set; } = "google-sans";
+    public string DesignStyle { get; set; } = "line";
+    public string CustomFont { get; set; } = "";
+    public int FontSizeOffset { get; set; } = 0;
     public List<string> ActiveCustomThemes { get; set; } = ["VRCNext v2 Preview"];
     public int GuiZoom { get; set; } = 100;
     public string DashBgPath { get; set; } = "";
@@ -503,6 +506,20 @@ public class AppSettings
     public bool       VroToastFriendReq    { get; set; } = true;
     public bool       VroToastInvite       { get; set; } = true;
     public bool       VroToastGroupInv     { get; set; } = true;
+    public bool       VroToastJoined       { get; set; } = true;
+    public bool       VroToastTtsOnline     { get; set; } = false;
+    public bool       VroToastTtsOffline    { get; set; } = false;
+    public bool       VroToastTtsGps        { get; set; } = false;
+    public bool       VroToastTtsStatus     { get; set; } = false;
+    public bool       VroToastTtsStatusDesc { get; set; } = false;
+    public bool       VroToastTtsBio        { get; set; } = false;
+    public bool       VroToastTtsFriendReq  { get; set; } = false;
+    public bool       VroToastTtsInvite     { get; set; } = false;
+    public bool       VroToastTtsGroupInv   { get; set; } = false;
+    public bool       VroToastTtsJoined     { get; set; } = false;
+    public int        VroTtsDevice         { get; set; } = -1;
+    public string     VroTtsVoice          { get; set; } = "";
+    public string     VroTtsEngine         { get; set; } = "sapi";
 
     // VR Dashboard — Water Reminder
     public bool VroWaterEnabled { get; set; } = false;

@@ -250,7 +250,7 @@ function _renderLibPage() {
 }
 
 function buildLibPagination(page, totalPages) {
-    const countHtml = `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${tf('library.pagination.files', { count: _libFiltered.length.toLocaleString() }, '{count} files')}</span>`;
+    const countHtml = `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${tf('library.pagination.files', { count: _libFiltered.length.toLocaleString() }, '{count} files')}</span>`;
     return buildPaginator(page, totalPages, 'libGoPage', countHtml);
 }
 
@@ -385,7 +385,7 @@ function _renderLibIconSelect(wrapperId, items, currentVal, allLabel, allIcon, r
 
     const optHtml = [
         `<div class="vn-select-option${currentVal === '__all__' ? ' vn-active' : ''}" data-isval="__all__">${thumbHtml('', allIcon, false)}<span class="vn-select-label">${esc(allLabel)}</span></div>`,
-        ...items.map(it => `<div class="vn-select-option${currentVal === it.value ? ' vn-active' : ''}" data-isval="${esc(it.value)}">${thumbHtml(it.thumb, allIcon, it.round ?? round)}<span class="vn-select-label">${esc(it.label)}</span><span style="font-size:10px;color:var(--tx3);flex-shrink:0;margin-left:auto;">${it.count}</span></div>`)
+        ...items.map(it => `<div class="vn-select-option${currentVal === it.value ? ' vn-active' : ''}" data-isval="${esc(it.value)}">${thumbHtml(it.thumb, allIcon, it.round ?? round)}<span class="vn-select-label">${esc(it.label)}</span><span style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);flex-shrink:0;margin-left:auto;">${it.count}</span></div>`)
     ].join('');
 
     container.innerHTML = `<div class="vn-select lib-is-select">
@@ -588,7 +588,7 @@ function _buildLibCard(x) {
         const isVid = x.type === 'video';
         const media = isVid
             ? `<img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div class=\\'lib-vid-thumb-fallback\\'>${jsq(t('library.video_badge', 'VIDEO'))}</div>'"><span class="lib-vid-badge">${t('library.video_badge', 'VIDEO')}</span>`
-            : `<img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:11px;font-weight:700\\'>${jsq(t('library.no_preview', 'No Preview'))}</div>'">`;
+            : `<img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:calc(11px + var(--fs-off, 0px));font-weight:700\\'>${jsq(t('library.no_preview', 'No Preview'))}</div>'">`;
         return `<div class="lib-card lib-card-edit${isSel ? ' lib-card-selected' : ''}" data-path="${esc(x.path||'')}" onclick="toggleLibEditSelect('${sp}',this)" style="user-select:none;cursor:pointer;"><div class="lib-thumb-wrap${blurClass}">${media}<div class="wd-edit-check">${checkIcon}</div></div><div class="lib-info"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span>${x.size}</span><span>${x.time}</span></div></div>${isSel ? '<div class="wd-edit-sel-border"></div>' : ''}</div>`;
     }
 
@@ -621,7 +621,7 @@ function _buildLibCard(x) {
     if (x.type === 'image' || x.type === 'gif') {
         const resTag   = _resTag(x);
         const resBadge = resTag ? `<span class="vrcn-badge accent" style="margin-left:4px;">${resTag}</span>` : '';
-        return `<div class="lib-card" data-path="${esc(x.path||'')}" data-url="${suAttr}" data-type="${x.type}" data-name="${esc(x.name||'')}">${acts}<div class="lib-thumb-wrap${blurClass}" onclick="openPhotoDetail(${idx})"><img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:11px;font-weight:700\\'>${jsq(t('library.no_preview', 'No Preview'))}</div>'">${iH ? '<div class="lib-blur-hint"><span class="msi" style="font-size:18px;">visibility_off</span></div>' : ''}${worldBadge}${playersOverlay}</div><div class="lib-info" onclick="event.stopPropagation();openPhotoDetail(${idx})" style="cursor:pointer;"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span style="display:flex;align-items:center;">${x.size}${resBadge}</span><span>${x.time}</span></div></div></div>`;
+        return `<div class="lib-card" data-path="${esc(x.path||'')}" data-url="${suAttr}" data-type="${x.type}" data-name="${esc(x.name||'')}">${acts}<div class="lib-thumb-wrap${blurClass}" onclick="openPhotoDetail(${idx})"><img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:calc(11px + var(--fs-off, 0px));font-weight:700\\'>${jsq(t('library.no_preview', 'No Preview'))}</div>'">${iH ? '<div class="lib-blur-hint"><span class="msi" style="font-size:18px;">visibility_off</span></div>' : ''}${worldBadge}${playersOverlay}</div><div class="lib-info" onclick="event.stopPropagation();openPhotoDetail(${idx})" style="cursor:pointer;"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span style="display:flex;align-items:center;">${x.size}${resBadge}</span><span>${x.time}</span></div></div></div>`;
     } else {
         const th = `<img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div class=\\'lib-vid-thumb-fallback\\'>${jsq(t('library.video_badge', 'VIDEO'))}</div>'">`;
         return `<div class="lib-card" data-path="${esc(x.path||'')}" data-url="${suAttr}" data-type="video" data-name="${esc(x.name||'')}">${acts}<div class="lib-thumb-wrap${blurClass}" onclick="openPhotoDetail(${idx})">${th}<div class="lib-vid-overlay"><div class="lib-play-icon"><span class="msi" style="font-size:22px;">play_arrow</span></div></div><span class="lib-vid-badge">${t('library.video_badge', 'VIDEO')}</span>${iH ? '<div class="lib-blur-hint"><span class="msi" style="font-size:18px;">visibility_off</span></div>' : ''}${worldBadge}${playersOverlay}</div><div class="lib-info" onclick="event.stopPropagation();openPhotoDetail(${idx})" style="cursor:pointer;"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span>${x.size}</span><span>${x.time}</span></div></div></div>`;
@@ -1182,7 +1182,7 @@ function _photoBuildInfoPaneContent(x) {
     if (authorName) {
         const authorLabel = esc(t('library.detail.author', 'Author'));
         if (authorId) {
-            authorRow = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;cursor:pointer;" onclick="navOpenModal('friend','${jsq(authorId)}','${jsq(authorName)}')"><span style="color:var(--tx3);">${authorLabel}</span><span style="color:var(--accent-lt);font-weight:700;text-align:right;">${esc(authorName)}</span></div>`;
+            authorRow = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));cursor:pointer;" onclick="navOpenModal('friend','${jsq(authorId)}','${jsq(authorName)}')"><span style="color:var(--tx3);">${authorLabel}</span><span style="color:var(--accent-lt);font-weight:700;text-align:right;">${esc(authorName)}</span></div>`;
         } else {
             authorRow = _tlMr(authorLabel, `<span style="font-weight:700;">${esc(authorName)}</span>`);
         }
@@ -1192,7 +1192,7 @@ function _photoBuildInfoPaneContent(x) {
         _tlMr(esc(t('library.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('library.detail.time', 'Time')), esc(timeStr)),
         x.size ? _tlMr(esc(t('library.detail.size', 'Size')), esc(x.size)) : '',
-        worldName ? `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;${worldCursor}"${worldRowClick}><span style="color:var(--tx3);">${esc(t('library.detail.world', 'World'))}</span><span style="color:var(--accent-lt);font-weight:700;text-align:right;">${esc(worldName)}</span></div>` : '',
+        worldName ? `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));${worldCursor}"${worldRowClick}><span style="color:var(--tx3);">${esc(t('library.detail.world', 'World'))}</span><span style="color:var(--accent-lt);font-weight:700;text-align:right;">${esc(worldName)}</span></div>` : '',
         resStr ? _tlMr(esc(t('library.detail.resolution', 'Resolution')), esc(resStr)) : '',
         authorRow,
         isFav ? _tlMr(esc(t('library.detail.favorited', 'Favorited')), favBadge) : '',

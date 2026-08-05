@@ -151,7 +151,7 @@ function renderMyProfileContent() {
     const _mypEffect = (typeof profileEffectHtml === 'function') ? profileEffectHtml(u.profileEffectUrl) : '';
     const bannerHtml = bannerSrc
         ? `<div class="fd-banner" id="myp-banner-slot"><div class="fd-banner-fade"></div>${_mypEffect}</div>`
-        : `<div style="display:flex;justify-content:flex-end;padding:4px 0 2px 0;"><button class="myp-edit-btn" onclick="openImagePicker('profile-banner')" title="${esc(addBannerTitle)}"><span class="msi" style="font-size:13px;">edit</span><span style="font-size:11px;margin-left:3px;">${esc(bannerLabel)}</span></button></div>`;
+        : `<div style="display:flex;justify-content:flex-end;padding:4px 0 2px 0;"><button class="myp-edit-btn" onclick="openImagePicker('profile-banner')" title="${esc(addBannerTitle)}"><span class="msi" style="font-size:13px;">edit</span><span style="font-size:calc(11px + var(--fs-off, 0px));margin-left:3px;">${esc(bannerLabel)}</span></button></div>`;
     const bannerCompactHtml = `<div class="fd-left-banner" id="myp-banner-slot">${bannerSrc ? `<div class="fd-banner-fade"></div>` : ''}${_mypEffect}<span class="vrcn-keybind" style="position:absolute;top:8px;right:8px;z-index:3;border-radius:5px;">CTRL P</span></div>`;
     const mypHeaderActions = renderModalActions([
         { icon: 'edit', title: changeBannerTitle, onclick: `openImagePicker('profile-banner')` },
@@ -172,7 +172,7 @@ function renderMyProfileContent() {
     const avatarImg = useCompact
         ? (u.image
             ? `<img class="fd-avatar" src="${esc(u.image)}" onerror="this.style.display='none'">`
-            : `<div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--tx3)">${esc((u.displayName||'?')[0])}</div>`)
+            : `<div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(20px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((u.displayName||'?')[0])}</div>`)
         : (u.image
             ? `<img class="myp-avatar" src="${esc(u.image)}" onerror="this.outerHTML='<div class=\\'myp-avatar myp-avatar-fb\\'>${esc((u.displayName||'?')[0])}</div>'">`
             : `<div class="myp-avatar myp-avatar-fb">${esc((u.displayName||'?')[0])}</div>`);
@@ -287,7 +287,7 @@ function renderMyProfileContent() {
 
     // Infos card (right) — platform, joined date, pronouns
     const _mr = (label, valueHtml) =>
-        `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;"><span style="color:var(--tx3);">${label}</span><span style="color:var(--tx1);text-align:right;">${valueHtml}</span></div>`;
+        `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));"><span style="color:var(--tx3);">${label}</span><span style="color:var(--tx1);text-align:right;">${valueHtml}</span></div>`;
     const _infosRows = [
         _mr(t('profiles.meta.joined',        'Joined'),         u.dateJoined  ? fmtShortDate(new Date(u.dateJoined + 'T00:00:00')) : '—'),
         _mr(t('profiles.meta.last_login',    'Last Login'),     u.lastLogin   ? fmtShortDate(new Date(u.lastLogin)) : '—'),
@@ -301,7 +301,7 @@ function renderMyProfileContent() {
             <span class="myp-section-title">${t('profiles.my_profile.sections.pronouns', 'Pronouns')}</span>
             <button class="myp-edit-btn" onclick="editMyField('pronouns')"><span class="msi" style="font-size:14px;">edit</span></button>
         </div>
-        <div id="mypPronounsView">${u.pronouns ? `<div style="font-size:13px;color:var(--tx1);">${esc(u.pronouns)}</div>` : `<div class="myp-empty">${noPronounsLabel}</div>`}</div>
+        <div id="mypPronounsView">${u.pronouns ? `<div style="font-size:calc(13px + var(--fs-off, 0px));color:var(--tx1);">${esc(u.pronouns)}</div>` : `<div class="myp-empty">${noPronounsLabel}</div>`}</div>
         <div id="mypPronounsEdit" style="display:none;">
             <input type="text" id="mypPronounsInput" class="vrcn-edit-field" placeholder="${esc(t('profiles.my_profile.pronouns_placeholder', 'e.g. he/him, she/her, they/them...'))}" maxlength="32" value="${esc(u.pronouns||'')}" style="width:100%;">
             <div class="myp-edit-actions">
@@ -322,7 +322,7 @@ function renderMyProfileContent() {
     const _trustCard = rank ? `<div class="fd-info-card">
         <div class="fd-group-rep-label">${t('profiles.trust.title', 'Trust &amp; Safety')}</div>
         <span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>
-        <p style="margin:10px 0 0;font-size:12px;color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>
+        <p style="margin:10px 0 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>
     </div>` : '';
 
     const pronounsHtml = u.pronouns ? `<div class="fd-pronouns">${esc(u.pronouns)}</div>` : '';
@@ -337,7 +337,7 @@ function renderMyProfileContent() {
 
     const _mypTlCard = `<div class="fd-info-card">
         <div class="fd-group-rep-label">${t('nav.timeline', 'Timeline')}</div>
-        <div id="mypMiniTl" style="max-height:160px;overflow-y:auto;"><div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('profiles.insights.loading', 'Loading...')}</div></div>
+        <div id="mypMiniTl" style="max-height:160px;overflow-y:auto;"><div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.insights.loading', 'Loading...')}</div></div>
     </div>`;
 
     const _mypInsightsCard = `<div class="fd-info-card">
@@ -345,7 +345,7 @@ function renderMyProfileContent() {
             <button class="fd-tab myp-insights-pill active" onclick="switchMypInsightsPill('worlds',this)">${t('profiles.insights.most_visited_worlds', 'Most Visited Worlds')}</button>
             <button class="fd-tab myp-insights-pill" onclick="switchMypInsightsPill('persons',this)">${t('profiles.insights.interacted_most', 'Interacted the most with')}</button>
         </div>
-        <div id="mypInsightsWorlds" style="max-height:280px;overflow-y:auto;"><div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('profiles.insights.loading', 'Loading...')}</div></div>
+        <div id="mypInsightsWorlds" style="max-height:280px;overflow-y:auto;"><div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.insights.loading', 'Loading...')}</div></div>
         <div id="mypInsightsPersons" style="max-height:280px;overflow-y:auto;display:none;"></div>
     </div>`;
 
@@ -376,7 +376,7 @@ function renderMyProfileContent() {
             </div>
         </div>
         <div class="fd-hm-stats" id="mypHmStats"></div>
-        <div class="fd-hm-grid-wrap" id="mypHmGridWrap"${_hmOnline ? '' : ' style="display:none;"'}><div style="padding:16px 0;font-size:12px;color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div></div>
+        <div class="fd-hm-grid-wrap" id="mypHmGridWrap"${_hmOnline ? '' : ' style="display:none;"'}><div style="padding:16px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div></div>
         <div class="fd-hm-status-wrap" id="mypHmStatusWrap"${_hmOnline ? ' style="display:none;"' : ''}></div>
     </div>`;
 
@@ -424,7 +424,7 @@ function renderMyProfileContent() {
         groupsContent += `<div id="mypGroupsGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;column-gap:6px;"></div>`;
         groupsContent += `<div id="mypGroupsPaginatorBar" class="mini-paginator"></div>`;
     } else {
-        groupsContent = `<div style="padding:20px;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.badges.no_groups', 'No groups')}</div>`;
+        groupsContent = `<div style="padding:20px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.badges.no_groups', 'No groups')}</div>`;
     }
 
     const contentHtml = `
@@ -764,7 +764,7 @@ function filterMypGroups() {
     const slice = sorted.slice(page * MINI_PG_SIZE, (page + 1) * MINI_PG_SIZE);
     grid.innerHTML = slice.length
         ? slice.map(_mypGroupCard).join('')
-        : `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.groups.no_results', 'No results')}</div>`;
+        : `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.groups.no_results', 'No results')}</div>`;
     setMiniPaginator('mypGroupsPaginatorBar', buildMiniPaginator(page, totalPages, 'mypGroupsGoPage'));
 }
 
@@ -784,7 +784,7 @@ function filterMypOwnGroups() {
     const slice = all.slice(page * MINI_PG_SIZE, (page + 1) * MINI_PG_SIZE);
     grid.innerHTML = slice.length
         ? slice.map(_mypGroupCard).join('')
-        : `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.groups.no_results', 'No results')}</div>`;
+        : `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.groups.no_results', 'No results')}</div>`;
     setMiniPaginator('mypOwnGroupsPaginatorBar', buildMiniPaginator(page, totalPages, 'mypOwnGroupsGoPage'));
 }
 
@@ -968,7 +968,7 @@ function mypRequestHeatmap() {
     if (isStatus) {
         const sw = document.getElementById('mypHmStatusWrap');
         if (sw && !sw.querySelector('.fd-hm-grid'))
-            sw.innerHTML = `<div style="padding:16px 0;font-size:12px;color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div>`;
+            sw.innerHTML = `<div style="padding:16px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div>`;
     }
     sendToCS({ action: isStatus ? 'getUserStatusTime' : 'getUserOnlineHeatmap', userId: uid, days: _mypHeatmapDays });
 }

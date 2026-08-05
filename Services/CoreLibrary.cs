@@ -69,6 +69,7 @@ public class CoreLibrary
 
 #if WINDOWS
     public VRSubprocessHost? VrOverlay { get; set; }
+    public Action<string, string, string>? SpeakToast { get; set; }
     public Action<bool, bool>? OnTraySettingChanged { get; set; } // (enabled, autoHideNow)
     public Action<string, string, string, string>? OnTrayUserUpdate { get; set; } // name, status, statusDesc, imageUrl
     public Action? OnTrayLoggedOut { get; set; }

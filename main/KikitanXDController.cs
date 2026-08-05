@@ -43,7 +43,14 @@ public class KikitanXDController : IDisposable
                     blockWords = _settings.BlockedWords,
                     blockSentences = _settings.BlockedSentences,
                     model = _settings.Model,
-                    googleApiKey = _settings.GoogleApiKey
+                    googleApiKey = _settings.GoogleApiKey,
+                    ttsEnabled = _settings.TtsEnabled,
+                    ttsDevice = _settings.TtsDevice,
+                    ttsVoice = _settings.TtsVoice,
+                    ttsEngine = _settings.TtsEngine,
+                    ttsRate = _settings.TtsRate,
+                    ttsDevices = VRCNext.Services.Helpers.TtsService.GetOutputDevices(),
+                    ttsVoices = VRCNext.Services.Helpers.TtsService.GetSapiVoices()
                 });
                 break;
             }
@@ -103,6 +110,11 @@ public class KikitanXDController : IDisposable
                 if (msg["personality"] is JToken pers) _settings.Personality = pers.ToString();
                 if (msg["blockWords"] is JToken bw) _settings.BlockedWords = bw.ToObject<List<string>>() ?? new();
                 if (msg["blockSentences"] is JToken bs) _settings.BlockedSentences = bs.ToObject<List<string>>() ?? new();
+                if (msg["ttsEnabled"] is JToken tts) _settings.TtsEnabled = tts.Value<bool>();
+                if (msg["ttsDevice"] is JToken ttd) _settings.TtsDevice = ttd.Value<int>();
+                if (msg["ttsVoice"] is JToken ttv) _settings.TtsVoice = ttv.ToString();
+                if (msg["ttsEngine"] is JToken tte) _settings.TtsEngine = tte.ToString();
+                if (msg["ttsRate"] is JToken ttr) _settings.TtsRate = Math.Clamp(ttr.Value<int>(), -10, 10);
                 _settings.Save();
                 _core.SendToJS("toast", new { ok = true, msg = "Saved" });
                 _service?.UpdateSettings(_settings);
@@ -169,6 +181,7 @@ public class KikitanXDController : IDisposable
             Invoke(() => _core.SendToJS("kxdRecognized", new { text, isPartial }));
         _service.OnTranslated += text =>
             Invoke(() => _core.SendToJS("kxdTranslated", new { text }));
+        _service.OnOutput += SpeakTts;
         _service.OnChatboxSent += () => _core.OnChatboxPauseRequest?.Invoke(15_000);
         _service.Start(_settings.InputDeviceIndex, _settings);
         _core.SendToJS("kxdState", new { running = true });
@@ -178,6 +191,13 @@ public class KikitanXDController : IDisposable
     {
         _service?.Dispose();
         _service = null;
+    }
+
+    private void SpeakTts(string text)
+    {
+        if (!_settings.TtsEnabled || string.IsNullOrWhiteSpace(text)) return;
+        VRCNext.Services.Helpers.TtsService.Speak(
+            text, _settings.TtsEngine, _settings.TtsVoice, _settings.TtsDevice, 100, _settings.TtsRate);
     }
 
     private static void Invoke(Action action) => action();

@@ -58,7 +58,7 @@ function renderEventDetail(ev) {
     const groupTopHtml = groupName
         ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
                ${groupIconUrl ? `<img src="${groupIconUrl}" style="width:16px;height:16px;border-radius:3px;object-fit:cover;flex-shrink:0;">` : `<span class="msi" style="font-size:14px;color:var(--tx3);">group</span>`}
-               <span style="font-size:11px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(groupName)}</span>
+               <span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(groupName)}</span>
            </div>`
         : '';
 
@@ -66,7 +66,7 @@ function renderEventDetail(ev) {
         ? `<div class="fd-section-label" style="margin-top:12px;">${t('calendar.detail.organizer', 'Organizer')}</div>
            <div style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 0;" onclick="navOpenModal('group','${groupOpenId}','${jsq(groupName || '')}')">
                ${groupIconUrl ? `<img src="${groupIconUrl}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">` : ''}
-               <span style="font-size:13px;color:var(--tx1);">${esc(groupName)}</span>
+               <span style="font-size:calc(13px + var(--fs-off, 0px));color:var(--tx1);">${esc(groupName)}</span>
                <span class="msi" style="font-size:14px;color:var(--tx3);">chevron_right</span>
            </div>`
         : '';
@@ -90,9 +90,9 @@ function renderEventDetail(ev) {
         <div class="fd-content${bannerHtml ? ' fd-has-banner' : ''}">
             <div class="fd-header" style="flex-direction:column;align-items:flex-start;gap:6px;">
                 ${groupTopHtml}
-                <div class="fd-name" style="font-size:18px;">${esc(ev.title || t('calendar.untitled_event', 'Untitled Event'))}</div>
-                ${dateLine ? `<div style="font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:4px;"><span class="msi" style="font-size:14px;">calendar_today</span>${esc(dateLine)}</div>` : ''}
-                ${timeLine ? `<div style="font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:4px;"><span class="msi" style="font-size:14px;">schedule</span>${esc(timeLine)}</div>` : ''}
+                <div class="fd-name" style="font-size:calc(18px + var(--fs-off, 0px));">${esc(ev.title || t('calendar.untitled_event', 'Untitled Event'))}</div>
+                ${dateLine ? `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);display:flex;align-items:center;gap:4px;"><span class="msi" style="font-size:14px;">calendar_today</span>${esc(dateLine)}</div>` : ''}
+                ${timeLine ? `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);display:flex;align-items:center;gap:4px;"><span class="msi" style="font-size:14px;">schedule</span>${esc(timeLine)}</div>` : ''}
                 <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">${accessBadge}${tagsHtml}</div>
             </div>
             ${groupHtml}

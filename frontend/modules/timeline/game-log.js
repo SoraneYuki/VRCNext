@@ -91,7 +91,7 @@ function buildGlListHtml(entries) {
         rows += tlTableRow('gamelog', '', {
             dt:    `<td class="tl-list-dt">${esc(`${dateStr} | ${timeStr}`)}</td>`,
             type:  `<td class="tl-list-type"><span class="msi tl-list-icon" style="color:${meta.color}">${meta.icon}</span><span>${esc(meta.label)}</span></td>`,
-            event: `<td class="tl-list-detail">${esc(ev.message || '')}${ev.detail ? `<span class="tl-list-na" style="margin-left:6px;font-size:10px;">${esc(ev.detail.length > 80 ? ev.detail.slice(0, 80) + '…' : ev.detail)}</span>` : ''}</td>`,
+            event: `<td class="tl-list-detail">${esc(ev.message || '')}${ev.detail ? `<span class="tl-list-na" style="margin-left:6px;font-size:calc(10px + var(--fs-off, 0px));">${esc(ev.detail.length > 80 ? ev.detail.slice(0, 80) + '…' : ev.detail)}</span>` : ''}</td>`,
         });
     });
 

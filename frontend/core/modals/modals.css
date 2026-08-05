@@ -64,7 +64,7 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
     width: 44px;
     height: 44px;
     border-radius: 12px;
-    font-size: 18px;
+    font-size: calc(18px + var(--fs-off, 0px));
     margin-bottom: 16px;
 }
 
@@ -74,14 +74,14 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
 }
 
 .modal-title {
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx0);
     margin-bottom: 6px;
 }
 
 .modal-msg {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     color: var(--tx2);
     line-height: 1.5;
     margin-bottom: 20px;
@@ -90,7 +90,7 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
 
 .modal-fname {
     color: var(--tx1);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     background: var(--bg-input);
     padding: 4px 8px;
     border-radius: 4px;
@@ -108,7 +108,7 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
 /* === Shared Modal Title Bar === */
 
 .fd-modal-bar-title {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx0);
     white-space: nowrap;
@@ -191,7 +191,7 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
     flex: 1; min-width: 0; overflow: hidden;
 }
 .myp-crumb {
-    font-size: 13px; font-weight: 600;
+    font-size: calc(13px + var(--fs-off, 0px)); font-weight: 600;
     color: rgba(255,255,255,0.65);
     background: none; border: none; padding: 3px 2px;
     font-family: inherit; cursor: pointer;
@@ -201,7 +201,7 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
 }
 .myp-crumb:hover { color: #fff; }
 .myp-crumb.current { color: #fff; cursor: default; font-weight: 700; flex-shrink: 0; }
-.myp-crumb-sep { color: rgba(255,255,255,0.35); font-size: 12px; user-select: none; flex-shrink: 0; }
+.myp-crumb-sep { color: rgba(255,255,255,0.35); font-size: calc(12px + var(--fs-off, 0px)); user-select: none; flex-shrink: 0; }
 
 /* === JSON Viewer === */
 .json-viewer {
@@ -209,7 +209,7 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
     border-radius: 8px;
     padding: 14px 16px;
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     line-height: 1.7;
     color: var(--tx2);
     overflow: auto;

@@ -94,11 +94,11 @@ function openInstanceInfoModal() {
             ? `<div class="iim-cell iim-muted-cell">${esc(fmtTimer(u.joinedAt))}</div>`
             : '';
         const trust = getTrustRank(tags);
-        const rankCell = `<div class="iim-cell">${trust ? `<span class="vrcn-badge ${trust.cls}" style="font-size:10px;">${esc(trust.label)}</span>` : ''}</div>`;
+        const rankCell = `<div class="iim-cell">${trust ? `<span class="vrcn-badge ${trust.cls}" style="font-size:calc(10px + var(--fs-off, 0px));">${esc(trust.label)}</span>` : ''}</div>`;
         const dotCls = statusDotClass(status);
         const statusCell = `<div class="iim-cell"><div class="iim-status-cell">
             ${status ? `<span class="vrc-status-dot ${dotCls}" style="width:7px;height:7px;flex-shrink:0;"></span>` : ''}
-            <span style="font-size:11px;">${esc(statusDesc || statusLabel(status))}</span>
+            <span style="font-size:calc(11px + var(--fs-off, 0px));">${esc(statusDesc || statusLabel(status))}</span>
         </div></div>`;
         let platIcon = '';
         if      (platform === 'standalonewindows') platIcon = `<span class="msi" title="${t('instance.platform.pc', 'PC')}" style="font-size:16px;color:var(--tx2);">computer</span>`;
@@ -108,7 +108,7 @@ function openInstanceInfoModal() {
             .map(x => `<span class="vrcn-badge">${esc(LANG_MAP[x] || x.replace('language_', '').toUpperCase())}</span>`).join('');
         const langCell  = `<div class="iim-cell"><div class="iim-lang-cell">${langsHtml}</div></div>`;
         const nameCell  = `<div class="iim-cell"><span class="iim-name">${esc(displayName)}</span></div>`;
-        const ageCell   = `<div class="iim-cell">${ageVerified ? `<span class="vrcn-badge" style="font-size:10px;color:#3ba55d;border-color:#3ba55d30;background:#3ba55d18;">18+</span>` : ''}</div>`;
+        const ageCell   = `<div class="iim-cell">${ageVerified ? `<span class="vrcn-badge" style="font-size:calc(10px + var(--fs-off, 0px));color:#3ba55d;border-color:#3ba55d30;background:#3ba55d18;">18+</span>` : ''}</div>`;
         const fromCell  = `<div class="iim-cell iim-muted-cell">${u.joinedAt ? esc(fmtTime(new Date(u.joinedAt))) : '&mdash;'}</div>`;
         let barHtml = '';
         if (iTotal > 0 && u.joinedAt) {
@@ -155,7 +155,7 @@ function openInstanceInfoModal() {
 
     const authorHtml = worldAuthor
         ? `<div class="mi-world-author">${t('worlds.meta.by', 'by')} ${worldAuthorId
-            ? `<span onclick="closeInstanceInfoModal();navOpenModal('friend','${jsq(worldAuthorId)}','${jsq(worldAuthor)}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--bg-hover);font-size:11px;font-weight:600;color:var(--tx1);cursor:pointer;line-height:1.8;">${esc(worldAuthor)}</span>`
+            ? `<span onclick="closeInstanceInfoModal();navOpenModal('friend','${jsq(worldAuthorId)}','${jsq(worldAuthor)}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--bg-hover);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);cursor:pointer;line-height:1.8;">${esc(worldAuthor)}</span>`
             : esc(worldAuthor)}</div>`
         : '';
     const descHtml = worldDesc ? `<div class="mi-world-description">${esc(worldDesc)}</div>` : '';
@@ -183,7 +183,7 @@ function openInstanceInfoModal() {
 
     const playersHtml = enriched.length > 0
         ? `<div class="iim-list${hasTimers ? ' has-timers' : ''}">${listHead}<div class="iim-list-body">${bodyRows}</div></div>`
-        : `<div style="padding:14px;color:var(--tx3);font-size:12px;">${t('instance.no_player_data_available', 'No player data available.')}</div>`;
+        : `<div style="padding:14px;color:var(--tx3);font-size:calc(12px + var(--fs-off, 0px));">${t('instance.no_player_data_available', 'No player data available.')}</div>`;
 
     const rightHtml = `<div class="mi-right"><div class="mi-right-scroll" style="overflow:auto;"><div class="mi-instance-list"><div class="mi-instance-card">${cardHeader}${playersHtml}</div></div></div></div>`;
 

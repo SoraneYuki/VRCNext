@@ -59,7 +59,7 @@
 }
 
 .vrc-profile-status {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     display: flex;
     align-items: center;
@@ -90,7 +90,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx2);
     padding: 8px 8px 10px;
@@ -126,7 +126,7 @@
     border-radius: 6px;
     padding: 8px 10px;
     color: var(--tx1);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-family: inherit;
     outline: none;
     margin-bottom: 8px;

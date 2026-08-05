@@ -175,7 +175,8 @@ static class VRSubprocess
                     B(cmd, "gps", true), B(cmd, "status", true),
                     B(cmd, "statusDesc", true), B(cmd, "bio", true),
                     I(cmd, "durationSec", 8), I(cmd, "stackSize", 2),
-                    B(cmd, "friendReq", true), B(cmd, "invite", true), B(cmd, "groupInv", true));
+                    B(cmd, "friendReq", true), B(cmd, "invite", true), B(cmd, "groupInv", true),
+                    B(cmd, "joined", true));
                 break;
 
             case "vro_show":    vro.Show();    break;

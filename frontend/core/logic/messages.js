@@ -51,6 +51,12 @@ window.external.receiveMessage(rawMsg => {
                 if (typeof showToast === 'function') showToast(t('settings.accounts.switch_in_progress', 'Account switch in progress, action rejected') + (payload && payload.rejectedAction ? ': ' + payload.rejectedAction : ''));
                 break;
             case 'dateTimeFormat': applyDateTimeFormat(payload); break;
+            case 'systemFonts':
+                loadSystemFonts(payload?.fonts);
+                break;
+            case 'ttsDevices':
+                if (typeof vroPopulateTtsDevices === 'function') vroPopulateTtsDevices(payload || {});
+                break;
             case 'cursorFiles': _localHttpPort = payload.port || _localHttpPort; renderCursorThemeChips(payload.files); applyCursorTheme(currentCursorTheme); break;
             case 'customThemes': _localHttpPort = payload.port || _localHttpPort; _customThemes = payload.themes || []; applyCustomThemesFromSettings([..._activeCustomThemes]); break;
             case 'vrcLaunched': {
@@ -418,7 +424,7 @@ window.external.receiveMessage(rawMsg => {
                                 if ((card.getAttribute('onclick') || '').includes(payload.userId)) card.remove();
                             });
                             if (!bannedList.querySelector('.vrcn-user-item'))
-                                bannedList.innerHTML = `<div style="padding:20px;text-align:center;font-size:12px;color:var(--tx3);">${t('groups.empty.no_banned_members', 'No banned members')}</div>`;
+                                bannedList.innerHTML = `<div style="padding:20px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('groups.empty.no_banned_members', 'No banned members')}</div>`;
                         }
                     }
                 } else {
@@ -446,7 +452,7 @@ window.external.receiveMessage(rawMsg => {
                         ? `<div class="fd-bio">${esc(payload.description)}</div>`
                         : `<div class="myp-empty">${t('groups.empty.no_description', 'No description')}</div>`;
                     if (rv && payload.rules != null) rv.innerHTML = payload.rules
-                        ? `<div style="font-size:11px;color:var(--tx3);padding:8px;background:var(--bg-input);border-radius:8px;max-height:120px;overflow-y:auto;white-space:pre-wrap;">${esc(payload.rules)}</div>`
+                        ? `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:8px;background:var(--bg-input);border-radius:8px;max-height:120px;overflow-y:auto;white-space:pre-wrap;">${esc(payload.rules)}</div>`
                         : `<div class="myp-empty">${t('groups.empty.no_rules', 'No rules set')}</div>`;
                     if (lnv && payload.links != null) {
                         const links = (payload.links || []).filter(Boolean);
@@ -497,7 +503,7 @@ window.external.receiveMessage(rawMsg => {
                     const view = document.getElementById('fdVrcNoteView');
                     if (view) {
                         view.innerHTML = payload.note
-                            ? `<div style="font-size:12px;color:var(--tx2);line-height:1.5;">${esc(payload.note)}</div>`
+                            ? `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);line-height:1.5;">${esc(payload.note)}</div>`
                             : `<div class="myp-empty">${t('profiles.notes.no_note', 'No notes added yet')}</div>`;
                     }
                     fdCancelNote();
@@ -746,7 +752,7 @@ window.external.receiveMessage(rawMsg => {
                         // offset=0 means fresh load (reset), append otherwise
                         if (payload.offset === 0) {
                             list.innerHTML = payload.members.map(m => renderGroupMemberCard(m)).join('')
-                                || `<div style="padding:16px;text-align:center;font-size:12px;color:var(--tx3);">${t('groups.empty.no_members', 'No members')}</div>`;
+                                || `<div style="padding:16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('groups.empty.no_members', 'No members')}</div>`;
                             window._gdMembersOffset = payload.members.length;
                         } else {
                             payload.members.forEach(m => { list.insertAdjacentHTML('beforeend', renderGroupMemberCard(m)); });
@@ -758,7 +764,7 @@ window.external.receiveMessage(rawMsg => {
                         if (payload.hasMore) {
                             loadMoreDiv.innerHTML = `<button class="vrcn-button" onclick="loadMoreGroupMembers()">${t('groups.members.load_more', 'Load More Members')}</button>`;
                         } else {
-                            loadMoreDiv.innerHTML = `<div style="font-size:11px;color:var(--tx3);padding:6px;">${t('groups.members.all_loaded', 'All members loaded')}</div>`;
+                            loadMoreDiv.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:6px;">${t('groups.members.all_loaded', 'All members loaded')}</div>`;
                         }
                     }
                 }
@@ -769,7 +775,7 @@ window.external.receiveMessage(rawMsg => {
                     if (list) {
                         list.innerHTML = payload.members && payload.members.length > 0
                             ? payload.members.map(m => renderGroupMemberCard(m)).join('')
-                            : `<div style="padding:16px;text-align:center;font-size:12px;color:var(--tx3);">${t('groups.members.search_no_results', 'No members found for')} "<em>${esc(payload.query || '')}</em>"</div>`;
+                            : `<div style="padding:16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('groups.members.search_no_results', 'No members found for')} "<em>${esc(payload.query || '')}</em>"</div>`;
                     }
                     const loadMoreDiv = document.getElementById('gdMembersLoadMore');
                     if (loadMoreDiv) loadMoreDiv.innerHTML = '';

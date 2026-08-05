@@ -17,7 +17,7 @@
     align-items: center;
     gap: 10px;
     padding: 16px 20px 14px;
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx0);
     flex-shrink: 0;
@@ -32,7 +32,7 @@
 
 .gp-label {
     display: block;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx2);
     text-transform: uppercase;
@@ -46,7 +46,7 @@
     border: none;
     border-radius: 8px;
     color: var(--tx0);
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-family: inherit;
     padding: 9px 12px;
     outline: none;
@@ -59,7 +59,7 @@
     border: none;
     border-radius: 8px;
     color: var(--tx0);
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-family: inherit;
     padding: 9px 12px;
     outline: none;

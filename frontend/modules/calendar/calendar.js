@@ -27,7 +27,7 @@ function _renderCalUI() {
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px;">
             <div style="display:flex;align-items:center;gap:4px;">
                 <button class="vrcn-button" onclick="_calNavMonth(-1)"><span class="msi" style="font-size:18px;">chevron_left</span></button>
-                <span id="calMonthLabel" style="min-width:140px;text-align:center;font-size:14px;font-weight:700;color:var(--tx0);"></span>
+                <span id="calMonthLabel" style="min-width:140px;text-align:center;font-size:calc(14px + var(--fs-off, 0px));font-weight:700;color:var(--tx0);"></span>
                 <button class="vrcn-button" onclick="_calNavMonth(1)"><span class="msi" style="font-size:18px;">chevron_right</span></button>
                 <button class="vrcn-button sub-tab-btn cal-filter-btn${calendarFilter === 'all' ? ' active' : ''}" data-filter="all" onclick="setCalFilter('all')"><span class="msi" style="font-size:14px;">calendar_month</span> ${esc(t('calendar.filters.all', 'All'))}</button>
                 <button class="vrcn-button sub-tab-btn cal-filter-btn${calendarFilter === 'featured' ? ' active' : ''}" data-filter="featured" onclick="setCalFilter('featured')"><span class="msi" style="font-size:14px;">star</span> ${esc(t('calendar.filters.featured', 'Featured'))}</button>
@@ -285,8 +285,8 @@ function _buildDayPanel(events, key) {
             return `<div class="cal-evlist-card" data-pin-event-id="${esc(evt.id || '')}" data-pin-event-owner="${esc(evt.ownerId || '')}" data-pin-event-name="${esc(evt.title || '')}" data-pin-event-image="${esc(evt.imageUrl || '')}" onclick="openEventDetail('${esc(evt.ownerId || '')}','${esc(evt.id || '')}')">
                 ${imgHtml}
                 <div style="flex:1;min-width:0;">
-                    <div style="font-size:12px;font-weight:600;color:var(--tx0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${esc(evt.title || t('calendar.untitled_event', 'Untitled Event'))}</div>
-                    ${timeStr ? `<div style="font-size:10px;color:var(--tx2);margin-bottom:4px;">${esc(timeStr)}</div>` : ''}
+                    <div style="font-size:calc(12px + var(--fs-off, 0px));font-weight:600;color:var(--tx0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${esc(evt.title || t('calendar.untitled_event', 'Untitled Event'))}</div>
+                    ${timeStr ? `<div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:4px;">${esc(timeStr)}</div>` : ''}
                     <div style="display:flex;flex-wrap:wrap;gap:3px;">${tagHtml}</div>
                 </div>
             </div>`;
@@ -295,7 +295,7 @@ function _buildDayPanel(events, key) {
     el.innerHTML = `<div class="cal-day-panel">
         <div class="cal-day-panel-hdr">
             <span class="msi" style="font-size:16px;color:var(--accent-lt);">calendar_today</span>${esc(dayLabel)}
-            <button class="vrcn-button" onclick="_calClickDay('${key}')" style="margin-left:auto;padding:2px 8px;font-size:11px;" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:14px;">close</span></button>
+            <button class="vrcn-button" onclick="_calClickDay('${key}')" style="margin-left:auto;padding:2px 8px;font-size:calc(11px + var(--fs-off, 0px));" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:14px;">close</span></button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;">${cards}</div>
     </div>`;

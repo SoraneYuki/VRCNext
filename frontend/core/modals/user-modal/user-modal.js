@@ -221,7 +221,7 @@ function filterFdGroups() {
             </div>`;
         }).join('');
     } else {
-        grid.innerHTML = `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.groups.no_results', 'No results')}</div>`;
+        grid.innerHTML = `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.groups.no_results', 'No results')}</div>`;
     }
     setMiniPaginator('fdGroupsPaginatorBar', buildMiniPaginator(page, totalPages, 'fdGroupsGoPage'));
 }
@@ -253,7 +253,7 @@ function filterFdOwnGroups() {
             </div>`;
         }).join('');
     } else {
-        grid.innerHTML = `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.groups.no_results', 'No results')}</div>`;
+        grid.innerHTML = `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.groups.no_results', 'No results')}</div>`;
     }
     setMiniPaginator('fdOwnGroupsPaginatorBar', buildMiniPaginator(page, totalPages, 'fdOwnGroupsGoPage'));
 }
@@ -289,7 +289,7 @@ function filterFdMutualsGroups() {
             </div>`;
         }).join('');
     } else {
-        grid.innerHTML = `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.mutuals.groups_no_results', 'No results')}</div>`;
+        grid.innerHTML = `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.mutuals.groups_no_results', 'No results')}</div>`;
     }
     setMiniPaginator('fdMutualsGroupsPageBar', buildMiniPaginator(page, totalPages, 'fdMutualsGroupsGoPage'));
 }
@@ -321,7 +321,7 @@ function filterFdMutuals() {
             const opts = thumbUrl ? { attrs: `data-avatar-thumb="${esc(thumbUrl)}"` } : undefined;
             return renderProfileItem(mu, `navOpenModal('friend','${jsq(mu.id)}','${jsq(mu.displayName || '')}')`, opts);
         }).join('')
-        : `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.mutuals.no_results', 'No results')}</div>`;
+        : `<div style="padding:12px;grid-column:1/-1;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.mutuals.no_results', 'No results')}</div>`;
     setMiniPaginator('fdMutualsPageBar', buildMiniPaginator(page, totalPages, 'fdMutualsGoPage'));
 }
 
@@ -602,7 +602,7 @@ function renderFriendDetail(d) {
     const img = d.image || '';
     const _fdAvatarInner = img
         ? `<img class="fd-avatar" src="${img}" onerror="this.style.display='none'">`
-        : `<div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--tx3)">${esc((d.displayName || '?')[0])}</div>`;
+        : `<div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(20px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((d.displayName || '?')[0])}</div>`;
     const _fdFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(d.iconFrameUrl) : '';
     const imgTag = _fdFrame ? `<div class="icon-frame-wrap">${_fdAvatarInner}${_fdFrame}</div>` : _fdAvatarInner;
 
@@ -638,9 +638,9 @@ function renderFriendDetail(d) {
             }
         }
     } else if (d.location === 'private') {
-        _worldPartHtml = `<div style="font-size:12px;color:var(--tx3);text-align:center;padding:8px 0;">${t('profiles.meta.private_instance', 'Private Instance')}</div>`;
+        _worldPartHtml = `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);text-align:center;padding:8px 0;">${t('profiles.meta.private_instance', 'Private Instance')}</div>`;
     } else if (d.location === 'traveling') {
-        _worldPartHtml = `<div style="font-size:12px;color:var(--tx3);text-align:center;padding:8px 0;">${t('profiles.meta.traveling', 'Traveling...')}</div>`;
+        _worldPartHtml = `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);text-align:center;padding:8px 0;">${t('profiles.meta.traveling', 'Traveling...')}</div>`;
     }
 
     const bioHtml = d.bio ? `<div class="fd-bio">${esc(d.bio)}</div>` : '';
@@ -666,7 +666,7 @@ function renderFriendDetail(d) {
     const fdFirstMeet    = d.firstMeetDate || '';
 
     const _mr = (label, valueHtml) =>
-        `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;">
+        `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));">
             <span style="color:var(--tx3);">${label}</span>
             <span style="color:var(--tx1);text-align:right;">${valueHtml}</span>
         </div>`;
@@ -699,7 +699,7 @@ function renderFriendDetail(d) {
             <button class="myp-edit-btn" onclick="fdEditNote()"><span class="msi" style="font-size:14px;">edit</span></button>
         </div>
         <div id="fdVrcNoteView">
-            ${d.note ? `<div style="font-size:12px;color:var(--tx2);line-height:1.5;">${esc(d.note)}</div>`
+            ${d.note ? `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);line-height:1.5;">${esc(d.note)}</div>`
                      : `<div class="myp-empty">${t('profiles.notes.no_note', 'No notes added yet')}</div>`}
         </div>
         <div id="fdVrcNoteEdit" style="display:none;">
@@ -727,7 +727,7 @@ function renderFriendDetail(d) {
     const favPickerHtml = d.isFriend
         ? `<div id="fdFavPicker" style="display:none;margin-bottom:14px;">
             <div class="wd-section-label" style="margin-bottom:6px;">ADD TO FAVORITE GROUP</div>
-            <div class="ci-group-list" id="fdFavGroupList"><div style="font-size:11px;color:var(--tx3);padding:8px 0;">Loading groups...</div></div>
+            <div class="ci-group-list" id="fdFavGroupList"><div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:8px 0;">Loading groups...</div></div>
            </div>` : '';
 
     let badgesHtml = '<div class="fd-badges-row">';
@@ -810,7 +810,7 @@ function renderFriendDetail(d) {
         groupsContent += `<div id="fdGroupsPaginatorBar" class="mini-paginator"></div>`;
     }
 
-    if (!groupsContent) groupsContent = `<div style="padding:20px;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.badges.no_groups', 'No groups')}</div>`;
+    if (!groupsContent) groupsContent = `<div style="padding:20px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.badges.no_groups', 'No groups')}</div>`;
 
     const allMutuals = d.mutuals || [];
     const allMutualGroups = d.mutualGroups || [];
@@ -829,15 +829,15 @@ function renderFriendDetail(d) {
 
     let mutualsFriendsHtml = '';
     if (d.mutualsOptedOut) {
-        mutualsFriendsHtml = `<div style="padding:24px 16px;text-align:center;font-size:12px;color:var(--tx3);">
+        mutualsFriendsHtml = `<div style="padding:24px 16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">
             <span class="msi" style="font-size:28px;display:block;margin-bottom:8px;opacity:.5;">visibility_off</span>
             ${t('profiles.mutuals.opted_out', 'This user has disabled Shared Connections.')}
         </div>`;
     } else if (allMutuals.length === 0) {
-        mutualsFriendsHtml = `<div style="padding:24px 16px;text-align:center;font-size:12px;color:var(--tx3);">
+        mutualsFriendsHtml = `<div style="padding:24px 16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">
             <span class="msi" style="font-size:28px;display:block;margin-bottom:8px;opacity:.5;">group_off</span>
             ${t('profiles.mutuals.empty', 'No mutual friends found.')}<br>
-            <span style="font-size:10px;margin-top:6px;display:block;line-height:1.5;">
+            <span style="font-size:calc(10px + var(--fs-off, 0px));margin-top:6px;display:block;line-height:1.5;">
                 ${t('profiles.mutuals.empty_hint', 'Requires VRChat\'s "Shared Connections" feature to be active on both accounts.')}
             </span>
         </div>`;
@@ -856,7 +856,7 @@ function renderFriendDetail(d) {
 
     let mutualsGroupsHtml = '';
     if (allMutualGroups.length === 0) {
-        mutualsGroupsHtml = `<div style="padding:24px 16px;text-align:center;font-size:12px;color:var(--tx3);">
+        mutualsGroupsHtml = `<div style="padding:24px 16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">
             <span class="msi" style="font-size:28px;display:block;margin-bottom:8px;opacity:.5;">group_off</span>
             ${t('profiles.mutuals.no_groups', 'No mutual groups found.')}
         </div>`;
@@ -892,7 +892,7 @@ function renderFriendDetail(d) {
             <button class="fd-tab fd-insights-pill active" onclick="switchFdInsightsPill('worlds',this)">${t('profiles.insights.most_visited_worlds', 'Most Visited Worlds')}</button>
             <button class="fd-tab fd-insights-pill" onclick="switchFdInsightsPill('persons',this)">${t('profiles.insights.interacted_most', 'Interacted the most with')}</button>
         </div>
-        <div id="fdInsightsWorlds" style="max-height:280px;overflow-y:auto;"><div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('profiles.insights.loading', 'Loading...')}</div></div>
+        <div id="fdInsightsWorlds" style="max-height:280px;overflow-y:auto;"><div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.insights.loading', 'Loading...')}</div></div>
         <div id="fdInsightsPersons" style="max-height:280px;overflow-y:auto;display:none;"></div>`;
 
     const heatmapHtml = `<div class="fd-hm-header">
@@ -918,7 +918,7 @@ function renderFriendDetail(d) {
             </div>
         </div>
         <div class="fd-hm-stats" id="fdHmStats"></div>
-        <div class="fd-hm-grid-wrap" id="fdHmGridWrap"><div style="padding:16px 0;font-size:12px;color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div></div>
+        <div class="fd-hm-grid-wrap" id="fdHmGridWrap"><div style="padding:16px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div></div>
         <div class="fd-hm-status-wrap" id="fdHmStatusWrap" style="display:none;"></div>`;
 
     const bannerSrc = d.bannerUrl || d.profilePicOverride || d.currentAvatarImageUrl || d.image || '';
@@ -933,7 +933,7 @@ function renderFriendDetail(d) {
 
     const trustSideHtml = rank ? `<div class="fd-group-rep-label">${t('profiles.trust.title', 'Trust &amp; Safety')}</div>
         <span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>
-        <p style="margin:10px 0 0;font-size:12px;color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>` : '';
+        <p style="margin:10px 0 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>` : '';
 
     const _fdInstFriends = (_worldPartHtml && d.location && d.location !== 'private' && d.location !== 'traveling')
         ? (typeof getInstanceMembers === 'function' ? getInstanceMembers(d.location) : []).filter(m => m.id !== d.id)
@@ -976,7 +976,7 @@ function renderFriendDetail(d) {
             <span class="myp-section-title">${esc(_memoTitle)}</span>
             <button class="myp-edit-btn" onclick="fdEditMemo()"><span class="msi" style="font-size:14px;">edit</span></button>
         </div>
-        <div id="fdMemoView" style="font-size:13px;color:var(--tx1);line-height:1.5;word-break:break-word;">${_memoView}</div>
+        <div id="fdMemoView" style="font-size:calc(13px + var(--fs-off, 0px));color:var(--tx1);line-height:1.5;word-break:break-word;">${_memoView}</div>
         <div id="fdMemoEdit" style="display:none;">
             <input id="fdMemoInput" type="text" class="myp-textarea" maxlength="128" placeholder="${esc(t('profiles.memo.placeholder', 'Custom name or note for this user'))}">
             <div class="myp-edit-actions">
@@ -1375,7 +1375,7 @@ function drawMiniTimeline(events, el) {
     if (!el) return;
 
     if (!events || !events.length) {
-        el.innerHTML = `<div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('timeline.empty.initial', 'No events yet')}</div>`;
+        el.innerHTML = `<div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('timeline.empty.initial', 'No events yet')}</div>`;
         return;
     }
 
@@ -1387,10 +1387,10 @@ function drawMiniTimeline(events, el) {
         const ei     = ev.id.replace(/'/g, "\\'");
         const detail = typeof _tlListData === 'function' ? (_tlListData(ev).detail || '') : '';
         return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--brd);cursor:pointer;" onclick="navOpenModal('tlEvent','${ei}','${jsq(meta.label || '')}')">
-            <span style="font-size:11px;color:var(--tx3);white-space:nowrap;">${esc(dt)}</span>
+            <span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);white-space:nowrap;">${esc(dt)}</span>
             <span class="msi" style="font-size:14px;color:${color};flex-shrink:0;">${meta.icon}</span>
-            <span style="font-size:12px;">${esc(meta.label)}</span>
-            ${detail ? `<span style="font-size:11px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${detail}</span>` : ''}
+            <span style="font-size:calc(12px + var(--fs-off, 0px));">${esc(meta.label)}</span>
+            ${detail ? `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${detail}</span>` : ''}
         </div>`;
     }).join('');
 }
@@ -1401,7 +1401,7 @@ function renderFdUserActivity(userId, events) {
     if (!el) return;
 
     if (!events || !events.length) {
-        el.innerHTML = `<div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('profiles.user_activity.empty', 'No activity recorded yet')}</div>`;
+        el.innerHTML = `<div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.user_activity.empty', 'No activity recorded yet')}</div>`;
         return;
     }
 
@@ -1417,10 +1417,10 @@ function renderFdUserActivity(userId, events) {
         const ei     = jsq(ev.id);
         const detail = typeof _ftListDetail === 'function' ? (_ftListDetail(ev) || '') : '';
         return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--brd);cursor:pointer;" onclick="openFdActivityDetail('${ei}')">
-            <span style="font-size:11px;color:var(--tx3);white-space:nowrap;">${esc(dt)}</span>
+            <span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);white-space:nowrap;">${esc(dt)}</span>
             <span class="msi" style="font-size:14px;color:${color};flex-shrink:0;">${meta.icon}</span>
-            <span style="font-size:12px;">${esc(meta.label)}</span>
-            ${detail ? `<span style="font-size:11px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${detail}</span>` : ''}
+            <span style="font-size:calc(12px + var(--fs-off, 0px));">${esc(meta.label)}</span>
+            ${detail ? `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${detail}</span>` : ''}
         </div>`;
     }).join('');
 }
@@ -1453,7 +1453,7 @@ function renderFdInsightsWorlds(worlds, elId = 'fdInsightsWorlds') {
     const el = document.getElementById(elId);
     if (!el) return;
     if (!worlds.length) {
-        el.innerHTML = `<div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('profiles.insights.no_worlds', 'No world data yet')}</div>`;
+        el.innerHTML = `<div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.insights.no_worlds', 'No world data yet')}</div>`;
         return;
     }
     const maxVisits = worlds[0].visits || 1;
@@ -1480,7 +1480,7 @@ function renderFdInsightsPersons(persons, elId = 'fdInsightsPersons') {
     const el = document.getElementById(elId);
     if (!el) return;
     if (!persons.length) {
-        el.innerHTML = `<div style="padding:4px 0;font-size:12px;color:var(--tx3);">${t('profiles.insights.no_persons', 'No interaction data yet')}</div>`;
+        el.innerHTML = `<div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.insights.no_persons', 'No interaction data yet')}</div>`;
         return;
     }
     const friendIds = new Set((typeof vrcFriendsData !== 'undefined' ? vrcFriendsData : []).map(f => f.id));
@@ -1517,7 +1517,7 @@ function fdRequestHeatmap() {
     if (isStatus) {
         const sw = document.getElementById('fdHmStatusWrap');
         if (sw && !sw.querySelector('.fd-hm-grid'))
-            sw.innerHTML = `<div style="padding:16px 0;font-size:12px;color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div>`;
+            sw.innerHTML = `<div style="padding:16px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);text-align:center;">${t('profiles.insights.loading', 'Loading...')}</div>`;
     }
     sendToCS({ action: isStatus ? 'getUserStatusTime' : 'getUserOnlineHeatmap', userId: uid, days: _fdHeatmapDays });
 }
@@ -1626,7 +1626,7 @@ function drawOnlineHeatmap(payload, ids) {
     const wrap = document.getElementById(ids.grid);
     if (!wrap) return;
     if (totalMinutes <= 0) {
-        wrap.innerHTML = `<div style="padding:16px 0;font-size:12px;color:var(--tx3);text-align:center;">${t('profiles.heatmap.empty', 'No online activity recorded yet')}</div>`;
+        wrap.innerHTML = `<div style="padding:16px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);text-align:center;">${t('profiles.heatmap.empty', 'No online activity recorded yet')}</div>`;
         return;
     }
 
@@ -1711,7 +1711,7 @@ function drawStatusHeatmap(payload, ids, view) {
     }
 
     if (total <= 0) {
-        wrap.innerHTML = `<div style="padding:16px 0;font-size:12px;color:var(--tx3);text-align:center;">${t('profiles.heatmap.no_status', 'No status data yet')}</div>`;
+        wrap.innerHTML = `<div style="padding:16px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);text-align:center;">${t('profiles.heatmap.no_status', 'No status data yet')}</div>`;
         return;
     }
 
@@ -1779,7 +1779,7 @@ function confirmUnfriend(userId, displayName) {
         sendToCS({ action: 'vrcUnfriend', userId: userId });
     } else {
         btn.dataset.confirm = '1';
-        btn.innerHTML = `<span style="font-size:11px;font-weight:600;">${t('profiles.actions.confirm', 'Confirm?')}</span>`;
+        btn.innerHTML = `<span style="font-size:calc(11px + var(--fs-off, 0px));font-weight:600;">${t('profiles.actions.confirm', 'Confirm?')}</span>`;
         setTimeout(() => {
             if (btn && !btn.disabled) {
                 delete btn.dataset.confirm;
@@ -1808,7 +1808,7 @@ function renderFriendFavPicker(userId) {
     const list = document.getElementById('fdFavGroupList');
     if (!list) return;
     if (favFriendGroups.length === 0) {
-        list.innerHTML = `<div style="font-size:11px;color:var(--tx3);padding:8px 0;">Loading groups...</div>`;
+        list.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:8px 0;">Loading groups...</div>`;
         sendToCS({ action: 'vrcGetFriendFavGroups' });
         list.dataset.pendingUserId = userId;
         return;
@@ -1828,10 +1828,10 @@ function renderFriendFavPicker(userId) {
             onclick="addFriendToFavGroup('${uid}','${gn}','${oldFvrt}',this)" style="cursor:pointer;">
             <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                    <span style="font-size:12px;font-weight:600;color:var(--tx1);">${esc(g.displayName || g.name)}</span>
+                    <span style="font-size:calc(12px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);">${esc(g.displayName || g.name)}</span>
                     ${favGroupBadge(g)}
                 </div>
-                <div style="font-size:10px;color:var(--tx3);margin-top:1px;">${count}/${cap} friends</div>
+                <div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);margin-top:1px;">${count}/${cap} friends</div>
             </div>
             ${check}
         </div>`;
@@ -1893,7 +1893,7 @@ function handleFriendFavoriteResult(data) {
         if (data.error) showToast(false, localFavErrorText(data.error));
         const list = document.getElementById('fdFavGroupList');
         if (list) {
-            list.innerHTML = `<div style="font-size:11px;color:var(--err,#e55);padding:6px 0;">Failed to move. Try again.</div>`;
+            list.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--err,#e55);padding:6px 0;">Failed to move. Try again.</div>`;
             setTimeout(() => { if (document.getElementById('fdFavGroupList')) renderFriendFavPicker(data.userId); }, 1800);
         }
     }
@@ -1924,7 +1924,7 @@ function _buildModCardInner(userId) {
     const isAvatarHid   = Array.isArray(hiddenAvatarData) && hiddenAvatarData.some(x => x.targetUserId === userId);
     const isInteractOff = Array.isArray(interactOffData)  && interactOffData.some(x => x.targetUserId === userId);
     const _row = (label, active, activeKey, activeFb, inactiveKey, inactiveFb) =>
-        `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:11px;">
+        `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));">
             <span style="color:var(--tx3);">${label}</span>
             <span style="color:${active ? 'var(--err)' : 'var(--tx1)'};text-align:right;">${active ? t(activeKey, activeFb) : t(inactiveKey, inactiveFb)}</span>
         </div>`;

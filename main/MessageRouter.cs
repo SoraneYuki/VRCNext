@@ -502,6 +502,10 @@ public partial class AppShell
                     _relayCtrl.HandleMessage(action, msg);
                     break;
 
+                case "getTtsDevices":
+                case "ttsTest":
+                case "ttsPreview":
+                case "getSystemFonts":
                 case "getCursorFiles":
                 case "getCustomThemes":
                     _windowCtrl.HandleMessage(action, msg);

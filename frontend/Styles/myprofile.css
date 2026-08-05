@@ -57,7 +57,7 @@
     flex-shrink: 0;
     border: 3px solid var(--bg-card);
     background: var(--bg-input);
-    font-size: 22px;
+    font-size: calc(22px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
 }
@@ -67,7 +67,7 @@
     padding-bottom: 4px;
 }
 .myp-name {
-    font-size: 18px;
+    font-size: calc(18px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx0);
     margin-bottom: 5px;
@@ -76,7 +76,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx2);
     cursor: pointer;
     padding: 3px 7px;
@@ -97,7 +97,7 @@
     margin-bottom: 8px;
 }
 .myp-section-title {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .06em;
     color: var(--tx3);
@@ -108,13 +108,13 @@
     border-radius: 6px;
     color: var(--tx3);
     gap: 3px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-family: inherit;
     transition: background .15s, color .15s;
 }
 .myp-edit-btn:hover { background: var(--bg-hover); color: var(--tx0); }
 .myp-empty {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx3);
     font-style: italic;
 }
@@ -124,7 +124,7 @@
     border: 1.5px solid rgba(255,255,255,.1);
     border-radius: 8px;
     color: var(--tx0);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-family: inherit;
     padding: 10px 12px;
     resize: vertical;
@@ -136,7 +136,7 @@
 .myp-textarea:focus { border-color: var(--accent); }
 
 .myp-char-count {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     text-align: right;
     margin-top: 4px;
@@ -155,7 +155,7 @@
     margin-bottom: 8px;
 }
 .myp-link-num {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     width: 14px;
     flex-shrink: 0;
@@ -176,7 +176,7 @@
     color: var(--accent);
     border-radius: 20px;
     padding: 3px 8px 3px 10px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 600;
 }
 .myp-lang-remove { padding: 0; color: currentColor; opacity: .6; line-height: 1; transition: opacity .15s; }
@@ -192,7 +192,7 @@
     border: 1.5px solid rgba(255,255,255,.1);
     border-radius: 8px;
     color: var(--tx0);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-family: inherit;
     padding: 7px 10px;
     outline: none;

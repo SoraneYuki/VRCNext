@@ -28,12 +28,12 @@ function renderCiGroupPicker(groups) {
     const el = document.getElementById('ciGroupList');
     if (!el) return;
     if (groups === null) {
-        el.innerHTML = `<div style="font-size:11px;color:var(--tx3);padding:6px 0;">${t('worlds.groups.loading', 'Loading groups...')}</div>`;
+        el.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:6px 0;">${t('worlds.groups.loading', 'Loading groups...')}</div>`;
         return;
     }
     const validGroups = groups.filter(g => g.canCreateInstance !== false);
     if (!validGroups.length) {
-        el.innerHTML = `<div style="font-size:11px;color:var(--tx3);padding:6px 0;">${t('worlds.groups.none_create_rights', 'No groups with instance creation rights')}</div>`;
+        el.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:6px 0;">${t('worlds.groups.none_create_rights', 'No groups with instance creation rights')}</div>`;
         return;
     }
     el.innerHTML = validGroups.map(g => {
@@ -78,7 +78,7 @@ function openCreateInstanceModal() {
         ${renderModalBar(worldName, [modalCloseAction('closeCreateInstanceModal()')], { flush: true })}
         ${thumb ? `<div class="fd-banner"><img src="${esc(thumb)}" onerror="this.parentElement.style.display='none'"><div class="fd-banner-fade"></div></div>` : ''}
         <div class="fd-content${thumb ? ' fd-has-banner' : ''}" style="padding:20px 32px;">
-            <h2 style="margin:0 0 16px;color:var(--tx0);font-size:18px;">${esc(worldName)}</h2>
+            <h2 style="margin:0 0 16px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(worldName)}</h2>
 
             <div class="wd-section-label">${t('timeline.detail.instance_type', 'Instance Type')}</div>
             <div class="fd-tabs" id="ciTypePills" style="margin-bottom:0;">

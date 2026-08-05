@@ -49,7 +49,7 @@ body:has(.sidebar.collapsing) .dash-hero-content { padding-left:  calc(var(--sid
 body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsidebar-c) + 28px); }
 
 .dash-welcome {
-    font-size: 37px;
+    font-size: calc(37px + var(--fs-off, 0px));
     font-weight: 800;
     color: #fff;
     line-height: 1.2;
@@ -57,7 +57,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-sub {
-    font-size: 16px;
+    font-size: calc(16px + var(--fs-off, 0px));
     color: rgba(255,255,255,.7);
     margin-top: 8px;
     text-shadow: 0 1px 6px rgba(0,0,0,.3);
@@ -77,7 +77,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-hero-stat-val {
-    font-size: 17px;
+    font-size: calc(17px + var(--fs-off, 0px));
     font-weight: 700;
     color: #fff;
     font-family: var(--font-app);
@@ -87,7 +87,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-hero-stat-label {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: rgba(255,255,255,.5);
     text-transform: uppercase;
     letter-spacing: 1.2px;
@@ -106,7 +106,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 .dash-section-label {
     position: relative;
     z-index: 1;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     letter-spacing: 1.5px;
@@ -124,7 +124,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     background: none;
     border: none;
     color: var(--tx3);
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     cursor: pointer;
     padding: 0 2px;
     line-height: 1;
@@ -136,7 +136,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 @keyframes mi-spin { to { transform: rotate(360deg); } }
 
 .news-article-body {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     line-height: 1.6;
     color: var(--tx2);
     word-break: break-word;
@@ -165,7 +165,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     background: var(--bg-input);
     padding: 1px 5px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
 }
 .news-article-body pre {
     background: var(--bg-input);
@@ -207,7 +207,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     justify-content: center;
 }
 .news-video-thumb .news-video-play {
-    font-size: 56px;
+    font-size: calc(56px + var(--fs-off, 0px));
     color: #fff;
     background: rgba(0, 0, 0, .55);
     border-radius: 50%;
@@ -229,7 +229,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     border: none;
     padding: 0;
     cursor: pointer;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .5px;
     color: var(--accent);
@@ -260,7 +260,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .disc-tab {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: 1.5px;
     color: var(--tx3);
@@ -277,7 +277,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .disc-tab-sep {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     opacity: 0.4;
@@ -310,7 +310,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 .disc-page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .disc-page-label {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: 0.5px;
     color: var(--tx3);
@@ -364,7 +364,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-feed-name {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx0);
     display: flex;
@@ -373,12 +373,12 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-feed-status {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx2);
 }
 
 .dash-feed-loc {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 1px;
 }
@@ -416,7 +416,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: calc(14px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx2);
 }
@@ -442,7 +442,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-flocs-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx1);
     white-space: nowrap;
@@ -451,7 +451,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-flocs-status {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx2);
     white-space: nowrap;
     overflow: hidden;
@@ -462,7 +462,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     display: flex;
     align-items: center;
     gap: 3px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     white-space: nowrap;
     overflow: hidden;
@@ -517,8 +517,8 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     pointer-events: none;
 }
 .vrcn-dash-fav-shelf .vrcn-content-card .cc-content { padding: 8px 10px; }
-.vrcn-dash-fav-shelf .vrcn-content-card .cc-name { font-size: 11px; font-weight: 700; margin-bottom: 2px; }
-.vrcn-dash-fav-shelf .vrcn-content-card .cc-meta { font-size: 10px; }
+.vrcn-dash-fav-shelf .vrcn-content-card .cc-name { font-size: calc(11px + var(--fs-off, 0px)); font-weight: 700; margin-bottom: 2px; }
+.vrcn-dash-fav-shelf .vrcn-content-card .cc-meta { font-size: calc(10px + var(--fs-off, 0px)); }
 .vrcn-dash-fav-shelf .vrcn-content-card .cc-meta .msi { font-size: 12px; }
 
 /* === Recent Photos === */
@@ -559,7 +559,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     bottom: 0; left: 0; right: 0;
     padding: 14px 6px 5px;
     background: linear-gradient(transparent, rgba(0,0,0,.7));
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     color: rgba(255,255,255,.8);
     opacity: 0;
     transition: opacity .2s;
@@ -615,7 +615,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 .dash-group-info { flex: 1; min-width: 0; }
 .dash-group-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx0);
     white-space: nowrap;
@@ -623,7 +623,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     text-overflow: ellipsis;
 }
 .dash-group-meta {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 3px;
     display: flex;
@@ -637,7 +637,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 #dashMyRecentTl .tl-list-wrap,
 #dashFriendsRecentTl .tl-list-wrap { padding: 0; }
 #dashMyRecentTl .tl-list-table,
-#dashFriendsRecentTl .tl-list-table { font-size: 11px; }
+#dashFriendsRecentTl .tl-list-table { font-size: calc(11px + var(--fs-off, 0px)); }
 
 /* === Sections Container === */
 
@@ -680,14 +680,14 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     border-color: var(--accent);
 }
 .dash-qc-icon {
-    font-size: 22px;
+    font-size: calc(22px + var(--fs-off, 0px));
     color: var(--tx3);
     transition: color .15s;
     pointer-events: none;
 }
 .dash-qc-card.dqc-on .dash-qc-icon { color: var(--accent); }
 .dash-qc-label {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .4px;
@@ -716,13 +716,13 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     align-items: center;
     gap: 10px;
     padding: 16px 14px 14px;
-    font-size: 14px;
+    font-size: calc(14px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx0);
     flex-shrink: 0;
 }
 .dash-layout-hint {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     margin: 8px 14px 2px;
 }
@@ -744,7 +744,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 .ne-row.dli-hidden .ne-label { color: var(--tx3); opacity: .6; }
 
 .dash-drag-handle {
-    font-size: 18px;
+    font-size: calc(18px + var(--fs-off, 0px));
     color: var(--tx3);
     cursor: grab;
     flex-shrink: 0;
@@ -754,7 +754,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 .dash-layout-name {
     flex: 1;
     min-width: 0;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .8px;
     color: var(--tx1);
@@ -829,14 +829,14 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-news-title {
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx1);
     line-height: 1.3;
 }
 
 .dash-news-excerpt {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx2);
     line-height: 1.55;
     display: -webkit-box;
@@ -846,7 +846,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 }
 
 .dash-news-meta {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     letter-spacing: .4px;
     text-transform: uppercase;
@@ -915,7 +915,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 .dash-evt-feature.has-img .dash-evt-when,
 .dash-evt-feature.has-img .dash-evt-desc,
 .dash-evt-feature.has-img .dash-evt-group { color: #fff; }
-.dash-evt-feature .dash-evt-title { font-size: 16px; }
+.dash-evt-feature .dash-evt-title { font-size: calc(16px + var(--fs-off, 0px)); }
 
 .dash-evt-feature-body .vrcn-button {
     align-self: flex-start;
@@ -969,7 +969,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     gap: 4px;
 }
 .dash-evt-mini-title {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx1);
     line-height: 1.3;
@@ -982,14 +982,14 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     font-weight: 500;
 }
 .dash-evt-mini-when .msi { font-size: 12px; }
 
 .dash-evt-title {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx1);
     line-height: 1.3;
@@ -1003,7 +1003,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .4px;
     padding: 2px 6px;
@@ -1018,14 +1018,14 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     font-weight: 500;
 }
 .dash-evt-when .msi { font-size: 12px; }
 
 .dash-evt-desc {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx2);
     line-height: 1.5;
     display: -webkit-box;
@@ -1038,7 +1038,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 2px;
 }

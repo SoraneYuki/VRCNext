@@ -5,7 +5,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 5px 0;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx2);
 }
 .vro-setting-row label { color: var(--tx1); min-width: 60px; }
@@ -14,7 +14,7 @@
     border: 1px solid var(--bdr);
     border-radius: 6px;
     color: var(--tx1);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     padding: 4px 8px;
     cursor: pointer;
     outline: none;
@@ -29,7 +29,7 @@
     gap: 8px;
 }
 .vro-axis-lbl {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     width: 18px;
     text-align: center;
@@ -44,7 +44,7 @@
     height: 3px;
 }
 .vro-axis-val {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx2);
     min-width: 36px;
     text-align: right;
@@ -92,7 +92,7 @@
     border: 1.5px solid var(--bdr);
     border-radius: 8px;
     padding: 5px 12px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx2);
     white-space: nowrap;
     cursor: pointer;
@@ -183,12 +183,12 @@
     border: 1px solid var(--accent);
     border-radius: 5px;
     padding: 2px 7px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--accent-lt);
     font-weight: 600;
 }
 .vro-keybind-plus {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx3);
     font-weight: 700;
 }
@@ -197,4 +197,28 @@
     display: flex;
     gap: 8px;
     margin-top: 4px;
+}
+
+.vro-notif-toggles {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    flex-shrink: 0;
+}
+
+.vro-notif-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 0 4px;
+}
+
+.vro-notif-head .vro-notif-toggles span {
+    width: 34px;
+    text-align: center;
+    font-size: calc(10px + var(--fs-off, 0px));
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--tx3);
 }

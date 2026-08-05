@@ -139,7 +139,7 @@
 .win-dot-max   { background: #28C840; }
 
 .rsidebar-title {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx0);
     letter-spacing: 1px;
@@ -220,7 +220,7 @@
 .vrc-friend-avatar { width: 32px; height: 32px; border-radius: 8px; }
 
 .vrc-friend-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx1);
     display: flex;
@@ -229,7 +229,7 @@
 }
 
 .vrc-friend-loc {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
 }
 
@@ -239,7 +239,7 @@
     gap: 4px;
     min-width: 0;
 }
-.vrc-loc-wicon { font-size: 12px; flex-shrink: 0; }
+.vrc-loc-wicon { font-size: calc(12px + var(--fs-off, 0px)); flex-shrink: 0; }
 .vrc-loc-wname {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -250,7 +250,7 @@
     background: var(--bg-card);
     color: var(--tx2);
     padding: 3px 5px 2px;
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     line-height: 1;
 }
 
@@ -275,7 +275,7 @@
     pointer-events: none;
 }
 .rsidebar:not(.collapsed) .vrc-fs-icon {
-    font-size: 14px;
+    font-size: calc(14px + var(--fs-off, 0px));
     color: var(--tx3);
     /* nudge the glyph up ~1px to optically center it in the input */
     position: relative;
@@ -319,7 +319,7 @@
 .vrc-section-label {
     display: flex;
     align-items: center;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     letter-spacing: 1px;
@@ -354,13 +354,13 @@
 }
 
 .status-option-label {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx1);
 }
 
 .status-option-desc {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
 }
 
@@ -404,7 +404,7 @@
 }
 
 .vrc-gi-instance-name {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx1);
     overflow: hidden;
@@ -413,7 +413,7 @@
 }
 
 .vrc-gi-instance-count {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
 }
 
@@ -424,7 +424,7 @@
     border-radius: 8px;
     padding: 10px 14px;
     color: var(--tx1);
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-family: inherit;
     outline: none;
     margin-top: 12px;

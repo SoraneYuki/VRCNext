@@ -31,7 +31,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: calc(14px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx2);
 }
@@ -61,7 +61,7 @@
     gap: 2px;
 }
 .vrcn-user-item-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx1);
     white-space: nowrap;
@@ -76,7 +76,7 @@
     display: inline-flex;
 }
 .vrcn-user-item-status {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx2);
     white-space: nowrap;
     overflow: hidden;
@@ -87,7 +87,7 @@
     align-items: center;
     gap: 3px;
     min-height: 14px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     white-space: nowrap;
     overflow: hidden;
@@ -112,7 +112,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx2);
     white-space: nowrap;
 }
@@ -157,14 +157,14 @@
 }
 
 .fd-pi-sm-av-letter {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     background: var(--bg-card);
 }
 
 .fd-pi-sm-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx1);
     display: flex;
     align-items: center;
@@ -172,7 +172,7 @@
 }
 
 .fd-pi-sm-badge {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     color: var(--ok);
     margin-left: auto;
     flex-shrink: 0;
@@ -207,7 +207,7 @@
     gap: 4px;
 }
 .inst-item-owner {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx1);
     display: flex;
@@ -220,13 +220,13 @@
     flex-shrink: 0;
 }
 .inst-item-owner-tag {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx2);
     flex-shrink: 0;
 }
 .inst-item-owner-num {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 400;
     color: var(--tx3);
 }
@@ -236,7 +236,7 @@
     gap: 4px;
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 600;
     background: rgba(56, 132, 255, 0.12);
     color: var(--accent);
@@ -269,17 +269,17 @@
     flex-wrap: wrap;
 }
 .inst-item-region {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx2);
 }
 .inst-item-count {
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
 }
-.inst-item-join { height: 24px !important; padding: 0 10px !important; font-size: 11px !important; }
+.inst-item-join { height: 24px !important; padding: 0 10px !important; font-size: calc(11px + var(--fs-off, 0px)) !important; }
 
 /* Instance Card (Layout A — world modal, matches instance modal style) */
 .inst-item-card {
@@ -302,7 +302,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx2);
     flex-wrap: wrap;
 }
@@ -335,13 +335,13 @@
 .inst-av-sm:first-child { margin-left: 0; }
 
 .inst-av-sm-letter {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
 }
 
 .inst-av-extra {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     font-weight: 600;
     margin-left: 4px;
@@ -380,7 +380,7 @@
     min-width: 0;
 }
 .vrcn-mini-content-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx0);
     white-space: nowrap;
@@ -388,7 +388,7 @@
     text-overflow: ellipsis;
 }
 .vrcn-mini-content-meta {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 2px;
     white-space: nowrap;
@@ -405,5 +405,5 @@
     margin-top: 3px;
     flex-wrap: wrap;
 }
-.vrcn-mini-content-badges .vrcn-badge { font-size: 9px; }
+.vrcn-mini-content-badges .vrcn-badge { font-size: calc(9px + var(--fs-off, 0px)); }
 

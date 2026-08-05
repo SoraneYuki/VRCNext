@@ -20,7 +20,7 @@
 .af-icon-btn { padding: 4px 8px; }
 
 .af-inline-toggle { margin-left: 0 !important; }
-.af-toggle-label  { font-size: 12px; color: var(--tx2); }
+.af-toggle-label  { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); }
 
 .af-badge {
     display: inline-flex;
@@ -31,7 +31,7 @@
     background: var(--accent-soft, rgba(123, 138, 255, 0.12));
     border: 1px solid var(--accent);
     color: var(--accent);
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     white-space: nowrap;
 }
@@ -80,7 +80,7 @@
     flex: 1;
     overflow-y: auto;
     font-family: 'Google Sans Mono', monospace;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     line-height: 1.5;
     background: var(--bg-input);
     border-radius: 6px;
@@ -152,7 +152,7 @@
 }
 .af-blockly-host .blocklyTreeRow:hover    { background: var(--bg-input) !important; }
 .af-blockly-host .blocklyTreeSelected     { background: var(--bg-input) !important; }
-.af-blockly-host .blocklyTreeLabel        { color: var(--tx1) !important; font-family: var(--font-app) !important; font-weight: 600 !important; font-size: 12px !important; }
+.af-blockly-host .blocklyTreeLabel        { color: var(--tx1) !important; font-family: var(--font-app) !important; font-weight: 600 !important; font-size: calc(12px + var(--fs-off, 0px)) !important; }
 .af-blockly-host .blocklyFlyoutBackground { fill: var(--bg-card); fill-opacity: 0.96; }
 .af-blockly-host .blocklyText             { font-family: var(--font-app) !important; font-weight: 500 !important; }
 
@@ -238,7 +238,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     text-transform: uppercase;
     color: var(--tx2);
@@ -252,7 +252,7 @@
 }
 .af-cond-empty {
     padding: 8px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     font-style: italic;
     text-align: center;
@@ -271,7 +271,7 @@
     min-width: 0;
     height: 24px !important;
     padding: 2px 6px !important;
-    font-size: 11px !important;
+    font-size: calc(11px + var(--fs-off, 0px)) !important;
     line-height: 18px !important;
     background: transparent !important;
     border-color: transparent !important;

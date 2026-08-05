@@ -40,7 +40,7 @@
 }
 
 .ss-badge .ss-icon {
-    font-size: 18px;
+    font-size: calc(18px + var(--fs-off, 0px));
     line-height: 1;
 }
 
@@ -71,7 +71,7 @@
 }
 
 .ss-input-wrap .ss-icon {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     color: var(--accent);
     flex-shrink: 0;
     line-height: normal;
@@ -82,7 +82,7 @@
     border: none;
     outline: none;
     background: transparent;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 500;
     color: var(--tx0);
     font-family: inherit;
@@ -106,7 +106,7 @@
     padding: 0;
     line-height: normal;
     flex-shrink: 0;
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     transition: color .15s;
 }
 
@@ -152,7 +152,7 @@
 
 /* Section header */
 .ss-section-hdr {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .6px;
     text-transform: uppercase;
@@ -176,7 +176,7 @@
 
 .ss-search-in-label {
     color: var(--tx3);
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
@@ -291,7 +291,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
 }
@@ -301,7 +301,7 @@
 }
 
 .ss-item-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 500;
     color: var(--tx0);
     white-space: nowrap;
@@ -312,7 +312,7 @@
 }
 
 .ss-item-sub {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     white-space: nowrap;
     overflow: hidden;
@@ -322,14 +322,14 @@
 /* Empty / hint states */
 .ss-empty {
     padding: 18px 14px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx3);
     text-align: center;
 }
 
 .ss-hint {
     padding: 12px 14px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     text-align: center;
     display: flex;
@@ -391,7 +391,7 @@
     border: none;
     outline: none;
     background: transparent;
-    font-size: 14px;
+    font-size: calc(14px + var(--fs-off, 0px));
     font-weight: 500;
     color: var(--tx0);
     font-family: inherit;

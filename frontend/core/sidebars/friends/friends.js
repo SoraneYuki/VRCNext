@@ -41,7 +41,7 @@ function renderVrcProfile(u) {
     const img = u.image || '';
     const imgTag = img
         ? `<img class="vrc-avatar" src="${img}" onerror="this.style.display='none'">`
-        : `<div class="vrc-avatar" style="display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--tx3)">${esc((u.displayName || '?')[0])}</div>`;
+        : `<div class="vrc-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(13px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((u.displayName || '?')[0])}</div>`;
     const ownStatusCls = statusDotClass(u.status);
     const ownAvatarWrap = `<div class="vrc-profile-avatar-wrap">${imgTag}${(typeof iconFrameHtml === 'function') ? iconFrameHtml(u.iconFrameUrl) : ''}<span class="vrc-friend-status-badge vrc-status-dot ${ownStatusCls}"></span></div>`;
     a.innerHTML = `<div class="vrc-profile" data-status="${ownStatusCls}" onclick="openMyProfileModal()">${(typeof nameplateDecoHtml === 'function') ? nameplateDecoHtml(u.nameplateUrl) : ''}${ownAvatarWrap}<div class="vrc-profile-info"><div class="vrc-profile-name">${esc(u.displayName)}</div><div class="vrc-profile-status">${getStatusText(u.status, u.statusDescription)}</div></div><span class="msi" style="font-size:16px;color:var(--tx3);flex-shrink:0;">manage_accounts</span></div>`;
@@ -96,7 +96,7 @@ function renderVrcFriends(friends, counts) {
     if (searchBar) searchBar.style.display = vrcFriendsData.length > 0 ? '' : 'none';
 
     if (!friends || !friends.length) {
-        el.innerHTML = `<div class="vrc-section-label">${getFriendSectionLabel('onlineZero', 0)}</div><div style="padding:16px;text-align:center;font-size:12px;color:var(--tx3);">${t('dashboard.friends.empty', 'No friends online')}</div>`;
+        el.innerHTML = `<div class="vrc-section-label">${getFriendSectionLabel('onlineZero', 0)}</div><div style="padding:16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('dashboard.friends.empty', 'No friends online')}</div>`;
         return;
     }
 
@@ -112,7 +112,7 @@ function renderVrcFriends(friends, counts) {
         const img = f.image || '';
         const imgTag = img
             ? `<img class="vrc-friend-avatar" src="${img}" onerror="this.style.display='none'">`
-            : `<div class="vrc-friend-avatar" style="display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--tx3)">${esc((f.displayName || '?')[0])}</div>`;
+            : `<div class="vrc-friend-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(12px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName || '?')[0])}</div>`;
         const statusCls = presenceType === 'offline' ? 's-offline' : statusDotClass(f.status);
         const rank = getTrustRank(f.tags || []);
         const useRankColor = (typeof settings !== 'undefined') && settings.friendsSidebarRankColor === true;
@@ -284,12 +284,12 @@ function filterFriendsList() {
     const capped = all.slice(0, 100);
 
     if (!capped.length) {
-        el.innerHTML = `<div style="padding:16px;text-align:center;font-size:12px;color:var(--tx3);">${t('profiles.people.no_results', 'No results')}</div>`;
+        el.innerHTML = `<div style="padding:16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.people.no_results', 'No results')}</div>`;
         return;
     }
 
     const countLabel = all.length > 100
-        ? `<div style="padding:6px 12px 2px;font-size:11px;color:var(--tx3);">${tf('profiles.friends.search.showing', { total: all.length }, 'Showing 100 of {total} results')}</div>`
+        ? `<div style="padding:6px 12px 2px;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${tf('profiles.friends.search.showing', { total: all.length }, 'Showing 100 of {total} results')}</div>`
         : '';
 
     let h = countLabel + `<div class="friend-section-items">`;
@@ -297,7 +297,7 @@ function filterFriendsList() {
         const img = f.image || '';
         const imgTag = img
             ? `<img class="vrc-friend-avatar" src="${img}" onerror="this.style.display='none'">`
-            : `<div class="vrc-friend-avatar" style="display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--tx3)">${esc((f.displayName || '?')[0])}</div>`;
+            : `<div class="vrc-friend-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(12px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName || '?')[0])}</div>`;
         const presenceType = f.presence || 'offline';
         const statusCls = presenceType === 'offline' ? 's-offline' : statusDotClass(f.status);
         const rank = getTrustRank(f.tags || []);

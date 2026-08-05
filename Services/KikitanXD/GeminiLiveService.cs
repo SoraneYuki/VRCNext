@@ -17,6 +17,7 @@ public sealed class GeminiLiveService : IKikitanSpeechService
 {
     public event Action<string, bool>? OnRecognized;
     public event Action<string>? OnTranslated;
+    public event Action<string>? OnOutput;
     public event Action<string>? OnLog;
     public event Action? OnChatboxSent;
     public bool IsRunning => false;
@@ -32,6 +33,7 @@ public sealed class GeminiLiveService : IKikitanSpeechService
 {
     public event Action<string, bool>? OnRecognized;
     public event Action<string>? OnTranslated;
+    public event Action<string>? OnOutput;
     public event Action<string>? OnLog;
     public event Action? OnChatboxSent;
 
@@ -472,6 +474,7 @@ public sealed class GeminiLiveService : IKikitanSpeechService
 
         OnTranslated?.Invoke(send);
         if (_oscEnabled) { SendChatbox(send); OnChatboxSent?.Invoke(); }
+        OnOutput?.Invoke(send);
     }
 
     private static readonly Dictionary<string, string> TargetLangMap = new(StringComparer.OrdinalIgnoreCase)

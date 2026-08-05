@@ -16,7 +16,7 @@
 .tl-list-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     table-layout: fixed;
 }
 
@@ -27,7 +27,7 @@
 .tl-list-table thead th {
     padding: 6px 14px 8px;
     text-align: left;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .06em;
     text-transform: uppercase;
@@ -45,7 +45,7 @@
 .tl-list-table thead th.tl-th-sorted { color: var(--tx1); }
 
 .tl-th-grip {
-    font-size: 13px !important;
+    font-size: calc(13px + var(--fs-off, 0px)) !important;
     color: var(--tx3);
     opacity: 0;
     cursor: grab;
@@ -57,7 +57,7 @@
 .tl-th-grip:active { cursor: grabbing; }
 
 .tl-th-arrow {
-    font-size: 13px !important;
+    font-size: calc(13px + var(--fs-off, 0px)) !important;
     margin-left: 2px;
     opacity: 0;
     transition: opacity .12s;
@@ -85,7 +85,7 @@
 .tl-list-dt {
     white-space: nowrap;
     color: var(--tx2) !important;
-    font-size: 11px !important;
+    font-size: calc(11px + var(--fs-off, 0px)) !important;
     width: 155px;
 }
 
@@ -104,7 +104,7 @@
     min-width: 0;
 }
 .tl-list-icon {
-    font-size: 15px !important;
+    font-size: calc(15px + var(--fs-off, 0px)) !important;
     flex-shrink: 0;
 }
 
@@ -155,7 +155,7 @@
     background-color: var(--bg3);
     border: 2px solid var(--bg-card);
     margin-right: -5px;
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx2);
     flex-shrink: 0;
@@ -164,7 +164,7 @@
 .tl-list-av-more {
     background-color: var(--bg3);
     color: var(--tx2);
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     padding: 0 4px;
     border-radius: 10px;
@@ -177,7 +177,7 @@
     display: inline-block;
     padding: 2px 8px;
     border-radius: 10px;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .04em;
@@ -238,7 +238,7 @@
 }
 .tl-dp-nav:hover { background: var(--bg-btn-h); color: var(--tx1); }
 .tl-dp-month-label {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx1);
     letter-spacing: .02em;
@@ -250,7 +250,7 @@
 }
 .tl-dp-wd {
     text-align: center;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     font-weight: 700;
     padding: 4px 0;
@@ -267,7 +267,7 @@
     border: none;
     background: transparent;
     color: var(--tx2);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     cursor: pointer;
     font-family: inherit;
     transition: background .12s, color .12s;
@@ -349,7 +349,7 @@
 }
 
 .tl-date-label {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .08em;
     color: var(--tx3);
@@ -432,12 +432,12 @@
 }
 
 .tl-type-icon {
-    font-size: 14px;
+    font-size: calc(14px + var(--fs-off, 0px));
     flex-shrink: 0;
 }
 
 .tl-type-label {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .06em;
     color: var(--tx2);
@@ -453,12 +453,12 @@
 }
 
 .tl-time {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
 }
 
 .tl-date {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     color: var(--tx3);
     opacity: .7;
 }
@@ -502,19 +502,19 @@
 }
 
 .tl-av-letter {
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx2);
 }
 
 .tl-main-label {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx0);
 }
 
 .tl-sub-label {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx2);
 }
 
@@ -535,26 +535,26 @@
 }
 
 .tl-player-av-letter {
-    font-size: 8px;
+    font-size: calc(8px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx2);
 }
 
 .tl-player-more {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     padding: 0 2px;
 }
 
 .tl-player-label {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-left: 2px;
 }
 
 .tl-no-players {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     color: var(--tx3);
     font-style: italic;
     margin-top: 2px;
@@ -562,7 +562,7 @@
 
 .tl-type-chip {
     display: inline-block;
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .06em;
     text-transform: uppercase;
@@ -602,7 +602,7 @@
     max-height: 32px;
     box-sizing: border-box;
     border-radius: 7px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -614,7 +614,7 @@
     max-height: 32px;
     box-sizing: border-box;
     border-radius: 7px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     display: inline-flex;
     align-items: center;
 }
@@ -627,7 +627,7 @@
     padding: 4px 2px 12px;
 }
 .tl-ic-summary {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-bottom: 10px;
 }
@@ -640,7 +640,7 @@
     position: absolute;
     top: 0;
     transform: translateX(-50%);
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     color: var(--tx3);
     white-space: nowrap;
 }
@@ -705,7 +705,7 @@
 }
 .tl-ic-card-main { flex: 1; min-width: 0; }
 .tl-ic-card-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx0);
     white-space: nowrap;
@@ -713,9 +713,9 @@
     text-overflow: ellipsis;
 }
 .tl-ic-card-meta {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx2);
     margin-top: 3px;
 }
 .tl-ic-live { color: var(--ok); font-weight: 700; }
-.tl-ic-card-arrow { color: var(--tx3); font-size: 18px; }
+.tl-ic-card-arrow { color: var(--tx3); font-size: calc(18px + var(--fs-off, 0px)); }

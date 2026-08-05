@@ -1986,7 +1986,7 @@ window.afOnTabOpen = async function afOnTabOpen() {
     try { await afInitWorkspace(); }
     catch (e) {
         const hint = document.getElementById('afLoadingHint');
-        if (hint) hint.innerHTML = '<span class="msi" style="font-size:32px;color:var(--err);">error</span><div style="font-size:13px;color:var(--err);margin-top:8px;">Failed to load Blockly: ' + afEsc(e.message || e) + '</div>';
+        if (hint) hint.innerHTML = '<span class="msi" style="font-size:32px;color:var(--err);">error</span><div style="font-size:calc(13px + var(--fs-off, 0px));color:var(--err);margin-top:8px;">Failed to load Blockly: ' + afEsc(e.message || e) + '</div>';
         return;
     }
     afRenderConditionsPanel();

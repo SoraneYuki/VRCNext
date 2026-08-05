@@ -383,6 +383,76 @@ function vroToastUpdateLabel(id) {
     else label.textContent = parseFloat(input.value).toFixed(2);
 }
 
+let _vroTtsVoices = [];
+
+function vroTtsEngineChanged() {
+    const eng = document.getElementById('vroTtsEngine')?.value || 'sapi';
+    const voiceSel = document.getElementById('vroTtsVoice');
+    if (voiceSel) {
+        voiceSel.innerHTML = `<option value="">${esc(t('tts.loading', 'Loading voices...'))}</option>`;
+        if (voiceSel._vnRefresh) voiceSel._vnRefresh();
+    }
+    sendToCS({ action: 'getTtsDevices', target: 'vro', engine: eng });
+    vroToastAutoSave();
+}
+
+function vroTtsPreviewVoice(voice) {
+    if (!voice) return;
+    sendToCS({
+        action: 'ttsPreview',
+        text: t('tts.preview_line', 'This is how this voice sounds.'),
+        engine: document.getElementById('vroTtsEngine')?.value || 'sapi',
+        voice,
+        device: parseInt(document.getElementById('vroTtsDevice')?.value ?? '-1', 10),
+        rate: 0,
+    });
+}
+
+function vroTtsTest() {
+    sendToCS({
+        action: 'ttsTest',
+        text: t('vro.notifications.tts_test_line', 'VRCNext text to speech is working.'),
+        engine: document.getElementById('vroTtsEngine')?.value || 'sapi',
+        voice: document.getElementById('vroTtsVoice')?.value || '',
+        device: parseInt(document.getElementById('vroTtsDevice')?.value ?? '-1', 10),
+        rate: 0,
+        volume: 100,
+    });
+}
+
+function vroPopulateTtsDevices(p) {
+    if (p.target && p.target !== 'vro') {
+        if (typeof kxdTtsHandleDevices === 'function') kxdTtsHandleDevices(p);
+        return;
+    }
+    const devSel = document.getElementById('vroTtsDevice');
+    if (devSel && p.devices) {
+        let html = `<option value="-1">${esc(t('vro.notifications.tts_device_default', 'System default'))}</option>`;
+        p.devices.forEach((name, i) => { html += `<option value="${i}">${esc(name)}</option>`; });
+        devSel.innerHTML = html;
+        devSel.value = String(settings?.vroTtsDevice ?? -1);
+        if (devSel.selectedIndex < 0) devSel.value = '-1';
+        if (devSel._vnRefresh) devSel._vnRefresh();
+    }
+    const engSel = document.getElementById('vroTtsEngine');
+    if (engSel && !p.engine) {
+        engSel.value = settings?.vroTtsEngine || 'sapi';
+        if (engSel._vnRefresh) engSel._vnRefresh();
+    }
+    _vroTtsVoices = p.voices || [];
+    ttsBuildCascade('vro', _vroTtsVoices, settings?.vroTtsVoice || '',
+                    t('vro.notifications.tts_voice_default', 'Default voice'));
+}
+
+function vroTtsFilterChanged() {
+    const lang = document.getElementById('vroTtsLang');
+    const gen  = document.getElementById('vroTtsGender');
+    if (lang) lang.dataset.pick = lang.value;
+    if (gen)  gen.dataset.pick  = gen.value;
+    ttsBuildCascade('vro', _vroTtsVoices, '', t('vro.notifications.tts_voice_default', 'Default voice'));
+    vroToastAutoSave();
+}
+
 function vroToastAutoSave() {
     vroToastSendConfig();
     clearTimeout(_vroToastTimer);
@@ -408,6 +478,20 @@ function vroToastSendConfig() {
         friendReq:   !!document.getElementById('vroToastFriendReq')?.checked,
         invite:      !!document.getElementById('vroToastInvite')?.checked,
         groupInv:    !!document.getElementById('vroToastGroupInv')?.checked,
+        joined:      !!document.getElementById('vroToastJoined')?.checked,
+        ttsJoined:   !!document.getElementById('vroToastJoinedTts')?.checked,
+        ttsOnline: !!document.getElementById('vroToastOnlineTts')?.checked,
+        ttsOffline: !!document.getElementById('vroToastOfflineTts')?.checked,
+        ttsGps: !!document.getElementById('vroToastGpsTts')?.checked,
+        ttsStatus: !!document.getElementById('vroToastStatusTts')?.checked,
+        ttsStatusDesc: !!document.getElementById('vroToastStatusDescTts')?.checked,
+        ttsBio: !!document.getElementById('vroToastBioTts')?.checked,
+        ttsFriendReq: !!document.getElementById('vroToastFriendReqTts')?.checked,
+        ttsInvite: !!document.getElementById('vroToastInviteTts')?.checked,
+        ttsGroupInv: !!document.getElementById('vroToastGroupInvTts')?.checked,
+        ttsDevice:   parseInt(document.getElementById('vroTtsDevice')?.value ?? '-1', 10),
+        ttsVoice:    document.getElementById('vroTtsVoice')?.value || '',
+        ttsEngine:   document.getElementById('vroTtsEngine')?.value || 'sapi',
     });
 }
 
@@ -787,13 +871,26 @@ function vroLoadSettings(s) {
         vroToastBio: s.vroToastBio ?? true,
         vroToastFriendReq: s.vroToastFriendReq ?? true,
         vroToastInvite: s.vroToastInvite ?? true,
-        vroToastGroupInv: s.vroToastGroupInv ?? true
+        vroToastGroupInv: s.vroToastGroupInv ?? true,
+        vroToastJoined: s.vroToastJoined ?? true,
+        vroToastJoinedTts: s.vroToastTtsJoined ?? false,
+        vroToastOnlineTts: s.vroToastTtsOnline ?? false,
+        vroToastOfflineTts: s.vroToastTtsOffline ?? false,
+        vroToastGpsTts: s.vroToastTtsGps ?? false,
+        vroToastStatusTts: s.vroToastTtsStatus ?? false,
+        vroToastStatusDescTts: s.vroToastTtsStatusDesc ?? false,
+        vroToastBioTts: s.vroToastTtsBio ?? false,
+        vroToastFriendReqTts: s.vroToastTtsFriendReq ?? false,
+        vroToastInviteTts: s.vroToastTtsInvite ?? false,
+        vroToastGroupInvTts: s.vroToastTtsGroupInv ?? false
     };
 
     for (const [id, val] of Object.entries(toastValues)) {
         const el = document.getElementById(id);
         if (el) el.checked = val;
     }
+
+    sendToCS({ action: 'getTtsDevices', target: 'vro', engine: s.vroTtsEngine || 'sapi' });
 
     const toastSizeEl = document.getElementById('vroToastSize');
     if (toastSizeEl) {

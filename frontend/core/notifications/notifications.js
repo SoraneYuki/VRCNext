@@ -323,7 +323,7 @@ function renderCurrentInstance(data) {
 
     if (!data || data.empty) { el.innerHTML = ''; return; }
     if (data.error) {
-        el.innerHTML = `<div style="font-size:11px;color:var(--err);padding:6px 0;">${esc(data.error)}</div>`;
+        el.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--err);padding:6px 0;">${esc(data.error)}</div>`;
         return;
     }
     if (!data.worldName && !data.worldId) { el.innerHTML = ''; return; }
@@ -378,7 +378,7 @@ function renderCurrentInstance(data) {
         return `<div class="inst-user-row"${click}>${avatar}<div class="inst-user-info"><span class="inst-user-name">${esc(u.displayName)}</span>${statusLine ? `<div class="inst-user-status-row">${statusLine}</div>` : ''}</div></div>`;
     }
 
-    const lbl = `font-size:10px;font-weight:700;color:var(--tx3);padding:6px 10px 2px;letter-spacing:.05em;`;
+    const lbl = `font-size:calc(10px + var(--fs-off, 0px));font-weight:700;color:var(--tx3);padding:6px 10px 2px;letter-spacing:.05em;`;
     let usersHtml = '';
     if (users.length > 0) {
         usersHtml = `<div class="inst-users">`;
@@ -392,7 +392,7 @@ function renderCurrentInstance(data) {
         }
         usersHtml += `</div>`;
     } else {
-        usersHtml = `<div style="font-size:11px;color:var(--tx3);padding:8px 10px;">${t('instance.no_player_data', 'No player data')}</div>`;
+        usersHtml = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:8px 10px;">${t('instance.no_player_data', 'No player data')}</div>`;
     }
 
     const { cls: _instCls, label: _instLabel } = getInstanceBadge(data.instanceType);

@@ -29,7 +29,7 @@
     border-radius: 7px;
     background: var(--bg-btn);
     color: var(--tx2);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     box-sizing: border-box;
     gap: 4px;
 }
@@ -43,7 +43,7 @@
     border-radius: 7px; 
     background: var(--bg-hover);
     color: var(--tx1);
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     gap: 5px;
 }
 .vrcn-button-round:hover { background: var(--accent-lt); color: #fff; }
@@ -77,7 +77,7 @@
     background: transparent;
     color: var(--tx3);
     font-family: inherit;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     padding: 3px 10px;
     border-radius: 99px;
@@ -116,7 +116,7 @@
     max-height: 32px;
     box-sizing: border-box;
     border-radius: 7px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     display: inline-flex;
     align-items: center;
 }

@@ -387,6 +387,63 @@ public class WindowController
                 }
 #endif
                 break;
+            case "getTtsDevices":
+            {
+                var target = msg["target"]?.ToString() ?? "";
+                var engine = msg["engine"]?.ToString() ?? VRCNext.Services.Helpers.TtsService.EngineSapi;
+                _ = System.Threading.Tasks.Task.Run(async () =>
+                {
+                    var voices = await VRCNext.Services.Helpers.TtsService.GetVoicesAsync(engine);
+                    _core.SendToJS("ttsDevices", new
+                    {
+                        target,
+                        engine,
+                        devices = VRCNext.Services.Helpers.TtsService.GetOutputDevices(),
+                        voices,
+                    });
+                });
+                break;
+            }
+            case "ttsTest":
+            {
+                VRCNext.Services.Helpers.TtsService.Speak(
+                    msg["text"]?.ToString() ?? "VRCNext text to speech is working.",
+                    msg["engine"]?.ToString() ?? VRCNext.Services.Helpers.TtsService.EngineSapi,
+                    msg["voice"]?.ToString() ?? "",
+                    msg["device"]?.Value<int>() ?? -1,
+                    msg["volume"]?.Value<int>() ?? 100,
+                    msg["rate"]?.Value<int>() ?? 0);
+                break;
+            }
+            case "ttsPreview":
+            {
+                VRCNext.Services.Helpers.TtsService.Preview(
+                    msg["text"]?.ToString() ?? "Hello",
+                    msg["engine"]?.ToString() ?? VRCNext.Services.Helpers.TtsService.EngineSapi,
+                    msg["voice"]?.ToString() ?? "",
+                    msg["device"]?.Value<int>() ?? -1,
+                    msg["rate"]?.Value<int>() ?? 0);
+                break;
+            }
+            case "getSystemFonts":
+            {
+                var fonts = new List<string>();
+#if WINDOWS
+                try
+                {
+                    using var installed = new System.Drawing.Text.InstalledFontCollection();
+                    fonts = installed.Families
+                        .Select(f => f.Name)
+                        .Where(n => !string.IsNullOrWhiteSpace(n))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase)
+                        .ToList();
+                }
+                catch { }
+#endif
+                _core.SendToJS("systemFonts", new { fonts });
+                break;
+            }
             case "getCursorFiles":
             {
                 var cursorDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "cursor");

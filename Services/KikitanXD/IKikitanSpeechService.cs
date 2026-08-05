@@ -6,6 +6,7 @@ public interface IKikitanSpeechService : IDisposable
 {
     event Action<string, bool>? OnRecognized;
     event Action<string>? OnTranslated;
+    event Action<string>? OnOutput;
     event Action<string>? OnLog;
     event Action? OnChatboxSent;
 
