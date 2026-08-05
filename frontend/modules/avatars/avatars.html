@@ -1,10 +1,12 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                     <div id="avatarFilterBtns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                        <button class="vrcn-button sub-tab-btn active" id="avatarFilterOwn" onclick="setAvatarFilter('own')"><span class="msi" style="font-size:16px;">person</span> <span data-i18n="avatars.filters.own">My Avatars</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="avatarFilterFav" onclick="setAvatarFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="avatars.filters.favorites">Favorites</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="avatarFilterRecent" onclick="setAvatarFilter('recent')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="avatars.filters.recent">Recently Used</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="avatarFilterRose" onclick="setAvatarFilter('rose')"><span class="msi" style="font-size:16px;">local_florist</span> <span data-i18n="avatars.filters.rose">Rose Database</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="avatarFilterSearch" onclick="setAvatarFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
+                        <div class="vrcn-slide-navbar">
+                            <button class="vrcn-slide-tab sub-tab-btn active" id="avatarFilterOwn" onclick="setAvatarFilter('own')"><span class="msi" style="font-size:16px;">person</span> <span data-i18n="avatars.filters.own">My Avatars</span></button>
+                            <button class="vrcn-slide-tab sub-tab-btn" id="avatarFilterFav" onclick="setAvatarFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="avatars.filters.favorites">Favorites</span></button>
+                            <button class="vrcn-slide-tab sub-tab-btn" id="avatarFilterRecent" onclick="setAvatarFilter('recent')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="avatars.filters.recent">Recently Used</span></button>
+                            <button class="vrcn-slide-tab sub-tab-btn" id="avatarFilterRose" onclick="setAvatarFilter('rose')"><span class="msi" style="font-size:16px;">local_florist</span> <span data-i18n="avatars.filters.rose">Rose Database</span></button>
+                            <button class="vrcn-slide-tab sub-tab-btn" id="avatarFilterSearch" onclick="setAvatarFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
+                        </div>
                         <select id="avatarSearchDbDrop" class="vrcn-dropdown" onchange="setAvatarSearchDb(this.value)" style="min-width:120px;"><option value="avtrdb">Avtrdb</option><option value="avtricu">Avtr.icu</option><option value="vrcn">VRCN</option><option value="all">Search all</option></select>
                         <span id="avatarCount" style="font-size:12px;color:var(--tx3);"></span>
                     </div>
@@ -29,8 +31,10 @@
                     </div>
                     <div style="display:flex;gap:4px;align-items:center;">
                         <button id="avatarEditModeBtn" class="vrcn-button" style="display:none;" onclick="toggleAvEditMode()" title="Edit favorites" data-i18n-title="avatars.edit.button"><span class="msi" style="font-size:16px;">edit</span> <span data-i18n="avatars.edit.button">Edit</span></button>
-                        <button class="vrcn-button sub-tab-btn active" id="avatarGridLarge" onclick="setGridSize('avatars','default')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="avatarGridSmall" onclick="setGridSize('avatars','compact')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
+                        <div class="vrcn-slide-navbar">
+                            <button class="vrcn-slide-tab sub-tab-btn icon-only active" id="avatarGridLarge" onclick="setGridSize('avatars','default')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
+                            <button class="vrcn-slide-tab sub-tab-btn icon-only" id="avatarGridSmall" onclick="setGridSize('avatars','compact')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
+                        </div>
                     </div>
                 </div>
                 <!-- Own Avatars -->

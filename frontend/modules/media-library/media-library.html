@@ -10,8 +10,10 @@
                         <button class="vrcn-button" id="libResetFiltersBtn" onclick="resetLibFilters()" style="display:none;" data-i18n="library.filters.reset">Reset</button>
                         <button class="vrcn-button" id="libEditModeBtn" onclick="toggleLibEditMode()" title="Edit" data-i18n-title="library.edit.button"><span class="msi" style="font-size:16px;">edit</span> <span data-i18n="library.edit.button">Edit</span></button>
                         <button class="vrcn-button" onclick="forceRefreshLibrary()"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
-                        <button class="vrcn-button sub-tab-btn active" id="libViewGrid" onclick="setLibViewMode('grid')" title="Grid View"><span class="msi" style="font-size:16px;">grid_view</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="libViewFolder" onclick="setLibViewMode('folder')" title="Folder View"><span class="msi" style="font-size:16px;">folder</span></button>
+                        <div class="vrcn-slide-navbar">
+                            <button class="vrcn-slide-tab sub-tab-btn icon-only active" id="libViewGrid" onclick="setLibViewMode('grid')" title="Grid View"><span class="msi" style="font-size:16px;">grid_view</span></button>
+                            <button class="vrcn-slide-tab sub-tab-btn icon-only" id="libViewFolder" onclick="setLibViewMode('folder')" title="Folder View"><span class="msi" style="font-size:16px;">folder</span></button>
+                        </div>
                     </div>
                 </div>
                 <div id="libFolderBreadcrumb" style="display:none;align-items:center;gap:8px;margin-bottom:8px;flex-shrink:0;">

@@ -1,9 +1,9 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                    <div id="worldFilterBtns" style="display:flex;gap:8px;align-items:center;">
-                        <button class="vrcn-button sub-tab-btn active" id="worldFilterFav" onclick="setWorldFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="worlds.filters.favorites">Favorites</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="worldFilterRecent" onclick="setWorldFilter('recent')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="worlds.filters.recent">Recently Visited</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="worldFilterMine" onclick="setWorldFilter('mine')"><span class="msi" style="font-size:16px;">cloud_upload</span> <span data-i18n="worlds.filters.mine">My Worlds</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="worldFilterSearch" onclick="setWorldFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="worlds.filters.search">Search</span></button>
+                    <div id="worldFilterBtns" class="vrcn-slide-navbar">
+                        <button class="vrcn-slide-tab sub-tab-btn active" id="worldFilterFav" onclick="setWorldFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="worlds.filters.favorites">Favorites</span></button>
+                        <button class="vrcn-slide-tab sub-tab-btn" id="worldFilterRecent" onclick="setWorldFilter('recent')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="worlds.filters.recent">Recently Visited</span></button>
+                        <button class="vrcn-slide-tab sub-tab-btn" id="worldFilterMine" onclick="setWorldFilter('mine')"><span class="msi" style="font-size:16px;">cloud_upload</span> <span data-i18n="worlds.filters.mine">My Worlds</span></button>
+                        <button class="vrcn-slide-tab sub-tab-btn" id="worldFilterSearch" onclick="setWorldFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="worlds.filters.search">Search</span></button>
                     </div>
                     <div id="worldEditBar" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;flex:1;">
                         <span id="worldEditCount" style="font-size:12px;color:var(--tx2);white-space:nowrap;">0 selected</span>
@@ -26,8 +26,10 @@
                     </div>
                     <div style="display:flex;gap:4px;align-items:center;">
                         <button id="worldEditModeBtn" class="vrcn-button" onclick="toggleWorldEditMode()" title="Edit favorites" data-i18n-title="worlds.edit.button"><span class="msi" style="font-size:16px;">edit</span> <span data-i18n="worlds.edit.button">Edit</span></button>
-                        <button class="vrcn-button sub-tab-btn active" id="worldGridLarge" onclick="setGridSize('worlds','default')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="worldGridSmall" onclick="setGridSize('worlds','compact')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
+                        <div class="vrcn-slide-navbar">
+                            <button class="vrcn-slide-tab sub-tab-btn icon-only active" id="worldGridLarge" onclick="setGridSize('worlds','default')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
+                            <button class="vrcn-slide-tab sub-tab-btn icon-only" id="worldGridSmall" onclick="setGridSize('worlds','compact')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
+                        </div>
                     </div>
                 </div>
                 <div id="worldMineArea" style="display:none;">

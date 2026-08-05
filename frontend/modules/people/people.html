@@ -1,11 +1,11 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                    <div id="peopleFilterBtns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                        <button class="vrcn-button sub-tab-btn active" id="peopleFilterFav" onclick="setPeopleFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="profiles.people.filters.favorites">Favorites</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="peopleFilterAll" onclick="setPeopleFilter('all')"><span class="msi" style="font-size:16px;">group</span> <span data-i18n="profiles.people.filters.all">All Friends</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="peopleFilterRecent" onclick="setPeopleFilter('recentseen')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="profiles.people.filters.recent_seen">Recently Seen</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="peopleFilterSearch" onclick="setPeopleFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="peopleFilterBlocked" onclick="setPeopleFilter('blocked')"><span class="msi" style="font-size:16px;">block</span> <span data-i18n="profiles.people.filters.blocked">Blocked</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="peopleFilterMuted" onclick="setPeopleFilter('muted')"><span class="msi" style="font-size:16px;">volume_off</span> <span data-i18n="profiles.people.filters.muted">Muted</span></button>
+                    <div id="peopleFilterBtns" class="vrcn-slide-navbar">
+                        <button class="vrcn-slide-tab sub-tab-btn active" id="peopleFilterFav" onclick="setPeopleFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="profiles.people.filters.favorites">Favorites</span></button>
+                        <button class="vrcn-slide-tab sub-tab-btn" id="peopleFilterAll" onclick="setPeopleFilter('all')"><span class="msi" style="font-size:16px;">group</span> <span data-i18n="profiles.people.filters.all">All Friends</span></button>
+                        <button class="vrcn-slide-tab sub-tab-btn" id="peopleFilterRecent" onclick="setPeopleFilter('recentseen')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="profiles.people.filters.recent_seen">Recently Seen</span></button>
+                        <button class="vrcn-slide-tab sub-tab-btn" id="peopleFilterSearch" onclick="setPeopleFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
+                        <button class="vrcn-slide-tab sub-tab-btn" id="peopleFilterBlocked" onclick="setPeopleFilter('blocked')"><span class="msi" style="font-size:16px;">block</span> <span data-i18n="profiles.people.filters.blocked">Blocked</span></button>
+                        <button class="vrcn-slide-tab sub-tab-btn" id="peopleFilterMuted" onclick="setPeopleFilter('muted')"><span class="msi" style="font-size:16px;">volume_off</span> <span data-i18n="profiles.people.filters.muted">Muted</span></button>
                     </div>
                     <div id="favFriendEditBar" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;flex:1;margin-left:8px;">
                         <span id="favFriendEditCount" style="font-size:12px;color:var(--tx2);white-space:nowrap;">0 selected</span>
@@ -75,11 +75,11 @@
                 </div>
                 <div id="peopleAllArea" style="display:none;">
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-                        <div style="display:flex;gap:4px;flex-shrink:0;">
-                            <button class="vrcn-button sub-tab-btn active" id="allFriendFilterAll" onclick="setAllFriendsStatusFilter('all')" data-i18n="profiles.people.status_filter.all">All</button>
-                            <button class="vrcn-button sub-tab-btn" id="allFriendFilterIngame" onclick="setAllFriendsStatusFilter('ingame')" data-i18n="profiles.people.status_filter.ingame">In-Game</button>
-                            <button class="vrcn-button sub-tab-btn" id="allFriendFilterActive" onclick="setAllFriendsStatusFilter('active')" data-i18n="profiles.people.status_filter.active">Active</button>
-                            <button class="vrcn-button sub-tab-btn" id="allFriendFilterOffline" onclick="setAllFriendsStatusFilter('offline')" data-i18n="profiles.people.status_filter.offline">Offline</button>
+                        <div class="vrcn-slide-navbar">
+                            <button class="vrcn-slide-tab sub-tab-btn active" id="allFriendFilterAll" onclick="setAllFriendsStatusFilter('all')" data-i18n="profiles.people.status_filter.all">All</button>
+                            <button class="vrcn-slide-tab sub-tab-btn" id="allFriendFilterIngame" onclick="setAllFriendsStatusFilter('ingame')" data-i18n="profiles.people.status_filter.ingame">In-Game</button>
+                            <button class="vrcn-slide-tab sub-tab-btn" id="allFriendFilterActive" onclick="setAllFriendsStatusFilter('active')" data-i18n="profiles.people.status_filter.active">Active</button>
+                            <button class="vrcn-slide-tab sub-tab-btn" id="allFriendFilterOffline" onclick="setAllFriendsStatusFilter('offline')" data-i18n="profiles.people.status_filter.offline">Offline</button>
                         </div>
                         <div class="search-bar-row" style="margin-bottom:0;flex:1;min-width:140px;"><span class="msi search-ico">search</span><input type="text" id="allFriendSearchInput" class="vrcn-input" placeholder="Filter friends..." data-i18n-placeholder="profiles.people.all_search_placeholder" oninput="_dbFilterAllFriends()"></div>
                     </div>

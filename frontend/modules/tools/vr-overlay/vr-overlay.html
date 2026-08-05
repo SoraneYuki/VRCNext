@@ -56,10 +56,12 @@
 
                         <!-- Mode selector: Keybind | Double Tap -->
                         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-                            <button class="vrcn-button sub-tab-btn active" id="vroModeCombo" onclick="vroSetMode(0)">
+                            <div class="vrcn-slide-navbar">
+                                <button class="vrcn-slide-tab sub-tab-btn active" id="vroModeCombo" onclick="vroSetMode(0)">
                                 <span class="msi" style="font-size:13px;">back_hand</span> <span data-i18n="vro.keybind.mode.keybind">Keybind</span>
-                            </button>
-                            <button class="vrcn-button sub-tab-btn" id="vroModeDoubleTap" onclick="vroSetMode(1)">
+                                </button>
+                                <button class="vrcn-slide-tab sub-tab-btn" id="vroModeDoubleTap" onclick="vroSetMode(1)">
+                            </div>
                                 <span class="msi" style="font-size:13px;">touch_app</span> <span data-i18n="vro.keybind.mode.double_tap">Double Tap</span>
                             </button>
                         </div>
@@ -131,9 +133,11 @@
                         <div id="vroManualEditPanel" style="margin-top:8px;display:none;">
                             <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
                                 <span style="font-size:11px;color:var(--tx3);" data-i18n="vro.keybind.hand.label">Hand:</span>
-                                <button class="vrcn-button sub-tab-btn active" id="vroHandAny"   onclick="vroSetManualHand(0)" data-i18n="vro.keybind.hand.any">Any</button>
-                                <button class="vrcn-button sub-tab-btn"        id="vroHandLeft"  onclick="vroSetManualHand(1)" data-i18n="vro.keybind.hand.left">Left</button>
-                                <button class="vrcn-button sub-tab-btn"        id="vroHandRight" onclick="vroSetManualHand(2)" data-i18n="vro.keybind.hand.right">Right</button>
+                                <div class="vrcn-slide-navbar">
+                                    <button class="vrcn-slide-tab sub-tab-btn active" id="vroHandAny"   onclick="vroSetManualHand(0)" data-i18n="vro.keybind.hand.any">Any</button>
+                                    <button class="vrcn-slide-tab sub-tab-btn"        id="vroHandLeft"  onclick="vroSetManualHand(1)" data-i18n="vro.keybind.hand.left">Left</button>
+                                    <button class="vrcn-slide-tab sub-tab-btn"        id="vroHandRight" onclick="vroSetManualHand(2)" data-i18n="vro.keybind.hand.right">Right</button>
+                                </div>
                             </div>
                             <div style="font-size:11px;color:var(--tx3);margin-bottom:6px;" data-i18n="vro.keybind.hint.manual_edit">Click the buttons above to select your keybind (up to 4).</div>
                             <div style="display:flex;gap:8px;">
@@ -214,7 +218,7 @@
                             <input type="range" id="vroControlRadius" min="3" max="28" step="1" value="16" class="vro-slider" oninput="vroUpdateControlRadius()">
                             <span class="vro-axis-val" id="vroControlRadiusVal">16 cm</span>
                         </div>
-                        <button class="vrcn-button sub-tab-btn" style="margin-top:12px;width:100%;" onclick="vroResetTransform()">
+                        <button class="vrcn-button" style="margin-top:12px;width:100%;justify-content:center;" onclick="vroResetTransform()">
                             <span class="msi" style="font-size:14px;">restart_alt</span> <span data-i18n="vro.transform.reset">Reset Transform</span>
                         </button>
                     </div>
@@ -356,9 +360,11 @@
                         <!-- Hand selector -->
                         <div style="display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap;">
                             <span style="font-size:11px;color:var(--tx3);" data-i18n="vro.keybind.hand.label">Hand:</span>
-                            <button class="vrcn-button sub-tab-btn active" id="vroScaleHandAny"   onclick="vroScaleSetHand(0)" data-i18n="vro.keybind.hand.any">Any</button>
-                            <button class="vrcn-button sub-tab-btn"        id="vroScaleHandLeft"  onclick="vroScaleSetHand(1)" data-i18n="vro.keybind.hand.left">Left</button>
-                            <button class="vrcn-button sub-tab-btn"        id="vroScaleHandRight" onclick="vroScaleSetHand(2)" data-i18n="vro.keybind.hand.right">Right</button>
+                            <div class="vrcn-slide-navbar">
+                                <button class="vrcn-slide-tab sub-tab-btn active" id="vroScaleHandAny"   onclick="vroScaleSetHand(0)" data-i18n="vro.keybind.hand.any">Any</button>
+                                <button class="vrcn-slide-tab sub-tab-btn"        id="vroScaleHandLeft"  onclick="vroScaleSetHand(1)" data-i18n="vro.keybind.hand.left">Left</button>
+                                <button class="vrcn-slide-tab sub-tab-btn"        id="vroScaleHandRight" onclick="vroScaleSetHand(2)" data-i18n="vro.keybind.hand.right">Right</button>
+                            </div>
                         </div>
 
                         <!-- Record / Cancel buttons -->
