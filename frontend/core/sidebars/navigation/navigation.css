@@ -222,7 +222,7 @@
     content: '';
     width: 18px;
     height: 1px;
-    background: var(--bg-hover);
+    background: rgba(255, 255, 255, 0.07);
 }
 
 .nav-btn .nav-badge {
@@ -527,7 +527,7 @@
 
 .play-icon {
     font-size: 19px !important;
-    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     flex-shrink: 0;
     line-height: 1;
 }

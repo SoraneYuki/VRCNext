@@ -61,12 +61,26 @@ function navUpdateBadges() {
 function navUpdatePlaySubtitle() {
     const el = document.getElementById('playSubText');
     if (!el) return;
+    if (typeof window !== 'undefined' && window.vrcGameRunning) {
+        el.textContent = (typeof t === 'function')
+            ? t('sidebar.currently_playing', 'Currently playing…')
+            : 'Currently playing…';
+        return;
+    }
     const name = (typeof currentVrcUser !== 'undefined' && currentVrcUser)
         ? (currentVrcUser.displayName || '') : '';
     el.textContent = name
         ? (typeof tf === 'function' ? tf('sidebar.play_with', { name }, `Start with ${name}`) : `Start with ${name}`)
         : '';
 }
+
+(function () {
+    function pollGameRunning() {
+        if (typeof sendToCS === 'function') sendToCS({ action: 'afGetGameRunning' });
+    }
+    pollGameRunning();
+    setInterval(pollGameRunning, 5000);
+}());
 
 function navSetLinux(v) {
     _navIsLinux = v;

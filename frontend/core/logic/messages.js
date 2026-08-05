@@ -1175,7 +1175,11 @@ case 'vrcNews':
             break;
         case 'afFlows':
         case 'afSaveResult':
+            if (typeof window.__afHandleMessage === 'function') window.__afHandleMessage(type, payload);
+            break;
         case 'afGameRunning':
+            window.vrcGameRunning = !!(payload && payload.running);
+            if (typeof navUpdatePlaySubtitle === 'function') navUpdatePlaySubtitle();
             if (typeof window.__afHandleMessage === 'function') window.__afHandleMessage(type, payload);
             break;
 
