@@ -46,6 +46,7 @@ renderWebhookCards([{}, {}, {}, {}]);
 renderLanguageChips();
 renderThemeChips();
 renderFontGrid();
+applyDesignStyle(currentDesignStyle);
 renderDashboard();
 tryLoadLogo();
 tryInitNotifySound();

@@ -196,6 +196,42 @@
                         </div>
                     </div>
 
+                    <!-- ADDITIONAL OPTIONS -->
+                    <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">tune</span> <span data-i18n="settings.design.additional.title">Additional Options</span></div>
+                        <div class="set-desc" style="margin:12px 0 14px;" data-i18n="settings.design.additional.desc">Choose whether the taskbar and both sidebars are separated from the content by a thin line.</div>
+                        <div class="profile-style-picker" id="designStylePicker">
+                            <button type="button" class="profile-style-option" data-style="flat" onclick="setDesignStyle('flat')">
+                                <div class="design-skeleton">
+                                    <div class="dsk-bar"></div>
+                                    <div class="dsk-row">
+                                        <div class="dsk-side"></div>
+                                        <div class="dsk-main">
+                                            <div class="dsk-block"></div>
+                                            <div class="dsk-block short"></div>
+                                        </div>
+                                        <div class="dsk-side dsk-side-r"></div>
+                                    </div>
+                                </div>
+                                <div class="profile-style-label" data-i18n="settings.design.additional.flat">Flat Design</div>
+                            </button>
+                            <button type="button" class="profile-style-option" data-style="line" onclick="setDesignStyle('line')">
+                                <div class="design-skeleton lines">
+                                    <div class="dsk-bar"></div>
+                                    <div class="dsk-row">
+                                        <div class="dsk-side"></div>
+                                        <div class="dsk-main">
+                                            <div class="dsk-block"></div>
+                                            <div class="dsk-block short"></div>
+                                        </div>
+                                        <div class="dsk-side dsk-side-r"></div>
+                                    </div>
+                                </div>
+                                <div class="profile-style-label" data-i18n="settings.design.additional.line">Line Design</div>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- FONTS -->
                     <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">text_fields</span> <span data-i18n="settings.design.fonts.title">Fonts</span></div>

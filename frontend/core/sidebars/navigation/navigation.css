@@ -56,6 +56,23 @@ body.sidebar-resizing .content {
     z-index: -1;
 }
 
+.sidebar-sep {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--sep-color);
+    pointer-events: none;
+    z-index: 55;
+}
+.sidebar .sidebar-sep { right: 0; }
+.rsidebar .sidebar-sep { left: 0; }
+
+body:has(#tab0.active) .sidebar.collapsed .sidebar-sep,
+body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
+    opacity: var(--sidebar-glass-t, 1);
+}
+
 .sidebar.collapsed,
 .sidebar.collapsing {
     width: var(--sidebar-c);

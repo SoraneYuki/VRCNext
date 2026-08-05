@@ -1,27 +1,6 @@
-**2026.37.0**
+**2026.37.1**
 
-# VRCN v2 Design Overhaul
+**Design Changes**
 
-**Fonts**
-
-* Added more fonts to VRCN. You can find them under **Settings > Appearance > Fonts**.
-
-**Design Overhaul**
-
-* Added badge counters to the left sidebar. These show the number of favorite and owned worlds, joined groups, owned and favorited avatars, and events taking place during the current month.
-* Added adjustable separators to the left sidebar, allowing you to better organize your sidebar.
-* Replaced the favorite star icon with a heart icon.
-* Updated the **Play VRChat** button in both the expanded and collapsed sidebar to match the new VRCN v2 design.
-* Redesigned the "Appearance" Tab and added some theme previews.
-
-**Improvements**
-
-* Icons and symbols are now stored locally instead of being downloaded from Google's CDN.
-* Fonts are now stored locally instead of being downloaded from Google's CDN.
-* Fonts, icons, and symbols are now loaded dynamically, slightly reducing memory usage. This is only a minor performance improvement.
-* Left and Right sidebars can now be resized. To reset the size you can navigate to the Taskbar > View > Reset Sidebars.
-* Added "Lock Sidebars" to Taskbar > View to disable sidebar resizing.
-
-**Bug Fixes**
-
-* Fixed an issue where profile frames were still displayed when the setting was disabled.
+* Added an option to show separation lines between the taskbar and the left and right side panels.
+* You can find this option under **Settings > Appearance**.

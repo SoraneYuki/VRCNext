@@ -1872,6 +1872,7 @@ public class AuthController
             _core.Settings.PlayBtnTheme = data["playBtnTheme"]?.ToString() ?? "";
             _core.Settings.CursorTheme = data["cursorTheme"]?.ToString() ?? "";
             _core.Settings.AppFont = data["appFont"]?.ToString() ?? "google-sans";
+            _core.Settings.DesignStyle = data["designStyle"]?.ToString() ?? "line";
             var activeCustomThemes = data["activeCustomThemes"]?.ToObject<List<string>>();
             if (activeCustomThemes != null) _core.Settings.ActiveCustomThemes = activeCustomThemes;
             _core.Settings.GuiZoom = Math.Clamp(data["guiZoom"]?.Value<int>() ?? 100, 50, 200);

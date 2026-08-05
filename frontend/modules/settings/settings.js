@@ -140,6 +140,7 @@ function saveSettings() {
             autoColorAccuracy: autoColorAccuracy,
             cursorTheme: currentCursorTheme,
             appFont: currentAppFont,
+            designStyle: currentDesignStyle,
             activeCustomThemes: [..._activeCustomThemes],
             guiZoom: Math.round(_guiZoom * 100),
             dashBgPath: dashBgPath,
@@ -515,6 +516,7 @@ function loadSettingsToUI(s) {
     _localHttpPort = s.LocalHttpPort || s.localHttpPort || 0;
     currentCursorTheme = s.CursorTheme || s.cursorTheme || '';
     applyAppFont(s.AppFont || s.appFont || APP_FONT_DEFAULT);
+    applyDesignStyle(s.DesignStyle || s.designStyle || 'line');
     renderFontGrid();
     sendToCS({ action: 'getCursorFiles' });
     _activeCustomThemes = new Set(s.ActiveCustomThemes || s.activeCustomThemes || []);

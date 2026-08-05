@@ -31,6 +31,7 @@
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0);
+    border-bottom: 1px solid color-mix(in srgb, var(--sep-color) calc(var(--sidebar-glass-t, 1) * 100%), transparent);
     pointer-events: none;
     z-index: 0;
     transition: background .15s ease;
@@ -40,6 +41,11 @@
 body:has(#sidebarEl:not(.collapsed)) #taskbar::after,
 body:has(#rsidebar:not(.collapsed)) #taskbar::after {
     opacity: 1;
+}
+
+body:has(#sidebarEl:not(.collapsed)) #taskbar::before,
+body:has(#rsidebar:not(.collapsed)) #taskbar::before {
+    border-bottom-color: var(--sep-color);
 }
 
 /* ── Left: brand + menus ── */

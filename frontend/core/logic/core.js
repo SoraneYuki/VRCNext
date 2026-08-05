@@ -107,6 +107,7 @@ function profileEffectHtml(url) {
 let currentPlayBtnTheme = '';
 let currentCursorTheme = '';
 let currentAppFont = 'google-sans';
+let currentDesignStyle = 'line';
 let _localHttpPort = 0;
 let _cursorFiles = [];
 let _customThemes = [];
@@ -983,12 +984,10 @@ let _fontPreviewObserver = null;
 function renderFontGrid() {
     const grid = document.getElementById('fontGrid');
     if (!grid) return;
-    const defaultTag = t('settings.design.fonts.default', 'Default');
     grid.innerHTML = APP_FONTS.map(f =>
         `<button class="font-option${currentAppFont === f.key ? ' active' : ''}" data-font="${f.key}" data-stack="${esc(f.stack)}" onclick="selectAppFont('${f.key}')">`
         + `<span class="font-preview">Aa</span>`
         + `<span class="font-option-name">${esc(f.label)}</span>`
-        + (f.key === APP_FONT_DEFAULT ? `<span class="font-option-tag">${esc(defaultTag)}</span>` : '')
         + `</button>`
     ).join('');
 
@@ -1004,6 +1003,19 @@ function renderFontGrid() {
         }, { rootMargin: '80px' });
     }
     grid.querySelectorAll('.font-option').forEach(el => _fontPreviewObserver.observe(el));
+}
+
+function applyDesignStyle(style) {
+    currentDesignStyle = style === 'flat' ? 'flat' : 'line';
+    document.documentElement.classList.toggle('design-flat', currentDesignStyle === 'flat');
+    document.querySelectorAll('#designStylePicker .profile-style-option').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('data-style') === currentDesignStyle);
+    });
+}
+
+function setDesignStyle(style) {
+    applyDesignStyle(style);
+    autoSave();
 }
 
 function selectAppFont(key) {

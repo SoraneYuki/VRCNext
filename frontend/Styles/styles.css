@@ -27,6 +27,7 @@
     --status-ask:    #FFA726;
     --status-busy:   #EF5350;
     --status-offline:#747F8D;
+    --sep-color: var(--brd);
     --font-app: 'Google Sans', sans-serif;
     --font-mono: 'Google Sans Mono', monospace;
 }
@@ -149,6 +150,8 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+html.design-flat { --sep-color: transparent; }
 
 html { overflow: hidden; }
 body {
