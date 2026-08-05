@@ -2402,6 +2402,8 @@
   "tb.app.view": "Вид",
   "tb.app.view.toggle_left": "Переключить левую панель",
   "tb.app.view.toggle_right": "Переключить правую панель",
+  "tb.app.view.lock_sidebars": "Заблокировать боковые панели",
+  "tb.app.view.reset_sidebars": "Сбросить боковые панели",
   "tb.app.view.scale": "Масштаб",
   "tb.app.restart": "Перезапустить",
   "tb.app.exit": "Выйти",

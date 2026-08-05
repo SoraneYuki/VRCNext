@@ -184,6 +184,17 @@ body:has(#rsidebar:not(.collapsed)) #taskbar::after {
 
 .tb-dd-item:hover .msi { color: var(--tx2); }
 
+.tb-dd-check {
+    margin-left: auto;
+    font-size: 16px !important;
+    width: 16px !important;
+    color: var(--accent) !important;
+    opacity: 0;
+    transition: opacity .12s;
+}
+.tb-dd-item.checked .tb-dd-check { opacity: 1; }
+.tb-dd-item:hover .tb-dd-check { color: var(--accent) !important; }
+
 .tb-dd-sep {
     height: 1px;
     background: var(--brd);

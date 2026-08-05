@@ -2498,6 +2498,8 @@
   "tb.app.view": "View",
   "tb.app.view.toggle_left": "Toggle Left Sidebar",
   "tb.app.view.toggle_right": "Toggle Right Sidebar",
+  "tb.app.view.lock_sidebars": "Lock Sidebars",
+  "tb.app.view.reset_sidebars": "Reset Sidebars",
   "tb.app.view.scale": "Scale",
   "tb.app.restart": "Restart",
   "tb.app.exit": "Exit",

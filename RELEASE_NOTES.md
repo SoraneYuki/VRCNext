@@ -20,6 +20,8 @@
 * Icons and symbols are now stored locally instead of being downloaded from Google's CDN.
 * Fonts are now stored locally instead of being downloaded from Google's CDN.
 * Fonts, icons, and symbols are now loaded dynamically, slightly reducing memory usage. This is only a minor performance improvement.
+* Left and Right sidebars can now be resized. To reset the size you can navigate to the Taskbar > View > Reset Sidebars.
+* Added "Lock Sidebars" to Taskbar > View to disable sidebar resizing.
 
 **Bug Fixes**
 

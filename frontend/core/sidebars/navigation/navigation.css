@@ -14,6 +14,39 @@
     padding-top: 54px;
 }
 
+.sidebar-resizer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    z-index: 60;
+    cursor: col-resize;
+    background: transparent;
+    transition: background .15s;
+}
+.sidebar .sidebar-resizer { right: 0; }
+.rsidebar .sidebar-resizer { left: 0; }
+.sidebar-resizer:hover,
+body.sidebar-resizing .sidebar-resizer {
+    background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.sidebar.collapsed .sidebar-resizer,
+.sidebar.collapsing .sidebar-resizer,
+.rsidebar.collapsed .sidebar-resizer,
+body.sidebars-locked .sidebar-resizer {
+    display: none;
+}
+
+body.sidebar-resizing {
+    cursor: col-resize;
+    user-select: none;
+}
+body.sidebar-resizing .sidebar,
+body.sidebar-resizing .rsidebar,
+body.sidebar-resizing .content {
+    transition: none !important;
+}
+
 .sidebar::before {
     content: '';
     position: absolute;

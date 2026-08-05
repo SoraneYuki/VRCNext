@@ -2450,6 +2450,8 @@
   "tb.app.view": "Vista",
   "tb.app.view.toggle_left": "Barra lateral izquierda",
   "tb.app.view.toggle_right": "Barra lateral derecha",
+  "tb.app.view.lock_sidebars": "Bloquear barras laterales",
+  "tb.app.view.reset_sidebars": "Restablecer barras laterales",
   "tb.app.view.scale": "Escala",
   "tb.app.restart": "Reiniciar",
   "tb.app.exit": "Salir",

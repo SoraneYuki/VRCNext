@@ -2450,6 +2450,8 @@
   "tb.app.view": "Affichage",
   "tb.app.view.toggle_left": "Panneau latéral gauche",
   "tb.app.view.toggle_right": "Panneau latéral droit",
+  "tb.app.view.lock_sidebars": "Verrouiller les barres latérales",
+  "tb.app.view.reset_sidebars": "Réinitialiser les barres latérales",
   "tb.app.view.scale": "Échelle",
   "tb.app.restart": "Redémarrer",
   "tb.app.exit": "Quitter",
