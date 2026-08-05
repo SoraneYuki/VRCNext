@@ -416,7 +416,8 @@
 }
 
 .clock-time {
-    font-family: 'Google Sans Mono', monospace;
+    font-family: var(--font-app);
+    font-variant-numeric: tabular-nums;
     font-size: 18px;
     font-weight: 600;
     color: var(--tx0);
@@ -425,7 +426,8 @@
 }
 
 .clock-date {
-    font-family: 'Google Sans Mono', monospace;
+    font-family: var(--font-app);
+    font-variant-numeric: tabular-nums;
     font-size: 9px;
     font-weight: 500;
     color: var(--tx3);
