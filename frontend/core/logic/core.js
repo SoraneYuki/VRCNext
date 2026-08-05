@@ -2151,6 +2151,17 @@ function initVnSelect(el) {
                 syncLabel();
                 close();
             });
+
+            if (el.dataset.vnHover) {
+                item.addEventListener('mouseenter', () => {
+                    clearTimeout(_vnHoverTimer);
+                    const fn = window[el.dataset.vnHover];
+                    if (typeof fn !== 'function') return;
+                    _vnHoverTimer = setTimeout(() => fn(opt.value), 450);
+                });
+                item.addEventListener('mouseleave', () => clearTimeout(_vnHoverTimer));
+            }
+
             panel.appendChild(item);
         }
     }
@@ -2204,6 +2215,8 @@ function initVnSelect(el) {
     buildPanel();
     syncLabel();
 }
+
+let _vnHoverTimer = null;
 
 function initAllVnSelects() {
     document.querySelectorAll('select:not([data-no-vn])').forEach(initVnSelect);

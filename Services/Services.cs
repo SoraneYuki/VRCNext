@@ -506,6 +506,18 @@ public class AppSettings
     public bool       VroToastFriendReq    { get; set; } = true;
     public bool       VroToastInvite       { get; set; } = true;
     public bool       VroToastGroupInv     { get; set; } = true;
+    public bool       VroToastTtsOnline     { get; set; } = false;
+    public bool       VroToastTtsOffline    { get; set; } = false;
+    public bool       VroToastTtsGps        { get; set; } = false;
+    public bool       VroToastTtsStatus     { get; set; } = false;
+    public bool       VroToastTtsStatusDesc { get; set; } = false;
+    public bool       VroToastTtsBio        { get; set; } = false;
+    public bool       VroToastTtsFriendReq  { get; set; } = false;
+    public bool       VroToastTtsInvite     { get; set; } = false;
+    public bool       VroToastTtsGroupInv   { get; set; } = false;
+    public int        VroTtsDevice         { get; set; } = -1;
+    public string     VroTtsVoice          { get; set; } = "";
+    public string     VroTtsEngine         { get; set; } = "sapi";
 
     // VR Dashboard — Water Reminder
     public bool VroWaterEnabled { get; set; } = false;

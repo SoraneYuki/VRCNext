@@ -54,6 +54,9 @@ window.external.receiveMessage(rawMsg => {
             case 'systemFonts':
                 loadSystemFonts(payload?.fonts);
                 break;
+            case 'ttsDevices':
+                if (typeof vroPopulateTtsDevices === 'function') vroPopulateTtsDevices(payload || {});
+                break;
             case 'cursorFiles': _localHttpPort = payload.port || _localHttpPort; renderCursorThemeChips(payload.files); applyCursorTheme(currentCursorTheme); break;
             case 'customThemes': _localHttpPort = payload.port || _localHttpPort; _customThemes = payload.themes || []; applyCustomThemesFromSettings([..._activeCustomThemes]); break;
             case 'vrcLaunched': {

@@ -23,6 +23,11 @@ public class KikitanXDSettings
     public string Personality { get; set; } = "raw";
     public List<string> BlockedWords { get; set; } = new();
     public List<string> BlockedSentences { get; set; } = new();
+    public bool TtsEnabled { get; set; } = false;
+    public int TtsDevice { get; set; } = -1;
+    public string TtsVoice { get; set; } = "";
+    public string TtsEngine { get; set; } = "sapi";
+    public int TtsRate { get; set; } = 0;
 
     public static KikitanXDSettings Load()
     {

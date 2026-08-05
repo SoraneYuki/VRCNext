@@ -18,6 +18,7 @@ public sealed class KikitanXDService : IKikitanSpeechService
 {
     public event Action<string, bool>? OnRecognized;
     public event Action<string>? OnTranslated;
+    public event Action<string>? OnOutput;
     public event Action<string>? OnLog;
     public event Action? OnChatboxSent;
     public bool IsRunning => false;
@@ -35,6 +36,7 @@ public sealed class KikitanXDService : IKikitanSpeechService
 {
     public event Action<string, bool>? OnRecognized;
     public event Action<string>? OnTranslated;
+    public event Action<string>? OnOutput;
     public event Action<string>? OnLog;
     public event Action? OnChatboxSent;
 
@@ -326,6 +328,7 @@ public sealed class KikitanXDService : IKikitanSpeechService
                     if (!string.IsNullOrWhiteSpace(withKaomoji)) outText = withKaomoji;
                 }
                 if (_oscEnabled) { SendChatbox(outText); OnChatboxSent?.Invoke(); }
+                OnOutput?.Invoke(outText);
                 return;
             }
 
@@ -334,6 +337,7 @@ public sealed class KikitanXDService : IKikitanSpeechService
             {
                 OnTranslated?.Invoke(translated);
                 if (_oscEnabled) { SendChatbox(translated); OnChatboxSent?.Invoke(); }
+                OnOutput?.Invoke(translated);
             }
         }
         catch (Exception ex)

@@ -2,6 +2,7 @@
 
 let kxdRunning = false;
 let _kxdDevicesPayload = null;
+let _kxdSavedTtsVoice = '';
 let kxdNoiseGatePct = 10;
 let _kxdPendingConnect = false;
 let _kxdBlockWords = [];
@@ -127,6 +128,129 @@ function kxdConnect() {
     sendToCS({ action: 'kxdStart', deviceIndex, apiKey, googleApiKey, model, sourceLang, targetLang, translateEnabled, oscEnabled, partialOsc, noiseGatePct: kxdNoiseGatePct, personality, blockWords: _kxdBlockWords, blockSentences: _kxdBlockSentences });
 }
 
+function ttsBuildCascade(prefix, voices, savedVoice, defaultLabel) {
+    const isEdge = document.getElementById(prefix + 'TtsEngine')?.value === 'edge';
+    document.querySelectorAll('.' + prefix + '-edge-only').forEach(el => {
+        el.style.display = isEdge ? '' : 'none';
+    });
+
+    const langSel   = document.getElementById(prefix + 'TtsLang');
+    const genderSel = document.getElementById(prefix + 'TtsGender');
+    const voiceSel  = document.getElementById(prefix + 'TtsVoice');
+    if (!voiceSel) return;
+
+    if (!isEdge) {
+        let html = `<option value="">${esc(defaultLabel)}</option>`;
+        (voices || []).forEach(v => { html += `<option value="${esc(v.id)}">${esc(v.label || v.id)}</option>`; });
+        voiceSel.innerHTML = html;
+        voiceSel.value = (voices || []).some(v => v.id === savedVoice) ? savedVoice : '';
+        if (voiceSel._vnRefresh) voiceSel._vnRefresh();
+        return;
+    }
+
+    const saved = (voices || []).find(v => v.id === savedVoice);
+
+    if (langSel) {
+        const seen = new Map();
+        (voices || []).forEach(v => { if (!seen.has(v.locale)) seen.set(v.locale, v.localeName || v.locale); });
+        const wanted = langSel.dataset.pick || saved?.locale || 'en-US';
+        const locales = [...seen.entries()];
+        langSel.innerHTML = locales.map(([code, name]) =>
+            `<option value="${esc(code)}">${esc(name)}</option>`).join('');
+        langSel.value = seen.has(wanted) ? wanted : (locales[0]?.[0] || '');
+        langSel.dataset.pick = langSel.value;
+        if (langSel._vnRefresh) langSel._vnRefresh();
+    }
+
+    const locale = langSel?.value || '';
+    const inLocale = (voices || []).filter(v => v.locale === locale);
+
+    if (genderSel) {
+        const genders = [...new Set(inLocale.map(v => v.gender).filter(Boolean))];
+        const wanted = genderSel.dataset.pick || saved?.gender || 'Female';
+        genderSel.innerHTML = genders.map(g =>
+            `<option value="${esc(g)}">${esc(t('tts.gender.' + g.toLowerCase(), g))}</option>`).join('');
+        genderSel.value = genders.includes(wanted) ? wanted : (genders[0] || '');
+        genderSel.dataset.pick = genderSel.value;
+        if (genderSel._vnRefresh) genderSel._vnRefresh();
+    }
+
+    const gender = genderSel?.value || '';
+    const finalList = inLocale.filter(v => !gender || v.gender === gender);
+    voiceSel.innerHTML = finalList.map(v =>
+        `<option value="${esc(v.id)}">${esc(v.label || v.id)}</option>`).join('');
+    voiceSel.value = finalList.some(v => v.id === savedVoice) ? savedVoice : (finalList[0]?.id || '');
+    if (voiceSel._vnRefresh) voiceSel._vnRefresh();
+}
+
+function kxdTtsHandleDevices(p) {
+    if (p.target !== 'kxd') return;
+    if (p.devices) kxdTtsFillDevices(p.devices, parseInt(document.getElementById('kxdTtsDevice')?.value ?? '-1', 10));
+    kxdTtsFillVoices(p.voices, _kxdSavedTtsVoice);
+}
+
+function kxdTtsEngineChanged() {
+    const eng = document.getElementById('kxdTtsEngine')?.value || 'sapi';
+    const voiceSel = document.getElementById('kxdTtsVoice');
+    if (voiceSel) {
+        voiceSel.innerHTML = `<option value="">${esc(t('tts.loading', 'Loading voices...'))}</option>`;
+        if (voiceSel._vnRefresh) voiceSel._vnRefresh();
+    }
+    sendToCS({ action: 'getTtsDevices', target: 'kxd', engine: eng });
+    kxdSaveSettings();
+}
+
+function kxdTtsPreviewVoice(voice) {
+    if (!voice) return;
+    sendToCS({
+        action: 'ttsPreview',
+        text: t('tts.preview_line', 'This is how this voice sounds.'),
+        engine: document.getElementById('kxdTtsEngine')?.value || 'sapi',
+        voice,
+        device: parseInt(document.getElementById('kxdTtsDevice')?.value ?? '-1', 10),
+        rate: parseInt(document.getElementById('kxdTtsRate')?.value ?? '0', 10),
+    });
+}
+
+let _kxdTtsVoices = [];
+
+function kxdTtsFillVoices(voices, saved) {
+    _kxdTtsVoices = voices || [];
+    ttsBuildCascade('kxd', _kxdTtsVoices, saved, t('kikitan.tts.voice_default', 'Default voice'));
+}
+
+function kxdTtsFilterChanged() {
+    const lang = document.getElementById('kxdTtsLang');
+    const gen  = document.getElementById('kxdTtsGender');
+    if (lang) lang.dataset.pick = lang.value;
+    if (gen)  gen.dataset.pick  = gen.value;
+    ttsBuildCascade('kxd', _kxdTtsVoices, '', t('kikitan.tts.voice_default', 'Default voice'));
+    kxdSaveSettings();
+}
+
+function kxdTtsFillDevices(devices, saved) {
+    const sel = document.getElementById('kxdTtsDevice');
+    if (!sel) return;
+    let html = `<option value="-1">${esc(t('kikitan.tts.device_default', 'System default'))}</option>`;
+    (devices || []).forEach((name, i) => { html += `<option value="${i}">${esc(name)}</option>`; });
+    sel.innerHTML = html;
+    sel.value = String(saved ?? -1);
+    if (sel.selectedIndex < 0) sel.value = '-1';
+    if (sel._vnRefresh) sel._vnRefresh();
+}
+
+function kxdTtsTest() {
+    sendToCS({
+        action: 'ttsTest',
+        text: t('kikitan.tts.test_line', 'VRCNext text to speech is working.'),
+        engine: document.getElementById('kxdTtsEngine')?.value || 'sapi',
+        voice: document.getElementById('kxdTtsVoice')?.value || '',
+        device: parseInt(document.getElementById('kxdTtsDevice')?.value ?? '-1', 10),
+        rate: parseInt(document.getElementById('kxdTtsRate')?.value ?? '0', 10),
+        volume: 100,
+    });
+}
+
 function populateKxdDevices(p) {
     _kxdDevicesPayload = p;
     if (_kxdPendingConnect) {
@@ -152,6 +276,28 @@ function populateKxdDevices(p) {
             sel.selectedIndex = savedIdx;
         }
         if (sel._vnRefresh) sel._vnRefresh();
+    }
+
+    const ttsToggle = document.getElementById('kxdTtsToggle');
+    if (ttsToggle) ttsToggle.checked = !!p.ttsEnabled;
+
+    _kxdSavedTtsVoice = p.ttsVoice || '';
+    const ttsEngSel = document.getElementById('kxdTtsEngine');
+    if (ttsEngSel) {
+        ttsEngSel.value = p.ttsEngine || 'sapi';
+        if (ttsEngSel._vnRefresh) ttsEngSel._vnRefresh();
+    }
+    kxdTtsFillDevices(p.ttsDevices, p.ttsDevice);
+    kxdTtsFillVoices((p.ttsVoices || []).map(v => ({ id: v, label: v })), _kxdSavedTtsVoice);
+    if ((p.ttsEngine || 'sapi') === 'edge') {
+        sendToCS({ action: 'getTtsDevices', target: 'kxd', engine: 'edge' });
+    }
+
+    const ttsRateEl = document.getElementById('kxdTtsRate');
+    if (ttsRateEl) {
+        ttsRateEl.value = String(p.ttsRate ?? 0);
+        const rv = document.getElementById('kxdTtsRateVal');
+        if (rv) rv.textContent = String(p.ttsRate ?? 0);
     }
 
     const apiKeyEl = document.getElementById('kxdApiKey');
@@ -296,7 +442,12 @@ function kxdSaveSettings() {
     window._kxdApiKeyPresent = !!apiKey;
     const personality = document.getElementById('kxdPersonality')?.value || 'raw';
     const devSel = document.getElementById('kxdDeviceSelect');
-    const payload = { action: 'kxdSaveSettings', apiKey, googleApiKey, model, sourceLang, targetLang, translateEnabled, oscEnabled, partialOsc, noiseGatePct: kxdNoiseGatePct, profileTranslationEnabled, profileTargetLang, personality, blockWords: _kxdBlockWords, blockSentences: _kxdBlockSentences };
+    const ttsEnabled = !!(document.getElementById('kxdTtsToggle')?.checked);
+    const ttsDevice = parseInt(document.getElementById('kxdTtsDevice')?.value ?? '-1', 10);
+    const ttsVoice = document.getElementById('kxdTtsVoice')?.value || '';
+    const ttsEngine = document.getElementById('kxdTtsEngine')?.value || 'sapi';
+    const ttsRate = parseInt(document.getElementById('kxdTtsRate')?.value ?? '0', 10);
+    const payload = { action: 'kxdSaveSettings', apiKey, googleApiKey, model, sourceLang, targetLang, translateEnabled, oscEnabled, partialOsc, noiseGatePct: kxdNoiseGatePct, profileTranslationEnabled, profileTargetLang, personality, blockWords: _kxdBlockWords, blockSentences: _kxdBlockSentences, ttsEnabled, ttsDevice: isNaN(ttsDevice) ? -1 : ttsDevice, ttsVoice, ttsEngine, ttsRate: isNaN(ttsRate) ? 0 : ttsRate };
     if (devSel && devSel.value !== '' && !isNaN(parseInt(devSel.value, 10))) {
         payload.deviceIndex = parseInt(devSel.value, 10);
     }

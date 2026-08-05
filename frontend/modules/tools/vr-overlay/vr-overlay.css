@@ -198,3 +198,27 @@
     gap: 8px;
     margin-top: 4px;
 }
+
+.vro-notif-toggles {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    flex-shrink: 0;
+}
+
+.vro-notif-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 0 4px;
+}
+
+.vro-notif-head .vro-notif-toggles span {
+    width: 34px;
+    text-align: center;
+    font-size: calc(10px + var(--fs-off, 0px));
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--tx3);
+}

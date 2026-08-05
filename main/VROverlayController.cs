@@ -316,6 +316,18 @@ public class VROverlayController : IDisposable
                 bool invite     = msg["invite"]?.Value<bool>()     ?? true;
                 bool groupInv   = msg["groupInv"]?.Value<bool>()   ?? true;
 
+                _core.Settings.VroToastTtsOnline = msg["ttsOnline"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsOffline = msg["ttsOffline"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsGps = msg["ttsGps"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsStatus = msg["ttsStatus"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsStatusDesc = msg["ttsStatusDesc"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsBio = msg["ttsBio"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsFriendReq = msg["ttsFriendReq"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsInvite = msg["ttsInvite"]?.Value<bool>() ?? false;
+                _core.Settings.VroToastTtsGroupInv = msg["ttsGroupInv"]?.Value<bool>() ?? false;
+                _core.Settings.VroTtsDevice = msg["ttsDevice"]?.Value<int>() ?? -1;
+                _core.Settings.VroTtsVoice  = msg["ttsVoice"]?.ToString() ?? "";
+                _core.Settings.VroTtsEngine = msg["ttsEngine"]?.ToString() ?? "sapi";
                 _core.Settings.VroToastEnabled    = enabled;
                 _core.Settings.VroToastFavOnly    = favOnly;
                 _core.Settings.VroToastSize       = size;
@@ -370,6 +382,28 @@ public class VROverlayController : IDisposable
                 _core.VrOverlay?.VroCancelScaleRecording();
                 break;
         }
+    }
+
+    public bool ShouldSpeakToast(string evType) => evType switch
+    {
+        "friend_online"     => _core.Settings.VroToastTtsOnline,
+        "friend_offline"    => _core.Settings.VroToastTtsOffline,
+        "friend_gps"        => _core.Settings.VroToastTtsGps,
+        "friend_status"     => _core.Settings.VroToastTtsStatus,
+        "friend_statusdesc" => _core.Settings.VroToastTtsStatusDesc,
+        "friend_bio"        => _core.Settings.VroToastTtsBio,
+        "notif_friendreq"   => _core.Settings.VroToastTtsFriendReq,
+        "notif_invite"      => _core.Settings.VroToastTtsInvite,
+        "notif_groupinvite" => _core.Settings.VroToastTtsGroupInv,
+        _                   => false,
+    };
+
+    public void SpeakToast(string evType, string friendName, string evText)
+    {
+        if (!ShouldSpeakToast(evType)) return;
+        var line = string.IsNullOrWhiteSpace(evText) ? friendName : $"{friendName} {evText}";
+        VRCNext.Services.Helpers.TtsService.Speak(
+            line, _core.Settings.VroTtsEngine, _core.Settings.VroTtsVoice, _core.Settings.VroTtsDevice, 100, 0);
     }
 
     public void UpdateToolStates()

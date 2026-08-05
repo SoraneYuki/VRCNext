@@ -195,6 +195,7 @@ public partial class AppShell
         _timelineCtrl = new TimelineController(_core, _friends, _instance, _photos);
         _vroCtrl = new VROverlayController(_core, _friends);
         _sfCtrl = new SpaceFlightController(_core, _vroCtrl);
+        _core.SpeakToast = (evType, name, text) => _vroCtrl.SpeakToast(evType, name, text);
         _fsCtrl = new FrameShotController(_core, _vroCtrl, _photos);
         _discordCtrl = new DiscordController(_core, _instance, _vroCtrl);
         _chatboxCtrl = new ChatboxController(_core, _vroCtrl);
@@ -844,6 +845,7 @@ public partial class AppShell
                 {
                     bool isFav = !string.IsNullOrEmpty(friendId) && _friends.IsFavorited(friendId);
                     _core.VrOverlay.EnqueueToast(evType, name, evText, time, friendImage, isFav);
+                    _vroCtrl.SpeakToast(evType, name, evText);
                 }
                 catch { }
             }

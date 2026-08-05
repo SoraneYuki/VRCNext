@@ -1,11 +1,26 @@
 **2026.37.1**
 
+**VR Overlay**
+
+* Added a notification when a friend joins your instance.
+* For example, when Shiny joins your instance, the overlay will display: **“Shiny joined your instance.”**
+* Added Text-to-Speech support to the VR Overlay.
+* You can choose which events should trigger a spoken notification, such as when a friend joins a world.
+
+**Text-to-Speech**
+
+* Added Text-to-Speech support to KikitanXD.
+* KikitanXD can now speak the text that is sent to your OSC Chatbox.
+* To let other players hear the generated voice, you need to route the audio through a virtual audio cable using software such as VoiceMeeter.
+* Added SAPI Offline TTS
+* Added Microsoft Neural Online TTS
+
 **Fonts**
 
 * Added various Google Fonts to VRCN.
 * Added support for custom fonts installed on Windows.
 * Font settings can be found under **Settings > Appearance > Fonts**.
-* Added Font size slider to increase or decrease font size by max/min 5px.
+* Added a font-size slider that allows you to increase or decrease the default font size by up to 5 px.
 
 **Design Changes**
 
@@ -22,7 +37,7 @@
 * The left and right sidebars can now be resized.
 * Added **Lock Sidebars** under **Taskbar > View** to disable sidebar resizing.
 * Added **Reset Sidebars** under **Taskbar > View** to restore their default sizes.
-* Icons, symbols, and fonts are now stored locally instead of being downloaded from Google's CDN.
+* Icons, symbols, and fonts are now stored locally instead of being downloaded from Google’s CDN.
 * Fonts, icons, and symbols are now loaded dynamically, slightly reducing memory usage.
 
 **Bug Fixes**

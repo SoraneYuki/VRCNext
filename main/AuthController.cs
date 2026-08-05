@@ -1874,6 +1874,18 @@ public class AuthController
             _core.Settings.AppFont = data["appFont"]?.ToString() ?? "google-sans";
             _core.Settings.DesignStyle = data["designStyle"]?.ToString() ?? "line";
             _core.Settings.CustomFont = data["customFont"]?.ToString() ?? "";
+            _core.Settings.VroToastTtsOnline = data["vroToastTtsOnline"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsOffline = data["vroToastTtsOffline"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsGps = data["vroToastTtsGps"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsStatus = data["vroToastTtsStatus"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsStatusDesc = data["vroToastTtsStatusDesc"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsBio = data["vroToastTtsBio"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsFriendReq = data["vroToastTtsFriendReq"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsInvite = data["vroToastTtsInvite"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsGroupInv = data["vroToastTtsGroupInv"]?.Value<bool>() ?? false;
+            _core.Settings.VroTtsDevice = data["vroTtsDevice"]?.Value<int>() ?? -1;
+            _core.Settings.VroTtsVoice  = data["vroTtsVoice"]?.ToString() ?? "";
+            _core.Settings.VroTtsEngine = data["vroTtsEngine"]?.ToString() ?? "sapi";
             _core.Settings.FontSizeOffset = Math.Clamp(data["fontSizeOffset"]?.Value<int>() ?? 0, -5, 5);
             var activeCustomThemes = data["activeCustomThemes"]?.ToObject<List<string>>();
             if (activeCustomThemes != null) _core.Settings.ActiveCustomThemes = activeCustomThemes;
