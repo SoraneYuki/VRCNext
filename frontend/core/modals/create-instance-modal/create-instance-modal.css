@@ -5,7 +5,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 0;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx1);
     font-weight: 500;
     border-bottom: 1px solid var(--brd);
@@ -52,7 +52,7 @@
     border: none;
     border-radius: 8px;
     padding: 8px 12px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx1);
     font-family: inherit;
     outline: none;

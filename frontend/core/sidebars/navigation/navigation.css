@@ -112,7 +112,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
     border-radius: 10px;
     background: var(--accent);
     font-weight: 800;
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     color: #fff;
     flex-shrink: 0;
     overflow: hidden;
@@ -130,12 +130,12 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 
 .logo-text {
     font-weight: 800;
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     color: var(--accent);
 }
 
 .logo-sub {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 1px;
     letter-spacing: .5px;
@@ -166,7 +166,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
     padding: 10px;
     border-radius: 8px;
     justify-content: center;
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-family: inherit;
     transition: color .15s, background .15s;
 }
@@ -211,7 +211,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
     background: none;
     width: calc(100% - 16px);
     text-align: left;
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     color: var(--tx2);
     font-family: inherit;
     white-space: nowrap;
@@ -229,7 +229,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 }
 
 .nav-btn .ni {
-    font-size: 20px;
+    font-size: calc(20px + var(--fs-off, 0px));
     min-width: 20px;
 }
 
@@ -250,7 +250,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 
 .nav-sep-label {
     color: var(--tx3);
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: 1.15px;
     text-transform: uppercase;
@@ -281,7 +281,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
     border-radius: 5px;
     background: var(--bg-hover);
     color: var(--tx2);
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .3px;
     flex-shrink: 0;
@@ -308,13 +308,13 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 }
 
 .nav-group-btn .ni {
-    font-size: 20px;
+    font-size: calc(20px + var(--fs-off, 0px));
     min-width: 20px;
 }
 
 .nav-group-arrow {
     margin-left: auto;
-    font-size: 18px !important;
+    font-size: calc(18px + var(--fs-off, 0px)) !important;
     color: var(--tx3);
     transition: transform .2s;
     flex-shrink: 0;
@@ -338,7 +338,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 
 .nav-sub {
     padding-left: 28px !important;
-    font-size: 12px !important;
+    font-size: calc(12px + var(--fs-off, 0px)) !important;
     color: var(--tx3) !important;
     margin: 1px 8px !important;
 }
@@ -404,7 +404,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
     to   { opacity: 1; transform: translateX(0); }
 }
 .nav-folder-popout-title {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     text-transform: uppercase;
@@ -441,9 +441,9 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
     background: color-mix(in srgb, var(--accent) 14%, transparent);
     color: var(--accent-lt);
 }
-.nav-folder-cell-icon { font-size: 22px; min-height: 22px; }
+.nav-folder-cell-icon { font-size: calc(22px + var(--fs-off, 0px)); min-height: 22px; }
 .nav-folder-cell-label {
-    font-size: 10.5px;
+    font-size: calc(10.5px + var(--fs-off, 0px));
     font-weight: 600;
     text-align: center;
     line-height: 1.2;
@@ -468,7 +468,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 .clock-time {
     font-family: var(--font-app);
     font-variant-numeric: tabular-nums;
-    font-size: 18px;
+    font-size: calc(18px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx0);
     letter-spacing: 2px;
@@ -478,7 +478,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 .clock-date {
     font-family: var(--font-app);
     font-variant-numeric: tabular-nums;
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 500;
     color: var(--tx3);
     margin-top: 4px;
@@ -491,7 +491,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 }
 
 .sidebar.collapsed .clock-time {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     letter-spacing: 2px;
     writing-mode: vertical-rl;
     color: var(--tx3);
@@ -549,14 +549,14 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 
 .play-title {
     color: var(--tx1);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 700;
 }
 
 .play-sub {
     margin-top: 2px;
     color: var(--tx3);
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 600;
 }
 
@@ -565,7 +565,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 .play-arrow {
     margin-left: auto;
     color: var(--tx3);
-    font-size: 17px !important;
+    font-size: calc(17px + var(--fs-off, 0px)) !important;
     flex-shrink: 0;
 }
 
@@ -578,7 +578,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 }
 
 .play-icon {
-    font-size: 19px !important;
+    font-size: calc(19px + var(--fs-off, 0px)) !important;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     flex-shrink: 0;
     line-height: 1;
@@ -614,7 +614,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 }
 
 .sidebar.collapsed .btn-play .play-icon {
-    font-size: 19px !important;
+    font-size: calc(19px + var(--fs-off, 0px)) !important;
 }
 
 body:has(#tab0.active) .sidebar.collapsed::before {

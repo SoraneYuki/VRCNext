@@ -7,7 +7,7 @@
 
             <!-- Cache row -->
             <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--bg-input);border-radius:8px;padding:10px 12px;margin-bottom:18px;">
-                <span style="font-size:12px;color:var(--tx2);"><span data-i18n="vrc_config.cache_size">Cache Size</span>: <strong id="vrcCfgCacheSize" style="color:var(--tx0);">—</strong></span>
+                <span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);"><span data-i18n="vrc_config.cache_size">Cache Size</span>: <strong id="vrcCfgCacheSize" style="color:var(--tx0);">—</strong></span>
                 <span style="flex:1;"></span>
                 <button class="vrcn-button" onclick="vrcCfgRefreshCache()"><span class="msi" style="font-size:14px;">refresh</span> <span data-i18n="vrc_config.refresh">Refresh</span></button>
                 <button class="vrcn-button" onclick="vrcCfgDeleteCache()"><span class="msi" style="font-size:14px;">delete</span> <span data-i18n="vrc_config.delete_cache">Delete Cache</span></button>

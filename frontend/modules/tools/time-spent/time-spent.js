@@ -112,7 +112,7 @@ function _tsLoad() {
 
     const list = document.getElementById('tsList');
     if (list) {
-        list.innerHTML = `<div class="ts-loading"><span class="msi ts-spin" style="font-size:22px;color:var(--accent);">sync</span><span style="font-size:12px;color:var(--tx2);">${t('timespent.loading', 'Calculating stats...')}</span></div>`;
+        list.innerHTML = `<div class="ts-loading"><span class="msi ts-spin" style="font-size:22px;color:var(--accent);">sync</span><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">${t('timespent.loading', 'Calculating stats...')}</span></div>`;
     }
 
     const summary = document.getElementById('tsSummary');
@@ -388,7 +388,7 @@ function _tsSetPaginator(html) {
 }
 
 function _tsBuildPaginator(page, totalPages, total, onPageFn) {
-    const countHtml = `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${total.toLocaleString()}</span>`;
+    const countHtml = `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${total.toLocaleString()}</span>`;
     return buildPaginator(page, totalPages, onPageFn, countHtml);
 }
 
@@ -402,11 +402,11 @@ function rerenderTimeSpentTranslations() {
     if (!list) return;
 
     if (_tsLoading) {
-        list.innerHTML = `<div class="ts-loading"><span class="msi ts-spin" style="font-size:22px;color:var(--accent);">sync</span><span style="font-size:12px;color:var(--tx2);">${t('timespent.loading', 'Calculating stats...')}</span></div>`;
+        list.innerHTML = `<div class="ts-loading"><span class="msi ts-spin" style="font-size:22px;color:var(--accent);">sync</span><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">${t('timespent.loading', 'Calculating stats...')}</span></div>`;
         return;
     }
 
-    list.innerHTML = `<div class="ts-empty"><span class="msi" style="font-size:28px;color:var(--tx3);">schedule</span><div>${t('timespent.empty.no_session', 'No session data yet.')}<br><span style="font-size:11px;">${t('timespent.empty.no_session_hint', 'Join some worlds in VRChat to see stats.')}</span></div></div>`;
+    list.innerHTML = `<div class="ts-empty"><span class="msi" style="font-size:28px;color:var(--tx3);">schedule</span><div>${t('timespent.empty.no_session', 'No session data yet.')}<br><span style="font-size:calc(11px + var(--fs-off, 0px));">${t('timespent.empty.no_session_hint', 'Join some worlds in VRChat to see stats.')}</span></div></div>`;
 }
 
 document.documentElement.addEventListener('languagechange', rerenderTimeSpentTranslations);

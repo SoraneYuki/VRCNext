@@ -229,7 +229,7 @@ function _iuBuildHTML(tab) {
     const dropPrompt = tf('inventory.upload.drop_prompt', { browse: browseHtml }, `Drop image here or ${browseHtml}`);
     const emojiHtml = req?.hasAnimStyle ? `
         <div id="iuEmojiOptions" style="display:none;margin-top:14px;">
-            <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:8px;">${esc(t('inventory.upload.particle_style', 'Particle style'))}</div>
+            <div style="font-size:calc(12px + var(--fs-off, 0px));font-weight:600;color:var(--tx2);margin-bottom:8px;">${esc(t('inventory.upload.particle_style', 'Particle style'))}</div>
             <select id="iuAnimSelect" class="vrcn-dropdown" style="width:100%;" onchange="iuSetAnimStyle(this.value)">
                 ${IU_ANIM_STYLES.map(style => `<option value="${esc(style.value)}"${style.value === 'aura' ? ' selected' : ''}>${esc(iuAnimLabel(style))}</option>`).join('')}
             </select>
@@ -240,21 +240,21 @@ function _iuBuildHTML(tab) {
 
     return `<div class="modal-box wide" id="invUploadContent" style="max-width:560px;">
         ${renderModalBar(tf('inventory.upload.title', { tab: tabLabel }, `Upload to ${tabLabel}`), [modalCloseAction('closeInvUploadModal()')])}
-        <div style="background:var(--bg-input);border-radius:8px;padding:10px 14px;margin:20px 0 14px;font-size:12px;color:var(--tx2);">${esc(req?.hint || '')}</div>
+        <div style="background:var(--bg-input);border-radius:8px;padding:10px 14px;margin:20px 0 14px;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">${esc(req?.hint || '')}</div>
         <div id="iuDropZone" class="iu-dropzone"
             onclick="iuBrowse()"
             ondragover="event.preventDefault();this.classList.add('dragover')"
             ondragleave="this.classList.remove('dragover')"
             ondrop="iuDrop(event)">
             <span class="msi" style="font-size:40px;color:var(--tx3);display:block;margin-bottom:10px;pointer-events:none;">upload_file</span>
-            <div style="font-size:14px;font-weight:600;color:var(--tx1);pointer-events:none;">${dropPrompt}</div>
-            <div style="font-size:11px;color:var(--tx3);margin-top:6px;pointer-events:none;">${esc(t('inventory.upload.file_types', 'PNG, JPG, JPEG'))}</div>
+            <div style="font-size:calc(14px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);pointer-events:none;">${dropPrompt}</div>
+            <div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);margin-top:6px;pointer-events:none;">${esc(t('inventory.upload.file_types', 'PNG, JPG, JPEG'))}</div>
             <input type="file" id="iuFileInput" accept="image/png,image/jpeg" style="display:none;" onchange="iuHandleFileInput(this)">
         </div>
         <div id="iuEditorArea" style="display:none;"></div>
         <div id="iuPreviewArea" style="display:none;"></div>
         ${emojiHtml}
-        <div id="iuError" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(220,50,50,.12);border-radius:8px;font-size:12px;color:#e05252;"></div>
+        <div id="iuError" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(220,50,50,.12);border-radius:8px;font-size:calc(12px + var(--fs-off, 0px));color:#e05252;"></div>
         <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
             <button class="vrcn-button-round vrcn-btn-join" id="iuUploadBtn" style="display:none;" onclick="iuDoUpload()">${iuUploadButtonHtml()}</button>
         </div>
@@ -310,7 +310,7 @@ function iuHandleFile(file) {
                 const size = (file.size / 1024 / 1024).toFixed(1);
                 iuShowError(
                     tf('inventory.upload.error.too_large', { size, max: req.maxMB }, `File too large (${size} MB). Maximum is ${req.maxMB} MB.`),
-                    `<button class="vrcn-button-round" style="margin-top:8px;font-size:12px;" onclick="iuCompressAndContinue()"><span class="msi" style="font-size:13px;vertical-align:-2px;">compress</span> ${esc(t('inventory.upload.button.compress_image', 'Compress Image'))}</button>`
+                    `<button class="vrcn-button-round" style="margin-top:8px;font-size:calc(12px + var(--fs-off, 0px));" onclick="iuCompressAndContinue()"><span class="msi" style="font-size:13px;vertical-align:-2px;">compress</span> ${esc(t('inventory.upload.button.compress_image', 'Compress Image'))}</button>`
                 );
                 return;
             }
@@ -384,11 +384,11 @@ function _iuShowPreview(img, file, wasCropped, wasCompressed, wasResized) {
             </div>
             <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;color:var(--tx1);margin-bottom:4px;word-break:break-all;">${esc(file.name)}</div>
-                <div style="font-size:12px;color:var(--tx3);margin-bottom:4px;">${dimStr} - ${sizeStr}</div>
-                ${wasCropped ? `<div style="font-size:12px;color:var(--accent);margin-bottom:4px;"><span class="msi" style="font-size:13px;vertical-align:-3px;">crop</span> ${esc(t('inventory.upload.status.cropped', 'Cropped to fit'))}</div>` : ''}
-                ${wasResized ? `<div style="font-size:12px;color:var(--accent);margin-bottom:4px;"><span class="msi" style="font-size:13px;vertical-align:-3px;">photo_size_select_large</span> ${esc(t('inventory.upload.status.resized', 'Resized to fit'))}</div>` : ''}
-                ${wasCompressed ? `<div style="font-size:12px;color:var(--accent);margin-bottom:4px;"><span class="msi" style="font-size:13px;vertical-align:-3px;">compress</span> ${esc(t('inventory.upload.status.compressed', 'Compressed'))}</div>` : ''}
-                <div style="font-size:12px;color:#4caf50;"><span class="msi" style="font-size:13px;vertical-align:-3px;">check_circle</span> ${esc(t('inventory.upload.status.ready', 'Ready to upload'))}</div>
+                <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);margin-bottom:4px;">${dimStr} - ${sizeStr}</div>
+                ${wasCropped ? `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--accent);margin-bottom:4px;"><span class="msi" style="font-size:13px;vertical-align:-3px;">crop</span> ${esc(t('inventory.upload.status.cropped', 'Cropped to fit'))}</div>` : ''}
+                ${wasResized ? `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--accent);margin-bottom:4px;"><span class="msi" style="font-size:13px;vertical-align:-3px;">photo_size_select_large</span> ${esc(t('inventory.upload.status.resized', 'Resized to fit'))}</div>` : ''}
+                ${wasCompressed ? `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--accent);margin-bottom:4px;"><span class="msi" style="font-size:13px;vertical-align:-3px;">compress</span> ${esc(t('inventory.upload.status.compressed', 'Compressed'))}</div>` : ''}
+                <div style="font-size:calc(12px + var(--fs-off, 0px));color:#4caf50;"><span class="msi" style="font-size:13px;vertical-align:-3px;">check_circle</span> ${esc(t('inventory.upload.status.ready', 'Ready to upload'))}</div>
                 <button class="vrcn-button-round" style="margin-top:10px;" onclick="iuReset()">${esc(t('inventory.upload.button.choose_different', 'Choose different'))}</button>
             </div>`;
     }
@@ -419,7 +419,7 @@ function _iuShowEditor(img, req) {
     if (!editorArea) return;
     editorArea.style.display = '';
     editorArea.innerHTML = `
-        <div style="font-size:12px;color:var(--tx2);margin-bottom:10px;">
+        <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:10px;">
             <span class="msi" style="font-size:13px;vertical-align:-3px;">crop</span>
             ${esc(tf('inventory.upload.editor.crop_hint', { ratio: `${req.ratioW}:${req.ratioH}` }, `Crop to ${req.ratioW}:${req.ratioH} - drag to reposition, scroll to zoom`))}
         </div>
@@ -430,7 +430,7 @@ function _iuShowEditor(img, req) {
             <span class="msi" style="color:var(--tx3);font-size:16px;">zoom_in</span>
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
-            <button class="vrcn-button-round" style="font-size:12px;" onclick="iuReset()">${esc(t('inventory.upload.button.choose_different', 'Choose different'))}</button>
+            <button class="vrcn-button-round" style="font-size:calc(12px + var(--fs-off, 0px));" onclick="iuReset()">${esc(t('inventory.upload.button.choose_different', 'Choose different'))}</button>
             <button class="vrcn-button-round vrcn-btn-join" onclick="iuCropAndContinue()">
                 <span class="msi" style="font-size:14px;">crop</span> ${esc(t('inventory.upload.button.crop_continue', 'Crop and continue'))}
             </button>

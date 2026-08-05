@@ -23,7 +23,7 @@ function openImagePicker(type, targetId) {
             ${renderModalBar(title, [modalCloseAction('closeImagePicker()')], { titleId: 'imagePickerTitle' })}
             <div class="gp-modal-body" style="flex:1;overflow-y:auto;">
                 <div id="imagePickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;padding:4px 0;">
-                    <div style="grid-column:1/-1;text-align:center;padding:20px;font-size:11px;color:var(--tx3);">${t('common.loading', 'Loading...')}</div>
+                    <div style="grid-column:1/-1;text-align:center;padding:20px;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${t('common.loading', 'Loading...')}</div>
                 </div>
             </div>
             <div class="gp-modal-footer">
@@ -46,7 +46,7 @@ function _renderImagePickerGrid(files) {
     if (!grid) return;
     if (!files || !files.length) {
         grid.dataset.state = 'empty';
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;font-size:11px;color:var(--tx3);">${t('profiles.picker.no_items', 'No items found.')}<br>${t('profiles.picker.upload_via_inventory', 'Upload images via the Inventory tab.')}</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.picker.no_items', 'No items found.')}<br>${t('profiles.picker.upload_via_inventory', 'Upload images via the Inventory tab.')}</div>`;
         return;
     }
     grid.dataset.state = 'loaded';
@@ -92,9 +92,9 @@ function refreshImagePickerTranslations() {
     const grid = document.getElementById('imagePickerGrid');
     if (!grid || grid.querySelector('img')) return;
     if (grid.dataset.state === 'empty') {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;font-size:11px;color:var(--tx3);">${t('profiles.picker.no_items', 'No items found.')}<br>${t('profiles.picker.upload_via_inventory', 'Upload images via the Inventory tab.')}</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.picker.no_items', 'No items found.')}<br>${t('profiles.picker.upload_via_inventory', 'Upload images via the Inventory tab.')}</div>`;
     } else {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;font-size:11px;color:var(--tx3);">${t('common.loading', 'Loading...')}</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${t('common.loading', 'Loading...')}</div>`;
     }
 }
 

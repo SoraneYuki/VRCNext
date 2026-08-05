@@ -387,6 +387,25 @@ public class WindowController
                 }
 #endif
                 break;
+            case "getSystemFonts":
+            {
+                var fonts = new List<string>();
+#if WINDOWS
+                try
+                {
+                    using var installed = new System.Drawing.Text.InstalledFontCollection();
+                    fonts = installed.Families
+                        .Select(f => f.Name)
+                        .Where(n => !string.IsNullOrWhiteSpace(n))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase)
+                        .ToList();
+                }
+                catch { }
+#endif
+                _core.SendToJS("systemFonts", new { fonts });
+                break;
+            }
             case "getCursorFiles":
             {
                 var cursorDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "cursor");

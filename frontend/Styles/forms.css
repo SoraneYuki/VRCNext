@@ -1,5 +1,5 @@
 .sect-label {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--accent);
     letter-spacing: 1.5px;
@@ -18,7 +18,7 @@
 
 .input-row label {
     width: 120px;
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     color: var(--tx2);
     flex-shrink: 0;
 }
@@ -76,7 +76,7 @@
 .search-ico {
     position: absolute;
     left: 12px;
-    font-size: 18px;
+    font-size: calc(18px + var(--fs-off, 0px));
     color: var(--tx3);
     pointer-events: none;
 }
@@ -88,7 +88,7 @@
     border: 1px solid var(--border);
     border-radius: 9px;
     color: var(--tx1);
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-family: inherit;
     outline: none;
     transition: border-color .15s;
@@ -115,7 +115,7 @@
     border: none;
     border-radius: 7px;
     color: var(--tx0);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-family: inherit;
     outline: none;
     box-sizing: border-box;

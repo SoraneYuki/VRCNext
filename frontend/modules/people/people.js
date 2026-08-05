@@ -380,7 +380,7 @@ function filterAllFriends() {
     }
     el.innerHTML = slice.map(f => renderUserItem(f, `openFriendDetail('${jsq(f.id)}')`)).join('');
     setPaginator('peopleAllPaginatorBar', buildPaginator(page, totalPages, 'peopleAllGoPage',
-        `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${all.length.toLocaleString()} total</span>`));
+        `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${all.length.toLocaleString()} total</span>`));
 }
 
 function peopleAllGoPage(page) {
@@ -443,7 +443,7 @@ function renderModList(containerId, list, actionType) {
         return renderUserItem(user, `openFriendDetail('${uid}')`, { trailing });
     }).join('');
     setPaginator(paginatorBarId, buildPaginator(page, totalPages, goPageFn,
-        `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${all.length.toLocaleString()} total</span>`));
+        `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${all.length.toLocaleString()} total</span>`));
 }
 
 function peopleBlockedGoPage(page) {
@@ -659,7 +659,7 @@ function filterFavFriends() {
             const cap = g.capacity || 150;
             const visLabel = _favGroupVisLabel(g.visibility);
             const visHtml = (g.visibility && !_favFriendEditMode && !isLocal)
-                ? `<span style="font-size:11px;color:var(--tx3);margin-left:4px;">${esc(visLabel)}</span>` : '';
+                ? `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);margin-left:4px;">${esc(visLabel)}</span>` : '';
             html += `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
                 <span class="topbar-title">${esc(g.displayName || g.name)}</span>
                 ${favGroupBadge(g)}
@@ -822,7 +822,7 @@ function friendEditShowMoveMenu(btn) {
             <span class="msi" style="font-size:14px;flex-shrink:0;">folder</span>
             <span style="flex:1;">${esc(g.displayName || g.name)}</span>
             ${favGroupBadge(g)}
-            <span style="font-size:10px;color:var(--tx3);flex-shrink:0;">${count}</span>
+            <span style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);flex-shrink:0;">${count}</span>
         </div>`;
     }).join('');
     picker.style.display = 'block';

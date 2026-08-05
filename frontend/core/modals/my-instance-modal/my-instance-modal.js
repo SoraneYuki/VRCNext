@@ -43,9 +43,9 @@ function openInstanceDetailFromData(inst) {
 function _miAuthorHtml(authorId, authorName) {
     if (!authorName) return '';
     const badge = authorId
-        ? `<span onclick="navOpenModal('friend','${jsq(authorId)}','${jsq(authorName)}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--bg-hover);font-size:11px;font-weight:600;color:var(--tx1);cursor:pointer;line-height:1.8;">${esc(authorName)}</span>`
+        ? `<span onclick="navOpenModal('friend','${jsq(authorId)}','${jsq(authorName)}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--bg-hover);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);cursor:pointer;line-height:1.8;">${esc(authorName)}</span>`
         : esc(authorName);
-    return `<div style="font-size:12px;color:var(--tx3);margin-bottom:2px;">${t('worlds.meta.by', 'by')} ${badge}</div>`;
+    return `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);margin-bottom:2px;">${t('worlds.meta.by', 'by')} ${badge}</div>`;
 }
 
 // Called from messages.js when backend sends worldInstancesDetail
@@ -337,7 +337,7 @@ function setInstanceModal(inst) {
     const totalFriends = groupKeys.reduce((s, k) => s + instanceGroups[k].friends.length, 0);
 
     const rightHtml = groupKeys.length === 0
-        ? `<div style="padding:24px;text-align:center;color:var(--tx3);font-size:12px;">${t('dashboard.instances.no_friends_title', 'No friends here yet!')}</div>`
+        ? `<div style="padding:24px;text-align:center;color:var(--tx3);font-size:calc(12px + var(--fs-off, 0px));">${t('dashboard.instances.no_friends_title', 'No friends here yet!')}</div>`
         : groupKeys.map(key => _buildInstanceCard(key, instanceGroups[key], false)).join('');
 
     c.innerHTML = `${miBar}<div class="mi-layout">

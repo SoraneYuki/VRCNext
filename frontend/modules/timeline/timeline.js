@@ -660,7 +660,7 @@ function _renderTlSearchResults(search) {
 
     const total      = _tlSearchTotal;
     const totalPages = total > 0 ? Math.ceil(total / tlPageSize) : 1;
-    const banner = `<div style="padding:6px 12px;font-size:11px;color:var(--tx3);border-bottom:1px solid var(--brd);">`
+    const banner = `<div style="padding:6px 12px;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);border-bottom:1px solid var(--brd);">`
         + `${esc(tlSearchSummary(total, search))}</div>`;
     let html = banner + (tlViewMode === 'list' ? buildPersonalListHtml(events) : buildTimelineHtml(events));
     c.innerHTML = html;
@@ -693,7 +693,7 @@ function tlGoSearchPage(page) {
 }
 
 function buildSearchPagination(page, totalPages, onPageFn, total = 0) {
-    const countHtml = total > 0 ? `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(total))}</span>` : '';
+    const countHtml = total > 0 ? `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(total))}</span>` : '';
     const bar = buildPaginator(page, totalPages, onPageFn, countHtml) || countHtml;
     return tlPageSizeSelectHtml('setTlPageSize') + bar;
 }
@@ -716,7 +716,7 @@ function loadMoreTimeline() {
 }
 
 function buildTlPagination(page, totalPages, hasMore) {
-    const countHtml = tlTotal > 0 ? `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(tlTotal))}</span>` : '';
+    const countHtml = tlTotal > 0 ? `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(tlTotal))}</span>` : '';
     const bar = buildPaginator(page, totalPages, 'tlGoPage', countHtml, hasMore) || countHtml;
     return tlPageSizeSelectHtml('setTlPageSize') + bar;
 }
@@ -1451,7 +1451,7 @@ function filterFriendTimeline() {
 }
 
 function buildFtlPagination(page, totalPages, hasMore) {
-    const countHtml = ftlTotal > 0 ? `<span style="font-size:11px;color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(ftlTotal))}</span>` : '';
+    const countHtml = ftlTotal > 0 ? `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(ftlTotal))}</span>` : '';
     const bar = buildPaginator(page, totalPages, 'ftlGoPage', countHtml, hasMore) || countHtml;
     return tlPageSizeSelectHtml('setTlPageSize') + bar;
 }
@@ -1470,7 +1470,7 @@ function _renderFtlSearchResults(search) {
 
     const total      = _ftlSearchTotal;
     const totalPages = total > 0 ? Math.ceil(total / tlPageSize) : 1;
-    const banner = `<div style="padding:6px 12px;font-size:11px;color:var(--tx3);border-bottom:1px solid var(--brd);">`
+    const banner = `<div style="padding:6px 12px;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);border-bottom:1px solid var(--brd);">`
         + `${esc(tlSearchSummary(total, search))}</div>`;
     let html = banner + (tlViewMode === 'list' ? buildFriendListHtml(events) : buildFriendTimelineHtml(events));
     c.innerHTML = html;

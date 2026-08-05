@@ -108,6 +108,9 @@ let currentPlayBtnTheme = '';
 let currentCursorTheme = '';
 let currentAppFont = 'google-sans';
 let currentDesignStyle = 'line';
+let currentCustomFont = '';
+let currentFontSizeOffset = 0;
+let _systemFonts = [];
 let _localHttpPort = 0;
 let _cursorFiles = [];
 let _customThemes = [];
@@ -573,7 +576,7 @@ function _teRenderRows() {
     const toggleRow = document.createElement('div');
     toggleRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px;';
     toggleRow.innerHTML =
-        `<span style="font-size:11px;color:var(--tx2);flex:1;">Light Theme</span>` +
+        `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);flex:1;">Light Theme</span>` +
         `<label class="toggle"><input type="checkbox" id="teLightToggle" ${_teLightOn ? 'checked' : ''}>` +
         `<div class="toggle-track"><div class="toggle-knob"></div></div></label>`;
     toggleRow.querySelector('#teLightToggle').addEventListener('change', function () {
@@ -583,7 +586,7 @@ function _teRenderRows() {
 
     for (const group of _TE_GROUPS) {
         const header = document.createElement('div');
-        header.style.cssText = 'font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--tx3);margin:12px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--brd);';
+        header.style.cssText = 'font-size:calc(10px + var(--fs-off, 0px));font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--tx3);margin:12px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--brd);';
         header.textContent = group.title;
         container.appendChild(header);
 
@@ -597,11 +600,11 @@ function _teRenderRows() {
                 ? `<div id="teSwatch_lt:${v}" data-var="lt:${v}" title="Light color (top of dashboard)" style="width:22px;height:22px;flex-shrink:0;border-radius:5px;border:1px solid var(--brd);background:${lightHex};cursor:pointer;"></div>`
                 : '';
             row.innerHTML =
-                `<span style="font-size:11px;color:var(--tx2);width:84px;flex-shrink:0;">${label}</span>` +
+                `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);width:84px;flex-shrink:0;">${label}</span>` +
                 lightSwatch +
                 `<div id="teSwatch_${v}" data-var="${v}" style="width:22px;height:22px;flex-shrink:0;border-radius:5px;border:1px solid var(--brd);background:${hex};cursor:pointer;"></div>` +
                 `<input type="text" class="vrcn-input" id="teHex_${v}" value="${hex}" maxlength="7"` +
-                    ` style="flex:1;font-size:11px;font-family:'Google Sans Mono',monospace;"` +
+                    ` style="flex:1;font-size:calc(11px + var(--fs-off, 0px));font-family:'Google Sans Mono',monospace;"` +
                     ` oninput="teSetColorFromHex('${v}',this.value)">`;
             row.querySelector(`#teSwatch_${v}`).addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -976,7 +979,58 @@ function getAppFontStack(key) {
 
 function applyAppFont(key) {
     currentAppFont = APP_FONTS.some(f => f.key === key) ? key : APP_FONT_DEFAULT;
-    document.documentElement.style.setProperty('--font-app', getAppFontStack(currentAppFont));
+    _pushFontStack();
+}
+
+function _pushFontStack() {
+    const stack = currentCustomFont
+        ? `"${currentCustomFont.replace(/"/g, '')}", ${getAppFontStack(currentAppFont)}`
+        : getAppFontStack(currentAppFont);
+    document.documentElement.style.setProperty('--font-app', stack);
+}
+
+function applyCustomFont(name) {
+    currentCustomFont = name || '';
+    _pushFontStack();
+    renderCustomFontOptions();
+}
+
+function applyFontSizeOffset(px) {
+    const n = Math.max(-5, Math.min(5, parseInt(px, 10) || 0));
+    currentFontSizeOffset = n;
+    document.documentElement.style.setProperty('--fs-off', n + 'px');
+    const slider = document.getElementById('setFontSize');
+    if (slider && String(slider.value) !== String(n)) slider.value = n;
+    const label = document.getElementById('fontSizeVal');
+    if (label) label.textContent = (n > 0 ? '+' : '') + n + ' px';
+}
+
+function setFontSizeOffset(px) {
+    applyFontSizeOffset(px);
+    autoSave();
+}
+
+function setCustomFont(name) {
+    applyCustomFont(name);
+    autoSave();
+}
+
+function renderCustomFontOptions() {
+    const sel = document.getElementById('setCustomFont');
+    if (!sel) return;
+    const none = t('settings.design.fonts.custom_none', 'None');
+    let html = `<option value="">${esc(none)}</option>`;
+    for (const f of _systemFonts) {
+        html += `<option value="${esc(f)}" data-vn-font="${esc(f)}">${esc(f)}</option>`;
+    }
+    sel.innerHTML = html;
+    sel.value = _systemFonts.includes(currentCustomFont) ? currentCustomFont : '';
+    if (sel._vnRefresh) sel._vnRefresh();
+}
+
+function loadSystemFonts(list) {
+    _systemFonts = Array.isArray(list) ? list : [];
+    renderCustomFontOptions();
 }
 
 let _fontPreviewObserver = null;
@@ -1019,7 +1073,9 @@ function setDesignStyle(style) {
 }
 
 function selectAppFont(key) {
+    currentCustomFont = '';
     applyAppFont(key);
+    renderCustomFontOptions();
     document.querySelectorAll('#fontGrid .font-option').forEach(el => {
         el.classList.toggle('active', el.dataset.font === currentAppFont);
     });
@@ -1285,7 +1341,7 @@ function renderCustomThemesList() {
     const el = document.getElementById('customThemesList');
     if (!el) return;
     if (!_customThemes.length) {
-        el.innerHTML = `<div style="font-size:12px;color:var(--tx3);padding:8px 0;" data-i18n="settings.design.themes.empty">No themes found. Drop a folder with CSS files into the custom-themes folder.</div>`;
+        el.innerHTML = `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);padding:8px 0;" data-i18n="settings.design.themes.empty">No themes found. Drop a folder with CSS files into the custom-themes folder.</div>`;
         return;
     }
     el.innerHTML = _customThemes.map(th => {
@@ -1293,8 +1349,8 @@ function renderCustomThemesList() {
         const meta = [th.author ? `by ${esc(th.author)}` : '', th.version ? `v${esc(th.version)}` : ''].filter(Boolean).join(' · ');
         return `<div class="sf-toggle-row" style="background:var(--bg-input);border-radius:8px;padding:10px 14px;">
             <div>
-                <div style="font-size:13px;font-weight:600;color:var(--tx1);">${esc(th.name)}</div>
-                ${meta ? `<div style="font-size:10px;color:var(--tx3);margin-top:2px;">${meta}</div>` : ''}
+                <div style="font-size:calc(13px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);">${esc(th.name)}</div>
+                ${meta ? `<div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);margin-top:2px;">${meta}</div>` : ''}
             </div>
             <label class="toggle"><input type="checkbox" ${on ? 'checked' : ''} onchange="toggleCustomTheme('${esc(th.id)}',this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
         </div>`;
@@ -1876,7 +1932,7 @@ function showLoadingOverlay(text) {
     if (!el) {
         el = document.createElement('div');
         el.id = 'vrcnLoadingOverlay';
-        el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;backdrop-filter:blur(4px);';
+        el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;color:#fff;font-size:calc(14px + var(--fs-off, 0px));backdrop-filter:blur(4px);';
         el.innerHTML = '<div style="padding:18px 26px;background:var(--bg-input);border-radius:12px;color:var(--tx1);display:flex;align-items:center;gap:10px;"><span class="msi" style="font-size:20px;">sync</span><span id="vrcnLoadingOverlayText"></span></div>';
         document.body.appendChild(el);
     }
@@ -2066,13 +2122,14 @@ function initVnSelect(el) {
             const span = document.createElement('span');
             span.className = 'vn-select-label';
             span.textContent = name;
+            if (opt.dataset && opt.dataset.vnFont) span.style.fontFamily = opt.dataset.vnFont;
             item.appendChild(span);
             item.title = name;
 
             if (count) {
                 const countEl = document.createElement('span');
                 countEl.textContent = count;
-                countEl.style.cssText = 'font-size:10px;color:var(--tx3);flex-shrink:0;margin-left:auto;';
+                countEl.style.cssText = 'font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);flex-shrink:0;margin-left:auto;';
                 item.appendChild(countEl);
             }
 
@@ -2101,6 +2158,7 @@ function initVnSelect(el) {
     function syncLabel() {
         const opt = el.options[el.selectedIndex];
         label.textContent = opt ? splitCount(cleanText(opt.text)).name : '';
+        label.style.fontFamily = (opt && opt.dataset && opt.dataset.vnFont) || '';
         const dotState = opt && opt.dataset && opt.dataset.vnDot;
         if (dotState) { triggerDot.className = 'sf-dot ' + dotState; triggerDot.style.display = ''; }
         else          { triggerDot.style.display = 'none'; }

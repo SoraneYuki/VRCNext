@@ -87,7 +87,7 @@ function renderSearchResults(type, results, offset, hasMore) {
                 <div class="cc-name">${esc(g.name)}</div>
                 <div class="cc-bottom-row">
                     <div class="cc-meta">${g.iconUrl ? `<div class="cc-group-icon" style="background-image:url('${cssUrl(g.iconUrl)}')"></div>` : ''}<span class="msi" style="font-size:12px;">group</span> ${esc(searchGroupMembersText(g.memberCount))}</div>
-                    ${g.shortCode ? `<span style="font-size:10px;color:rgba(255,255,255,.4);">${esc(g.shortCode)}</span>` : ''}
+                    ${g.shortCode ? `<span style="font-size:calc(10px + var(--fs-off, 0px));color:rgba(255,255,255,.4);">${esc(g.shortCode)}</span>` : ''}
                 </div>
             </div>
         </div>`).join('');

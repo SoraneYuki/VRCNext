@@ -19,7 +19,7 @@ function snipePopulateGroups(filter) {
         .filter(g => !q || (g.name||'').toLowerCase().includes(q) || (g.shortCode||'').toLowerCase().includes(q));
 
     if (groups.length === 0) {
-        list.innerHTML = `<div style="padding:12px;color:var(--tx3);font-size:12px;text-align:center;">${esc(t('snipe.group_picker.empty', 'No groups found'))}</div>`;
+        list.innerHTML = `<div style="padding:12px;color:var(--tx3);font-size:calc(12px + var(--fs-off, 0px));text-align:center;">${esc(t('snipe.group_picker.empty', 'No groups found'))}</div>`;
         return;
     }
 

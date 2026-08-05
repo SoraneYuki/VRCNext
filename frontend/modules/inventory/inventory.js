@@ -92,7 +92,7 @@ function renderInvFetchError(message, hintKey = '') {
 
     const msg = tf('inventory.error.message', { message: esc(message) }, `Error: ${esc(message)}`);
     const hint = hintKey
-        ? `<br><span style="font-size:11px;color:var(--tx3);">${esc(t(hintKey, ''))}</span>`
+        ? `<br><span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${esc(t(hintKey, ''))}</span>`
         : '';
     grid.innerHTML = `<div class="empty-msg" style="color:var(--err);">${msg}${hint}</div>`;
 }
@@ -161,7 +161,7 @@ function renderInvFiles(files, tab) {
 
     if (!files.length) {
         const hint = invTabHint(tab);
-        grid.innerHTML = `<div class="empty-msg">${t(`inventory.empty.${tab}`, `No ${invTabLabel(tab)} found.`)}${hint ? `<br><span style="font-size:11px;color:var(--tx3);">${esc(hint)}</span>` : ''}</div>`;
+        grid.innerHTML = `<div class="empty-msg">${t(`inventory.empty.${tab}`, `No ${invTabLabel(tab)} found.`)}${hint ? `<br><span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${esc(hint)}</span>` : ''}</div>`;
         return;
     }
 
@@ -234,7 +234,7 @@ function renderInvPrints(prints) {
     if (count) count.textContent = invCountText('prints', prints.length);
 
     if (!prints.length) {
-        grid.innerHTML = `<div class="empty-msg">${t('inventory.empty.prints', 'No prints found.')}<br><span style="font-size:11px;color:var(--tx3);">${esc(t('inventory.empty.prints_desc', 'Prints are photos taken inside VRChat.'))}</span></div>`;
+        grid.innerHTML = `<div class="empty-msg">${t('inventory.empty.prints', 'No prints found.')}<br><span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${esc(t('inventory.empty.prints_desc', 'Prints are photos taken inside VRChat.'))}</span></div>`;
         return;
     }
 
@@ -299,7 +299,7 @@ function renderInvInventory(items) {
     if (count) count.textContent = invCountText('items', items.length);
 
     if (!items.length) {
-        grid.innerHTML = `<div class="empty-msg">${t('inventory.empty.inventory', 'No inventory items found.')}<br><span style="font-size:11px;color:var(--tx3);">${esc(t('inventory.empty.inventory_desc', 'Items you own appear here (props, emojis, stickers from bundles).'))}</span></div>`;
+        grid.innerHTML = `<div class="empty-msg">${t('inventory.empty.inventory', 'No inventory items found.')}<br><span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${esc(t('inventory.empty.inventory_desc', 'Items you own appear here (props, emojis, stickers from bundles).'))}</span></div>`;
         return;
     }
 
@@ -385,7 +385,7 @@ function showInvDeleteModal(type, id, versionId, name) {
     overlay.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
     overlay.id = 'invDeleteModal';
     overlay.onclick = event => { if (event.target === overlay) closeInvDeleteModal(); };
-    overlay.innerHTML = `<div class="modal-box">${renderModalBar(t('inventory.modal.delete_title', 'Delete Item'), [modalCloseAction('closeInvDeleteModal()')])}<div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-msg">${esc(t('inventory.modal.delete_message', 'Permanently delete from VRChat:'))}<br><span class="modal-fname">${esc(name)}</span><br><span style="font-size:11px;color:var(--tx3);">${esc(t('inventory.modal.delete_irreversible', 'This cannot be undone.'))}</span></div><div class="modal-btns"><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmInvDelete()">${esc(t('inventory.actions.delete', 'Delete'))}</button></div></div>`;
+    overlay.innerHTML = `<div class="modal-box">${renderModalBar(t('inventory.modal.delete_title', 'Delete Item'), [modalCloseAction('closeInvDeleteModal()')])}<div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">delete</span></div><div class="modal-msg">${esc(t('inventory.modal.delete_message', 'Permanently delete from VRChat:'))}<br><span class="modal-fname">${esc(name)}</span><br><span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${esc(t('inventory.modal.delete_irreversible', 'This cannot be undone.'))}</span></div><div class="modal-btns"><button class="vrcn-button-round vrcn-btn-danger" onclick="confirmInvDelete()">${esc(t('inventory.actions.delete', 'Delete'))}</button></div></div>`;
     document.body.appendChild(overlay);
 
     overlay.querySelector('.fd-modal-bar-actions .fd-action-btn')?.focus();

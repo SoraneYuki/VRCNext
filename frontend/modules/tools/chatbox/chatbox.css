@@ -41,7 +41,7 @@
     border-radius: 14px;
     padding: 9px 44px 9px 14px;
     color: var(--tx1);
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-family: inherit;
     outline: none;
     width: 100%;
@@ -56,7 +56,7 @@
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     pointer-events: none;
     transition: color .2s;
@@ -86,7 +86,7 @@
     gap: 6px;
     margin-top: 6px;
     padding: 6px 10px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: #FFA726;
     background: rgba(255,167,38,.09);
     border-radius: 8px;
@@ -101,7 +101,7 @@
 }
 
 .cb-preview-text {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     color: #fff;
     text-align: center;
     line-height: 1.6;
@@ -110,14 +110,14 @@
 }
 
 .cb-char-count {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 6px;
     text-align: right;
 }
 
 .cb-media-idle {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx3);
     text-align: center;
     padding: 4px 0;
@@ -145,14 +145,14 @@
 }
 
 .cb-media-time {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 3px;
     text-align: right;
 }
 
 .cb-toggle-icon {
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     color: var(--tx3);
     width: 20px;
     text-align: center;
@@ -166,7 +166,7 @@
 }
 
 .cb-form-row label {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     min-width: 70px;
     flex-shrink: 0;
@@ -179,7 +179,7 @@
     border-radius: 6px;
     padding: 6px 10px;
     color: var(--tx1);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-family: inherit;
     outline: none;
     cursor: pointer;
@@ -216,7 +216,7 @@
 }
 
 .cb-line-text {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx1);
     flex: 1;
     min-width: 0;

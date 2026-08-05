@@ -502,6 +502,7 @@ public partial class AppShell
                     _relayCtrl.HandleMessage(action, msg);
                     break;
 
+                case "getSystemFonts":
                 case "getCursorFiles":
                 case "getCustomThemes":
                     _windowCtrl.HandleMessage(action, msg);

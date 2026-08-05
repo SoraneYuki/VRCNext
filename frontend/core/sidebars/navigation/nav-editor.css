@@ -27,7 +27,7 @@
 }
 
 .ne-handle {
-    font-size: 18px !important;
+    font-size: calc(18px + var(--fs-off, 0px)) !important;
     color: var(--tx3);
     cursor: grab;
     user-select: none;
@@ -45,7 +45,7 @@
 }
 
 .ne-icon {
-    font-size: 20px !important;
+    font-size: calc(20px + var(--fs-off, 0px)) !important;
     color: var(--tx2);
     cursor: pointer;
     flex-shrink: 0;
@@ -60,7 +60,7 @@
 }
 
 .ne-label {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     color: var(--tx1);
 }
 
@@ -124,7 +124,7 @@
     flex: 1;
     min-width: 0;
     height: 28px !important;
-    font-size: 13px !important;
+    font-size: calc(13px + var(--fs-off, 0px)) !important;
 }
 
 .ne-sep-name {
@@ -142,7 +142,7 @@
     padding: 6px 10px;
     border: 1px dashed var(--brd);
     border-radius: 6px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx3);
     text-align: center;
     transition: border-color .15s, background .15s;
@@ -157,7 +157,7 @@
 /* Hidden section separator */
 
 .ne-hidden-sep {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     text-transform: uppercase;
@@ -237,7 +237,7 @@
     border-radius: 6px;
     cursor: pointer;
     color: var(--tx2);
-    font-size: 20px !important;
+    font-size: calc(20px + var(--fs-off, 0px)) !important;
     font-family: 'Material Symbols Rounded', sans-serif;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     transition: color .12s, background .12s;

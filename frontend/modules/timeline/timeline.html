@@ -11,7 +11,7 @@
                     <button class="vrcn-button tl-datebtn" id="tlIcPrev" onclick="icNavDay(-1)" title="Previous day" data-i18n-title="timeline.instance_chart.prev_day" style="display:none;"><span class="msi" style="font-size:16px;">chevron_left</span></button>
                     <button class="vrcn-button tl-datebtn" id="tlDateBtn" onclick="toggleTlDatePicker()" title="Filter by date" data-i18n-title="timeline.date.filter_title">
                         <span class="msi" style="font-size:15px;">calendar_today</span>
-                        <span id="tlDateLabel" style="display:none;color:var(--accent-lt);font-size:11px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                        <span id="tlDateLabel" style="display:none;color:var(--accent-lt);font-size:calc(11px + var(--fs-off, 0px));max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
                     </button>
                     <button class="vrcn-button tl-datebtn" id="tlIcNext" onclick="icNavDay(1)" title="Next day" data-i18n-title="timeline.instance_chart.next_day" style="display:none;"><span class="msi" style="font-size:16px;">chevron_right</span></button>
                     <button class="vrcn-button tl-datebtn" id="tlDateClear" onclick="clearTlDateFilter()" title="Clear date filter" data-i18n-title="timeline.date.clear_title" style="display:none;">
@@ -25,7 +25,7 @@
                     </button>
                     <button class="vrcn-button tl-datebtn" id="tlEditDeleteBtn" onclick="tlEditDeleteSelected()" title="Delete selected" data-i18n-title="timeline.delete_selected_title" style="display:none;color:var(--err);">
                         <span class="msi" style="font-size:16px;">delete</span>
-                        <span id="tlEditDeleteCount" style="font-size:11px;"></span>
+                        <span id="tlEditDeleteCount" style="font-size:calc(11px + var(--fs-off, 0px));"></span>
                     </button>
                     <button class="vrcn-button sub-tab-btn" id="tlViewTimeline" title="Timeline View" data-i18n-title="timeline.view.timeline_title" onclick="setTlViewMode('timeline')"><span class="msi" style="font-size:14px;">account_tree</span></button>
                     <button class="vrcn-button sub-tab-btn" id="tlViewList" title="List View" data-i18n-title="timeline.view.list_title" onclick="setTlViewMode('list')"><span class="msi" style="font-size:14px;">format_list_bulleted</span></button>
@@ -42,8 +42,8 @@
                     </div>
                     <div id="tlDpDaysGrid" class="tl-dp-days"></div>
                     <div class="tl-dp-footer">
-                        <button class="vrcn-button" id="tlDpTodayBtn" style="flex:1;justify-content:center;font-size:11px;" onclick="dpSelectToday()" data-i18n="timeline.datepicker.today">Today</button>
-                        <button class="vrcn-button" style="flex:1;justify-content:center;font-size:11px;" onclick="dpClear()" data-i18n="timeline.datepicker.clear">Clear</button>
+                        <button class="vrcn-button" id="tlDpTodayBtn" style="flex:1;justify-content:center;font-size:calc(11px + var(--fs-off, 0px));" onclick="dpSelectToday()" data-i18n="timeline.datepicker.today">Today</button>
+                        <button class="vrcn-button" style="flex:1;justify-content:center;font-size:calc(11px + var(--fs-off, 0px));" onclick="dpClear()" data-i18n="timeline.datepicker.clear">Clear</button>
                     </div>
                 </div>
                 <div class="tl-filter-row" id="tlPersonalFilters">

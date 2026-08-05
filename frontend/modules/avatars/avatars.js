@@ -729,7 +729,7 @@ function avEditShowMoveMenu(btn) {
             <span class="msi" style="font-size:14px;flex-shrink:0;">folder</span>
             <span style="flex:1;">${esc(g.displayName || g.name)}</span>
             ${favGroupBadge(g)}
-            <span style="font-size:10px;color:var(--tx3);flex-shrink:0;">${count}</span>
+            <span style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);flex-shrink:0;">${count}</span>
         </div>`;
     }).join('');
     picker.style.display = 'block';
@@ -797,7 +797,7 @@ function openAvFavPicker(avatarId, btnEl) {
 
     // If groups not yet loaded, request them
     if (favAvatarGroups.length === 0) {
-        document.getElementById('avFavPickerList').innerHTML = `<div style="font-size:11px;color:var(--tx3);padding:8px 0;">${t('avatars.favorites.loading_groups', 'Loading groups...')}</div>`;
+        document.getElementById('avFavPickerList').innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:8px 0;">${t('avatars.favorites.loading_groups', 'Loading groups...')}</div>`;
         sendToCS({ action: 'vrcGetAvatarFavGroups' });
     }
 
@@ -841,10 +841,10 @@ function renderAvFavPickerList(avatarId) {
             onclick="addAvatarToFavGroup('${aid}','${gn}','${gt}','${oldFvrt}',this)" style="cursor:pointer;">
             <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                    <span style="font-size:12px;font-weight:600;color:var(--tx1);">${esc(g.displayName || g.name)}</span>
+                    <span style="font-size:calc(12px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);">${esc(g.displayName || g.name)}</span>
                     ${vrcBadge}
                 </div>
-                <div style="font-size:10px;color:var(--tx3);margin-top:1px;">${tf('avatars.favorites.group_count', { count, capacity: g.capacity || 25 }, '{count}/{capacity} slots')}</div>
+                <div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);margin-top:1px;">${tf('avatars.favorites.group_count', { count, capacity: g.capacity || 25 }, '{count}/{capacity} slots')}</div>
             </div>
             ${check}
         </div>`;
@@ -906,7 +906,7 @@ function onAvatarFavoriteResult(data) {
         if (data.error) showToast(false, localFavErrorText(data.error));
         const list = document.getElementById('avFavPickerList');
         if (list) {
-            list.innerHTML = `<div style="font-size:11px;color:var(--err,#e55);padding:6px 0;">${t('avatars.favorites.failed_prefix', 'Failed:')} ${esc(data.error || t('avatars.favorites.try_again', 'Try again'))}</div>`;
+            list.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--err,#e55);padding:6px 0;">${t('avatars.favorites.failed_prefix', 'Failed:')} ${esc(data.error || t('avatars.favorites.try_again', 'Try again'))}</div>`;
             setTimeout(() => { if (_avFavPickerAvatarId) renderAvFavPickerList(_avFavPickerAvatarId); }, 1800);
         }
     }

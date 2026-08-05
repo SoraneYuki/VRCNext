@@ -28,7 +28,7 @@
 .log-input-prompt {
     color: var(--tx3);
     font-family: 'Google Sans Mono', monospace;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     user-select: none;
     margin-right: 6px;
     flex-shrink: 0;
@@ -42,7 +42,7 @@
     outline: none;
     color: var(--tx2);
     font-family: 'Google Sans Mono', monospace;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     caret-color: var(--tx2);
     padding: 0;
 }
@@ -53,7 +53,7 @@
     gap: 10px;
     padding: 3.2px 14px;
     font-family: 'Google Sans Mono', monospace;
-    font-size: 9.4px;
+    font-size: calc(9.4px + var(--fs-off, 0px));
     transition: background .08s;
 }
 
@@ -71,7 +71,7 @@
     min-width: 40px;
     font-weight: 700;
     text-transform: uppercase;
-    font-size: 8.5px;
+    font-size: calc(8.5px + var(--fs-off, 0px));
 }
 
 .li-f .li-level.info { color: #6897BB; }

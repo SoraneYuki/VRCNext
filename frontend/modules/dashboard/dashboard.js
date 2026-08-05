@@ -191,7 +191,7 @@ function renderDashWorlds() {
                 const img = f.image || '';
                 return img
                     ? `<img class="cc-friend-av" src="${img}" title="${esc(f.displayName)}" onerror="this.style.display='none'">`
-                    : `<div class="cc-friend-av" title="${esc(f.displayName)}" style="display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
+                    : `<div class="cc-friend-av" title="${esc(f.displayName)}" style="display:flex;align-items:center;justify-content:center;font-size:calc(9px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
             }).join('');
             const extra = w.friends.length > 5 ? `<span class="cc-extra">+${w.friends.length - 5}</span>` : '';
             const friendCountLabel = getDashFriendCountLabel(w.friends.length, 'dashboard.worlds.count_world');
@@ -215,7 +215,7 @@ function renderDashWorlds() {
             const img = f.image || '';
             return img
                 ? `<img class="cc-friend-av" src="${img}" title="${esc(f.displayName)}" onerror="this.style.display='none'">`
-                : `<div class="cc-friend-av" title="${esc(f.displayName)}" style="display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
+                : `<div class="cc-friend-av" title="${esc(f.displayName)}" style="display:flex;align-items:center;justify-content:center;font-size:calc(9px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
         }).join('');
         const extra = w.friends.length > 5 ? `<span class="cc-extra">+${w.friends.length - 5}</span>` : '';
         const thumbStyle = w.thumb ? `background-image:url('${cssUrl(w.thumb)}')` : '';
@@ -238,7 +238,7 @@ function renderDashWorlds() {
                 <div class="cc-friends-row">${friendAvatars}${extra}</div>
                 <div class="cc-bottom-row">
                     <div class="cc-meta"><span class="msi">person</span>${countLabel}</div>
-                    ${instCount > 1 ? `<span style="font-size:9px;color:rgba(255,255,255,.4);">${tf('dashboard.worlds.instances', { count: instCount }, '{count} instances')}</span>` : ''}
+                    ${instCount > 1 ? `<span style="font-size:calc(9px + var(--fs-off, 0px));color:rgba(255,255,255,.4);">${tf('dashboard.worlds.instances', { count: instCount }, '{count} instances')}</span>` : ''}
                 </div>
             </div>
         </div>`;
@@ -260,7 +260,7 @@ function renderDashFriendsFeed() {
         const img = f.image || '';
         const imgTag = img
             ? `<img class="dash-feed-avatar" src="${img}" onerror="this.style.display='none'">`
-            : `<div class="dash-feed-avatar" style="display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
+            : `<div class="dash-feed-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(12px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
         const { worldId } = parseFriendLocation(f.location);
         const cached = worldId ? dashWorldCache[worldId] : null;
         const isPrivate = !f.location || f.location === 'private';
@@ -1126,7 +1126,7 @@ function renderDashGroupActivityInstancesSmall() {
             ? `<img class="dash-flocs-world-thumb" src="${cssUrl(thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">`
             : '';
         const ageGateBadge = isAgeGated
-            ? `<span class="vrcn-badge" style="font-size:9px;background:rgba(255,75,85,.12);color:var(--err);border:1px solid rgba(255,75,85,.25);padding:1px 5px;flex-shrink:0;">18+</span>`
+            ? `<span class="vrcn-badge" style="font-size:calc(9px + var(--fs-off, 0px));background:rgba(255,75,85,.12);color:var(--err);border:1px solid rgba(255,75,85,.25);padding:1px 5px;flex-shrink:0;">18+</span>`
             : '';
         return `<div class="dash-flocs-card" onclick="openGroupInstanceDetail('${loc}')">
             <div class="dash-flocs-avatar-wrap">
@@ -1706,7 +1706,7 @@ function renderDashUpcomingEvents() {
     if (!grid) return;
 
     const emptyState = (icon, msg, btn = '') =>
-        `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px 0;color:var(--tx3);font-size:12px;">
+        `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px 0;color:var(--tx3);font-size:calc(12px + var(--fs-off, 0px));">
             <span class="msi" style="font-size:26px;">${icon}</span>${esc(msg)}${btn}
         </div>`;
 

@@ -7,7 +7,7 @@
     margin-left: auto;
 }
 .ss-toggle-label {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx3);
 }
@@ -65,7 +65,7 @@
     min-width: 0;
 }
 .ss-rule-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx1);
     overflow: hidden;
@@ -73,7 +73,7 @@
     white-space: nowrap;
 }
 .ss-rule-sub {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -87,13 +87,13 @@
     flex-shrink: 0;
 }
 .ss-rule-live {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--accent);
     letter-spacing: .04em;
 }
 .ss-list-empty {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     text-align: center;
     padding: 20px 8px;
@@ -134,7 +134,7 @@
 }
 .ss-time-part { flex: 1; min-width: 0; }
 .ss-time-sep {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
 }
@@ -143,14 +143,14 @@
     padding-bottom: 8px;
 }
 .ss-label {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     text-transform: uppercase;
     letter-spacing: .04em;
 }
 .ss-hint {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
 }
 
@@ -169,7 +169,7 @@
     color: var(--tx3);
     border-radius: 7px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     cursor: pointer;
     transition: background .12s, color .12s, border-color .12s;
@@ -197,7 +197,7 @@
     background: transparent;
     border-radius: 8px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx2);
     cursor: pointer;
@@ -222,7 +222,7 @@
     border-radius: 8px;
 }
 .ss-switch-label {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx1);
     font-weight: 600;
 }
@@ -253,13 +253,13 @@
     padding: 40px 12px;
 }
 .ss-empty-title {
-    font-size: 14px;
+    font-size: calc(14px + var(--fs-off, 0px));
     color: var(--tx2);
     margin-top: 8px;
     font-weight: 600;
 }
 .ss-empty-sub {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 4px;
 }

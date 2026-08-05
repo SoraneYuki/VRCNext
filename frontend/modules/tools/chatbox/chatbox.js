@@ -92,7 +92,7 @@ function renderChatboxLines() {
     const el = document.getElementById('cbCustomLines');
     if (!el) return;
     if (chatboxCustomLines.length === 0) {
-        el.innerHTML = `<div style="font-size:11px;color:var(--tx3);padding:6px 0;">${t('chatbox.custom_lines.empty', 'No custom lines added')}</div>`;
+        el.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:6px 0;">${t('chatbox.custom_lines.empty', 'No custom lines added')}</div>`;
         return;
     }
     el.innerHTML = chatboxCustomLines.map((line, i) =>

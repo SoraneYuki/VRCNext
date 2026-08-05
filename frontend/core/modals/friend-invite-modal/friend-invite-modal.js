@@ -34,7 +34,7 @@ function openFriendInviteModal(userId, displayName, initialTab) {
             <div class="inv-world-banner" style="${thumb ? `background-image:url('${cssUrl(thumb)}')` : ''}">
                 <div class="inv-world-fade"></div>
                 <div class="inv-world-info">
-                    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-bottom:2px;">${inviteTitle}</div>
+                    <div style="font-size:calc(11px + var(--fs-off, 0px));color:rgba(255,255,255,.65);margin-bottom:2px;">${inviteTitle}</div>
                     <div class="inv-world-name">${esc(worldName)}</div>
                 </div>
             </div>
@@ -45,7 +45,7 @@ function openFriendInviteModal(userId, displayName, initialTab) {
             </div>
             <div class="inv-single-body">
                 <div id="invContent_direct">
-                    <div class="fd-info-card" style="font-size:12px;color:var(--tx3);" id="invDirectDesc">${t('profiles.invite.direct_description', 'Send a direct invite with no message.')}</div>
+                    <div class="fd-info-card" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);" id="invDirectDesc">${t('profiles.invite.direct_description', 'Send a direct invite with no message.')}</div>
                 </div>
                 <div id="invMsgSection" style="display:none;">
                     <div class="fd-info-card">

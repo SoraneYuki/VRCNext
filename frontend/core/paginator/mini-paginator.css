@@ -56,7 +56,7 @@
     min-width: 26px;
     height: 26px;
     padding: 0 5px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -72,5 +72,5 @@
 .mini-paginator .mini-pg-ell {
     padding: 0 2px;
     color: var(--tx3);
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
 }

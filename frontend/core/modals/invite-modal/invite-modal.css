@@ -11,7 +11,7 @@
     border-radius: 7px;
     background: color-mix(in srgb, var(--accent) 10%, transparent);
     color: var(--accent);
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     justify-content: center;
 }
 .inst-invite-bar .inst-invite-btn:hover {
@@ -46,7 +46,7 @@
     z-index: 1;
 }
 .inv-world-name {
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     font-weight: 700;
     color: #fff;
     text-shadow: 0 1px 6px rgba(0,0,0,.7);
@@ -77,7 +77,7 @@
     left: 43px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 15px;
+    font-size: calc(15px + var(--fs-off, 0px));
     color: var(--tx3);
     pointer-events: none;
 }
@@ -88,7 +88,7 @@
     outline: none;
     border-radius: 8px;
     color: var(--tx0);
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-family: inherit;
     padding: 8px 12px 8px 26px;
     box-sizing: border-box;
@@ -99,7 +99,7 @@
     padding: 4px 0 2px;
 }
 .inv-section-lbl {
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 700;
     letter-spacing: .08em;
     color: var(--tx3);
@@ -114,7 +114,7 @@
     padding: 7px 10px; border-radius: 8px;
     background: var(--bg-hover); border: none;
     cursor: pointer; transition: background .12s;
-    font-size: 12px; color: var(--tx1);
+    font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx1);
 }
 .inv-msg-item:hover { background: var(--brd); }
 .inv-msg-item.selected { background: var(--accent); color: #fff; }
@@ -127,12 +127,12 @@
 .inv-msg-input {
     flex: 1; background: transparent; border: none;
     border-bottom: 1px solid rgba(255,255,255,.35);
-    color: inherit; font-family: inherit; font-size: 12px;
+    color: inherit; font-family: inherit; font-size: calc(12px + var(--fs-off, 0px));
     padding: 0 4px; outline: none; width: 0; min-width: 0;
 }
 .inv-msg-loading {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px; font-size: 12px; color: var(--tx3);
+    padding: 10px; font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx3);
 }
 .inv-msg-cooldown {
     display: flex; align-items: center; color: var(--tx3); flex-shrink: 0;

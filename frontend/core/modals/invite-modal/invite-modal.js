@@ -69,7 +69,7 @@ function _renderInviteModal() {
             <div class="inv-world-info">
                 ${(typeBadge || ageGateBadge) ? `<div style="margin-bottom:4px;display:flex;gap:4px;flex-wrap:wrap;">${typeBadge}${ageGateBadge}</div>` : ''}
                 <div class="inv-world-name">${esc(worldName)}</div>
-                <div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:3px;">${esc(t('invite.multi.subtitle', 'Invite to this instance'))}</div>
+                <div style="font-size:calc(10px + var(--fs-off, 0px));color:rgba(255,255,255,.65);margin-top:3px;">${esc(t('invite.multi.subtitle', 'Invite to this instance'))}</div>
             </div>
         </div>
         <div class="inv-search-wrap">
@@ -137,7 +137,7 @@ function renderInviteList(filter) {
     if (filter) {
         const capped = allFriends.slice(0, 100);
         if (allFriends.length > 100) {
-            h += `<div class="inv-section-lbl" style="color:var(--tx3);font-size:11px;font-weight:400;">${esc(tf('invite.multi.search.showing', { total: allFriends.length }, 'Showing 100 of {total} — refine search to see more'))}</div>`;
+            h += `<div class="inv-section-lbl" style="color:var(--tx3);font-size:calc(11px + var(--fs-off, 0px));font-weight:400;">${esc(tf('invite.multi.search.showing', { total: allFriends.length }, 'Showing 100 of {total} — refine search to see more'))}</div>`;
         }
         capped.forEach(f => h += card(f));
         el.innerHTML = h;

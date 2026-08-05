@@ -47,7 +47,7 @@ function showToast(ok, msg) {
     if (!area) return;
     const t = document.createElement('div');
     t.className = 'notif-toast';
-    t.innerHTML = `<span class="msi" style="font-size:18px;color:${ok ? 'var(--ok)' : 'var(--err)'};">${ok ? 'check_circle' : 'error'}</span><div style="font-size:13px;">${esc(msg)}</div>`;
+    t.innerHTML = `<span class="msi" style="font-size:18px;color:${ok ? 'var(--ok)' : 'var(--err)'};">${ok ? 'check_circle' : 'error'}</span><div style="font-size:calc(13px + var(--fs-off, 0px));">${esc(msg)}</div>`;
     area.appendChild(t);
     setTimeout(() => t.classList.add('notif-toast-show'), 10);
     setTimeout(() => { t.classList.remove('notif-toast-show'); setTimeout(() => t.remove(), 300); }, 3000);
@@ -61,7 +61,7 @@ function showNotifToast(type, sender, message) {
     const subtitle = tf('notifications.title.from', { label, sender }, `${label} from ${sender}`);
     const t = document.createElement('div');
     t.className = 'notif-toast';
-    t.innerHTML = `<span class="msi" style="font-size:18px;color:var(--accent);">${icon}</span><div><strong>${esc(label)}</strong><div style="font-size:11px;color:var(--tx3);">${esc(subtitle)}${message ? ': ' + esc(message) : ''}</div></div>`;
+    t.innerHTML = `<span class="msi" style="font-size:18px;color:var(--accent);">${icon}</span><div><strong>${esc(label)}</strong><div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${esc(subtitle)}${message ? ': ' + esc(message) : ''}</div></div>`;
     area.appendChild(t);
     setTimeout(() => t.classList.add('notif-toast-show'), 10);
     setTimeout(() => { t.classList.remove('notif-toast-show'); setTimeout(() => t.remove(), 300); }, 5000);

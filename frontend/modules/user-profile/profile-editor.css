@@ -21,7 +21,7 @@
     flex-shrink: 0;
 }
 #vrcnPlusEditor .vpe-title {
-    font-size: 13px;
+    font-size: calc(13px + var(--fs-off, 0px));
     font-weight: 600;
     color: var(--tx1);
     display: flex;
@@ -31,7 +31,7 @@
 #vrcnPlusEditor .vpe-title .vpe-plus-tag {
     background: linear-gradient(90deg, #ff5fa2, #b14bff);
     color: #fff;
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     padding: 2px 6px;
     border-radius: 4px;
@@ -49,7 +49,7 @@
     border-radius: 8px;
     background: linear-gradient(135deg, rgba(255, 95, 162, .14), rgba(177, 75, 255, .14));
     border: 1px solid rgba(255, 95, 162, .35);
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx2);
     line-height: 1.5;
 }
@@ -58,7 +58,7 @@
 #vrcnPlusEditor .vpe-group { margin-top: 6px; }
 #vrcnPlusEditor .vpe-group:first-child { margin-top: 0; }
 #vrcnPlusEditor .vpe-group-title {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     text-transform: uppercase;
     letter-spacing: .6px;
@@ -72,7 +72,7 @@
     margin-bottom: 5px;
 }
 #vrcnPlusEditor .vpe-row-label {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx2);
     width: 84px;
     flex-shrink: 0;
@@ -87,7 +87,7 @@
 }
 #vrcnPlusEditor .vpe-hex {
     flex: 1;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-family: 'Google Sans Mono', monospace;
 }
 

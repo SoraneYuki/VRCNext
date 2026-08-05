@@ -293,6 +293,8 @@ public class AppSettings
     public string CursorTheme { get; set; } = "";
     public string AppFont { get; set; } = "google-sans";
     public string DesignStyle { get; set; } = "line";
+    public string CustomFont { get; set; } = "";
+    public int FontSizeOffset { get; set; } = 0;
     public List<string> ActiveCustomThemes { get; set; } = ["VRCNext v2 Preview"];
     public int GuiZoom { get; set; } = 100;
     public string DashBgPath { get; set; } = "";

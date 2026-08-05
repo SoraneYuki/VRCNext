@@ -309,7 +309,7 @@ function filterFavWorlds() {
                 ? ''
                 : (_worldEditMode
                     ? _favGroupVisDropdown(g.name, g.type, g.visibility)
-                    : `<span style="font-size:11px;color:var(--tx3);font-weight:400;">${esc(visLabel)}</span>`);
+                    : `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);font-weight:400;">${esc(visLabel)}</span>`);
             html += `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
                 <span class="topbar-title">${esc(g.displayName || g.name)}</span>
                 ${badge}
@@ -417,7 +417,7 @@ function worldEditShowMoveMenu(btn) {
             <span class="msi" style="font-size:14px;flex-shrink:0;">folder</span>
             <span style="flex:1;">${esc(g.displayName || g.name)}</span>
             ${favGroupBadge(g)}
-            <span style="font-size:10px;color:var(--tx3);flex-shrink:0;">${count}</span>
+            <span style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);flex-shrink:0;">${count}</span>
         </div>`;
     }).join('');
     picker.style.display = 'block';

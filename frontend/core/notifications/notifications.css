@@ -6,7 +6,7 @@
     padding: 4px 10px;
     border-radius: 20px;
     border: none;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -49,7 +49,7 @@
     right: -4px;
     background: var(--err);
     color: #fff;
-    font-size: 9px;
+    font-size: calc(9px + var(--fs-off, 0px));
     font-weight: 800;
     padding: 1px 4px;
     border-radius: 8px;
@@ -157,7 +157,7 @@
     position: absolute;
     bottom: -3px;
     right: -3px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     background: var(--bg-card);
     border-radius: 50%;
     width: 18px;
@@ -170,7 +170,7 @@
 }
 
 .notif-msg {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 1px;
     overflow: hidden;
@@ -184,7 +184,7 @@
 }
 
 .notif-time {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
     margin-top: 2px;
 }
@@ -260,7 +260,7 @@
     padding: 14px 12px 12px 14px;
 }
 .nc-icon {
-    font-size: 20px;
+    font-size: calc(20px + var(--fs-off, 0px));
     flex-shrink: 0;
     margin-top: 1px;
 }
@@ -277,7 +277,7 @@
     position: absolute;
     bottom: -3px;
     right: -3px;
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     background: var(--bg-card);
     border-radius: 50%;
     width: 18px;
@@ -296,7 +296,7 @@
     gap: 4px;
 }
 .nc-title {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx1);
     line-height: 1.5;
 }
@@ -361,14 +361,14 @@
 }
 
 .inst-world-name {
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx0);
     flex: 1;
 }
 
 .inst-player-count {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx2);
     display: flex;
     align-items: center;
@@ -384,7 +384,7 @@
 }
 
 .inst-user-av-letter {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx3);
     background: var(--bg-card);
@@ -417,7 +417,7 @@
 }
 
 .inst-user-status {
-    font-size: 10px;
+    font-size: calc(10px + var(--fs-off, 0px));
     color: var(--tx3);
 }
 
@@ -471,7 +471,7 @@
     user-select: none;
 }
 .fot-ctx-name {
-    font-size: 11px;
+    font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     padding: 2px 8px 6px;
     border-bottom: 1px solid var(--brd);
@@ -486,7 +486,7 @@
     gap: 8px;
     padding: 6px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: calc(12px + var(--fs-off, 0px));
     color: var(--tx2);
     cursor: pointer;
     transition: background 0.1s;

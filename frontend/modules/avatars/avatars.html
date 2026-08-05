@@ -6,10 +6,10 @@
                         <button class="vrcn-button sub-tab-btn" id="avatarFilterRose" onclick="setAvatarFilter('rose')"><span class="msi" style="font-size:16px;">local_florist</span> <span data-i18n="avatars.filters.rose">Rose Database</span></button>
                         <button class="vrcn-button sub-tab-btn" id="avatarFilterSearch" onclick="setAvatarFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
                         <select id="avatarSearchDbDrop" class="vrcn-dropdown" onchange="setAvatarSearchDb(this.value)" style="min-width:120px;"><option value="avtrdb">Avtrdb</option><option value="avtricu">Avtr.icu</option><option value="vrcn">VRCN</option><option value="all">Search all</option></select>
-                        <span id="avatarCount" style="font-size:12px;color:var(--tx3);"></span>
+                        <span id="avatarCount" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);"></span>
                     </div>
                     <div id="avatarEditBar" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;flex:1;">
-                        <span id="avatarEditCount" style="font-size:12px;color:var(--tx2);white-space:nowrap;">0 selected</span>
+                        <span id="avatarEditCount" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);white-space:nowrap;">0 selected</span>
                         <button id="avatarEditSelectAllBtn" class="vrcn-button" onclick="avEditSelectAll()" data-i18n="avatars.edit.select_all">Select All</button>
                         <div style="position:relative;">
                             <button class="vrcn-button av-edit-action" disabled onclick="avEditShowMoveMenu(this)"><span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="avatars.edit.move_to">Move to...</span></button>
@@ -54,7 +54,7 @@
                 <!-- Favorites with group dropdown -->
                 <div id="avatarFavArea" style="display:none;">
                     <div id="favAvatarGroupHeader" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;min-height:24px;">
-                        <span id="favAvatarGroupLabel" style="font-size:13px;font-weight:600;color:var(--tx1);" data-i18n="avatars.favorites.group.all">All Favorites</span>
+                        <span id="favAvatarGroupLabel" style="font-size:calc(13px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);" data-i18n="avatars.favorites.group.all">All Favorites</span>
                         <span id="favAvatarGroupVrcPlusBadge" class="vrcn-supporter-badge" style="display:none;">VRC+</span>
                         <span id="favAvatarGroupLocalBadge" class="vrcn-local-badge" style="display:none;" data-i18n="favorites.local_badge">Local</span>
                         <button id="favAvatarGroupEditBtn" class="myp-edit-btn" onclick="startEditAvatarGroupName()" style="display:none;" title="Rename category" data-i18n-title="avatars.favorites.rename_category"><span class="msi" style="font-size:14px;">edit</span></button>
