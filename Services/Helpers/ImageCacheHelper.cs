@@ -54,7 +54,7 @@ public static class ImageCacheHelper
         _db = new SqliteConnection($"Data Source={Database.DbPath}");
         _db.Open();
         using var cmd = _db.CreateCommand();
-        cmd.CommandText = "CREATE TABLE IF NOT EXISTS image_versions (key TEXT PRIMARY KEY, url TEXT NOT NULL);";
+        cmd.CommandText = "PRAGMA cache_size=-1024; CREATE TABLE IF NOT EXISTS image_versions (key TEXT PRIMARY KEY, url TEXT NOT NULL);";
         cmd.ExecuteNonQuery();
     }
 

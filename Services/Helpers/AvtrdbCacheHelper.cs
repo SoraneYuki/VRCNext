@@ -21,6 +21,7 @@ public static class AvtrdbCacheHelper
         _conn = new SqliteConnection($"Data Source={_dbPath}");
         _conn.Open();
         Run("PRAGMA journal_mode=WAL");
+        Run("PRAGMA cache_size=-1024");
         Run("""
             CREATE TABLE IF NOT EXISTS Avatar_Deletion (
                 Avtr_ID     TEXT PRIMARY KEY,

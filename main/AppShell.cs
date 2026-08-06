@@ -788,14 +788,24 @@ public partial class AppShell
         }
     }
 
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, System.Reflection.PropertyInfo?> _logMsgProps = new();
+
     private void SendToJS(string type, object? payload = null)
     {
         if (type == "log" && payload != null && _activityLogWriter != null)
         {
             try
             {
-                var p = Newtonsoft.Json.Linq.JObject.FromObject(payload);
-                var logMsg = p["msg"]?.ToString() ?? "";
+                string logMsg;
+                if (payload is Newtonsoft.Json.Linq.JObject jo)
+                {
+                    logMsg = jo["msg"]?.ToString() ?? "";
+                }
+                else
+                {
+                    var prop = _logMsgProps.GetOrAdd(payload.GetType(), t => t.GetProperty("msg"));
+                    logMsg = prop?.GetValue(payload)?.ToString() ?? "";
+                }
                 _activityLogWriter.WriteLine($"{DateTime.Now:HH:mm:ss}  {logMsg}");
             }
             catch { }
