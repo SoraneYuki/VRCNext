@@ -424,6 +424,7 @@ public partial class AppShell
         _core.Window = _window;
         _ = RunJsDispatcherAsync();
         _ = RunAutoBackupsAsync();
+        EfficiencyModeService.Apply(_settings.EfficiencyMode);
 
         if (_minimized) _window.SetMinimized(true);
         _window.WaitForClose();

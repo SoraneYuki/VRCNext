@@ -35,6 +35,24 @@ function updateDashSub() {
     document.getElementById('dashSub').textContent = status;
 }
 
+function _dashVideoSync() {
+    const winVisible = !document.hidden;
+    const heroVid = document.getElementById('dashHeroBg')?.querySelector('video');
+    if (heroVid) {
+        const show = winVisible && document.getElementById('tab0')?.classList.contains('active');
+        if (show && heroVid.paused) heroVid.play().catch(() => {});
+        else if (!show && !heroVid.paused) heroVid.pause();
+    }
+    const prevVid = document.getElementById('dashBgPreviewHero')?.querySelector('video');
+    if (prevVid) {
+        const show = winVisible && document.getElementById('tab9')?.classList.contains('active');
+        if (show && prevVid.paused) prevVid.play().catch(() => {});
+        else if (!show && !prevVid.paused) prevVid.pause();
+    }
+}
+document.documentElement.addEventListener('tabchange', _dashVideoSync);
+document.addEventListener('visibilitychange', _dashVideoSync);
+
 function renderDashBgPreview() {
     const hero = document.getElementById('dashBgPreviewHero');
     if (!hero) return;
@@ -57,9 +75,12 @@ function renderDashBgPreview() {
         if (existingVid) existingVid.remove();
         hero.style.backgroundImage = `url('${src || 'fallback_bg.png'}')`;
     }
+    _dashVideoSync();
 }
 
 function renderDashboard() {
+    const _tab0 = document.getElementById('tab0');
+    if (_tab0 && !_tab0.classList.contains('active')) return;
     const name = currentVrcUser?.displayName;
     document.getElementById('dashWelcome').innerHTML = name
         ? tf('dashboard.welcome.named', { name: `<span style="color:var(--accent)">${esc(name)}</span>` }, 'Welcome, {name}!')
@@ -190,7 +211,7 @@ function renderDashWorlds() {
             const friendAvatars = w.friends.slice(0, 5).map(f => {
                 const img = f.image || '';
                 return img
-                    ? `<img class="cc-friend-av" src="${img}" title="${esc(f.displayName)}" onerror="this.style.display='none'">`
+                    ? `<img class="cc-friend-av" src="${img}" loading="lazy" decoding="async" title="${esc(f.displayName)}" onerror="this.style.display='none'">`
                     : `<div class="cc-friend-av" title="${esc(f.displayName)}" style="display:flex;align-items:center;justify-content:center;font-size:calc(9px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
             }).join('');
             const extra = w.friends.length > 5 ? `<span class="cc-extra">+${w.friends.length - 5}</span>` : '';
@@ -214,7 +235,7 @@ function renderDashWorlds() {
         const friendAvatars = w.friends.slice(0, 5).map(f => {
             const img = f.image || '';
             return img
-                ? `<img class="cc-friend-av" src="${img}" title="${esc(f.displayName)}" onerror="this.style.display='none'">`
+                ? `<img class="cc-friend-av" src="${img}" loading="lazy" decoding="async" title="${esc(f.displayName)}" onerror="this.style.display='none'">`
                 : `<div class="cc-friend-av" title="${esc(f.displayName)}" style="display:flex;align-items:center;justify-content:center;font-size:calc(9px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
         }).join('');
         const extra = w.friends.length > 5 ? `<span class="cc-extra">+${w.friends.length - 5}</span>` : '';
@@ -259,7 +280,7 @@ function renderDashFriendsFeed() {
     el.innerHTML = activeFriends.slice(0, 12).map(f => {
         const img = f.image || '';
         const imgTag = img
-            ? `<img class="dash-feed-avatar" src="${img}" onerror="this.style.display='none'">`
+            ? `<img class="dash-feed-avatar" src="${img}" loading="lazy" decoding="async" onerror="this.style.display='none'">`
             : `<div class="dash-feed-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(12px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName||'?')[0])}</div>`;
         const { worldId } = parseFriendLocation(f.location);
         const cached = worldId ? dashWorldCache[worldId] : null;
@@ -327,7 +348,7 @@ function renderDashFriendsLocationSmall() {
         const img      = f.image || '';
         const dotClass = f.presence === 'web' ? 'vrc-status-ring' : 'vrc-status-dot';
         const avatarEl = img
-            ? `<img class="dash-flocs-avatar" src="${img}" onerror="this.style.display='none'">`
+            ? `<img class="dash-flocs-avatar" src="${img}" loading="lazy" decoding="async" onerror="this.style.display='none'">`
             : `<div class="dash-flocs-avatar dash-flocs-avatar-letter">${esc((f.displayName||'?')[0])}</div>`;
         const worldThumb = thumb
             ? `<img class="dash-flocs-world-thumb" src="${cssUrl(thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">`
@@ -998,7 +1019,7 @@ function renderDashGroupActivity() {
         const icon = g.iconUrl || '';
         const cnt  = g.memberCount || 0;
         const iconHtml = icon
-            ? `<img src="${icon}" onerror="this.parentElement.innerHTML='<span class=msi>group</span>'">`
+            ? `<img src="${icon}" loading="lazy" decoding="async" onerror="this.parentElement.innerHTML='<span class=msi>group</span>'">`
             : `<span class="msi">group</span>`;
         const metaHtml = cnt > 0
             ? `<span class="msi">person</span>${esc(cnt.toLocaleString())}`
@@ -1632,25 +1653,35 @@ document.documentElement.addEventListener('languagechange', rerenderDashTranslat
 
     let _wasDash = false;
     let _fadeAnim = null;
+    let _glassLast = '';
+    let _glassRaf = 0;
 
     function applyGlass() {
         const onDash = tab0 && tab0.classList.contains('active');
         const t = onDash ? Math.min((content?.scrollTop || 0) / FADE_PX, 1) : 1;
         const target = 1 - t;
-        document.body.style.setProperty('--sidebar-glass-t', t.toFixed(3));
+        const sig = t.toFixed(3);
+        if (onDash === _wasDash && sig === _glassLast) return;
+        _glassLast = sig;
+        document.body.style.setProperty('--sidebar-glass-t', sig);
         if (_fadeAnim) { _fadeAnim.cancel(); _fadeAnim = null; }
         if (onDash && !_wasDash) {
             vignette.style.opacity = '0';
             _fadeAnim = vignette.animate([{ opacity: 0 }, { opacity: target }], { duration: 800, easing: 'ease-in' });
-            _fadeAnim.onfinish = () => { _fadeAnim = null; applyGlass(); };
+            _fadeAnim.onfinish = () => { _fadeAnim = null; _glassLast = ''; applyGlass(); };
         } else {
             vignette.style.opacity = target.toFixed(3);
         }
         _wasDash = onDash;
     }
 
+    function onGlassScroll() {
+        if (_glassRaf) return;
+        _glassRaf = requestAnimationFrame(() => { _glassRaf = 0; applyGlass(); });
+    }
+
     function cleanup() {
-        content?.removeEventListener('scroll', applyGlass);
+        content?.removeEventListener('scroll', onGlassScroll);
         document.documentElement.removeEventListener('themechange', applyGlass);
         document.documentElement.removeEventListener('tabchange', applyGlass);
         document.documentElement.removeEventListener('vrcnext:theme:unload:' + THEME_ID, cleanup);
@@ -1659,7 +1690,7 @@ document.documentElement.addEventListener('languagechange', rerenderDashTranslat
     }
 
     applyGlass();
-    content?.addEventListener('scroll', applyGlass, { passive: true });
+    content?.addEventListener('scroll', onGlassScroll, { passive: true });
     document.documentElement.addEventListener('themechange', applyGlass);
     document.documentElement.addEventListener('tabchange', applyGlass);
     document.documentElement.addEventListener('vrcnext:theme:unload:' + THEME_ID, cleanup);

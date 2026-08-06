@@ -2138,6 +2138,8 @@
   "settings.perf.animations.desc": "UI анимации",
   "settings.perf.blur.label": "Размытие",
   "settings.perf.blur.desc": "Эффекты размытия",
+  "settings.perf.efficiency.label": "Режим эффективности",
+  "settings.perf.efficiency.desc": "Запускает процесс VRCNext и его процессы WebView в режиме эффективности Windows (EcoQoS). Снижает энергопотребление и фоновую нагрузку на CPU; в диспетчере задач появляется значок листа. Может немного снизить отзывчивость. Применяется сразу, без перезапуска.",
   "settings.search_debounce.title": "Задержка поиска",
   "settings.search_debounce.label": "Debounce",
   "settings.search_debounce.desc": "Задержка перед поиском",

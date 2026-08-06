@@ -1,5 +1,24 @@
 **2026.38.1**
 
+**Performance**
+
+* Added an **Efficiency Mode** option in **Settings > Performance**. When enabled, VRCNext runs in Windows Efficiency Mode to save power and background CPU usage.
+* Scrolling the Dashboard is now much smoother and uses way less CPU.
+* Friend status updates now cause much less background work, especially with large friend lists.
+* Tabs that are not visible are no longer re-rendered in the background.
+* Typing in search and filter fields now feels smoother.
+
+**Memory Usage**
+
+* Groups are now only loaded when the Groups tab is opened, and images load while scrolling.
+* Images across the app now load only when they become visible, which reduces RAM usage a lot.
+* Video backgrounds now pause while they are not visible.
+* Video thumbnails in the Media Library now use less memory.
+
+**Changes**
+* GPU Acceleration is now on by default. If you don't want that you can disable it in
+Settings > Performance. Disabling GPU Acceleration may cause stutter on some places but safes GPU Usage. This may also increase CPU usage on active use.
+
 **Import**
 
 * Added Avatar Favorite Import.

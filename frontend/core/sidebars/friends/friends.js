@@ -1,5 +1,17 @@
 let _sidebarGroupInstances = null;
 
+const RVF_THROTTLE_MS = 300;
+let _rvfTimer = null;
+let _rvfLastRun = 0;
+function scheduleRenderVrcFriends() {
+    if (_rvfTimer) return;
+    const wait = Math.max(0, RVF_THROTTLE_MS - (Date.now() - _rvfLastRun));
+    _rvfTimer = setTimeout(() => {
+        _rvfTimer = null;
+        renderVrcFriends(vrcFriendsData);
+    }, wait);
+}
+
 function getRegionCode(region) {
     return (region || 'us').toUpperCase();
 }
@@ -48,6 +60,7 @@ function renderVrcProfile(u) {
 }
 
 function renderVrcFriends(friends, counts) {
+    _rvfLastRun = Date.now();
     const el = document.getElementById('vrcFriendsList');
     const lp = document.getElementById('vrcLoginPrompt');
     if (lp) lp.style.display = 'none';
@@ -111,7 +124,7 @@ function renderVrcFriends(friends, counts) {
     const renderCard = (f, presenceType) => {
         const img = f.image || '';
         const imgTag = img
-            ? `<img class="vrc-friend-avatar" src="${img}" onerror="this.style.display='none'">`
+            ? `<img class="vrc-friend-avatar" src="${img}" loading="lazy" decoding="async" onerror="this.style.display='none'">`
             : `<div class="vrc-friend-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(12px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName || '?')[0])}</div>`;
         const statusCls = presenceType === 'offline' ? 's-offline' : statusDotClass(f.status);
         const rank = getTrustRank(f.tags || []);
@@ -207,13 +220,13 @@ function renderVrcFriends(friends, counts) {
                 const _subChev = friendSectionCollapsed[_subKey] ? 'expand_more' : 'expand_less';
                 const _subActive = !friendSectionCollapsed[_subKey] ? ' active' : '';
                 const _iconHtml = grp.icon
-                    ? `<img class="vrc-gi-group-icon" src="${grp.icon}" onerror="this.style.display='none'">`
+                    ? `<img class="vrc-gi-group-icon" src="${grp.icon}" loading="lazy" decoding="async" onerror="this.style.display='none'">`
                     : `<span class="msi" style="font-size:13px;flex-shrink:0;">group</span>`;
                 h += `<div class="vrc-section-label vrc-gi-group-header vrc-offline-toggle${_subActive}" onclick="toggleFriendSection('${_subKey}')" style="cursor:pointer;padding-left:16px;"><span class="ni msi">group</span><span class="nl" style="display:flex;align-items:center;gap:5px;overflow:hidden;">${_iconHtml}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(grp.name)}</span><span style="flex-shrink:0;">· ${grp.instances.length}</span></span><span class="nav-group-arrow msi nl" id="${_subKey}Chevron">${_subChev}</span></div>`;
                 h += `<div id="${_subKey}FriendsSection" class="friend-section-items${friendSectionCollapsed[_subKey] ? ' collapsed' : ''}">`;
                 grp.instances.forEach(inst => {
                     const _loc = (inst.location || '').replace(/'/g, "\\'");
-                    const _thumbHtml = inst.worldThumb ? `<img class="vrc-gi-world-thumb" src="${inst.worldThumb}" onerror="this.style.display='none'">` : '';
+                    const _thumbHtml = inst.worldThumb ? `<img class="vrc-gi-world-thumb" src="${inst.worldThumb}" loading="lazy" decoding="async" onerror="this.style.display='none'">` : '';
                     h += `<div class="vrc-gi-instance-card" onclick="openGroupInstanceDetail('${_loc}')" style="cursor:pointer;">`;
                     if (_thumbHtml) h += _thumbHtml;
                     h += `<div class="vrc-gi-instance-info"><div class="vrc-gi-instance-name">${esc(inst.worldName || inst.location || '')}</div><div class="vrc-gi-instance-count">${inst.userCount}/${inst.capacity}</div></div>`;
@@ -296,7 +309,7 @@ function filterFriendsList() {
     capped.forEach(f => {
         const img = f.image || '';
         const imgTag = img
-            ? `<img class="vrc-friend-avatar" src="${img}" onerror="this.style.display='none'">`
+            ? `<img class="vrc-friend-avatar" src="${img}" loading="lazy" decoding="async" onerror="this.style.display='none'">`
             : `<div class="vrc-friend-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(12px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName || '?')[0])}</div>`;
         const presenceType = f.presence || 'offline';
         const statusCls = presenceType === 'offline' ? 's-offline' : statusDotClass(f.status);

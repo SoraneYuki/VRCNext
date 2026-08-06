@@ -284,8 +284,8 @@ window.external.receiveMessage(rawMsg => {
                 const idx = vrcFriendsData.findIndex(f => f.id === payload.id);
                 if (idx >= 0) vrcFriendsData[idx] = payload;
                 else vrcFriendsData.push(payload);
-                renderVrcFriends(vrcFriendsData);
-                if (favFriendsData.length > 0) filterFavFriends();
+                scheduleRenderVrcFriends();
+                if (favFriendsData.length > 0) filterFavFriendsIfVisible();
                 if (typeof updateUserItemWorld === 'function') updateUserItemWorld(payload);
                 if (typeof patchFriendDetailLive === 'function') patchFriendDetailLive(payload);
                 break;
@@ -301,7 +301,7 @@ window.external.receiveMessage(rawMsg => {
                 }
                 requestWorldResolution(); renderDashboard(); requestInstanceInfo();
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);
-                if (favFriendsData.length > 0) filterFavFriends();
+                if (favFriendsData.length > 0) filterFavFriendsIfVisible();
                 break;
             case 'vrcProfileDecorations':
                 if (typeof onProfileDecorations === 'function') onProfileDecorations(payload);
@@ -1007,6 +1007,7 @@ case 'vrcNews':
                 dashBgDataUri = payload.url || '';
                 if (dashBgPath) document.getElementById('dashBgName').textContent = dashBgPath.split(/[\\\\/]/).pop();
                 renderDashboard();
+                if (typeof renderDashBgPreview === 'function') renderDashBgPreview();
                 autoSave();
                 break;
             case 'chatboxUpdate':

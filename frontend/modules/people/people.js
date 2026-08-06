@@ -673,7 +673,15 @@ function renderFavFriendCard(f) {
     return renderUserItem(f, `openFriendDetail('${uid}')`);
 }
 
+let _favFriendsDirty = false;
+function filterFavFriendsIfVisible() {
+    const tab = document.getElementById('tab3');
+    if (tab && tab.classList.contains('active')) filterFavFriends();
+    else _favFriendsDirty = true;
+}
+
 function filterFavFriends() {
+    _favFriendsDirty = false;
     const el = document.getElementById('favFriendsGrid');
     if (!el) return;
     const q = (document.getElementById('favFriendSearchInput')?.value || '').toLowerCase();

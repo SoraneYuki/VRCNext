@@ -85,7 +85,7 @@
                         <div class="sf-toggle-row">
                             <span data-i18n="settings.perf.gpu_accel.label">Enable Hardware Acceleration</span>
                             <label class="toggle">
-                                <input type="checkbox" id="setPerfGpuAccel" onchange="onPerfSettingChange()">
+                                <input type="checkbox" id="setPerfGpuAccel" checked onchange="onPerfSettingChange()">
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
@@ -130,6 +130,14 @@
                             </label>
                         </div>
                         <div class="set-desc" data-i18n="settings.perf.blur.desc">Disables blur filters on modals and overlays. Instead of a blurred background, a dark overlay (75%) is shown. Especially useful when GPU acceleration is disabled, as blur effects are CPU-intensive. It is recommended to disable Blur Filters when using the app without GPU acceleration.</div>
+                        <div class="sf-toggle-row" style="margin-top:14px;">
+                            <span data-i18n="settings.perf.efficiency.label">Efficiency Mode</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setPerfEfficiency" onchange="autoSave()">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-i18n="settings.perf.efficiency.desc">Runs the VRCNext process and its WebView processes in Windows Efficiency Mode (EcoQoS). Lowers power usage and background CPU impact; the leaf icon appears in Task Manager. May slightly reduce responsiveness. Applies immediately, no restart needed.</div>
                         <div id="perfRestartHint" style="display:none;margin-top:10px;">
                             <span class="set-desc" data-i18n="settings.perf.restart_hint">A restart is required to apply performance changes.</span>
                             <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>

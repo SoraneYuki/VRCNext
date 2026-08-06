@@ -23,7 +23,12 @@ body:has(.rsidebar.collapsed) .dash-hero { margin-right: calc(-1 * (var(--rsideb
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    filter: brightness(0.8);
+}
+.dash-hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.2);
 }
 
 .dash-hero-fade {

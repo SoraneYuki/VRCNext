@@ -2083,10 +2083,16 @@ public class AuthController
             _core.Settings.DbAutoBackupDays    = data["dbAutoBackupDays"]?.Value<int>()     ?? 60;
 
             // Performance flags (require restart)
-            _core.Settings.GpuAcceleration    = data["gpuAcceleration"]?.Value<bool>()    ?? false;
+            _core.Settings.GpuAcceleration    = data["gpuAcceleration"]?.Value<bool>()    ?? _core.Settings.GpuAcceleration;
             _core.Settings.GpuShaderCache     = data["gpuShaderCache"]?.Value<bool>()     ?? false;
             _core.Settings.V8Heap128          = data["v8Heap128"]?.Value<bool>()          ?? false;
             _core.Settings.TwoRenderProcesses = data["twoRenderProcesses"]?.Value<bool>() ?? false;
+            var _newEffMode = data["efficiencyMode"]?.Value<bool>() ?? _core.Settings.EfficiencyMode;
+            if (_newEffMode != _core.Settings.EfficiencyMode || _newEffMode)
+            {
+                _core.Settings.EfficiencyMode = _newEffMode;
+                VRCNext.Services.EfficiencyModeService.Apply(_newEffMode);
+            }
             _core.Settings.AnimationsEnabled  = data["animationsEnabled"]?.Value<bool>()  ?? true;
             _core.Settings.BlurEnabled        = data["blurEnabled"]?.Value<bool>()        ?? true;
             _core.Settings.SearchDebounceMs   = Math.Clamp(data["searchDebounceMs"]?.Value<int>() ?? 500, 15, 900);
