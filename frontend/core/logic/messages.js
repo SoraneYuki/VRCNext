@@ -1079,6 +1079,9 @@ case 'vrcNews':
             case 'userOnlineHeatmap':      renderFdOnlineHeatmap(payload); if (typeof renderMypOnlineHeatmap === 'function') renderMypOnlineHeatmap(payload); break;
             case 'userStatusTime':         renderFdStatusTime(payload); if (typeof renderMypStatusTime === 'function') renderMypStatusTime(payload); break;
             case 'exportList':             if (typeof renderExportModal === 'function') renderExportModal(payload); break;
+            case 'importFile':             if (typeof renderImportModal === 'function') renderImportModal(payload); break;
+            case 'importProgress':         if (typeof onImportProgress === 'function') onImportProgress(payload); break;
+            case 'importDone':             if (typeof onImportDone === 'function') onImportDone(payload); break;
             case 'invFiles':
                 if (!payload.error) {
                     // Cache by actual tag (not activeInvTab) to prevent cross-contamination

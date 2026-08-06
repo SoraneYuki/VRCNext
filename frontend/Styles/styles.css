@@ -264,7 +264,7 @@ html.text-tools-active * { user-select: text !important; }
 }
 .fd-modal-actions .btn-notif { color: #fff; }
 .fd-modal-actions .fd-action-danger:hover { color: var(--err); }
-.msi.fd-action-fav { color: #f7c948; }
+.msi.fd-action-fav { color: var(--accent); }
 
 .fd-banner-edit {
     position: absolute;

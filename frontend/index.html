@@ -55,6 +55,7 @@
     <link rel="stylesheet" href="core/modals/group-modal/group-modal.css">
     <link rel="stylesheet" href="core/modals/my-instance-modal/my-instance-modal.css">
     <link rel="stylesheet" href="core/modals/timeline-modal/timeline-modal.css">
+    <link rel="stylesheet" href="core/modals/import-modal/import-modal.css">
     <link rel="stylesheet" href="core/context-menu/context-menu.css">
     <link rel="stylesheet" href="core/messenger/messenger.css">
     <link rel="stylesheet" href="core/items/items.css">
@@ -195,6 +196,13 @@
                                     <button class="tb-dd-item" data-keep-modal onclick="openExportModal('groups')"><span class="msi">groups</span><span data-i18n="export.groups">Groups</span></button>
                                     <button class="tb-dd-item" data-keep-modal onclick="openExportModal('avatars')"><span class="msi">checkroom</span><span data-i18n="export.avatars">Avatars</span></button>
                                     <button class="tb-dd-item" data-keep-modal onclick="openExportModal('friends')"><span class="msi">group</span><span data-i18n="export.friends">Friends</span></button>
+                                </div>
+                            </div>
+                            <div class="tb-dd-submenu">
+                                <button class="tb-dd-item"><span class="msi">file_upload</span><span data-i18n="tb.tools.import">Import</span><span class="msi tb-dd-arrow">chevron_right</span></button>
+                                <div class="tb-dd-sub-drop">
+                                    <button class="tb-dd-item" data-keep-modal onclick="openImportModal('worlds')"><span class="msi">public</span><span data-i18n="import.worlds">Worlds</span></button>
+                                    <button class="tb-dd-item" data-keep-modal onclick="openImportModal('avatars')"><span class="msi">checkroom</span><span data-i18n="import.avatars">Avatars</span></button>
                                 </div>
                             </div>
                             <div class="tb-dd-submenu">
@@ -551,6 +559,23 @@
         </div>
     </div>
 
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="modalImport" style="display:none;" onclick="if(event.target===this)closeImportModal()">
+        <div class="modal-box" style="width:748px;max-width:92%;">
+            <div class="fd-modal-bar">
+                <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" id="importTitle">Import</span></div>
+                <div class="fd-modal-bar-actions"><button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="closeImportModal()"><span class="msi" style="font-size:20px;">close</span></button></div>
+            </div>
+            <div class="modal-msg" id="importDesc" style="margin:20px 0 14px;"></div>
+            <div id="importRows"></div>
+            <div class="modal-msg" id="importStatus" style="margin:14px 0 0;min-height:18px;"></div>
+            <div class="modal-btns" style="margin-top:16px;">
+                <button class="vrcn-button-round" onclick="closeImportModal()"><span data-i18n="common.cancel">Cancel</span></button>
+                <button class="vrcn-button-round vrcn-btn-join" id="importStartBtn" onclick="importStart()"><span class="msi" style="font-size:14px;">upload</span> <span data-i18n="import.start">Import</span></button>
+            </div>
+        </div>
+    </div>
+
     <!-- VRChat Launch Options Modal -->
     <div class="modal-overlay" id="modalVrcLaunchOptions" style="display:none;" onclick="if(event.target===this)this.style.display='none'"></div>
 
@@ -780,6 +805,7 @@
             'core/Taskbar/taskbar.js',
             'core/modals/vrc-tools-modal/vrc-tools-modal.js',
             'core/modals/export-modal/export-modal.js',
+            'core/modals/import-modal/import-modal.js',
             'core/Blyat/blyat.js',
         ];
 

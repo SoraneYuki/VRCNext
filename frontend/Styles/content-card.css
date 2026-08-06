@@ -92,6 +92,9 @@
     bottom: 14px;
     right: 14px;
     z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 .vrcn-content-card .cc-time-top {
     position: absolute;
@@ -245,6 +248,18 @@
     font-size: calc(11px + var(--fs-off, 0px));
     font-weight: 500;
     color: var(--tx3);
+}
+
+.fav-group-name-edit { display: inline-flex; align-items: center; gap: 6px; }
+.fav-group-name-input {
+    max-width: 240px;
+    font-size: calc(13px + var(--fs-off, 0px));
+    font-weight: 600;
+}
+.fav-group-name-actions { display: inline-flex; gap: 4px; }
+.fav-group-name-actions .vrcn-button {
+    padding: 3px 10px;
+    font-size: calc(11px + var(--fs-off, 0px));
 }
 
 .fd-group-card {

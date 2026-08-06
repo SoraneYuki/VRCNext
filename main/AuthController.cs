@@ -2508,7 +2508,7 @@ public class AuthController
                     var release   = a["releaseStatus"]?.ToString() ?? "private";
                     var fvrtId    = a["favoriteId"]?.ToString() ?? "";
                     var pkgs      = (a["unityPackages"] as JArray ?? new JArray())
-                        .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "" })
+                        .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                         .ToArray();
                     allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, unityPackages = pkgs });
                     allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, unityPackages = pkgs });
@@ -2526,7 +2526,7 @@ public class AuthController
                 var author    = a["authorName"]?.ToString() ?? "";
                 var release   = a["releaseStatus"]?.ToString() ?? "private";
                 var pkgs      = (a["unityPackages"] as JArray ?? new JArray())
-                    .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "" })
+                    .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                     .ToArray();
                 allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, unityPackages = pkgs });
                 allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, unityPackages = pkgs });
@@ -2558,7 +2558,7 @@ public class AuthController
                 releaseStatus     = a["releaseStatus"]?.ToString() ?? "private",
                 description       = a["description"]?.ToString() ?? "",
                 unityPackages     = (a["unityPackages"] as JArray ?? new JArray())
-                    .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "" })
+                    .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                     .ToArray(),
             }).ToList();
             if (_core.Settings.FfcEnabled)

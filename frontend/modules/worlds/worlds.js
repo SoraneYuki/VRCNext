@@ -223,7 +223,7 @@ function saveWorldGroupName() {
 }
 
 function onFavoriteGroupUpdated(data) {
-    if (!data.ok) { cancelEditWorldGroupName(); return; }
+    if (!data.ok) { if (_worldEditMode) filterFavWorlds(); else cancelEditWorldGroupName(); return; }
     const g = favWorldGroups.find(x => x.name === data.groupName);
     if (g) {
         if (data.displayName) g.displayName = data.displayName;
@@ -238,6 +238,42 @@ function onFavoriteGroupUpdated(data) {
     cancelEditWorldGroupName();
     updateFavWorldGroupHeader();
     filterFavWorlds(); // re-render headers with updated visibility
+}
+
+function _wdGroupTitleHtml(g) {
+    const disp = g.displayName || g.name;
+    if (!_worldEditMode) return `<span class="topbar-title">${esc(disp)}</span>`;
+    return `<span class="fav-group-name-edit">
+        <input class="vrcn-edit-field fav-group-name-input" maxlength="64" value="${esc(disp)}" data-group="${esc(g.name)}" data-type="${esc(g.type || 'world')}" data-orig="${esc(disp)}" oninput="wdOnGroupNameInput(this)" onclick="event.stopPropagation()">
+        <span class="fav-group-name-actions" style="display:none;">
+            <button class="vrcn-button vrcn-btn-primary" onclick="wdSaveGroupName(this)">${t('common.save', 'Save')}</button>
+            <button class="vrcn-button" onclick="wdCancelGroupName(this)">${t('common.cancel', 'Cancel')}</button>
+        </span>
+    </span>`;
+}
+
+function wdOnGroupNameInput(inp) {
+    const actions = inp.closest('.fav-group-name-edit')?.querySelector('.fav-group-name-actions');
+    if (!actions) return;
+    const v = inp.value.trim();
+    actions.style.display = (v && v !== inp.dataset.orig) ? 'inline-flex' : 'none';
+}
+
+function wdSaveGroupName(btn) {
+    const inp = btn.closest('.fav-group-name-edit')?.querySelector('.fav-group-name-input');
+    if (!inp) return;
+    const newName = inp.value.trim();
+    if (!newName || newName === inp.dataset.orig) return;
+    btn.disabled = true;
+    sendToCS({ action: 'vrcUpdateFavoriteGroup', groupType: inp.dataset.type, groupName: inp.dataset.group, displayName: newName });
+}
+
+function wdCancelGroupName(btn) {
+    const wrap = btn.closest('.fav-group-name-edit');
+    const inp = wrap?.querySelector('.fav-group-name-input');
+    if (inp) inp.value = inp.dataset.orig;
+    const actions = wrap?.querySelector('.fav-group-name-actions');
+    if (actions) actions.style.display = 'none';
 }
 
 /* === Shared world card renderer (search + favorites) === */
@@ -300,7 +336,7 @@ function filterFavWorlds() {
         let first = true;
         favWorldGroups.forEach(g => {
             const groupWorlds = filtered.filter(w => w.favoriteGroup === g.name);
-            if (!groupWorlds.length) return;
+            if (!groupWorlds.length && !_worldEditMode) return;
             const isLocal = isLocalFavGroup(g);
             const cap = isLocal ? (g.capacity || 200) : Math.max(g.capacity || 100, 100);
             const badge = favGroupBadge(g);
@@ -311,7 +347,7 @@ function filterFavWorlds() {
                     ? _favGroupVisDropdown(g.name, g.type, g.visibility)
                     : `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);font-weight:400;">${esc(visLabel)}</span>`);
             html += `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
-                <span class="topbar-title">${esc(g.displayName || g.name)}</span>
+                ${_wdGroupTitleHtml(g)}
                 ${badge}
                 <span class="fav-group-count">${groupWorlds.length}/${cap}</span>
                 ${visHtml}

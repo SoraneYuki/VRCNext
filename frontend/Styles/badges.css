@@ -33,6 +33,7 @@
 
 .vrcn-badge.platform-pc    { color: var(--bdg-user-pc);    background: color-mix(in srgb, var(--bdg-user-pc) 16%, transparent); }
 .vrcn-badge.platform-quest { color: var(--bdg-user-quest); background: color-mix(in srgb, var(--bdg-user-quest) 16%, transparent); }
+.vrcn-badge.platform-ios   { color: var(--bdg-user-ios, #9CA3B8); background: color-mix(in srgb, var(--bdg-user-ios, #9CA3B8) 16%, transparent); }
 .vrcn-badge.platform-web   { color: var(--bdg-user-web);   background: color-mix(in srgb, var(--bdg-user-web) 18%, transparent); }
 .vrcn-badge.bdg-friend     { color: var(--bdg-user-friend);background: color-mix(in srgb, var(--bdg-user-friend) 14%, transparent); }
 

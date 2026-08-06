@@ -496,9 +496,11 @@ public class UnifiedTimeEngine : IDisposable
         public List<string> Tags        { get; set; } = new();
         public bool   HasPC             { get; set; }
         public bool   HasQuest          { get; set; }
+        public bool   HasIos            { get; set; }
         public bool   HasImpostor       { get; set; }
         public string PcPerf            { get; set; } = "";
         public string QuestPerf         { get; set; } = "";
+        public string IosPerf           { get; set; } = "";
     }
 
     public string GetAvatarDetailStatus(string avatarId)
@@ -530,7 +532,7 @@ public class UnifiedTimeEngine : IDisposable
                 using var cmd = _db.CreateCommand();
                 cmd.CommandText = @"SELECT name,author_name,author_id,thumbnail_image_url,image_url,
                     release_status,version,created_at,updated_at,description,tags,
-                    has_pc,has_quest,has_impostor,pc_perf,quest_perf,detail_cached_at
+                    has_pc,has_quest,has_impostor,pc_perf,quest_perf,detail_cached_at,has_ios,ios_perf
                     FROM avatar_tracking WHERE avatar_id=$id";
                 cmd.Parameters.AddWithValue("$id", avatarId);
                 using var r = cmd.ExecuteReader();
@@ -548,6 +550,8 @@ public class UnifiedTimeEngine : IDisposable
                     HasImpostor       = r.GetInt32(13) != 0,
                     PcPerf            = r.GetString(14),
                     QuestPerf         = r.GetString(15),
+                    HasIos            = r.GetInt32(17) != 0,
+                    IosPerf           = r.GetString(18),
                 };
             }
             catch { return null; }
@@ -557,7 +561,8 @@ public class UnifiedTimeEngine : IDisposable
     public void SaveAvatarDetail(string avatarId, string name, string authorName, string authorId,
         string thumbnailImageUrl, string imageUrl, string releaseStatus, int version,
         string createdAt, string updatedAt, string description, List<string> tags,
-        bool hasPC, bool hasQuest, bool hasImpostor, string pcPerf, string questPerf)
+        bool hasPC, bool hasQuest, bool hasImpostor, string pcPerf, string questPerf,
+        bool hasIos = false, string iosPerf = "")
     {
         if (string.IsNullOrEmpty(avatarId)) return;
         var now = DateTime.UtcNow.ToString("o");
@@ -568,8 +573,8 @@ public class UnifiedTimeEngine : IDisposable
                 using var cmd = _db.CreateCommand();
                 cmd.CommandText = @"INSERT INTO avatar_tracking(avatar_id,name,author_name,author_id,thumbnail_image_url,
                     image_url,release_status,version,created_at,updated_at,description,tags,
-                    has_pc,has_quest,has_impostor,pc_perf,quest_perf,detail_cached_at)
-                    VALUES($id,$n,$an,$ai,$ti,$img,$rs,$ver,$ca,$ua,$desc,$tags,$hpc,$hq,$hi,$pcp,$qp,$cat)
+                    has_pc,has_quest,has_impostor,pc_perf,quest_perf,detail_cached_at,has_ios,ios_perf)
+                    VALUES($id,$n,$an,$ai,$ti,$img,$rs,$ver,$ca,$ua,$desc,$tags,$hpc,$hq,$hi,$pcp,$qp,$cat,$his,$iosp)
                     ON CONFLICT(avatar_id) DO UPDATE SET
                         name=excluded.name, author_name=excluded.author_name, author_id=excluded.author_id,
                         thumbnail_image_url=excluded.thumbnail_image_url, image_url=excluded.image_url,
@@ -577,7 +582,8 @@ public class UnifiedTimeEngine : IDisposable
                         created_at=excluded.created_at, updated_at=excluded.updated_at,
                         description=excluded.description, tags=excluded.tags,
                         has_pc=excluded.has_pc, has_quest=excluded.has_quest, has_impostor=excluded.has_impostor,
-                        pc_perf=excluded.pc_perf, quest_perf=excluded.quest_perf, detail_cached_at=excluded.detail_cached_at";
+                        pc_perf=excluded.pc_perf, quest_perf=excluded.quest_perf, detail_cached_at=excluded.detail_cached_at,
+                        has_ios=excluded.has_ios, ios_perf=excluded.ios_perf";
                 cmd.Parameters.AddWithValue("$id",   avatarId);
                 cmd.Parameters.AddWithValue("$n",    name);
                 cmd.Parameters.AddWithValue("$an",   authorName);
@@ -596,6 +602,8 @@ public class UnifiedTimeEngine : IDisposable
                 cmd.Parameters.AddWithValue("$pcp",  pcPerf);
                 cmd.Parameters.AddWithValue("$qp",   questPerf);
                 cmd.Parameters.AddWithValue("$cat",  now);
+                cmd.Parameters.AddWithValue("$his",  hasIos ? 1 : 0);
+                cmd.Parameters.AddWithValue("$iosp", iosPerf);
                 cmd.ExecuteNonQuery();
             }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[AVT-SAVE-ERR] {ex.Message}"); }
@@ -1886,6 +1894,8 @@ public class UnifiedTimeEngine : IDisposable
             "pc_perf             TEXT NOT NULL DEFAULT ''",
             "quest_perf          TEXT NOT NULL DEFAULT ''",
             "detail_cached_at    TEXT NOT NULL DEFAULT ''",
+            "has_ios             INTEGER NOT NULL DEFAULT 0",
+            "ios_perf            TEXT NOT NULL DEFAULT ''",
         })
         {
             try { using var mc = _db.CreateCommand(); mc.CommandText = $"ALTER TABLE avatar_tracking ADD COLUMN {col}"; mc.ExecuteNonQuery(); } catch { }

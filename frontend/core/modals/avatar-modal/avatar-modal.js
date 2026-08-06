@@ -121,15 +121,8 @@ function renderAvatarDetail(a) {
     const aid = jsq(a.id || '');
     const _avIsFav = (typeof favAvatarsData !== 'undefined') && favAvatarsData.some(f => f.id === a.id);
 
-    function platBadge(label, cssClass, icon, perf) {
-        const perfHtml = perf ? `<span style="opacity:.8;font-weight:400;"> - ${esc(perf)}</span>` : '';
-        return `<span class="vrcn-badge ${cssClass}"><span class="msi" style="font-size:10px;">${icon}</span>${label}${perfHtml}</span>`;
-    }
-
     const isPublic = a.releaseStatus === 'public';
     const statusBadge = avatarStatusBadge(isPublic);
-    const pcBadge = a.hasPC ? platBadge('PC', 'platform-pc', 'computer', a.pcPerf) : '';
-    const questBadge = a.hasQuest ? platBadge('Quest', 'platform-quest', 'android', a.questPerf) : '';
     const impostorBadge = a.hasImpostor
         ? `<span class="vrcn-badge" style="background:rgba(138,43,226,.18);color:#b47aff;"><span class="msi" style="font-size:10px;">smart_toy</span> ${t('avatars.labels.impostor', 'Impostor')}</span>`
         : '';
@@ -194,7 +187,16 @@ function renderAvatarDetail(a) {
     </div>`;
 
     const _mr = (label, valueHtml) =>
-        `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));"><span style="color:var(--tx3);">${label}</span><span style="color:var(--tx1);text-align:right;">${valueHtml}</span></div>`;
+        `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:calc(11px + var(--fs-off, 0px));"><span style="color:var(--tx3);">${label}</span><span style="color:var(--tx1);text-align:right;display:inline-flex;align-items:center;gap:6px;">${valueHtml}</span></div>`;
+    const _perfVal = perf => {
+        const ic = avatarPerfIcon(perf, 18);
+        return ic ? `${ic}${esc(_avPerfPretty(perf))}` : '<span style="color:var(--tx3);">-</span>';
+    };
+    const platPerfRows = [
+        a.hasPC    ? _mr('PC', _perfVal(a.pcPerf))         : '',
+        a.hasQuest ? _mr('Android', _perfVal(a.questPerf)) : '',
+        a.hasIos   ? _mr('iOS', _perfVal(a.iosPerf))       : '',
+    ].join('');
 
     const _infosCard = `<div class="fd-info-card">
         <div class="fd-group-rep-label">${t('avatars.detail.sections.infos', 'Infos')}</div>
@@ -202,8 +204,9 @@ function renderAvatarDetail(a) {
             ${_mr(t('avatars.detail.meta.created_at', 'Created'), fmtDate(a.created_at))}
             ${_mr(t('avatars.detail.meta.updated_at', 'Updated'), fmtDate(a.updated_at))}
             ${a.version ? _mr(t('avatars.detail.meta.version', 'Version'), `v${a.version}`) : ''}
+            ${platPerfRows}
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">${pcBadge}${questBadge}${impostorBadge}</div>
+        ${impostorBadge ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">${impostorBadge}</div>` : ''}
         <div class="myp-section-header">
             <span class="myp-section-title">${t('avatars.detail.sections.visibility', 'Visibility')}</span>
             ${isOwn ? `<button class="myp-edit-btn" onclick="editAvField('visibility')"><span class="msi" style="font-size:14px;">edit</span></button>` : ''}

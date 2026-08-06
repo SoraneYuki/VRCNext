@@ -2,6 +2,43 @@
 
 .vrcn-badge.current        { background: rgba(0,214,143,.2);    color: var(--ok); }
 
+#avVrcnFtBtn.active { background: var(--accent); color: #fff; }
+.cc-perf-top {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.cc-perf-top img { filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
+.cc-plat-ico {
+    height: 23px;
+    width: auto;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
+}
+#avVrcnContentMenu { display: flex; flex-direction: column; gap: 1px; }
+.av-cf-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: calc(13px + var(--fs-off, 0px));
+    color: var(--tx1);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.av-cf-item:hover { background: var(--bg-hover); }
+.av-cf-item input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
 .avatar-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
