@@ -18,6 +18,7 @@
     --tx3: #FFFFFF;
     --brd: #1C1C1F;
     --brd-lt: #1C1C1F;
+    --border: var(--sep-color);
     --sidebar-w: 220px;
     --sidebar-c: 60px;
     --rsidebar-c: 60px;

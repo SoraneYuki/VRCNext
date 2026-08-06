@@ -550,12 +550,41 @@ public partial class AppShell
                 case "scanLibraryForce":
                 case "loadLibraryPage":
                 case "deleteLibraryFile":
-                case "copyImageToClipboard":
                 case "addFavorite":
                 case "removeFavorite":
                 case "setDesktopBackground":
                     await _photos.HandleMessage(action, msg);
                     break;
+
+                case "copyImageToClipboard":
+                {
+                    var clipUrl = msg["url"]?.ToString();
+                    if (!string.IsNullOrEmpty(clipUrl) && string.IsNullOrEmpty(msg["path"]?.ToString()))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var resp = await _vrcApi.GetHttpClient().GetAsync(clipUrl);
+                                if (resp.IsSuccessStatusCode)
+                                {
+                                    var bytes = await resp.Content.ReadAsByteArrayAsync();
+                                    var ext = (resp.Content.Headers.ContentType?.MediaType ?? "").Contains("jpeg") ? "jpg" : "png";
+                                    var tempPath = Path.Combine(Path.GetTempPath(), $"vrcn_clip_{Guid.NewGuid():N}.{ext}");
+                                    File.WriteAllBytes(tempPath, bytes);
+                                    await _photos.HandleMessage("copyImageToClipboard", new JObject { ["path"] = tempPath });
+                                }
+                                else SendToJS("toast", new { ok = false, msg = "Copy failed" });
+                            }
+                            catch (Exception ex) { SendToJS("toast", new { ok = false, msg = $"Copy failed: {ex.Message}" }); }
+                        });
+                    }
+                    else
+                    {
+                        await _photos.HandleMessage(action, msg);
+                    }
+                    break;
+                }
 
                 case "browseExe":
                 case "browseDashBg":

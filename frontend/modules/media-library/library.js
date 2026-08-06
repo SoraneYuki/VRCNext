@@ -1299,19 +1299,10 @@ function _photoBlobToPng(blob) {
     });
 }
 
-async function photoCopyImage() {
+function photoCopyImage() {
     const it = _photoState.item;
     if (!it || !it.url) return;
-    try {
-        const resp = await fetch(it.url);
-        if (!resp.ok) throw new Error('fetch failed');
-        let blob = await resp.blob();
-        if (blob.type !== 'image/png') blob = await _photoBlobToPng(blob);
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        showToast(true, t('export.copied', 'Copied to clipboard'));
-    } catch {
-        showToast(false, t('export.copy_failed', 'Copy failed'));
-    }
+    sendToCS({ action: 'copyImageToClipboard', url: it.url });
 }
 
 function photoNavPrev() { _photoNav(-1); }

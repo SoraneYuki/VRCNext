@@ -249,6 +249,7 @@ window.external.receiveMessage(rawMsg => {
                 loadMyInstances();
                 requestInstanceInfo();
                 refreshNotifications();
+                if (typeof libraryFiles !== 'undefined' && !libraryFiles.length && typeof sendToCS === 'function') sendToCS({ action: 'scanLibrary' });
                 { const vp = document.getElementById('badgeVrcPlus');
                   if (vp) { const isVrcPlus = Array.isArray(payload.tags) && payload.tags.includes('system_supporter'); vp.style.display = isVrcPlus ? '' : 'none'; } }
                 if (!window._lastModerationFetch || Date.now() - window._lastModerationFetch >= 120 * 60 * 1000) {
