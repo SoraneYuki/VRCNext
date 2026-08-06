@@ -6,6 +6,7 @@
 * Added separation lines between favorite groups when the line design is enabled.
 * User profiles now show 36 mutual friends and content items per page.
 * World modals now show 15 images per page.
+* Right clicking on your own profile shows now also "Recently Used" status texts and "Edit Status Text"
 
 **Fixes**
 
