@@ -1,56 +1,60 @@
+**2026.39.0 BETA**
 
-**2026.38.0 BETA**
+**Performance (Backend)**
 
-**VR Overlay**
+* Greatly reduced RAM usage of the VRCNext process. Memory is now capped and cleaned up much more aggressively.
+* Fixed an issue where the built-in memory optimization was never actually applied.
+* Reduced memory usage of internal logging and databases.
 
-* Added a notification when a friend joins your instance.
-* For example, when Shiny joins your instance, the overlay will display: **“Shiny joined your instance.”**
-* Added Text-to-Speech support to the VR Overlay.
-* You can choose which events should trigger a spoken notification, such as when a friend joins a world.
+**Performance (Frontend)**
 
-**Text-to-Speech**
+* Added **Efficiency Mode** under **Settings > Performance** to reduce power and background CPU usage.
+* Improved Dashboard scrolling and reduced CPU usage.
+* Reduced background work from friend status updates, especially with large friend lists.
+* Hidden tabs are no longer re-rendered in the background.
+* Improved typing performance in search and filter fields.
+* Groups now load only when the Groups tab is opened.
+* Images across the app now load only when visible.
+* Video backgrounds pause while hidden.
+* Media Library video thumbnails now use less memory.
+* GPU Acceleration is now enabled by default and can be disabled under **Settings > Performance**. Disabling it may reduce GPU usage but can increase CPU usage and cause stuttering.
 
-* Added Text-to-Speech support to KikitanXD.
-* KikitanXD can now speak the text that is sent to your OSC Chatbox.
-* To let other players hear the generated voice, you need to route the audio through a virtual audio cable using software such as VoiceMeeter.
-* Added SAPI Offline TTS
-* Added Microsoft Neural Online TTS
+**Import**
 
-**Fonts**
+* Added Avatar Favorite Import.
+* Added World Favorite Import.
+* Export avatars and worlds through **Taskbar > Tools > Export**.
+* Import them to another VRChat account through **Taskbar > Tools > Import**.
+* Select which favorite groups they should be imported into.
 
-* Added various Google Fonts to VRCN.
-* Added support for custom fonts installed on Windows.
-* Font settings can be found under **Settings > Appearance > Fonts**.
-* Added a font-size slider that allows you to increase or decrease the default font size by up to 5 px.
+**Avatar Search**
 
-**Design Changes**
-
-* Added badge counters to the left sidebar for favorite and owned worlds, joined groups, owned and favorited avatars, and events taking place during the current month.
-* Added adjustable separators to better organize the left sidebar.
-* Added an option to show separation lines between the taskbar and the left and right sidebars.
-* Added an option to display certain tab elements inside cards, making them easier to navigate.
-* Redesigned the **Appearance** tab and added theme previews.
-* Replaced the favorite star icon with a heart icon.
-* Updated the **Play VRChat** button in both the expanded and collapsed sidebar to match the VRCN v2 design.
+* Added a **Performance** filter to VRCNDb.
+* Added a **Face Tracking** filter to VRCNDb.
+* Added a **Content** filter to VRCNDb.
+* Added a **Platform** filter to VRCNDb, AvtrDb, and CuteAvatarSearch.
 
 **Improvements**
 
-* The left and right sidebars can now be resized.
-* Added **Lock Sidebars** under **Taskbar > View** to disable sidebar resizing.
-* Added **Reset Sidebars** under **Taskbar > View** to restore their default sizes.
-* Icons, symbols, and fonts are now stored locally instead of being downloaded from Google’s CDN.
-* Fonts, icons, and symbols are now loaded dynamically, slightly reducing memory usage.
+* Favorite groups can now be renamed more easily in Edit Mode.
+* Added more spacing between Timeline categories.
+* Added separation lines between favorite groups when the line design is enabled.
+* User profiles now show 36 mutual friends and content items per page.
+* World modals now show 15 images per page.
+* Right-clicking your own profile now shows **Recently Used Status Texts** and **Edit Status Text**.
+* The yellow favorite color now uses the custom theme accent color.
+* Avatar modals now use the original VRChat performance rank icons.
+* Avatar Search now shows PC, Android, and iOS performance ranks using the original VRChat icons.
+* Removed the **Current** avatar badge because the outline already shows the active avatar.
+* Added platform icons to avatar modals and preview cards.
 
-**Bug Fixes**
+**Fixes**
 
-* Fixed an issue where profile frames were still displayed when the setting was disabled.
-* Fixed column headers in Timeline lists not aligning with the content below them.
-* Fixed copying images from the Photo Modal placing a local cache link on the clipboard instead of the actual image. Images can now be pasted directly into Discord, chats, and image editors.
-* Fixed the heatmap in user profiles using the button color instead of the VRC+ icon color.
-* Fixed an issue that prevented profile theme colors from being updated.
-* Fixed the "Most visited World" progress bars on vrc+ decorated profiles.
-* Fixed VRCNDb avatar ID searches using `avtr_...`.
-* Fixed VRChat+ world favorite groups showing only 4 instead of 8 groups.
-* Fixed the avatar favorite group picker not reopening after pressing Cancel.
-* Fixed KikitanXD sending audio below the Gemini noise gate threshold, which could capture nearby players.
-* Fixed SteamVR Overlay crashes caused by Space Flight.
+* Fixed button misalignments in the Groups tab.
+* Fixed **Copy to Clipboard** in user profiles and the Inventory tab.
+* Fixed world modal images not appearing until the Media Library had been opened.
+* Fixed breadcrumb navigation sometimes switching tabs unexpectedly.
+* Fixed content overflowing in profile modals when too many items were displayed.
+* Fixed user ID search in VRCNDb Avatar Search.
+* Fixed renamed favorite groups not updating in the Avatars tab.
+* Fixed renamed favorite groups not updating in the Worlds tab.

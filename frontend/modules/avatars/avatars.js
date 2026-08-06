@@ -118,6 +118,7 @@ function setAvatarFilter(filter) {
         const _dbWrap = _dbDrop._vnSelect ? _dbDrop.parentNode : _dbDrop;
         _dbWrap.style.display = filter === 'search' ? '' : 'none';
     }
+    _avUpdateVrcnFilterVisibility();
 
     document.getElementById('avatarCount').textContent = '';
     const _sc = document.getElementById('avatarSearchCount'); if (_sc) _sc.textContent = '';
@@ -248,19 +249,19 @@ function _markDeletedAvatars(deletedIds) {
 }
 
 function _avPlatformBadges(a) {
-    let hasPC, hasQuest;
+    let hasPC, hasQuest, hasIos;
     if (a.compatibility && a.compatibility.length > 0) {
-        // avtrdb: ["pc", "android", "ios"] — avtr.icu: ["standalonewindows", "android"]
         hasPC    = a.compatibility.includes('pc') || a.compatibility.includes('standalonewindows');
         hasQuest = a.compatibility.includes('android');
+        hasIos   = a.compatibility.includes('ios');
     } else {
-        // Own / favorite avatars: use unityPackages, exclude auto-generated impostors
         const real = (a.unityPackages || []).filter(p => p.variant !== 'impostor');
         hasPC    = real.some(p => p.platform === 'standalonewindows');
         hasQuest = real.some(p => p.platform === 'android');
+        hasIos   = real.some(p => p.platform === 'ios');
     }
-    if (!hasPC && !hasQuest) return '';
-    return `<div style="display:flex;gap:3px;">${hasPC ? '<span class="vrcn-badge platform-pc">PC</span>' : ''}${hasQuest ? '<span class="vrcn-badge platform-quest">Quest</span>' : ''}</div>`;
+    if (!hasPC && !hasQuest && !hasIos) return '';
+    return `<div style="display:flex;gap:3px;">${hasPC ? '<span class="vrcn-badge platform-pc">PC</span>' : ''}${hasQuest ? '<span class="vrcn-badge platform-quest">Quest</span>' : ''}${hasIos ? '<span class="vrcn-badge platform-ios">iOS</span>' : ''}</div>`;
 }
 
 /* === Publish / Platform filters (shared across avatar sub-tabs) === */
@@ -268,16 +269,56 @@ let avatarPublishFilter  = 'all';
 let avatarPlatformFilter = 'all';
 
 function _avPlatformInfo(a) {
-    let hasPC = false, hasQuest = false;
+    let hasPC = false, hasQuest = false, hasIos = false;
     if (a.compatibility && a.compatibility.length > 0) {
         hasPC    = a.compatibility.includes('pc') || a.compatibility.includes('standalonewindows');
         hasQuest = a.compatibility.includes('android');
+        hasIos   = a.compatibility.includes('ios');
     } else if (a.unityPackages && a.unityPackages.length > 0) {
         const real = a.unityPackages.filter(p => p.variant !== 'impostor');
         hasPC    = real.some(p => p.platform === 'standalonewindows');
         hasQuest = real.some(p => p.platform === 'android');
+        hasIos   = real.some(p => p.platform === 'ios');
     }
-    return { hasPC, hasQuest };
+    return { hasPC, hasQuest, hasIos };
+}
+
+function _avPerfPretty(perf) {
+    const key = String(perf || '').toLowerCase().replace(/[^a-z]/g, '');
+    return { excellent: 'Excellent', good: 'Good', medium: 'Medium', poor: 'Poor', verypoor: 'Very Poor' }[key] || '';
+}
+
+function avatarPerfIcon(perf, size = 16, label = '') {
+    const key = String(perf || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (!['excellent', 'good', 'medium', 'poor', 'verypoor'].includes(key)) return '';
+    const pretty = _avPerfPretty(perf);
+    const title = label ? `${label} - ${pretty}` : pretty;
+    return `<img src="assets/Avatars/${key}.png" title="${esc(title)}" style="height:${size}px;width:auto;vertical-align:middle;">`;
+}
+
+function _avPerfByPlatform(a) {
+    if (a.performance && typeof a.performance === 'object') {
+        return { pc: a.performance.pc || '', quest: a.performance.quest || a.performance.android || '', ios: a.performance.ios || '' };
+    }
+    const real = (a.unityPackages || []).filter(p => p.variant !== 'impostor');
+    const get = plat => real.find(p => p.platform === plat)?.performanceRating || '';
+    return { pc: get('standalonewindows'), quest: get('android'), ios: get('ios') };
+}
+
+function _avPerfBadges(a) {
+    const p = _avPerfByPlatform(a);
+    const icons = [
+        avatarPerfIcon(p.pc, 23, 'PC'),
+        avatarPerfIcon(p.quest, 23, 'Android'),
+        avatarPerfIcon(p.ios, 23, 'iOS'),
+    ].filter(Boolean);
+    return icons.length ? `<div class="cc-perf-top">${icons.join('')}</div>` : '';
+}
+
+function _avPlatformIcons(a) {
+    const { hasPC, hasQuest, hasIos } = _avPlatformInfo(a);
+    const ico = (has, img, label) => has ? `<img class="cc-plat-ico" src="assets/Avatars/${img}" title="${esc(label)}">` : '';
+    return ico(hasPC, 'pc.png', 'PC') + ico(hasQuest, 'android.png', 'Android') + ico(hasIos, 'ios.png', 'iOS');
 }
 
 // An avatar passes when the data is unknown (lenient) or it matches the active filter.
@@ -288,10 +329,11 @@ function _avPassesFilters(a) {
         if (avatarPublishFilter === 'private' &&  isPub) return false;
     }
     if (avatarPlatformFilter !== 'all') {
-        const { hasPC, hasQuest } = _avPlatformInfo(a);
-        if (hasPC || hasQuest) {
+        const { hasPC, hasQuest, hasIos } = _avPlatformInfo(a);
+        if (hasPC || hasQuest || hasIos) {
             if (avatarPlatformFilter === 'pc'    && !hasPC)    return false;
             if (avatarPlatformFilter === 'quest' && !hasQuest) return false;
+            if (avatarPlatformFilter === 'ios'   && !hasIos)   return false;
         }
     }
     return true;
@@ -322,12 +364,11 @@ function _avDbBadge(context, a) {
     const hasIcu  = srcs.includes('avtricu');
     const hasVrcn = srcs.includes('vrcn');
     if (!hasDb && !hasIcu && !hasVrcn) return '';
-    const badges = [
+    return [
         hasDb   ? '<span class="vrcn-badge db-avtrdb">Avtrdb</span>'   : '',
         hasIcu  ? '<span class="vrcn-badge db-avtricu">Avtr.icu</span>' : '',
         hasVrcn ? '<span class="vrcn-badge db-vrcndb">VRCN</span>'      : '',
     ].join('');
-    return `<div class="cc-badge-db" style="display:flex;gap:3px;">${badges}</div>`;
 }
 
 function renderAvatarCard(a, context) {
@@ -335,14 +376,13 @@ function renderAvatarCard(a, context) {
     const isActive = a.id === currentAvatarId;
     const isPublic = context === 'search' || a.releaseStatus === 'public';
     const statusBadge = avatarStatusBadge(isPublic);
-    const activeBadge = avatarCurrentBadge(isActive);
     const aid = jsq(a.id || '');
     const thumbStyle = thumb ? `background-image:url('${cssUrl(thumb)}')` : '';
     return `<div class="vrcn-content-card av-card${isActive ? ' av-active' : ''}" onclick="selectAvatar('${aid}')">
         <div class="cc-bg" style="${thumbStyle}"></div>
         <div class="cc-scrim"></div>
-        <div class="cc-badges-top">${activeBadge}${statusBadge}${_avPlatformBadges(a)}</div>
-        ${_avDbBadge(context, a)}
+        <div class="cc-badges-top">${_avPlatformIcons(a)}</div>${_avPerfBadges(a)}
+        <div class="cc-badge-db">${_avDbBadge(context, a)}${statusBadge}</div>
         <div class="cc-content">
             <div class="cc-name">${esc(a.name || t('avatars.labels.unnamed', 'Unnamed'))}</div>
             <div class="cc-meta">${esc(a.authorName || '')}</div>
@@ -379,6 +419,55 @@ function selectAvatar(avatarId) {
 }
 
 /* === Search === */
+let avatarVrcnFt = false;
+
+function _avVrcnContentCsv() {
+    const menu = document.getElementById('avVrcnContentMenu');
+    return menu ? [...menu.querySelectorAll('input:checked')].map(c => c.value).join(',') : '';
+}
+function _avUpdateVrcnContentCount() {
+    const n = document.getElementById('avVrcnContentMenu')?.querySelectorAll('input:checked').length || 0;
+    const cnt = document.getElementById('avVrcnContentCount');
+    if (cnt) { cnt.textContent = n ? `(${n})` : ''; cnt.style.display = n ? '' : 'none'; }
+}
+function updateAvVrcnContent() { _avUpdateVrcnContentCount(); if (avatarSearchQuery) doAvatarSearch(); }
+function toggleAvVrcnFt() {
+    avatarVrcnFt = !avatarVrcnFt;
+    document.getElementById('avVrcnFtBtn')?.classList.toggle('active', avatarVrcnFt);
+    if (avatarSearchQuery) doAvatarSearch();
+}
+function toggleAvVrcnContentMenu() {
+    const menu = document.getElementById('avVrcnContentMenu');
+    if (!menu) return;
+    const open = menu.style.display !== 'none';
+    menu.style.display = open ? 'none' : 'block';
+    if (!open) setTimeout(() => document.addEventListener('mousedown', _avVrcnContentOutside), 0);
+}
+function _avVrcnContentOutside(e) {
+    const wrap = document.getElementById('avVrcnContentWrap');
+    if (!wrap || !wrap.contains(e.target)) {
+        const m = document.getElementById('avVrcnContentMenu'); if (m) m.style.display = 'none';
+        document.removeEventListener('mousedown', _avVrcnContentOutside);
+    }
+}
+function _avUpdateVrcnFilterVisibility() {
+    const show = avatarSearchDb === 'vrcn';
+    const perf = document.getElementById('avVrcnPerf');
+    if (perf) (perf._vnSelect ? perf.parentNode : perf).style.display = show ? '' : 'none';
+    const ftBtn = document.getElementById('avVrcnFtBtn');
+    if (ftBtn) ftBtn.style.display = show ? '' : 'none';
+    const cWrap = document.getElementById('avVrcnContentWrap');
+    if (cWrap) cWrap.style.display = show ? '' : 'none';
+}
+function _avResetVrcnFilters() {
+    avatarVrcnFt = false;
+    document.getElementById('avVrcnFtBtn')?.classList.remove('active');
+    const perfSel = document.getElementById('avVrcnPerf');
+    if (perfSel) { perfSel.value = ''; perfSel._vnRefresh && perfSel._vnRefresh(); }
+    document.getElementById('avVrcnContentMenu')?.querySelectorAll('input:checked').forEach(c => { c.checked = false; });
+    _avUpdateVrcnContentCount();
+}
+
 function setAvatarSearchDb(db) {
     avatarSearchDb = db;
     avatarSearchPage = 0;
@@ -388,6 +477,8 @@ function setAvatarSearchDb(db) {
     _avIcuBuffer = [];
     _avIcuBufferCursor = 0;
     _avIcuFetchHasMore = false;
+    _avResetVrcnFilters();
+    _avUpdateVrcnFilterVisibility();
     const grid = document.getElementById('avatarSearchGrid');
     if (grid) grid.innerHTML = avatarEmptyMessage('avatars.search.empty_prompt', 'Search for public avatars');
     document.getElementById('avatarCount').textContent = '';
@@ -415,7 +506,8 @@ function doAvatarSearch(loadMore) {
     } else {
         avatarSearchPage++;
     }
-    sendToCS({ action: 'vrcSearchAvatars', query: avatarSearchQuery, page: avatarSearchPage, db: avatarSearchDb });
+    sendToCS({ action: 'vrcSearchAvatars', query: avatarSearchQuery, page: avatarSearchPage, db: avatarSearchDb,
+        perf: document.getElementById('avVrcnPerf')?.value || '', content: _avVrcnContentCsv(), ft: avatarVrcnFt });
 }
 
 /* === Favorites: group dropdown + header === */
@@ -510,12 +602,47 @@ function saveAvatarGroupName() {
     sendToCS({ action: 'vrcUpdateFavoriteGroup', groupType: g.type, groupName: g.name, displayName: newName });
 }
 
+function _avGroupTitleHtml(g) {
+    const disp = g.displayName || g.name;
+    if (!_avEditMode) return `<span class="topbar-title">${esc(disp)}</span>`;
+    return `<span class="fav-group-name-edit">
+        <input class="vrcn-edit-field fav-group-name-input" maxlength="64" value="${esc(disp)}" data-group="${esc(g.name)}" data-type="${esc(g.type || 'avatar')}" data-orig="${esc(disp)}" oninput="avOnGroupNameInput(this)" onclick="event.stopPropagation()">
+        <span class="fav-group-name-actions" style="display:none;">
+            <button class="vrcn-button vrcn-btn-primary" onclick="avSaveGroupName(this)">${t('common.save', 'Save')}</button>
+            <button class="vrcn-button" onclick="avCancelGroupName(this)">${t('common.cancel', 'Cancel')}</button>
+        </span>
+    </span>`;
+}
+
+function avOnGroupNameInput(inp) {
+    const actions = inp.closest('.fav-group-name-edit')?.querySelector('.fav-group-name-actions');
+    if (!actions) return;
+    const v = inp.value.trim();
+    actions.style.display = (v && v !== inp.dataset.orig) ? 'inline-flex' : 'none';
+}
+
+function avSaveGroupName(btn) {
+    const inp = btn.closest('.fav-group-name-edit')?.querySelector('.fav-group-name-input');
+    if (!inp) return;
+    const newName = inp.value.trim();
+    if (!newName || newName === inp.dataset.orig) return;
+    btn.disabled = true;
+    sendToCS({ action: 'vrcUpdateFavoriteGroup', groupType: inp.dataset.type, groupName: inp.dataset.group, displayName: newName });
+}
+
+function avCancelGroupName(btn) {
+    const wrap = btn.closest('.fav-group-name-edit');
+    const inp = wrap?.querySelector('.fav-group-name-input');
+    if (inp) inp.value = inp.dataset.orig;
+    const actions = wrap?.querySelector('.fav-group-name-actions');
+    if (actions) actions.style.display = 'none';
+}
+
 function _renderFavAvCard(a) {
     const thumb = a.thumbnailImageUrl || a.imageUrl || '';
     const thumbStyle = thumb ? `background-image:url('${cssUrl(thumb)}')` : '';
     const isActive = a.id === currentAvatarId;
     const aid = jsq(a.id || '');
-    const activeBadge = avatarCurrentBadge(isActive);
     const isPublic = a.releaseStatus === 'public';
     const statusBadge = avatarStatusBadge(isPublic);
     if (_avEditMode) {
@@ -526,7 +653,8 @@ function _renderFavAvCard(a) {
         return `<div class="vrcn-content-card av-card${isActive ? ' av-active' : ''}" data-avid="${esc(a.id)}" onclick="toggleAvEditSelect('${aid}',this)" style="user-select:none;">
             <div class="cc-bg" style="${thumbStyle}"></div>
             <div class="cc-scrim"></div>
-            <div class="cc-badges-top">${activeBadge}${statusBadge}${_avPlatformBadges(a)}</div>
+            <div class="cc-badges-top">${_avPlatformIcons(a)}</div>${_avPerfBadges(a)}
+            <div class="cc-badge-db">${statusBadge}</div>
             <div class="wd-edit-check">${checkIcon}</div>
             <div class="cc-content">
                 <div class="cc-name">${esc(a.name || t('avatars.labels.unnamed', 'Unnamed'))}</div>
@@ -538,7 +666,8 @@ function _renderFavAvCard(a) {
     return `<div class="vrcn-content-card av-card${isActive ? ' av-active' : ''}" onclick="selectAvatar('${aid}')">
         <div class="cc-bg" style="${thumbStyle}"></div>
         <div class="cc-scrim"></div>
-        <div class="cc-badges-top">${activeBadge}${statusBadge}${_avPlatformBadges(a)}</div>
+        <div class="cc-badges-top">${_avPlatformIcons(a)}</div>${_avPerfBadges(a)}
+        <div class="cc-badge-db">${statusBadge}</div>
         <div class="cc-content">
             <div class="cc-name">${esc(a.name || t('avatars.labels.unnamed', 'Unnamed'))}</div>
             <div class="cc-meta">${esc(a.authorName || '')}</div>
@@ -567,10 +696,10 @@ function filterFavAvatars() {
         let first = true;
         favAvatarGroups.forEach(g => {
             const groupAvatars = filtered.filter(a => a.favoriteGroup === g.name);
-            if (!groupAvatars.length) return;
+            if (!groupAvatars.length && !_avEditMode) return;
             const cap = g.capacity || 25;
             html += `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
-                <span class="topbar-title">${esc(g.displayName || g.name)}</span>
+                ${_avGroupTitleHtml(g)}
                 ${favGroupBadge(g)}
                 <span class="fav-group-count">${groupAvatars.length}/${cap}</span>
             </div>`;
@@ -945,7 +1074,7 @@ function onAvatarFavGroupsLoaded(groups) {
 
 // Handles rename result (shared with worlds via vrcFavoriteGroupUpdated)
 function onAvatarFavoriteGroupUpdated(data) {
-    if (!data.ok) { cancelEditAvatarGroupName(); return; }
+    if (!data.ok) { if (_avEditMode) filterFavAvatars(); else cancelEditAvatarGroupName(); return; }
     const g = favAvatarGroups.find(x => x.name === data.groupName);
     if (g) g.displayName = data.displayName;
     const sel = document.getElementById('favAvatarGroupFilter');
@@ -954,6 +1083,7 @@ function onAvatarFavoriteGroupUpdated(data) {
         if (opt && g) opt.textContent = _avGroupOptionLabel(g);
         if (sel._vnRefresh) sel._vnRefresh();
     }
+    if (_avEditMode) { filterFavAvatars(); return; }
     cancelEditAvatarGroupName();
     updateFavAvatarGroupHeader();
 }

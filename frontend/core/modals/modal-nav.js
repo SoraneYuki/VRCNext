@@ -343,24 +343,25 @@ function _navRestoreTab(entry) {
     if (!d) return;
 
     const token = { tab: entry.tab, id: entry.id || '', frames: 0 };
-    _navTabPending = token;
+    const tryApply = () => {
+        if (d.curId) {
+            const cur = d.curId();
+            if (!cur || (token.id && cur !== token.id)) return false;
+        }
+        const btn = d.btn(token.tab);
+        if (!btn) return false;
+        if (d.active() !== token.tab) btn.click();
+        return true;
+    };
 
+    if (tryApply()) return;
+    _navTabPending = token;
     const tick = () => {
         if (_navTabPending !== token) return;
         if (token.frames++ > _NAV_TAB_MAX_FRAMES) { _navTabPending = null; return; }
-
-        if (d.curId) {
-            const cur = d.curId();
-            if (!cur || (token.id && cur !== token.id)) { requestAnimationFrame(tick); return; }
-        }
-
-        const btn = d.btn(token.tab);
-        if (!btn) { requestAnimationFrame(tick); return; }
-
-        _navTabPending = null;
-        if (d.active() !== token.tab) btn.click();
+        if (tryApply()) { _navTabPending = null; return; }
+        requestAnimationFrame(tick);
     };
-
     requestAnimationFrame(tick);
 }
 

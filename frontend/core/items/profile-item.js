@@ -14,7 +14,7 @@ function renderUserItem(user, onclick, opts) {
 
     const letter = esc((name[0] || '?').toUpperCase());
     const avatar = image
-        ? `<img class="vrcn-user-item-avatar" src="${esc(image)}" onerror="this.outerHTML='<div class=\\'vrcn-user-item-avatar vrcn-user-item-avatar-letter\\'>${letter}</div>'">`
+        ? `<img class="vrcn-user-item-avatar" src="${esc(image)}" loading="lazy" decoding="async" onerror="this.outerHTML='<div class=\\'vrcn-user-item-avatar vrcn-user-item-avatar-letter\\'>${letter}</div>'">`
         : `<div class="vrcn-user-item-avatar vrcn-user-item-avatar-letter">${letter}</div>`;
 
     const _frameUrl = live?.iconFrameUrl || user.iconFrameUrl || '';

@@ -45,6 +45,14 @@
 #modalDetail .fd-right-scroll .mini-paginator:last-child {
     flex-shrink: 0;
 }
+#modalFriendDetail .fd-right-scroll:has(.mini-paginator:last-child) .fd-content-pills,
+#modalMyProfile   .fd-right-scroll:has(.mini-paginator:last-child) .fd-content-pills,
+#modalDetail      .fd-right-scroll:has(.mini-paginator:last-child) .fd-content-pills,
+#modalFriendDetail .fd-right-scroll:has(.mini-paginator:last-child) .search-bar-row,
+#modalMyProfile   .fd-right-scroll:has(.mini-paginator:last-child) .search-bar-row,
+#modalDetail      .fd-right-scroll:has(.mini-paginator:last-child) .search-bar-row {
+    flex-shrink: 0;
+}
 
 @keyframes miniPageFadeIn {
     from { opacity: 0; transform: translateY(4px); }

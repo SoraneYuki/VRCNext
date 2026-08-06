@@ -200,14 +200,25 @@ public class AvatarsAPI(VRChatApiService ctx)
         return new JArray();
     }
 
-    public async Task<JArray> SearchAvatarsVrcnAsync(string query, int n = 20, int page = 0)
+    public async Task<JArray> SearchAvatarsVrcnAsync(string query, int n = 20, int page = 0,
+        string platform = "", string perf = "", string content = "", bool ft = false)
     {
         query = (query ?? "").Trim();
         // Avatar ids aren't in the search index; look them up directly like the website does.
         if (System.Text.RegularExpressions.Regex.IsMatch(query, @"^avtr_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))
             return page > 0 ? new JArray() : await GetAvatarVrcnByIdAsync(query);
 
-        var url = $"https://db.vrcnext.com/api/search.php?q={Uri.EscapeDataString(query)}&limit={n}&page={page + 1}";
+        var qs = new List<string> { $"limit={n}", $"page={page + 1}" };
+        if (System.Text.RegularExpressions.Regex.IsMatch(query, @"^usr_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))
+            qs.Add($"author={Uri.EscapeDataString(query)}");
+        else if (query != "")
+            qs.Add($"q={Uri.EscapeDataString(query)}");
+        if (!string.IsNullOrEmpty(platform)) qs.Add($"platform={Uri.EscapeDataString(platform)}");
+        if (!string.IsNullOrEmpty(perf))     qs.Add($"perf={Uri.EscapeDataString(perf)}");
+        if (!string.IsNullOrEmpty(content))  qs.Add($"content={Uri.EscapeDataString(content)}");
+        if (ft)                              qs.Add("ft=1");
+
+        var url = "https://db.vrcnext.com/api/search.php?" + string.Join("&", qs);
         using var client = new HttpClient();
         client.Timeout = TimeSpan.FromSeconds(15);
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);

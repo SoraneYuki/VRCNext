@@ -33,7 +33,7 @@ function _renderGroupListCard(g) {
     metaParts.push(`<span class="msi" style="font-size:12px;">group</span> ${esc(getGroupMembersText(g.memberCount || 0))}`);
     const iconHtml = g.iconUrl ? `<div class="cc-group-icon" style="background-image:url('${cssUrl(g.iconUrl)}')"></div>` : '';
     return `<div class="vrcn-content-card" onclick="openGroupDetail('${esc(g.id)}')">
-        <div class="cc-bg"><img src="${g.bannerUrl||'fallback_cover.png'}" onerror="this.src='fallback_cover.png'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div>
+        <div class="cc-bg"><img src="${g.bannerUrl||'fallback_cover.png'}" loading="lazy" decoding="async" onerror="this.src='fallback_cover.png'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div>
         <div class="cc-scrim"></div>
         <div class="cc-content">
             <div class="cc-name">${esc(g.name)}</div>
@@ -62,7 +62,11 @@ document.documentElement.addEventListener('languagechange', () => {
     }
 });
 
+let _myGroupsDirty = false;
 function filterMyGroups() {
+    const tab = document.getElementById('tab2');
+    if (tab && !tab.classList.contains('active')) { _myGroupsDirty = true; return; }
+    _myGroupsDirty = false;
     const q = (document.getElementById('filterGroupsInput')?.value || '').toLowerCase();
     const el = document.getElementById('myGroupsGrid');
     if (!el) return;

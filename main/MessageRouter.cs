@@ -550,12 +550,41 @@ public partial class AppShell
                 case "scanLibraryForce":
                 case "loadLibraryPage":
                 case "deleteLibraryFile":
-                case "copyImageToClipboard":
                 case "addFavorite":
                 case "removeFavorite":
                 case "setDesktopBackground":
                     await _photos.HandleMessage(action, msg);
                     break;
+
+                case "copyImageToClipboard":
+                {
+                    var clipUrl = msg["url"]?.ToString();
+                    if (!string.IsNullOrEmpty(clipUrl) && string.IsNullOrEmpty(msg["path"]?.ToString()))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var resp = await _vrcApi.GetHttpClient().GetAsync(clipUrl);
+                                if (resp.IsSuccessStatusCode)
+                                {
+                                    var bytes = await resp.Content.ReadAsByteArrayAsync();
+                                    var ext = (resp.Content.Headers.ContentType?.MediaType ?? "").Contains("jpeg") ? "jpg" : "png";
+                                    var tempPath = Path.Combine(Path.GetTempPath(), $"vrcn_clip_{Guid.NewGuid():N}.{ext}");
+                                    File.WriteAllBytes(tempPath, bytes);
+                                    await _photos.HandleMessage("copyImageToClipboard", new JObject { ["path"] = tempPath });
+                                }
+                                else SendToJS("toast", new { ok = false, msg = "Copy failed" });
+                            }
+                            catch (Exception ex) { SendToJS("toast", new { ok = false, msg = $"Copy failed: {ex.Message}" }); }
+                        });
+                    }
+                    else
+                    {
+                        await _photos.HandleMessage(action, msg);
+                    }
+                    break;
+                }
 
                 case "browseExe":
                 case "browseDashBg":
@@ -1017,6 +1046,10 @@ public partial class AppShell
                     var avSearchQuery = msg["query"]?.ToString() ?? "";
                     var avSearchPage  = msg["page"]?.Value<int>() ?? 0;
                     var avSearchDb    = msg["db"]?.ToString() ?? "avtrdb";
+                    var avVrcnPlatform = msg["platform"]?.ToString() ?? "";
+                    var avVrcnPerf     = msg["perf"]?.ToString() ?? "";
+                    var avVrcnContent  = msg["content"]?.ToString() ?? "";
+                    var avVrcnFt       = msg["ft"]?.Value<bool>() ?? false;
                     if (!string.IsNullOrWhiteSpace(avSearchQuery))
                     {
                         _ = Task.Run(async () =>
@@ -1046,6 +1079,7 @@ public partial class AppShell
                                         description       = a["description"]?.ToString() ?? "",
                                         unityPackages     = Array.Empty<object>(),
                                         compatibility     = (a["platforms"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
+                                        performance       = a["performance"],
                                         sources           = new[] { "avtricu" },
                                     }).ToList();
                                     vrcndbIds.AddRange(raw.Cast<JObject>().Select(a => a["id"]?.ToString() ?? ""));
@@ -1053,7 +1087,7 @@ public partial class AppShell
                                 else if (avSearchDb == "vrcn")
                                 {
                                     avLimit = 20;
-                                    var raw = await _core.Avatars.SearchAvatarsVrcnAsync(avSearchQuery, avLimit, avSearchPage);
+                                    var raw = await _core.Avatars.SearchAvatarsVrcnAsync(avSearchQuery, avLimit, avSearchPage, avVrcnPlatform, avVrcnPerf, avVrcnContent, avVrcnFt);
                                     list = raw.Cast<JObject>().Select(a => (object)new
                                     {
                                         id                = a["id"]?.ToString() ?? "",
@@ -1065,6 +1099,7 @@ public partial class AppShell
                                         description       = a["description"]?.ToString() ?? "",
                                         unityPackages     = Array.Empty<object>(),
                                         compatibility     = VrcndbCompat(a),
+                                        performance       = a["performance"],
                                         sources           = new[] { "vrcn" },
                                     }).ToList();
                                 }
@@ -1096,7 +1131,7 @@ public partial class AppShell
                                             imageUrl          = ImageCacheHelper.GetAvatarUrl(a["vrc_id"]?.ToString() ?? a["id"]?.ToString(), a["image_url"]?.ToString() ?? a["imageUrl"]?.ToString()),
                                             authorName        = a["author"]?["name"]?.ToString() ?? a["authorName"]?.ToString() ?? "",
                                             description       = a["description"]?.ToString() ?? "",
-                                            unityPackages     = (a["unityPackages"] as JArray ?? new JArray()).Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "" }).ToArray(),
+                                            unityPackages     = (a["unityPackages"] as JArray ?? new JArray()).Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" }).ToArray(),
                                             compatibility     = (a["compatibility"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
@@ -1111,6 +1146,7 @@ public partial class AppShell
                                             authorName        = a["authorName"]?.ToString() ?? "",
                                             description       = a["description"]?.ToString() ?? "",
                                             compatibility     = (a["platforms"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
+                                            performance       = a["performance"],
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
@@ -1124,6 +1160,7 @@ public partial class AppShell
                                             authorName        = a["author_name"]?.ToString() ?? "",
                                             description       = a["description"]?.ToString() ?? "",
                                             compatibility     = VrcndbCompat(a),
+                                        performance       = a["performance"],
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
@@ -1147,12 +1184,12 @@ public partial class AppShell
                                     foreach (var a in icuEntries)
                                     {
                                         if (!dbIds.Contains(a.id))
-                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, sources = Srcs(a.id, "avtricu") });
+                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, sources = Srcs(a.id, "avtricu") });
                                     }
                                     foreach (var a in vrcnEntries)
                                     {
                                         if (!dbIds.Contains(a.id) && !icuIds.Contains(a.id))
-                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, sources = new[] { "vrcn" } });
+                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, sources = new[] { "vrcn" } });
                                     }
                                     vrcndbIds.AddRange(dbIds);
                                     vrcndbIds.AddRange(icuIds);
@@ -1171,7 +1208,7 @@ public partial class AppShell
                                         releaseStatus     = "public",
                                         description       = a["description"]?.ToString() ?? "",
                                         unityPackages     = (a["unityPackages"] as JArray ?? new JArray())
-                                            .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "" })
+                                            .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                                             .ToArray(),
                                         compatibility     = (a["compatibility"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
                                         sources           = new[] { "avtrdb" },
@@ -1698,7 +1735,9 @@ public partial class AppShell
                                 version = avdCached.Version, created_at = avdCached.CreatedAt,
                                 updated_at = avdCached.UpdatedAt, description = avdCached.Description,
                                 tags = avdCached.Tags, hasPC = avdCached.HasPC, hasQuest = avdCached.HasQuest,
+                                hasIos = avdCached.HasIos,
                                 hasImpostor = avdCached.HasImpostor, pcPerf = avdCached.PcPerf, questPerf = avdCached.QuestPerf,
+                                iosPerf = avdCached.IosPerf,
                             }));
                         if (ModalCacheHelper.IsCached(avdId)) break;
                         ModalCacheHelper.Mark(avdId);
@@ -1714,12 +1753,15 @@ public partial class AppShell
                             var realPkgs = packages.Where(p => p["variant"]?.ToString() != "impostor").ToList();
                             var hasPC    = realPkgs.Any(p => p["platform"]?.ToString() == "standalonewindows");
                             var hasQuest = realPkgs.Any(p => p["platform"]?.ToString() == "android");
+                            var hasIos   = realPkgs.Any(p => p["platform"]?.ToString() == "ios");
                             var hasImpostor = packages.Any(p => p["variant"]?.ToString() == "impostor");
                             var pcPerf    = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "standalonewindows")?["performanceRating"]?.ToString() ?? "";
                             var questPerf = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "android")?["performanceRating"]?.ToString() ?? "";
+                            var iosPerf   = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "ios")?["performanceRating"]?.ToString() ?? "";
                             var perf = avatar["performance"] as JObject;
                             if (string.IsNullOrEmpty(pcPerf))    pcPerf    = perf?["standalonewindows"]?.ToString() ?? "";
                             if (string.IsNullOrEmpty(questPerf)) questPerf = perf?["android"]?.ToString() ?? "";
+                            if (string.IsNullOrEmpty(iosPerf))   iosPerf   = perf?["ios"]?.ToString() ?? "";
                             // Save immediately so future opens are instant from DB
                             var avtSaveId = avatar["id"]?.ToString() ?? avdId;
                             _core.TimeEngine.SaveAvatarDetail(
@@ -1735,7 +1777,7 @@ public partial class AppShell
                                 avatar["updated_at"]?.ToString() ?? "",
                                 avatar["description"]?.ToString() ?? "",
                                 avatar["tags"]?.ToObject<List<string>>() ?? new(),
-                                hasPC, hasQuest, hasImpostor, pcPerf, questPerf);
+                                hasPC, hasQuest, hasImpostor, pcPerf, questPerf, hasIos, iosPerf);
                             Invoke(() => SendToJS("vrcAvatarDetail", new
                             {
                                 id               = avatar["id"]?.ToString()                  ?? "",
@@ -1752,9 +1794,11 @@ public partial class AppShell
                                 tags             = avatar["tags"]?.ToObject<List<string>>()  ?? new(),
                                 hasPC,
                                 hasQuest,
+                                hasIos,
                                 hasImpostor,
                                 pcPerf,
                                 questPerf,
+                                iosPerf,
                                 rawJson = avatar,
                             }));
                         });
@@ -2129,6 +2173,134 @@ public partial class AppShell
                     break;
                 }
 
+                case "importPickFile":
+                {
+                    var imType = msg["type"]?.ToString() ?? "";
+                    if (imType != "worlds" && imType != "avatars") break;
+                    var ro = Dialog.FileOpen("csv");
+                    if (!ro.IsOk) break;
+                    string imText;
+                    try { imText = System.IO.File.ReadAllText(ro.Path); }
+                    catch (Exception ex)
+                    {
+                        SendToJS("log", new { msg = $"Import read failed: {ex.Message}", color = "err" });
+                        SendToJS("toast", new { ok = false, msg = $"Import failed: {ex.Message}" });
+                        break;
+                    }
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var favGroups = await _core.Favorites.GetFavoriteGroupsAsync();
+                            List<AuthController.WFavGroup> groupList;
+                            if (imType == "avatars")
+                            {
+                                groupList = favGroups
+                                    .Where(g => (g["type"]?.ToString() ?? "") == "avatar")
+                                    .Select(g => new AuthController.WFavGroup {
+                                        name        = g["name"]?.ToString() ?? "",
+                                        displayName = g["displayName"]?.ToString() ?? "",
+                                        type        = g["type"]?.ToString() ?? "avatar"
+                                    })
+                                    .Where(g => !string.IsNullOrEmpty(g.name))
+                                    .ToList();
+                                groupList = AuthController.FillMissingAvatarSlots(groupList);
+                                int imCap = _vrcApi.HasVrcPlus ? 50 : 25;
+                                foreach (var g in groupList) g.capacity = imCap;
+                                groupList.AddRange(AuthController.BuildLocalGroups(_core.LocalFavorites.GetGroups("avatar"), "localAvatar"));
+                            }
+                            else
+                            {
+                                var imWorldTypes = new HashSet<string> { "world", "vrcPlusWorld" };
+                                groupList = favGroups
+                                    .Where(g => imWorldTypes.Contains(g["type"]?.ToString() ?? ""))
+                                    .Select(g => new AuthController.WFavGroup {
+                                        name        = g["name"]?.ToString() ?? "",
+                                        displayName = g["displayName"]?.ToString() ?? "",
+                                        type        = g["type"]?.ToString() ?? "world"
+                                    })
+                                    .Where(g => !string.IsNullOrEmpty(g.name))
+                                    .ToList();
+                                groupList = AuthController.FillMissingWorldSlots(groupList, _vrcApi.HasVrcPlus);
+                                groupList.AddRange(AuthController.BuildLocalGroups(_core.LocalFavorites.GetGroups("world"), "localWorld"));
+                            }
+                            Invoke(() => SendToJS("importFile", new { type = imType, text = imText, groups = groupList }));
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(() => SendToJS("log", new { msg = $"Import error: {ex.Message}", color = "err" }));
+                        }
+                    });
+                    break;
+                }
+
+                case "importFavorites":
+                {
+                    var impType    = msg["type"]?.ToString() ?? "";
+                    var impEntries = (msg["entries"] as JArray) ?? new JArray();
+                    if (impType != "worlds" && impType != "avatars") break;
+                    _ = Task.Run(async () =>
+                    {
+                        var impKind = impType == "avatars" ? "avatar" : "world";
+                        int total = impEntries.Count, done = 0, added = 0, failed = 0;
+                        foreach (var entry in impEntries.OfType<JObject>())
+                        {
+                            var entId   = entry["id"]?.ToString() ?? "";
+                            var entGrp  = entry["groupName"]?.ToString() ?? "";
+                            var entType = entry["groupType"]?.ToString() ?? "";
+                            done++;
+                            if (entId.Length == 0 || entGrp.Length == 0) { failed++; continue; }
+
+                            bool entLocal = entType.StartsWith("local") || _core.LocalFavorites.IsLocalGroup(entGrp);
+                            bool entOk = false;
+                            try
+                            {
+                                if (entLocal)
+                                {
+                                    var snap = impKind == "avatar"
+                                        ? await _core.Avatars.GetAvatarAsync(entId) ?? new JObject()
+                                        : await _core.World.GetWorldAsync(entId)   ?? new JObject();
+                                    var (lok, lerr, _) = _core.LocalFavorites.AddItem(entGrp, impKind, entId, snap);
+                                    entOk = lok;
+                                    if (!lok) Invoke(() => SendToJS("log", new { msg = $"Import [{entId}]: {lerr}", color = "err" }));
+                                }
+                                else if (impKind == "avatar")
+                                {
+                                    var (aok, ares) = await _core.Avatars.AddAvatarFavoriteAsync(entId, entGrp, entType.Length > 0 ? entType : "avatar");
+                                    entOk = aok;
+                                    if (!aok) Invoke(() => SendToJS("log", new { msg = $"Import [{entId}]: {ares}", color = "err" }));
+                                }
+                                else
+                                {
+                                    var (wok, wres) = await _core.Favorites.AddWorldFavoriteAsync(entId, entGrp, entType.Length > 0 ? entType : "world");
+                                    entOk = wok;
+                                    if (!wok) Invoke(() => SendToJS("log", new { msg = $"Import [{entId}]: {wres}", color = "err" }));
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Invoke(() => SendToJS("log", new { msg = $"Import [{entId}] exception: {ex.Message}", color = "err" }));
+                            }
+
+                            if (entOk) added++; else failed++;
+                            int pDone = done, pOk = added, pFailed = failed;
+                            Invoke(() => SendToJS("importProgress", new { type = impType, done = pDone, total, ok = pOk, failed = pFailed }));
+                            await Task.Delay(500);
+                        }
+                        try
+                        {
+                            if (impKind == "avatar") _cache.Delete(CacheHandler.KeyFavAvatars);
+                            RefreshLocalFavKind(impKind);
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(() => SendToJS("log", new { msg = $"Import refresh failed: {ex.Message}", color = "err" }));
+                        }
+                        Invoke(() => SendToJS("importDone", new { type = impType, total, ok = added, failed }));
+                    });
+                    break;
+                }
+
                 case "getWorldInsights":
                     _ = Task.Run(() =>
                     {
@@ -2198,7 +2370,10 @@ public partial class AppShell
                         if (_core.LocalFavorites.IsLocalGroup(groupName))
                             ok = string.IsNullOrEmpty(displayName) || _core.LocalFavorites.RenameGroup(groupName, displayName);
                         else
+                        {
                             ok = await _core.Favorites.UpdateFavoriteGroupAsync(groupType, groupName, displayName, visibility);
+                            if (ok) _authCtrl.ClearFavGroupsCache();
+                        }
                         Invoke(() => SendToJS("vrcFavoriteGroupUpdated", new { ok, groupName, displayName, visibility }));
                     });
                     break;

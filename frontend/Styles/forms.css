@@ -85,7 +85,7 @@
     flex: 1;
     padding: 9px 10px 9px 32px;
     background: var(--bg-card);
-    border: 1px solid var(--border);
+    border: 1px solid transparent;
     border-radius: 9px;
     color: var(--tx1);
     font-size: calc(13px + var(--fs-off, 0px));

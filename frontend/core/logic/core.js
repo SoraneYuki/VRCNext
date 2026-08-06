@@ -94,15 +94,15 @@ function applyDecorationsSetting() {
 function applyIconFramesSetting() { applyDecorationsSetting(); }
 function iconFrameHtml(frameUrl) {
     if (!frameUrl) return '';
-    return `<img class="user-frame-deco" src="${frameUrl}" alt="" aria-hidden="true">`;
+    return `<img class="user-frame-deco" src="${frameUrl}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
 }
 function nameplateDecoHtml(url) {
     if (!url) return '';
-    return `<img class="nameplate-deco" src="${url}" alt="" aria-hidden="true">`;
+    return `<img class="nameplate-deco" src="${url}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
 }
 function profileEffectHtml(url) {
     if (!url) return '';
-    return `<img class="profile-effect-deco" src="${url}" alt="" aria-hidden="true">`;
+    return `<img class="profile-effect-deco" src="${url}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
 }
 let currentPlayBtnTheme = '';
 let currentCursorTheme = '';
@@ -1604,8 +1604,10 @@ function showTab(i) {
     if (i === 0) renderDashboard();
     if (i === 1 && favWorldsData.length === 0) sendToCS({ action: 'vrcGetFavoriteWorlds' });
     if (i === 2 && !myGroupsLoaded) loadMyGroups();
+    if (i === 2 && typeof _myGroupsDirty !== 'undefined' && _myGroupsDirty && myGroupsLoaded) filterMyGroups();
     if (i === 23) { if (!myGroupsLoaded) loadMyGroups(); if (typeof onSnipeTabOpen === 'function') onSnipeTabOpen(); }
     if (i === 3 && favFriendsData.length === 0) sendToCS({ action: 'vrcGetFavoriteFriends' });
+    if (i === 3 && typeof _favFriendsDirty !== 'undefined' && _favFriendsDirty && favFriendsData.length > 0) filterFavFriends();
     if (i === 4) { if (!avatarsLoaded) refreshAvatars(); }
     if (i === 7) { if (!libraryFiles.length) refreshLibrary(); else filterLibrary(); }
     if (i === 9) {
@@ -1956,10 +1958,9 @@ function execConsoleCommand(cmd) {
     sendToCS({ action: 'consoleCommand', cmd });
 }
 
+const _escMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 function esc(s) {
-    const d = document.createElement('div');
-    d.textContent = s || '';
-    return d.innerHTML;
+    return String(s || '').replace(/[&<>"']/g, ch => _escMap[ch]);
 }
 
 function jsq(s) {

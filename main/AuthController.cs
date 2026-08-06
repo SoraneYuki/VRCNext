@@ -2083,10 +2083,16 @@ public class AuthController
             _core.Settings.DbAutoBackupDays    = data["dbAutoBackupDays"]?.Value<int>()     ?? 60;
 
             // Performance flags (require restart)
-            _core.Settings.GpuAcceleration    = data["gpuAcceleration"]?.Value<bool>()    ?? false;
+            _core.Settings.GpuAcceleration    = data["gpuAcceleration"]?.Value<bool>()    ?? _core.Settings.GpuAcceleration;
             _core.Settings.GpuShaderCache     = data["gpuShaderCache"]?.Value<bool>()     ?? false;
             _core.Settings.V8Heap128          = data["v8Heap128"]?.Value<bool>()          ?? false;
             _core.Settings.TwoRenderProcesses = data["twoRenderProcesses"]?.Value<bool>() ?? false;
+            var _newEffMode = data["efficiencyMode"]?.Value<bool>() ?? _core.Settings.EfficiencyMode;
+            if (_newEffMode != _core.Settings.EfficiencyMode || _newEffMode)
+            {
+                _core.Settings.EfficiencyMode = _newEffMode;
+                VRCNext.Services.EfficiencyModeService.Apply(_newEffMode);
+            }
             _core.Settings.AnimationsEnabled  = data["animationsEnabled"]?.Value<bool>()  ?? true;
             _core.Settings.BlurEnabled        = data["blurEnabled"]?.Value<bool>()        ?? true;
             _core.Settings.SearchDebounceMs   = Math.Clamp(data["searchDebounceMs"]?.Value<int>() ?? 500, 15, 900);
@@ -2508,7 +2514,7 @@ public class AuthController
                     var release   = a["releaseStatus"]?.ToString() ?? "private";
                     var fvrtId    = a["favoriteId"]?.ToString() ?? "";
                     var pkgs      = (a["unityPackages"] as JArray ?? new JArray())
-                        .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "" })
+                        .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                         .ToArray();
                     allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, unityPackages = pkgs });
                     allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, unityPackages = pkgs });
@@ -2526,7 +2532,7 @@ public class AuthController
                 var author    = a["authorName"]?.ToString() ?? "";
                 var release   = a["releaseStatus"]?.ToString() ?? "private";
                 var pkgs      = (a["unityPackages"] as JArray ?? new JArray())
-                    .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "" })
+                    .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                     .ToArray();
                 allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, unityPackages = pkgs });
                 allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, unityPackages = pkgs });
@@ -2558,7 +2564,7 @@ public class AuthController
                 releaseStatus     = a["releaseStatus"]?.ToString() ?? "private",
                 description       = a["description"]?.ToString() ?? "",
                 unityPackages     = (a["unityPackages"] as JArray ?? new JArray())
-                    .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "" })
+                    .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                     .ToArray(),
             }).ToList();
             if (_core.Settings.FfcEnabled)

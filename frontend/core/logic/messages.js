@@ -249,6 +249,7 @@ window.external.receiveMessage(rawMsg => {
                 loadMyInstances();
                 requestInstanceInfo();
                 refreshNotifications();
+                if (typeof libraryFiles !== 'undefined' && !libraryFiles.length && typeof sendToCS === 'function') sendToCS({ action: 'scanLibrary' });
                 { const vp = document.getElementById('badgeVrcPlus');
                   if (vp) { const isVrcPlus = Array.isArray(payload.tags) && payload.tags.includes('system_supporter'); vp.style.display = isVrcPlus ? '' : 'none'; } }
                 if (!window._lastModerationFetch || Date.now() - window._lastModerationFetch >= 120 * 60 * 1000) {
@@ -283,8 +284,8 @@ window.external.receiveMessage(rawMsg => {
                 const idx = vrcFriendsData.findIndex(f => f.id === payload.id);
                 if (idx >= 0) vrcFriendsData[idx] = payload;
                 else vrcFriendsData.push(payload);
-                renderVrcFriends(vrcFriendsData);
-                if (favFriendsData.length > 0) filterFavFriends();
+                scheduleRenderVrcFriends();
+                if (favFriendsData.length > 0) filterFavFriendsIfVisible();
                 if (typeof updateUserItemWorld === 'function') updateUserItemWorld(payload);
                 if (typeof patchFriendDetailLive === 'function') patchFriendDetailLive(payload);
                 break;
@@ -300,7 +301,7 @@ window.external.receiveMessage(rawMsg => {
                 }
                 requestWorldResolution(); renderDashboard(); requestInstanceInfo();
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);
-                if (favFriendsData.length > 0) filterFavFriends();
+                if (favFriendsData.length > 0) filterFavFriendsIfVisible();
                 break;
             case 'vrcProfileDecorations':
                 if (typeof onProfileDecorations === 'function') onProfileDecorations(payload);
@@ -1006,6 +1007,7 @@ case 'vrcNews':
                 dashBgDataUri = payload.url || '';
                 if (dashBgPath) document.getElementById('dashBgName').textContent = dashBgPath.split(/[\\\\/]/).pop();
                 renderDashboard();
+                if (typeof renderDashBgPreview === 'function') renderDashBgPreview();
                 autoSave();
                 break;
             case 'chatboxUpdate':
@@ -1078,6 +1080,9 @@ case 'vrcNews':
             case 'userOnlineHeatmap':      renderFdOnlineHeatmap(payload); if (typeof renderMypOnlineHeatmap === 'function') renderMypOnlineHeatmap(payload); break;
             case 'userStatusTime':         renderFdStatusTime(payload); if (typeof renderMypStatusTime === 'function') renderMypStatusTime(payload); break;
             case 'exportList':             if (typeof renderExportModal === 'function') renderExportModal(payload); break;
+            case 'importFile':             if (typeof renderImportModal === 'function') renderImportModal(payload); break;
+            case 'importProgress':         if (typeof onImportProgress === 'function') onImportProgress(payload); break;
+            case 'importDone':             if (typeof onImportDone === 'function') onImportDone(payload); break;
             case 'invFiles':
                 if (!payload.error) {
                     // Cache by actual tag (not activeInvTab) to prevent cross-contamination

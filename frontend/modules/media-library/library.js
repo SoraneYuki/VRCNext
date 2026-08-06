@@ -782,7 +782,7 @@ function onWorldsResolved(dict) {
     });
     Object.assign(dashWorldCache, dict);
     renderDashboard();
-    if (typeof renderVrcFriends === 'function' && vrcFriendsData?.length) renderVrcFriends(vrcFriendsData);
+    if (typeof scheduleRenderVrcFriends === 'function' && vrcFriendsData?.length) scheduleRenderVrcFriends();
     if (typeof refreshAllUserItemWorlds === 'function') refreshAllUserItemWorlds();
     document.querySelectorAll('.lib-world-badge[data-wid]').forEach(btn => {
         const wid  = btn.getAttribute('data-wid');
@@ -866,6 +866,7 @@ async function setLibItemAsDashBg(path, url) {
     const nameEl = document.getElementById('dashBgName');
     if (nameEl) nameEl.textContent = path.split(/[/\\]/).pop();
     renderDashboard();
+    if (typeof renderDashBgPreview === 'function') renderDashBgPreview();
     autoSave();
     showToast(true, t('library.background_updated', 'Background updated'));
 }
@@ -876,11 +877,13 @@ function cacheVidThumb(v, fp) {
         v.currentTime = 1;
         v.addEventListener('seeked', function () {
             const c = document.createElement('canvas');
-            c.width  = v.videoWidth  || 320;
-            c.height = v.videoHeight || 240;
+            const vw = v.videoWidth  || 320;
+            const vh = v.videoHeight || 240;
+            const scale = Math.min(1, 480 / vw);
+            c.width  = Math.max(1, Math.round(vw * scale));
+            c.height = Math.max(1, Math.round(vh * scale));
             c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
             const data = c.toDataURL('image/jpeg', 0.7);
-            thumbCache[fp] = data;
             const img = document.createElement('img');
             img.className = 'lib-thumb';
             img.src = data;
@@ -1299,19 +1302,10 @@ function _photoBlobToPng(blob) {
     });
 }
 
-async function photoCopyImage() {
+function photoCopyImage() {
     const it = _photoState.item;
     if (!it || !it.url) return;
-    try {
-        const resp = await fetch(it.url);
-        if (!resp.ok) throw new Error('fetch failed');
-        let blob = await resp.blob();
-        if (blob.type !== 'image/png') blob = await _photoBlobToPng(blob);
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        showToast(true, t('export.copied', 'Copied to clipboard'));
-    } catch {
-        showToast(false, t('export.copy_failed', 'Copy failed'));
-    }
+    sendToCS({ action: 'copyImageToClipboard', url: it.url });
 }
 
 function photoNavPrev() { _photoNav(-1); }

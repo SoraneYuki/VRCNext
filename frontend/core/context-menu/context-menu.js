@@ -1435,10 +1435,50 @@
         ];
     }
 
+    function showRecentStatusSubmenu(parentBtn) {
+        const cur = (currentVrcUser?.statusDescription || '').trim();
+        const history = Array.isArray(currentVrcUser?.statusHistory) ? currentVrcUser.statusHistory : [];
+        const seen = new Set();
+        const entries = [];
+        [cur, ...history].forEach(s => {
+            const v = (s || '').trim();
+            if (!v || seen.has(v)) return;
+            seen.add(v);
+            entries.push(v);
+        });
+        const list = entries.slice(0, 10);
+
+        if (list.length === 0) {
+            submenu.innerHTML = `<div class="vn-ctx-loading"><span class="msi">history</span><span>${esc(cm('status.no_recent', 'No recent status texts'))}</span></div>`;
+            positionSubmenu(parentBtn);
+            return;
+        }
+
+        const curStatus = currentVrcUser?.status || 'active';
+        submenu.innerHTML = list.map(v => `<button class="vn-ctx-item" data-status-text="${esc(v)}">
+            <span class="msi" style="font-size:14px;">chat_bubble</span>
+            <span class="vn-ctx-label">${esc(v)}</span>
+            ${v === cur ? '<span class="msi vn-ctx-check">check</span>' : ''}
+        </button>`).join('');
+
+        submenu.querySelectorAll('[data-status-text]').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                sendToCS({ action: 'vrcUpdateStatus', status: curStatus, statusDescription: btn.dataset.statusText });
+                hideMenu();
+            });
+            btn.addEventListener('mouseenter', () => clearTimeout(submenuTimer));
+        });
+
+        positionSubmenu(parentBtn);
+    }
+
     function buildSelfItems() {
         const curStatus = currentVrcUser?.status || 'active';
         const items = [
             { icon: 'manage_accounts', label: cm('friend.view_profile', 'View Profile'), action: () => openMyProfileModal() },
+            { icon: 'edit', label: cm('status.edit_text', 'Edit Status Text'), action: () => openStatusModal() },
+            { icon: 'history', label: cm('status.recently_used', 'Recently Used'), submenuFn: btn => showRecentStatusSubmenu(btn) },
             'sep',
         ];
         STATUS_LIST.forEach(s => {

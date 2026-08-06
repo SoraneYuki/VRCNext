@@ -607,7 +607,7 @@ function saveFriendGroupName() {
 }
 
 function onFriendFavoriteGroupUpdated(data) {
-    if (!data.ok) { cancelEditFriendGroupName(); return; }
+    if (!data.ok) { if (_favFriendEditMode) filterFavFriends(); else cancelEditFriendGroupName(); return; }
     const g = favFriendGroups.find(x => x.name === data.groupName);
     if (g) {
         if (data.displayName) g.displayName = data.displayName;
@@ -621,6 +621,42 @@ function onFriendFavoriteGroupUpdated(data) {
     cancelEditFriendGroupName();
     updateFavFriendGroupHeader();
     filterFavFriends();
+}
+
+function _ffGroupTitleHtml(g) {
+    const disp = g.displayName || g.name;
+    if (!_favFriendEditMode) return `<span class="topbar-title">${esc(disp)}</span>`;
+    return `<span class="fav-group-name-edit">
+        <input class="vrcn-edit-field fav-group-name-input" maxlength="64" value="${esc(disp)}" data-group="${esc(g.name)}" data-orig="${esc(disp)}" oninput="ffOnGroupNameInput(this)" onclick="event.stopPropagation()">
+        <span class="fav-group-name-actions" style="display:none;">
+            <button class="vrcn-button vrcn-btn-primary" onclick="ffSaveGroupName(this)">${t('common.save', 'Save')}</button>
+            <button class="vrcn-button" onclick="ffCancelGroupName(this)">${t('common.cancel', 'Cancel')}</button>
+        </span>
+    </span>`;
+}
+
+function ffOnGroupNameInput(inp) {
+    const actions = inp.closest('.fav-group-name-edit')?.querySelector('.fav-group-name-actions');
+    if (!actions) return;
+    const v = inp.value.trim();
+    actions.style.display = (v && v !== inp.dataset.orig) ? 'inline-flex' : 'none';
+}
+
+function ffSaveGroupName(btn) {
+    const inp = btn.closest('.fav-group-name-edit')?.querySelector('.fav-group-name-input');
+    if (!inp) return;
+    const newName = inp.value.trim();
+    if (!newName || newName === inp.dataset.orig) return;
+    btn.disabled = true;
+    sendToCS({ action: 'vrcUpdateFavoriteFriendGroup', groupName: inp.dataset.group, displayName: newName });
+}
+
+function ffCancelGroupName(btn) {
+    const wrap = btn.closest('.fav-group-name-edit');
+    const inp = wrap?.querySelector('.fav-group-name-input');
+    if (inp) inp.value = inp.dataset.orig;
+    const actions = wrap?.querySelector('.fav-group-name-actions');
+    if (actions) actions.style.display = 'none';
 }
 
 function renderFavFriendCard(f) {
@@ -637,7 +673,15 @@ function renderFavFriendCard(f) {
     return renderUserItem(f, `openFriendDetail('${uid}')`);
 }
 
+let _favFriendsDirty = false;
+function filterFavFriendsIfVisible() {
+    const tab = document.getElementById('tab3');
+    if (tab && tab.classList.contains('active')) filterFavFriends();
+    else _favFriendsDirty = true;
+}
+
 function filterFavFriends() {
+    _favFriendsDirty = false;
     const el = document.getElementById('favFriendsGrid');
     if (!el) return;
     const q = (document.getElementById('favFriendSearchInput')?.value || '').toLowerCase();
@@ -654,14 +698,14 @@ function filterFavFriends() {
         let html = '', first = true;
         favFriendGroups.forEach(g => {
             const gFriends = friends.filter(f => favMap.get(f.id)?.groupName === g.name);
-            if (!gFriends.length) return;
+            if (!gFriends.length && !_favFriendEditMode) return;
             const isLocal = isLocalFavGroup(g);
             const cap = g.capacity || 150;
             const visLabel = _favGroupVisLabel(g.visibility);
             const visHtml = (g.visibility && !_favFriendEditMode && !isLocal)
                 ? `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);margin-left:4px;">${esc(visLabel)}</span>` : '';
             html += `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
-                <span class="topbar-title">${esc(g.displayName || g.name)}</span>
+                ${_ffGroupTitleHtml(g)}
                 ${favGroupBadge(g)}
                 <span class="fav-group-count">${gFriends.length}/${cap}</span>
                 ${visHtml}

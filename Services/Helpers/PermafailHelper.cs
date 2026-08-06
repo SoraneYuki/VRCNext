@@ -39,6 +39,7 @@ public static class PermafailHelper
 
         using var cmd = _db.CreateCommand();
         cmd.CommandText = @"
+            PRAGMA cache_size=-1024;
             CREATE TABLE IF NOT EXISTS permafail (
                 key         TEXT NOT NULL,
                 type        TEXT NOT NULL,

@@ -44,7 +44,7 @@ internal static class Database
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;";
+        cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA cache_size=-1024;";
         cmd.ExecuteNonQuery();
 
         return conn;
@@ -60,7 +60,7 @@ internal static class Database
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;";
+        cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA cache_size=-1024;";
         cmd.ExecuteNonQuery();
 
         return conn;

@@ -132,23 +132,34 @@ sendToCS({ action: 'getTimeline' });
     const FADE_PX = 140;
     const tab0 = document.getElementById('tab0');
     const taskbar = document.getElementById('taskbar');
+    let _tbRgb = null;
+    let _tbLast = '';
+    let _tbRaf = 0;
     function applyTopbarBg() {
-        const hex = getComputedStyle(document.documentElement).getPropertyValue('--bg-base').trim();
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        if (!tab0 || !tab0.classList.contains('active')) {
-            winDrag.style.background = `rgb(${r},${g},${b})`;
-            if (taskbar) taskbar.style.background = `rgb(${r},${g},${b})`;
-            return;
+        if (!_tbRgb) {
+            const hex = getComputedStyle(document.documentElement).getPropertyValue('--bg-base').trim();
+            _tbRgb = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
         }
-        const t = Math.min(content.scrollTop / FADE_PX, 1);
-        winDrag.style.background = `rgba(${r},${g},${b},${t.toFixed(2)})`;
-        if (taskbar) taskbar.style.background = `rgba(${r},${g},${b},${t.toFixed(2)})`;
+        const [r, g, b] = _tbRgb;
+        let bg;
+        if (!tab0 || !tab0.classList.contains('active')) {
+            bg = `rgb(${r},${g},${b})`;
+        } else {
+            const t = Math.min(content.scrollTop / FADE_PX, 1);
+            bg = `rgba(${r},${g},${b},${t.toFixed(2)})`;
+        }
+        if (bg === _tbLast) return;
+        _tbLast = bg;
+        winDrag.style.background = bg;
+        if (taskbar) taskbar.style.background = bg;
+    }
+    function onTopbarScroll() {
+        if (_tbRaf) return;
+        _tbRaf = requestAnimationFrame(() => { _tbRaf = 0; applyTopbarBg(); });
     }
     applyTopbarBg();
-    content.addEventListener('scroll', applyTopbarBg, { passive: true });
-    document.documentElement.addEventListener('themechange', applyTopbarBg);
+    content.addEventListener('scroll', onTopbarScroll, { passive: true });
+    document.documentElement.addEventListener('themechange', () => { _tbRgb = null; _tbLast = ''; applyTopbarBg(); });
     document.documentElement.addEventListener('tabchange', applyTopbarBg);
 }());
 

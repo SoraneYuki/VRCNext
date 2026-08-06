@@ -617,10 +617,11 @@ public class AppSettings
     public DateTime LastDbAutoBackup    { get; set; } = DateTime.MinValue;
 
     // Performance — WebView2/Chromium flags (all require restart)
-    public bool GpuAcceleration     { get; set; } = false;
+    public bool GpuAcceleration     { get; set; } = true;
     public bool GpuShaderCache      { get; set; } = false;
     public bool V8Heap128           { get; set; } = false;
     public bool TwoRenderProcesses  { get; set; } = false;
+    public bool EfficiencyMode      { get; set; } = false;
     public bool AnimationsEnabled   { get; set; } = true;
     public bool BlurEnabled         { get; set; } = true;
     public int  SearchDebounceMs    { get; set; } = 500;
