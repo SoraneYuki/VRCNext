@@ -1,4 +1,7 @@
-**2026.39.1**
+**2026.39.2**
+
+**HOTFIX**
+* Fixed group banner loading.
 
 **Changelog Modal**
 
