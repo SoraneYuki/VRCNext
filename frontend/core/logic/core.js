@@ -1954,6 +1954,7 @@ function execConsoleCommand(cmd) {
     if (input) input.value = '';
     if (cmd.toLowerCase() === '/blyat') { if (typeof runBlyat === 'function') runBlyat(); return; }
     if (cmd.toLowerCase() === '/rewind') { addLog('> ' + cmd, 'cmd'); sendToCS({ action: 'getRewind' }); return; }
+    if (cmd.toLowerCase() === '/changelog') { addLog('> ' + cmd, 'cmd'); openChangelogModal(); return; }
     addLog('> ' + cmd, 'cmd');
     sendToCS({ action: 'consoleCommand', cmd });
 }

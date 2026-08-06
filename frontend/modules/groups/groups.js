@@ -85,7 +85,7 @@ function loadMyGroups() {
 function refreshGroups() {
     const btn = document.getElementById('groupsRefreshBtn');
     if (btn) { btn.disabled = true; btn.querySelector('.msi').textContent = 'hourglass_empty'; }
-    sendToCS({ action: 'vrcGetMyGroups' });
+    sendToCS({ action: 'vrcGetMyGroups', force: true });
 }
 
 function renderMyGroups(list) {

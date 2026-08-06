@@ -78,6 +78,23 @@ public static class PermafailHelper
         _ = Task.Run(() => _Upsert(key, type, statusCode, entry.AddedAt, count));
     }
 
+    public static void Remove(string key, string type)
+    {
+        _cache.TryRemove((key, type), out _);
+        _ = Task.Run(() =>
+        {
+            lock (_lock)
+            {
+                if (_db == null) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "DELETE FROM permafail WHERE key = $key AND type = $type";
+                cmd.Parameters.AddWithValue("$key", key);
+                cmd.Parameters.AddWithValue("$type", type);
+                cmd.ExecuteNonQuery();
+            }
+        });
+    }
+
     private static bool IsInfinite(int failCount) => failCount >= 3;
 
     private static void _Migrate()

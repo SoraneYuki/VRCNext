@@ -125,7 +125,7 @@
     <div class="sidebar" id="sidebarEl">
         <div class="sidebar-resizer" id="sidebarResizer" data-side="left"></div>
         <div class="sidebar-sep"></div>
-        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.38.0</div></div></div>
+        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.39.0</div></div></div>
         <div class="nav vrcn-scrollbar" id="navEl"></div>
         <div class="clock-area"><div class="clock-time" id="clock">00:00:00</div><div class="clock-date" id="clockDate"></div></div>
         <div class="play-area"><button class="btn-play" onclick="playVRChat()" data-i18n-title="sidebar.play_vrchat" title="Play VRChat"><span class="play-icon-wrap"><span class="msi play-icon">play_arrow</span></span><span class="play-copy pl"><strong class="play-title" data-i18n="sidebar.play_vrchat">Play VRChat</strong><span class="play-sub" id="playSubText"></span></span><span class="msi play-arrow pl">chevron_right</span></button></div>
@@ -539,6 +539,39 @@
             <div id="newsArticleBody" class="news-article-body" onclick="newsArticleLinkClick(event)" style="flex:1;overflow-y:auto;min-height:0;margin-top:20px;"></div>
             <div class="modal-btns" style="margin-top:16px;">
                 <button class="vrcn-button" onclick="if(_newsArticleLink)sendToCS({action:'openUrl',url:_newsArticleLink})"><span class="msi" style="font-size:14px;">open_in_new</span> <span data-i18n="dashboard.news.full_article">Full Article</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Changelog / Update Modal -->
+    <div class="modal-overlay" id="modalChangelog" style="display:none;" onclick="if(event.target===this)closeChangelogModal()">
+        <div class="modal-box cl-box">
+            <div class="fd-modal-actions"><button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="closeChangelogModal()"><span class="msi" style="font-size:20px;">close</span></button></div>
+            <div class="fd-banner"><img id="changelogGroupBanner" src="fallback_cover.png" onerror="this.src='fallback_cover.png'"><div class="fd-banner-fade"></div></div>
+            <div class="fd-content fd-has-banner">
+                <div class="fd-header" style="margin-bottom:0;">
+                    <img class="fd-avatar" id="changelogGroupIcon" src="logo.png" onerror="this.src='logo.png'">
+                    <div style="flex:1;min-width:0;">
+                        <div class="fd-name" id="changelogGroupName">VRCN</div>
+                        <div class="fd-status" id="changelogGroupMeta"></div>
+                    </div>
+                    <span class="cl-version-badge" id="changelogVersion" style="margin-left:auto;flex-shrink:0;"></span>
+                </div>
+            </div>
+            <div class="cl-columns">
+                <div class="cl-support">
+                    <div class="cl-col-head" data-i18n="changelog.support_title">Support VRCNext</div>
+                    <div class="cl-support-sub" data-i18n="changelog.support_sub">VRCNext is free. If you enjoy it, here are two ways to support the project:</div>
+                    <button class="vrcn-button-round vrcn-btn-join" id="changelogJoinBtn" style="justify-content:center;" onclick="changelogJoinGroup()"><span class="msi">group_add</span> <span data-i18n="changelog.join_group">Join Group</span></button>
+                    <div class="cl-btn-row">
+                        <button class="vrcn-button" style="flex:1;justify-content:center;" onclick="sendToCS({action:'openUrl',url:'https://www.patreon.com/cw/Shinyflvres'})"><svg class="cl-brand-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="14.508" cy="9.437" r="6.437"/><rect x="2" y="3" width="3.5" height="18"/></svg> Patreon</button>
+                        <button class="vrcn-button" style="flex:1;justify-content:center;" onclick="sendToCS({action:'openUrl',url:'https://github.com/shinyflvre/VRCNext'})"><svg class="cl-brand-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg> <span data-i18n="changelog.star_github">Star on GitHub</span></button>
+                    </div>
+                </div>
+                <div class="cl-notes">
+                    <div class="cl-col-head" data-i18n="changelog.notes_title">Changelog</div>
+                    <div id="changelogBody" class="cl-notes-body"></div>
+                </div>
             </div>
         </div>
     </div>

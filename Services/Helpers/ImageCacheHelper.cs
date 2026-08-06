@@ -21,11 +21,14 @@ public static class ImageCacheHelper
 
     /// <summary>Set at startup to route download logs to the activity log. Args: (message, color).</summary>
     public static Action<string, string>? Log { get; set; }
+    public static Action<string, string>? OnImageRefreshed { get; set; }
     private static readonly ConcurrentDictionary<string, Task<string?>> _downloads = new();
     // Session-scoped path memo: "" = checked, not found; non-empty = full path
     private static readonly ConcurrentDictionary<string, string> _pathCache = new();
     // Last downloaded URL per entity — loaded from SQLite on startup
     private static readonly ConcurrentDictionary<string, string> _urls = new();
+    private static readonly ConcurrentDictionary<string, string> _authFileIds = new();
+    private static readonly ConcurrentDictionary<string, DateTime> _revalidated = new();
 
     private static readonly string[] _imageExtensions = [".jpg", ".png", ".webp", ".gif"];
 
@@ -102,8 +105,10 @@ public static class ImageCacheHelper
     public static string ToLocalUrl(string localPath)
     {
         var rel = Path.GetRelativePath(_baseDir, localPath).Replace('\\', '/');
-        var url = $"http://localhost:{Port}/imgcache/{rel}";
-        return DebugMode ? url + "?src=disk" : url;
+        long v = 0;
+        try { v = File.GetLastWriteTimeUtc(localPath).Ticks; } catch { }
+        var url = $"http://localhost:{Port}/imgcache/{rel}?v={v}";
+        return DebugMode ? url + "&src=disk" : url;
     }
 
 // World
@@ -131,7 +136,7 @@ public static class ImageCacheHelper
                 var normalized = NormalizeTo512(imageUrl);
                 var storedUrl  = GetStoredUrl("Worlds", worldId);
                 if (storedUrl == normalized) return ToLocalUrl(cached);
-                if (!IsNewerOrUnknown(normalized, storedUrl)) return ToLocalUrl(cached);
+                if (!ShouldRefresh($"Worlds/{worldId}", normalized, storedUrl)) return ToLocalUrl(cached);
                 _ = CacheAsync("Worlds", worldId, imageUrl, forceRefresh: true);
                 return normalized;
             }
@@ -158,9 +163,11 @@ public static class ImageCacheHelper
         return null;
     }
 
-    public static string GetGroupUrl(string? groupId, string? iconUrl)
+    public static string GetGroupUrl(string? groupId, string? iconUrl, bool authoritative = false)
     {
         iconUrl = StripLocalhostUrl(iconUrl);
+        if (authoritative && !string.IsNullOrWhiteSpace(groupId))
+            RecordAuthoritative($"Groups/{groupId}", iconUrl);
         var cached = GetGroupCached(groupId);
         if (cached != null)
         {
@@ -168,8 +175,12 @@ public static class ImageCacheHelper
             {
                 var normalized = NormalizeTo512(iconUrl);
                 var storedUrl  = GetStoredUrl("Groups", groupId);
-                if (storedUrl == normalized) return ToLocalUrl(cached);
-                if (!IsNewerOrUnknown(normalized, storedUrl)) return ToLocalUrl(cached);
+                if (storedUrl == normalized)
+                {
+                    RevalidateInBackground("Groups", groupId, iconUrl, cached);
+                    return ToLocalUrl(cached);
+                }
+                if (!ShouldRefresh($"Groups/{groupId}", normalized, storedUrl, authoritative)) return ToLocalUrl(cached);
                 _ = CacheAsync("Groups", groupId, iconUrl, forceRefresh: true);
                 return normalized;
             }
@@ -179,10 +190,12 @@ public static class ImageCacheHelper
         return RawOrEmpty(iconUrl);
     }
 
-    public static string GetGroupBannerUrl(string? groupId, string? bannerUrl)
+    public static string GetGroupBannerUrl(string? groupId, string? bannerUrl, bool authoritative = false)
     {
         bannerUrl = StripLocalhostUrl(bannerUrl);
         var bannerId = string.IsNullOrWhiteSpace(groupId) ? null : groupId + "_banner";
+        if (authoritative && bannerId != null)
+            RecordAuthoritative($"Groups/{bannerId}", bannerUrl);
         var cached   = FindCachedFile("Groups", bannerId);
         if (cached != null)
         {
@@ -190,8 +203,12 @@ public static class ImageCacheHelper
             {
                 var normalized = NormalizeTo512(bannerUrl);
                 var storedUrl  = GetStoredUrl("Groups", bannerId);
-                if (storedUrl == normalized) return ToLocalUrl(cached);
-                if (!IsNewerOrUnknown(normalized, storedUrl)) return ToLocalUrl(cached);
+                if (storedUrl == normalized)
+                {
+                    RevalidateInBackground("Groups", bannerId, bannerUrl, cached);
+                    return ToLocalUrl(cached);
+                }
+                if (!ShouldRefresh($"Groups/{bannerId}", normalized, storedUrl, authoritative)) return ToLocalUrl(cached);
                 _ = CacheAsync("Groups", bannerId, bannerUrl, forceRefresh: true);
                 return normalized;
             }
@@ -227,6 +244,7 @@ public static class ImageCacheHelper
                 var normalized = NormalizeTo512(iconUrl);
                 var storedUrl  = GetStoredUrl("Users", userId);
                 if (storedUrl == normalized) return ToLocalUrl(cached);
+                if (!ShouldRefresh($"Users/{userId}", normalized, storedUrl)) return ToLocalUrl(cached);
                 _ = CacheAsync("Users", userId, iconUrl, forceRefresh: true);
                 return normalized;
             }
@@ -253,6 +271,7 @@ public static class ImageCacheHelper
                     Log?.Invoke($"[BANNER] → Cache Hit {userId}", "ok");
                     return ToLocalUrl(cached);
                 }
+                if (!ShouldRefresh($"Users/{bannerId}", normalized, storedUrl)) return ToLocalUrl(cached);
                 _ = CacheAsync("Users", bannerId, bannerUrl, forceRefresh: true);
                 return normalized;
             }
@@ -275,6 +294,7 @@ public static class ImageCacheHelper
                 var normalized = NormalizeTo512(picUrl);
                 var storedUrl  = GetStoredUrl("Users", picId);
                 if (storedUrl == normalized) return ToLocalUrl(cached);
+                if (!ShouldRefresh($"Users/{picId}", normalized, storedUrl)) return ToLocalUrl(cached);
                 _ = CacheAsync("Users", picId, picUrl, forceRefresh: true);
                 return normalized;
             }
@@ -313,7 +333,7 @@ public static class ImageCacheHelper
                 var normalized = NormalizeTo512(imageUrl);
                 var storedUrl  = GetStoredUrl("Events", eventId);
                 if (storedUrl == normalized) return ToLocalUrl(cached);
-                if (!IsNewerOrUnknown(normalized, storedUrl)) return ToLocalUrl(cached);
+                if (!ShouldRefresh($"Events/{eventId}", normalized, storedUrl)) return ToLocalUrl(cached);
                 _ = CacheAsync("Events", eventId, imageUrl, forceRefresh: true);
                 return normalized;
             }
@@ -372,7 +392,7 @@ public static class ImageCacheHelper
                 var normalized = NormalizeTo512(imageUrl);
                 var storedUrl  = GetStoredUrl("Avatars", avatarId);
                 if (storedUrl == normalized) return ToLocalUrl(cached);
-                if (!IsNewerOrUnknown(normalized, storedUrl)) return ToLocalUrl(cached);
+                if (!ShouldRefresh($"Avatars/{avatarId}", normalized, storedUrl)) return ToLocalUrl(cached);
                 _ = CacheAsync("Avatars", avatarId, imageUrl, forceRefresh: true);
                 return normalized;
             }
@@ -419,6 +439,65 @@ public static class ImageCacheHelper
         // parts[0] = file_xxx, parts[1] = version, parts[2] = size
         if (parts.Length >= 2 && int.TryParse(parts[1], out var v)) return v;
         return 0;
+    }
+
+    private static bool ShouldRefresh(string key, string incomingUrl, string? storedUrl, bool authoritative = false)
+    {
+        if (!IsNewerOrUnknown(incomingUrl, storedUrl)) return false;
+        if (authoritative) return true;
+        var fid = ExtractFileId(incomingUrl);
+        if (fid.Length > 0 && _authFileIds.TryGetValue(key, out var authFid) && authFid != fid) return false;
+        return true;
+    }
+
+    public static void ResetRevalidation(string subdirPrefix)
+    {
+        foreach (var k in _revalidated.Keys)
+            if (k.StartsWith(subdirPrefix + "/", StringComparison.Ordinal)) _revalidated.TryRemove(k, out _);
+    }
+
+    private static void RevalidateInBackground(string subdir, string entityId, string imageUrl, string cachedPath)
+    {
+        var key = $"{subdir}/{entityId}";
+        var now = DateTime.UtcNow;
+        if (_revalidated.TryGetValue(key, out var last) && now - last < TimeSpan.FromHours(24)) return;
+        _revalidated[key] = now;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                if (_http == null) return;
+                var url = NormalizeTo512(imageUrl);
+                long remoteLen = -1;
+                await _downloadSem.WaitAsync();
+                try
+                {
+                    using var req = new HttpRequestMessage(HttpMethod.Get, url);
+                    req.Headers.TryAddWithoutValidation(BackoffHandler.NoBackoffHeader, "1");
+                    using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+                    if (!resp.IsSuccessStatusCode) return;
+                    remoteLen = resp.Content.Headers.ContentLength ?? -1;
+                }
+                finally { _downloadSem.Release(); }
+                if (remoteLen <= 0) return;
+                long localLen;
+                try { localLen = new FileInfo(cachedPath).Length; } catch { return; }
+                if (remoteLen == localLen) return;
+                Log?.Invoke($"CDN CHANGED - {key} - {localLen} -> {remoteLen} bytes, re-downloading", "warn");
+                var result = await CacheAsync(subdir, entityId, imageUrl, forceRefresh: true);
+                if (result != null) OnImageRefreshed?.Invoke(subdir, entityId);
+            }
+            catch { }
+        });
+    }
+
+    private static void RecordAuthoritative(string key, string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        var norm = NormalizeTo512(url);
+        var fid = ExtractFileId(norm);
+        if (fid.Length > 0) _authFileIds[key] = fid;
+        if (PermafailHelper.IsPermafailed(norm, "Image")) PermafailHelper.Remove(norm, "Image");
     }
 
     // Returns true if incomingUrl should replace the stored cached image.

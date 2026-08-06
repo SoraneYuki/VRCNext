@@ -286,6 +286,7 @@ public class AppSettings
     public bool MinimizeToTray { get; set; }
     public bool TrayNotificationsEnabled { get; set; }
     public string Language { get; set; } = "en";
+    public string LastChangelogVersion { get; set; } = "";
     public string Theme { get; set; } = "vrcn";
     public string SpecialTheme { get; set; } = "";
     public int AutoColorAccuracy { get; set; } = 50;

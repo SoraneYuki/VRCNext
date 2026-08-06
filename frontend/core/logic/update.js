@@ -173,6 +173,116 @@ function onDbMigrationProgress(payload) {
     if (label) label.textContent = pct + '%';
 }
 
+// ===== Changelog Modal =====
+
+const CHANGELOG_GROUP_ID = 'grp_36c812a1-0146-4eb8-ab73-4df11c7fc0e3';
+let _changelogNotes = '';
+let _changelogLoading = false;
+let _changelogVersionShown = '';
+
+let _changelogPayload = null;
+
+function openChangelogModal() {
+    if (_changelogPayload) {
+        onShowChangelog(_changelogPayload);
+        return;
+    }
+    if (_changelogLoading) return;
+    _changelogLoading = true;
+    sendToCS({ action: 'getChangelog' });
+}
+
+function onShowChangelog(payload) {
+    _changelogLoading = false;
+    _changelogPayload = payload || {};
+    _changelogNotes = payload?.notes || '';
+    _changelogVersionShown = payload?.version || '';
+    const ver = document.getElementById('changelogVersion');
+    if (ver) ver.textContent = _changelogVersionShown ? 'v' + _changelogVersionShown : '';
+    const banner = document.getElementById('changelogGroupBanner');
+    if (banner && payload?.groupBanner) banner.src = payload.groupBanner;
+    const icon = document.getElementById('changelogGroupIcon');
+    if (icon && payload?.groupIcon) icon.src = payload.groupIcon;
+    const name = document.getElementById('changelogGroupName');
+    if (name) name.textContent = payload?.groupName || 'VRCN';
+    const meta = document.getElementById('changelogGroupMeta');
+    if (meta) {
+        const count = payload?.groupMembers || 0;
+        meta.textContent = count > 0
+            ? (typeof getGroupMembersText === 'function' ? getGroupMembersText(count) : count + ' ' + t('groups.members', 'Members'))
+            : '';
+    }
+    const joinBtn = document.getElementById('changelogJoinBtn');
+    if (joinBtn && payload?.groupJoined) {
+        joinBtn.disabled = true;
+        joinBtn.innerHTML = `<span class="msi">check</span> ${t('changelog.joined', 'Joined!')}`;
+    }
+    const body = document.getElementById('changelogBody');
+    if (body) {
+        body.innerHTML = _changelogNotes
+            ? changelogMdToHtml(_changelogNotes)
+            : `<div class="cl-md-empty">${t('changelog.load_failed', 'Could not load the release notes.')}<br><a href="#" onclick="sendToCS({action:'openUrl',url:'https://github.com/shinyflvre/VRCNext/releases'});return false;">${t('changelog.view_on_github', 'View them on GitHub')}</a></div>`;
+        body.scrollTop = 0;
+    }
+    const modal = document.getElementById('modalChangelog');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeChangelogModal() {
+    const modal = document.getElementById('modalChangelog');
+    if (modal) modal.style.display = 'none';
+}
+
+function changelogInline(s) {
+    return esc(s)
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function changelogMdToHtml(md) {
+    const lines = String(md || '').replace(/\r/g, '').split('\n');
+    let html = '';
+    let inList = false;
+    let first = true;
+    const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+    for (const raw of lines) {
+        const line = raw.trim();
+        if (!line) { closeList(); continue; }
+        if (first) {
+            first = false;
+            if (_changelogVersionShown && /^(\*\*|#)/.test(line) && line.includes(_changelogVersionShown)) continue;
+        }
+        const heading = line.match(/^#{1,4}\s+(.*)$/);
+        if (heading) { closeList(); html += `<div class="cl-md-h">${changelogInline(heading[1])}</div>`; continue; }
+        if (/^\*\*[^*]+\*\*:?$/.test(line)) { closeList(); html += `<div class="cl-md-h">${changelogInline(line.replace(/\*\*/g, ''))}</div>`; continue; }
+        if (/^[-*]\s+/.test(line)) {
+            if (!inList) { html += '<ul class="cl-md-ul">'; inList = true; }
+            html += `<li>${changelogInline(line.replace(/^[-*]\s+/, ''))}</li>`;
+            continue;
+        }
+        closeList();
+        html += `<p class="cl-md-p">${changelogInline(line)}</p>`;
+    }
+    closeList();
+    return html;
+}
+
+function changelogJoinGroup() {
+    const btn = document.getElementById('changelogJoinBtn');
+    if (btn) btn.disabled = true;
+    sendToCS({ action: 'vrcJoinGroup', groupId: CHANGELOG_GROUP_ID });
+}
+
+function onChangelogJoinResult(success) {
+    const btn = document.getElementById('changelogJoinBtn');
+    if (!btn) return;
+    if (success) {
+        btn.innerHTML = `<span class="msi" style="font-size:16px;">check</span>${t('changelog.joined', 'Joined!')}`;
+    } else {
+        btn.disabled = false;
+    }
+}
+
 // ===== Account Switcher =====
 
 let _savedAccounts = [];

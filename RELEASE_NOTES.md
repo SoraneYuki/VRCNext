@@ -1,4 +1,11 @@
-**2026.39.0 BETA**
+**2026.39.1**
+
+**Changelog Modal**
+
+* The changelog is now shown directly in VRCNext after an update.
+* Added Patreon Support button.
+* Added Add Start to github button.
+* Added Join VRCN VRC Group button.
 
 **Performance (Backend)**
 
@@ -58,3 +65,5 @@
 * Fixed user ID search in VRCNDb Avatar Search.
 * Fixed renamed favorite groups not updating in the Avatars tab.
 * Fixed renamed favorite groups not updating in the Worlds tab.
+
+

@@ -434,6 +434,9 @@ window.external.receiveMessage(rawMsg => {
                     if (payload.success && (payload.action === 'joinGroup' || payload.action === 'leaveGroup' || payload.groupJoined)) {
                         loadMyGroups();
                     }
+                    if (payload.action === 'joinGroup' && typeof onChangelogJoinResult === 'function') {
+                        onChangelogJoinResult(payload.success);
+                    }
                     // Re-enable friend action buttons if open
                     if (!['createGroupPost', 'acceptNotif', 'join'].includes(payload.action)) {
                         const fdActions = document.querySelector('#friendDetailContent .fd-actions');
@@ -970,6 +973,7 @@ case 'vrcNews':
             case 'updateAvailable':      showUpdateAvailable(payload.version); break;
             case 'updateProgress':       onUpdateProgress(payload); break;
             case 'updateReady':          onUpdateReady(); break;
+            case 'showChangelog':        onShowChangelog(payload); break;
             case 'dbMigrationProgress':  onDbMigrationProgress(payload); break;
             case 'gameLogEvent':         addGameLogEntry(payload);        break;
             case 'gameLogHistory':       if (typeof setGameLogHistory === 'function') setGameLogHistory(payload.entries || []); break;

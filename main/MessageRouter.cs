@@ -2861,6 +2861,7 @@ public partial class AppShell
                 // App updates
                 case "checkUpdate":
                 case "installUpdate":
+                case "getChangelog":
                     await _authCtrl.HandleMessage(action, msg);
                     break;
 

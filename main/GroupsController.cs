@@ -39,6 +39,18 @@ public class GroupsController
     {
         _core = core;
         _friends = friends;
+        ImageCacheHelper.OnImageRefreshed = (subdir, entityId) =>
+        {
+            if (subdir == "Groups") ScheduleGroupsRepush();
+        };
+    }
+
+    private System.Threading.Timer? _repushTimer;
+
+    private void ScheduleGroupsRepush()
+    {
+        _repushTimer?.Dispose();
+        _repushTimer = new System.Threading.Timer(_ => { _ = FetchAndCacheAsync(); }, null, 1500, Timeout.Infinite);
     }
 
     // Represented group
@@ -216,6 +228,7 @@ public class GroupsController
 
             case "vrcGetMyGroups":
             {
+                if (msg["force"]?.Value<bool>() == true) ImageCacheHelper.ResetRevalidation("Groups");
                 _ = Task.Run(FetchAndCacheAsync);
                 break;
             }
@@ -385,7 +398,7 @@ public class GroupsController
                             _core.SendToJS("vrcGroupDetail", new {
                                 id = g["id"]?.ToString() ?? "", name = g["name"]?.ToString() ?? "",
                                 shortCode = g["shortCode"]?.ToString() ?? "", description = g["description"]?.ToString() ?? "",
-                                iconUrl = ImageCacheHelper.GetGroupUrl(g["id"]?.ToString(), g["iconUrl"]?.ToString()), bannerUrl = ImageCacheHelper.GetGroupBannerUrl(g["id"]?.ToString(), g["bannerUrl"]?.ToString()),
+                                iconUrl = ImageCacheHelper.GetGroupUrl(g["id"]?.ToString(), g["iconUrl"]?.ToString(), authoritative: true), bannerUrl = ImageCacheHelper.GetGroupBannerUrl(g["id"]?.ToString(), g["bannerUrl"]?.ToString(), authoritative: true),
                                 memberCount = g["memberCount"]?.Value<int>() ?? 0, onlineMemberCount = g["onlineMemberCount"]?.Value<int>() ?? 0, privacy = g["privacy"]?.ToString() ?? "",
                                 joinState = g["joinState"]?.ToString() ?? "",
                                 createdAt    = g["createdAt"]?.ToString() ?? "",

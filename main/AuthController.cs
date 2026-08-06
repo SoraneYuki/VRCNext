@@ -460,6 +460,14 @@ public class AuthController
                 });
                 break;
 
+            case "getChangelog":
+                _ = Task.Run(async () =>
+                {
+                    var payload = await BuildChangelogPayloadAsync(auto: false);
+                    Invoke(() => _core.SendToJS("showChangelog", payload));
+                });
+                break;
+
             case "restartApp":
                 var exe = Environment.ProcessPath;
                 if (!string.IsNullOrEmpty(exe))
@@ -617,6 +625,17 @@ public class AuthController
             _core.OnTraySettingChanged?.Invoke(true, true); // autoHide on startup
 #endif
         _ = VrcTryResumeAsync();
+        if (_core.Settings.LastChangelogVersion != AppInfo.Version)
+        {
+            _core.Settings.LastChangelogVersion = AppInfo.Version;
+            _core.Settings.Save();
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(4000);
+                var payload = await BuildChangelogPayloadAsync(auto: true);
+                Invoke(() => _core.SendToJS("showChangelog", payload));
+            });
+        }
         _ = Task.Run(async () =>
         {
             await Task.Delay(3000);
@@ -624,6 +643,48 @@ public class AuthController
             if (version != null)
                 Invoke(() => _core.SendToJS("updateAvailable", new { version }));
         });
+    }
+
+    private const string ChangelogGroupId = "grp_36c812a1-0146-4eb8-ab73-4df11c7fc0e3";
+
+    private async Task<object> BuildChangelogPayloadAsync(bool auto)
+    {
+        var notes = await FetchReleaseNotesAsync();
+        JObject? g = null;
+        try { g = await _core.Groups.GetGroupAsync(ChangelogGroupId); } catch { }
+        return new
+        {
+            version = AppInfo.Version,
+            notes,
+            auto,
+            groupName = g?["name"]?.ToString() ?? "VRCN",
+            groupIcon = ImageCacheHelper.GetGroupUrl(ChangelogGroupId, g?["iconUrl"]?.ToString(), authoritative: g != null),
+            groupBanner = ImageCacheHelper.GetGroupBannerUrl(ChangelogGroupId, g?["bannerUrl"]?.ToString(), authoritative: g != null),
+            groupMembers = g?["memberCount"]?.Value<int>() ?? 0,
+            groupJoined = g?["myMember"] != null && g["myMember"]!.Type != JTokenType.Null,
+        };
+    }
+
+    private static string _cachedReleaseNotes = "";
+
+    private static async Task<string> FetchReleaseNotesAsync()
+    {
+        if (!string.IsNullOrEmpty(_cachedReleaseNotes)) return _cachedReleaseNotes;
+        try
+        {
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(15);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
+            var resp = await client.GetAsync($"https://api.github.com/repos/shinyflvre/VRCNext/releases/tags/v{AppInfo.Version}");
+            if (!resp.IsSuccessStatusCode)
+                resp = await client.GetAsync("https://api.github.com/repos/shinyflvre/VRCNext/releases/latest");
+            if (!resp.IsSuccessStatusCode) return "";
+            var body = await resp.Content.ReadAsStringAsync();
+            var notes = JObject.Parse(body)["body"]?.ToString() ?? "";
+            if (!string.IsNullOrEmpty(notes)) _cachedReleaseNotes = notes;
+            return notes;
+        }
+        catch { return ""; }
     }
 
     // VRC Debug Log Setup
