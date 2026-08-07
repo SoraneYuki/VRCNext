@@ -372,16 +372,19 @@ function onBackendMessage(e) {
                 var vrcHint = document.getElementById('vrcPathHint');
                 if (vrcHint) vrcHint.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:middle;color:var(--accent);">info</span> VRChat runs via Proton. Steam handles the launch automatically.';
 
-                var welcomeStepTitle = document.getElementById('welcomeStep10Title');
-                if (welcomeStepTitle) welcomeStepTitle.textContent = 'Start with System';
-                var pageTitle = document.getElementById('startupPageTitle');
-                if (pageTitle) pageTitle.textContent = 'Start with System';
-                var pageDesc = document.getElementById('startupPageDesc');
-                if (pageDesc) pageDesc.textContent = 'Should VRCNext launch automatically when your system starts? It will open minimized so it is ready when you need it.';
-                var toggleTitle = document.getElementById('startupToggleTitle');
-                if (toggleTitle) toggleTitle.textContent = 'Auto-start with system';
-                var toggleSub = document.getElementById('startupToggleSub');
-                if (toggleSub) toggleSub.textContent = 'Opens minimized when system boots';
+                [
+                    ['welcomeStep10Title', 'setup.page2.step10_title_linux', 'Start with Linux'],
+                    ['welcomeStep10Desc',  'setup.page2.step10_desc_linux',  'Launch VRCNext automatically when Linux boots'],
+                    ['startupPageTitle',   'setup.page7.title_linux',        'Start with Linux'],
+                    ['startupPageDesc',    'setup.page7.desc_linux',         'Should VRCNext launch automatically when Linux starts? It will open minimized so it is ready when you need it.'],
+                    ['startupToggleTitle', 'setup.page7.toggle_title_linux', 'Auto-start with Linux'],
+                    ['startupToggleSub',   'setup.page7.toggle_sub_linux',   'Opens minimized when Linux boots'],
+                ].forEach(function (m) {
+                    var el = document.getElementById(m[0]);
+                    if (!el) return;
+                    el.setAttribute('data-i18n', m[1]);
+                    el.textContent = t(m[1], m[2]);
+                });
             }
             break;
     }

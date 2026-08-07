@@ -13,9 +13,7 @@ public static class VrcCacheScanner
 
     public static string CacheDir()
     {
-        var local   = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var appData = Directory.GetParent(local)?.FullName ?? local;
-        return Path.Combine(appData, "LocalLow", "VRChat", "VRChat", "Cache-WindowsPlayer");
+        return Path.Combine(VrcPathsHelper.AppDataDir(), "Cache-WindowsPlayer");
     }
 
     public static int Scan(HashSet<string> scannedFiles, Action<string> onAvatarId, CancellationToken ct = default)

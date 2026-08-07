@@ -84,6 +84,10 @@ function settingsCheckUpdate() {
 }
 
 function settingsInstallUpdate() {
+    if (window._isLinuxUi) {
+        sendToCS({ action: 'openUrl', url: 'https://github.com/shinyflvre/VRCNext/releases/latest' });
+        return;
+    }
     if (_updateInstalling) return;
     _updateInstalling = true;
     _updatePhase = 'starting';
@@ -126,6 +130,10 @@ function toggleUpdatePanel() {
 }
 
 function startUpdate() {
+    if (window._isLinuxUi) {
+        sendToCS({ action: 'openUrl', url: 'https://github.com/shinyflvre/VRCNext/releases/latest' });
+        return;
+    }
     if (_updateInstalling) return;
     _updateInstalling = true;
     _updatePhase = 'starting';

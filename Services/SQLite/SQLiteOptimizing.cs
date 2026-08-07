@@ -420,7 +420,9 @@ public static class SQLiteOptimizing
             "VRCNext", "Backup");
         Directory.CreateDirectory(backupDir);
 
-        var stamp    = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        var stamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+
+#if WINDOWS
         var destPath = Path.Combine(backupDir, $"VRChat_Registry_{stamp}.reg");
 
         var psi = new ProcessStartInfo("reg")
@@ -437,5 +439,16 @@ public static class SQLiteOptimizing
             throw new Exception($"reg export failed (exit code {proc.ExitCode})");
 
         return destPath;
+#else
+        var pfx = VRCNext.Services.Helpers.VrcPathsHelper.FindProtonPrefix()
+            ?? throw new Exception("VRChat Proton prefix not found — is VRChat installed via Steam?");
+        var userReg = Path.Combine(pfx, "user.reg");
+        if (!File.Exists(userReg))
+            throw new Exception("user.reg not found in the VRChat Proton prefix");
+
+        var destPath = Path.Combine(backupDir, $"VRChat_Registry_{stamp}_proton_user.reg");
+        File.Copy(userReg, destPath, overwrite: true);
+        return destPath;
+#endif
     }
 }

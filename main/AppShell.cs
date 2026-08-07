@@ -71,6 +71,9 @@ public partial class AppShell
     private readonly Channel<string> _jsQueue = Channel.CreateUnbounded<string>(new UnboundedChannelOptions { SingleReader = true, AllowSynchronousContinuations = false });
 #if WINDOWS
     private SystemTrayService? _trayService;
+#else
+    private int _lastNormalW, _lastNormalH;
+    private int _lastNormalX = -1, _lastNormalY = -1;
 #endif
 
     // VR overlay world name+thumb cache (worldId → name, localUrl)
@@ -185,8 +188,16 @@ public partial class AppShell
         _core.AvtrdbSubmit        = id => { QueueAvtrdbSubmit(id); QueueAvtrIcuSubmit(id); };
         _core.VrcndbSubmit        = id => QueueVrcndbSubmit(id);
         _core.PrefetchSharedContent = () => PrefetchSharedContentAsync();
+#if WINDOWS
         _core.LoadPage = path => _window.Load(path);
+#else
+        _core.LoadPage = path => _window.Load(FrontendHttpUrl(path));
+#endif
+#if WINDOWS
         _memTrim.OnTrim = () => { _core.TrimCaches(); _core.VrOverlay?.TrimMemory(); };
+#else
+        _memTrim.OnTrim = () => _core.TrimCaches();
+#endif
         _friends = new FriendsController(_core);
         _instance = new InstanceController(_core, _friends);
         _notifications = new NotificationsController(_core, _friends, _instance);
@@ -195,7 +206,9 @@ public partial class AppShell
         _timelineCtrl = new TimelineController(_core, _friends, _instance, _photos);
         _vroCtrl = new VROverlayController(_core, _friends);
         _sfCtrl = new SpaceFlightController(_core, _vroCtrl);
+#if WINDOWS
         _core.SpeakToast = (evType, name, text) => _vroCtrl.SpeakToast(evType, name, text);
+#endif
         _fsCtrl = new FrameShotController(_core, _vroCtrl, _photos);
         _discordCtrl = new DiscordController(_core, _instance, _vroCtrl);
         _chatboxCtrl = new ChatboxController(_core, _vroCtrl);
@@ -223,8 +236,10 @@ public partial class AppShell
             _vrcnPlusCtrl.OnOwnUserKnown(user?["id"]?.ToString() ?? "");
         };
         _core.PushDiscordPresence = () => _discordCtrl.PushPresence();
+#if WINDOWS
         _vroCtrl.OnToolToggle    = ToggleToolFromOverlay;
         _vroCtrl.OnVrScaleChange = delta => _asCtrl.ApplyVrScaleDelta(delta);
+#endif
         _vroCtrl.GetToolStates = () => (
             _discordCtrl.IsConnected,
             _vfCtrl.IsRunning,
@@ -325,6 +340,11 @@ public partial class AppShell
             ? Path.Combine(frontend, "index.html")
             : Path.Combine(frontend, "setup", "setup.html");
         if (!File.Exists(startPage)) startPage = Path.Combine(frontend, "index.html");
+#if !WINDOWS
+        // WebKitGTK blocks fetch() on file:// pages, so the frontend is served
+        // through the local HttpListener instead.
+        var startUrl = FrontendHttpUrl(startPage);
+#endif
 
         int uptimeTick = 0;
         _uptimeTimer2 = new System.Threading.Timer(_ =>
@@ -386,15 +406,19 @@ public partial class AppShell
         // WebKit2GTK on systems without proper GPU (VMs, Hyper-V, missing Vulkan):
         // Force Mesa software rendering so EGL/OpenGL never fails in the WebKit child process.
         // These must be set before PhotinoWindow so the child process inherits them.
-        void SetIfUnset(string key, string val)
+        // Skipped when the user enables hardware acceleration in the performance settings.
+        if (!_settings.LinuxGpuAcceleration)
         {
-            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
-                Environment.SetEnvironmentVariable(key, val);
+            void SetIfUnset(string key, string val)
+            {
+                if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
+                    Environment.SetEnvironmentVariable(key, val);
+            }
+            SetIfUnset("WEBKIT_DISABLE_DMABUF_RENDERER",    "1");
+            SetIfUnset("WEBKIT_DISABLE_COMPOSITING_MODE",   "1");
+            SetIfUnset("LIBGL_ALWAYS_SOFTWARE",             "1");
+            SetIfUnset("GALLIUM_DRIVER",                    "llvmpipe");
         }
-        SetIfUnset("WEBKIT_DISABLE_DMABUF_RENDERER",    "1");
-        SetIfUnset("WEBKIT_DISABLE_COMPOSITING_MODE",   "1");
-        SetIfUnset("LIBGL_ALWAYS_SOFTWARE",             "1");
-        SetIfUnset("GALLIUM_DRIVER",                    "llvmpipe");
 #endif
 
         var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "logo.png");
@@ -420,7 +444,39 @@ public partial class AppShell
 #endif
             .RegisterWebMessageReceivedHandler((_, message) => { _ = OnWebMessage(message); });
         if (File.Exists(iconPath)) windowBuilder.SetIconFile(iconPath);
+#if WINDOWS
         _window = windowBuilder.Load(startPage);
+#else
+        _lastNormalW = startW;
+        _lastNormalH = startH;
+        _lastNormalX = startX;
+        _lastNormalY = startY;
+        windowBuilder.RegisterSizeChangedHandler((_, sz) =>
+        {
+            try
+            {
+                if (_window != null && !_window.Maximized && sz.Width >= 100)
+                {
+                    _lastNormalW = sz.Width;
+                    _lastNormalH = sz.Height;
+                }
+            }
+            catch { }
+        });
+        windowBuilder.RegisterLocationChangedHandler((_, pt) =>
+        {
+            try
+            {
+                if (_window != null && !_window.Maximized)
+                {
+                    _lastNormalX = pt.X;
+                    _lastNormalY = pt.Y;
+                }
+            }
+            catch { }
+        });
+        _window = windowBuilder.Load(startUrl);
+#endif
         _core.Window = _window;
         _ = RunJsDispatcherAsync();
         _ = RunAutoBackupsAsync();
@@ -549,9 +605,7 @@ public partial class AppShell
         {
             try
             {
-#if WINDOWS
                 await Task.Run(() => SQLiteOptimizing.CreateRegistryBackup());
-#endif
                 _settings.LastRegBackup = DateTime.Now;
                 _settings.Save();
             }
@@ -581,16 +635,16 @@ public partial class AppShell
                 anySave = true;
             }
 #else
-            if (_settings.RememberWindowSize && !_window.Maximized && _window.Width >= 100)
+            if (_settings.RememberWindowSize && _lastNormalW >= 100)
             {
-                _settings.SavedWindowWidth  = _window.Width;
-                _settings.SavedWindowHeight = _window.Height;
+                _settings.SavedWindowWidth  = _lastNormalW;
+                _settings.SavedWindowHeight = _lastNormalH;
                 anySave = true;
             }
-            if (_settings.RememberWindowPosition && !_window.Maximized)
+            if (_settings.RememberWindowPosition && _lastNormalX >= 0)
             {
-                _settings.SavedWindowX = _window.Left;
-                _settings.SavedWindowY = _window.Top;
+                _settings.SavedWindowX = _lastNormalX;
+                _settings.SavedWindowY = _lastNormalY;
                 anySave = true;
             }
 #endif
@@ -755,7 +809,7 @@ public partial class AppShell
 
     private void StartAmplitudePolling()
     {
-        _amplitudePath = Path.Combine(Path.GetTempPath(), "VRChat", "VRChat", "amplitude.cache");
+        _amplitudePath = Path.Combine(VRCNext.Services.Helpers.VrcPathsHelper.TempDir(), "amplitude.cache");
         _amplitudeTimer = new System.Threading.Timer(_ => PollAmplitude(), null, 5_000, 100);
     }
 
@@ -942,6 +996,76 @@ public partial class AppShell
         // No-op with Photino — watch folders served via /media{i}/ routes in HttpListener
     }
 
+#if !WINDOWS
+    private string FrontendHttpUrl(string filePath)
+    {
+        var frontendRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend");
+        string rel;
+        try { rel = Path.GetRelativePath(frontendRoot, Path.GetFullPath(filePath)); }
+        catch { rel = "index.html"; }
+        if (rel.StartsWith("..") || Path.IsPathRooted(rel)) rel = "index.html";
+        rel = rel.Replace(Path.DirectorySeparatorChar, '/');
+        return $"http://localhost:{_httpPort}/app/{rel}";
+    }
+#endif
+
+    private static readonly Dictionary<string, string> _frontendMime = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [".html"] = "text/html; charset=utf-8",
+        [".htm"]  = "text/html; charset=utf-8",
+        [".js"]   = "text/javascript; charset=utf-8",
+        [".mjs"]  = "text/javascript; charset=utf-8",
+        [".css"]  = "text/css; charset=utf-8",
+        [".json"] = "application/json; charset=utf-8",
+        [".svg"]  = "image/svg+xml",
+        [".png"]  = "image/png",
+        [".jpg"]  = "image/jpeg",
+        [".jpeg"] = "image/jpeg",
+        [".gif"]  = "image/gif",
+        [".webp"] = "image/webp",
+        [".ico"]  = "image/x-icon",
+        [".cur"]  = "image/x-icon",
+        [".woff"] = "font/woff",
+        [".woff2"] = "font/woff2",
+        [".ttf"]  = "font/ttf",
+        [".otf"]  = "font/otf",
+        [".wav"]  = "audio/wav",
+        [".mp3"]  = "audio/mpeg",
+        [".ogg"]  = "audio/ogg",
+        [".mp4"]  = "video/mp4",
+        [".webm"] = "video/webm",
+        [".txt"]  = "text/plain; charset=utf-8",
+        [".md"]   = "text/plain; charset=utf-8",
+        [".map"]  = "application/json; charset=utf-8",
+    };
+
+    private static async Task ServeFrontendAsync(System.Net.HttpListenerContext ctx, string rel)
+    {
+        var frontendRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend");
+        var file = Path.GetFullPath(Path.Combine(frontendRoot, rel.Replace('/', Path.DirectorySeparatorChar)));
+        if (!file.StartsWith(frontendRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal) &&
+            !string.Equals(file, frontendRoot, StringComparison.Ordinal))
+        {
+            ctx.Response.StatusCode = 403;
+            return;
+        }
+        if (!File.Exists(file)) { ctx.Response.StatusCode = 404; return; }
+        ctx.Response.ContentType = _frontendMime.TryGetValue(Path.GetExtension(file), out var mime)
+            ? mime
+            : "application/octet-stream";
+        ctx.Response.Headers["Cache-Control"] = "no-cache";
+        ctx.Response.StatusCode = 200;
+        var length = new FileInfo(file).Length;
+        ctx.Response.ContentLength64 = length;
+        try
+        {
+            using var fs = File.OpenRead(file);
+            await fs.CopyToAsync(ctx.Response.OutputStream);
+        }
+        catch (System.Net.HttpListenerException) { }
+        catch (IOException) { }
+    }
+
     private async Task ServeHttpAsync()
     {
         while (_httpListener?.IsListening == true)
@@ -962,7 +1086,11 @@ public partial class AppShell
         var isThumb = ctx.Request.Url?.Query?.Contains("thumb=1") == true;
         try
         {
-            if (path.StartsWith("/imgcache/"))
+            if (path.StartsWith("/app/"))
+            {
+                await ServeFrontendAsync(ctx, Uri.UnescapeDataString(path["/app/".Length..]));
+            }
+            else if (path.StartsWith("/imgcache/"))
             {
                 var rel  = Uri.UnescapeDataString(path["/imgcache/".Length..]).Replace('/', Path.DirectorySeparatorChar);
                 var file = Path.Combine(
@@ -1165,17 +1293,18 @@ public partial class AppShell
     private static string? FindFfmpegPath()
     {
         if (!string.IsNullOrEmpty(_cachedFfmpegPath) && File.Exists(_cachedFfmpegPath)) return _cachedFfmpegPath;
-        var local = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg.exe");
+        var exeName = OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg";
+        var local = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, exeName);
         if (File.Exists(local)) { _cachedFfmpegPath = local; return local; }
-        var sub = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg", "ffmpeg.exe");
+        var sub = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg", exeName);
         if (File.Exists(sub)) { _cachedFfmpegPath = sub; return sub; }
         var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? "";
-        foreach (var dir in pathEnv.Split(';'))
+        foreach (var dir in pathEnv.Split(Path.PathSeparator))
         {
             if (string.IsNullOrWhiteSpace(dir)) continue;
             try
             {
-                var candidate = Path.Combine(dir.Trim(), "ffmpeg.exe");
+                var candidate = Path.Combine(dir.Trim(), exeName);
                 if (File.Exists(candidate)) { _cachedFfmpegPath = candidate; return candidate; }
             }
             catch { }
@@ -1189,7 +1318,7 @@ public partial class AppShell
         var ffmpeg = FindFfmpegPath();
         if (ffmpeg == null)
         {
-            _core.SendToJS("log", new { msg = "[VideoThumb] ffmpeg.exe not found — install or place next to VRCNext.exe", color = "err" });
+            _core.SendToJS("log", new { msg = "[VideoThumb] ffmpeg not found — install it or place it next to the VRCNext executable", color = "err" });
             return false;
         }
         if (TryFfmpegThumb(ffmpeg, srcFile, thumbPath, useSeek: true))  return true;
@@ -1267,6 +1396,7 @@ public partial class AppShell
                         if (!ok) { ctx.Response.StatusCode = 404; return; }
                     }
                     else
+#if WINDOWS
                     await Task.Run(() =>
                     {
                         var tmpPath = thumbPath + ".tmp";
@@ -1297,6 +1427,32 @@ public partial class AppShell
                         if (Interlocked.Increment(ref _thumbGenCount) % 10 == 0)
                             GC.Collect(1, GCCollectionMode.Optimized, false);
                     });
+#else
+                    await Task.Run(() =>
+                    {
+                        var tmpPath = thumbPath + ".tmp";
+                        var rawBytes = File.ReadAllBytes(file);
+                        using var codec = SkiaSharp.SKCodec.Create(new MemoryStream(rawBytes));
+                        if (codec == null) throw new InvalidOperationException("Unsupported image format");
+                        var info = codec.Info;
+                        const int maxSize = 400;
+                        var scale = Math.Min(1.0, Math.Min(maxSize / (double)info.Width, maxSize / (double)info.Height));
+                        var w = Math.Max(1, (int)(info.Width  * scale));
+                        var h = Math.Max(1, (int)(info.Height * scale));
+                        using var src = SkiaSharp.SKBitmap.Decode(codec);
+                        if (src == null) throw new InvalidOperationException("Image decode failed");
+                        using var dst = new SkiaSharp.SKBitmap(w, h, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul);
+                        src.ScalePixels(dst, SkiaSharp.SKFilterQuality.Medium);
+                        using var img  = SkiaSharp.SKImage.FromBitmap(dst);
+                        using var data = img.Encode(SkiaSharp.SKEncodedImageFormat.Jpeg, 72);
+                        using (var fsOut = File.Create(tmpPath))
+                            data.SaveTo(fsOut);
+                        File.Move(tmpPath, thumbPath, overwrite: true);
+
+                        if (Interlocked.Increment(ref _thumbGenCount) % 10 == 0)
+                            GC.Collect(1, GCCollectionMode.Optimized, false);
+                    });
+#endif
                 }
             }
             finally { _thumbSem.Release(); }

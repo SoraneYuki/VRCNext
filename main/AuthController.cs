@@ -434,8 +434,10 @@ public class AuthController
 
             case "setupBrowsePhotoDir":
                 {
-                    var r = Dialog.FolderPicker(Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VRChat"));
+                    var defaultDir = VrcPathsHelper.PhotoDir();
+                    if (!Directory.Exists(defaultDir))
+                        defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    var r = Dialog.FolderPicker(defaultDir);
                     if (r.IsOk) _core.SendToJS("setupPhotoDirResult", r.Path);
                 }
                 break;
@@ -469,14 +471,14 @@ public class AuthController
                 break;
 
             case "restartApp":
-                var exe = Environment.ProcessPath;
+                var exe = AppInfo.SelfExecutable;
                 if (!string.IsNullOrEmpty(exe))
                 {
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = exe,
                         Arguments = $"--waitpid {Environment.ProcessId}",
-                        UseShellExecute = true
+                        UseShellExecute = OperatingSystem.IsWindows()
                     });
                     WindowController.AllowNextClose();
                     try { _core.Window?.Close(); } catch { Environment.Exit(0); }
@@ -501,7 +503,11 @@ public class AuthController
                     var target = msg["target"]?.ToString() ?? "extra";
                     // VRChat path picker stays exe-only; startup-app pickers also accept
                     // shortcuts (.lnk) and launch scripts (.bat/.cmd).
+#if WINDOWS
                     var r = target == "vrchat" ? Dialog.FileOpen("exe") : Dialog.FileOpen("exe,lnk,bat,cmd");
+#else
+                    var r = Dialog.FileOpen();
+#endif
                     if (r.IsOk)
                     {
                         _core.SendToJS("exeAdded", new { target, path = r.Path });
@@ -1745,15 +1751,16 @@ public class AuthController
         // Launch a new instance and terminate the current one.
         try
         {
-            var exe = Environment.ProcessPath
-                ?? System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+            var exe = AppInfo.SelfExecutable;
+            if (string.IsNullOrEmpty(exe))
+                exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "";
             if (!string.IsNullOrEmpty(exe))
             {
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = exe,
                     Arguments = $"--waitpid {Environment.ProcessId}",
-                    UseShellExecute = true
+                    UseShellExecute = OperatingSystem.IsWindows()
                 });
             }
         }
@@ -2145,6 +2152,7 @@ public class AuthController
 
             // Performance flags (require restart)
             _core.Settings.GpuAcceleration    = data["gpuAcceleration"]?.Value<bool>()    ?? _core.Settings.GpuAcceleration;
+            _core.Settings.LinuxGpuAcceleration = data["linuxGpuAcceleration"]?.Value<bool>() ?? _core.Settings.LinuxGpuAcceleration;
             _core.Settings.GpuShaderCache     = data["gpuShaderCache"]?.Value<bool>()     ?? false;
             _core.Settings.V8Heap128          = data["v8Heap128"]?.Value<bool>()          ?? false;
             _core.Settings.TwoRenderProcesses = data["twoRenderProcesses"]?.Value<bool>() ?? false;
@@ -2244,7 +2252,8 @@ public class AuthController
         if (enable)
         {
             Directory.CreateDirectory(dir);
-            var exe = Environment.ProcessPath ?? "VRCNext";
+            var exe = AppInfo.SelfExecutable;
+            if (string.IsNullOrEmpty(exe)) exe = "VRCNext";
             File.WriteAllText(file,
                 "[Desktop Entry]\n" +
                 "Type=Application\n" +
@@ -2318,29 +2327,8 @@ public class AuthController
 
     internal static string DetectVrcPhotoDir()
     {
-#if WINDOWS
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VRChat");
+        var path = VrcPathsHelper.PhotoDir();
         return Directory.Exists(path) ? path : "";
-#else
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var steamRoots = new[]
-        {
-            Path.Combine(home, ".local", "share", "Steam"),
-            Path.Combine(home, ".steam", "steam"),
-        };
-        foreach (var sr in steamRoots)
-        {
-            var protonPath = Path.Combine(sr, "steamapps", "compatdata", "438100",
-                "pfx", "drive_c", "users", "steamuser", "My Pictures", "VRChat");
-            if (Directory.Exists(protonPath)) return protonPath;
-
-            var protonPath2 = Path.Combine(sr, "steamapps", "compatdata", "438100",
-                "pfx", "drive_c", "users", "steamuser", "Pictures", "VRChat");
-            if (Directory.Exists(protonPath2)) return protonPath2;
-        }
-        var native = Path.Combine(home, "Pictures", "VRChat");
-        return Directory.Exists(native) ? native : "";
-#endif
     }
 
     // Cache Send / Startup Refresh

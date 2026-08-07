@@ -901,6 +901,9 @@ public class NotificationsController
     });
 
     // Push actionable notifications to VR overlay (wrist alerts tab + HMD toast)
+#if !WINDOWS
+    private void PushToVrOverlay(dynamic n, string senderImg) { }
+#else
     private void PushToVrOverlay(dynamic n, string senderImg)
     {
         var vro = _core.VrOverlay;
@@ -1015,6 +1018,7 @@ public class NotificationsController
             catch { }
         });
     }
+#endif
 
     // Photino compatibility shim
     private static void Invoke(Action action) => action();

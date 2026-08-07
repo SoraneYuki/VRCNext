@@ -9,11 +9,7 @@ namespace VRCNext.Services.Helpers;
 // itself, so we read/write it directly — it is not part of VRCNext settings.
 public static class VrcConfigHelper
 {
-    private static string VrcAppDataDir()
-    {
-        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        return Path.GetFullPath(Path.Combine(local, "..", "LocalLow", "VRChat", "VRChat"));
-    }
+    private static string VrcAppDataDir() => VrcPathsHelper.AppDataDir();
 
     private static string ConfigPath() => Path.Combine(VrcAppDataDir(), "config.json");
 
@@ -27,8 +23,12 @@ public static class VrcConfigHelper
             {
                 var v = JObject.Parse(json);
                 var custom = v["cache_directory"]?.ToString();
-                if (!string.IsNullOrWhiteSpace(custom) && Directory.Exists(custom))
-                    return Path.Combine(custom, "Cache-WindowsPlayer");
+                if (!string.IsNullOrWhiteSpace(custom))
+                {
+                    custom = VrcPathsHelper.TranslateGamePath(custom);
+                    if (Directory.Exists(custom))
+                        return Path.Combine(custom, "Cache-WindowsPlayer");
+                }
             }
         }
         catch { }

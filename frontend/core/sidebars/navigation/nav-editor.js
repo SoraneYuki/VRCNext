@@ -80,7 +80,8 @@ function _edRenderList() {
         }
     }
 
-    const hiddenKeys = _edHidden.filter(k => k in NAV_ITEMS_DEF);
+    const hiddenKeys = _edHidden.filter(k => k in NAV_ITEMS_DEF
+        && !(NAV_ITEMS_DEF[k].windowsOnly && typeof _navIsLinux !== 'undefined' && _navIsLinux));
     if (hiddenKeys.length) {
         const sep = document.createElement('div');
         sep.className = 'ne-hidden-sep';
@@ -97,6 +98,7 @@ function _edRenderList() {
 function _edMakeItemRow(key, iconOverride, topIdx, folderId) {
     const def = NAV_ITEMS_DEF[key];
     if (!def) return document.createElement('div');
+    if (def.windowsOnly && typeof _navIsLinux !== 'undefined' && _navIsLinux) return document.createElement('div');
     const isSubItem = folderId !== null;
     const icon = iconOverride || def.icon;
 

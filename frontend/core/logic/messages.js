@@ -61,6 +61,7 @@ window.external.receiveMessage(rawMsg => {
             case 'customThemes': _localHttpPort = payload.port || _localHttpPort; _customThemes = payload.themes || []; applyCustomThemesFromSettings([..._activeCustomThemes]); break;
             case 'vrcLaunched': {
                 // Fired when the user launches VRChat from VRCNext (VR or Desktop)
+                if (window._isLinuxUi) break;
                 const vr = !!payload.vr;
                 const s = settings || {};
                 const chk = id => !!document.getElementById(id)?.checked;
@@ -1012,6 +1013,7 @@ case 'vrcNews':
                 dashBgPath = payload.path || '';
                 dashBgDataUri = payload.url || '';
                 if (dashBgPath) document.getElementById('dashBgName').textContent = dashBgPath.split(/[\\\\/]/).pop();
+                if (typeof applyDashHeroBg === 'function') applyDashHeroBg();
                 renderDashboard();
                 if (typeof renderDashBgPreview === 'function') renderDashBgPreview();
                 autoSave();
@@ -1142,14 +1144,28 @@ case 'vrcNews':
         case 'setPlatform':
             window._isLinuxUi = !!payload?.isLinux;
             if (payload?.isLinux) {
+                document.documentElement.classList.add('linux-ui');
+                window._kxdProfileTranslationEnabled = false;
                 if (typeof navSetLinux === 'function') navSetLinux(true);
                 document.querySelectorAll('[data-windows-only]').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('[data-linux-only]').forEach(el => el.style.display = '');
                 const lbl = document.getElementById('labelStartWithSystem');
-                if (lbl) lbl.textContent = t('settings.system.autostart_with_system', 'Auto-start VRCNext with system');
+                if (lbl) {
+                    lbl.setAttribute('data-i18n', 'settings.launch.auto_start_linux');
+                    lbl.textContent = t('settings.launch.auto_start_linux', 'Auto-start VRCNext with Linux');
+                }
+                const lblDesc = document.getElementById('descStartWithSystem');
+                if (lblDesc) {
+                    lblDesc.setAttribute('data-i18n', 'settings.launch.auto_start_linux_desc');
+                    lblDesc.textContent = t('settings.launch.auto_start_linux_desc', 'VRCNext launches automatically when Linux starts. It will open minimized.');
+                }
                 const vrcPathInput = document.getElementById('setVrcPath');
                 if (vrcPathInput) { vrcPathInput.value = 'steam://rungameid/438100'; vrcPathInput.readOnly = true; vrcPathInput.style.opacity = '0.5'; }
                 const browseVrcBtn = document.getElementById('browseVrcBtn');
                 if (browseVrcBtn) browseVrcBtn.style.display = 'none';
+                const dbHint = document.getElementById('dbPathHint');
+                if (dbHint) dbHint.textContent = '~/.config/VRCNext';
+                if (typeof applyDashLayout === 'function') applyDashLayout();
             }
             break;
         case 'ftAlsoWasHere':

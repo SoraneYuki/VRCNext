@@ -120,6 +120,31 @@
                         </div>
                         <div class="set-desc" data-i18n="settings.perf.render_proc.desc">Allows WebView2 to use up to 2 renderer processes instead of 1. Can help with stability but uses slightly more memory.</div>
                         <div class="sf-toggle-row" style="margin-top:14px;">
+                            <span data-i18n="settings.perf.efficiency.label">Efficiency Mode</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setPerfEfficiency" onchange="autoSave()">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-i18n="settings.perf.efficiency.desc">Runs the VRCNext process and its WebView processes in Windows Efficiency Mode (EcoQoS). Lowers power usage and background CPU impact; the leaf icon appears in Task Manager. May slightly reduce responsiveness. Applies immediately, no restart needed.</div>
+                        <div id="perfRestartHint" style="display:none;margin-top:10px;">
+                            <span class="set-desc" data-i18n="settings.perf.restart_hint">A restart is required to apply performance changes.</span>
+                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>
+                        </div>
+                    </div>
+
+                    <!-- PERFORMANCE (cross-platform) -->
+                    <div class="vrcn-panel-card" data-section="performance" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">speed</span> <span data-i18n="settings.perf.title">Performance</span></div>
+                        <div class="sf-toggle-row" data-linux-only style="display:none;">
+                            <span data-i18n="settings.perf.linux_gpu.label">Enable Hardware Acceleration</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="setLinuxGpuAccel" onchange="onPerfSettingChange()">
+                                <div class="toggle-track"><div class="toggle-knob"></div></div>
+                            </label>
+                        </div>
+                        <div class="set-desc" data-linux-only style="display:none;" data-i18n="settings.perf.linux_gpu.desc">Lets WebKitGTK use the GPU for rendering. Recommended on real hardware with working graphics drivers. Keep it off in virtual machines or when the window stays blank or shows glitches; VRCNext then uses safe software rendering.</div>
+                        <div class="sf-toggle-row" style="margin-top:14px;">
                             <span data-i18n="settings.perf.animations.label">Animations and Transitions</span>
                             <label class="toggle">
                                 <input type="checkbox" id="setPerfAnimations" checked onchange="applyAnimationsSetting(this.checked);autoSave()">
@@ -135,15 +160,7 @@
                             </label>
                         </div>
                         <div class="set-desc" data-i18n="settings.perf.blur.desc">Disables blur filters on modals and overlays. Instead of a blurred background, a dark overlay (75%) is shown. Especially useful when GPU acceleration is disabled, as blur effects are CPU-intensive. It is recommended to disable Blur Filters when using the app without GPU acceleration.</div>
-                        <div class="sf-toggle-row" style="margin-top:14px;">
-                            <span data-i18n="settings.perf.efficiency.label">Efficiency Mode</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setPerfEfficiency" onchange="autoSave()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.perf.efficiency.desc">Runs the VRCNext process and its WebView processes in Windows Efficiency Mode (EcoQoS). Lowers power usage and background CPU impact; the leaf icon appears in Task Manager. May slightly reduce responsiveness. Applies immediately, no restart needed.</div>
-                        <div id="perfRestartHint" style="display:none;margin-top:10px;">
+                        <div id="linuxPerfRestartHint" style="display:none;margin-top:10px;">
                             <span class="set-desc" data-i18n="settings.perf.restart_hint">A restart is required to apply performance changes.</span>
                             <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>
                         </div>
@@ -314,7 +331,7 @@
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
-                        <div class="set-desc" data-i18n="settings.launch.auto_start_windows_desc">VRCNext launches automatically when Windows starts. It will appear in the system tray.</div>
+                        <div class="set-desc" id="descStartWithSystem" data-i18n="settings.launch.auto_start_windows_desc">VRCNext launches automatically when Windows starts. It will appear in the system tray.</div>
                         <div class="sf-toggle-row" style="margin-top:14px;" data-windows-only>
                             <span data-i18n="settings.system.hide_in_tray">Hide in System Tray</span>
                             <label class="toggle">
@@ -722,10 +739,10 @@
                         <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.sounds.notifications_desc">Plays a sound when you receive a new notification such as friend requests, invites and more.</div>
                         <div class="sf-toggle-row"><span data-i18n="settings.sounds.messages">Message Sounds</span><label class="toggle"><input type="checkbox" id="setMessageSoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.sounds.messages_desc">Plays a sound when you get a boop or when someone sends you a message through the VRCN Messenger.</div>
-                        <div class="sf-toggle-row"><span data-i18n="settings.sounds.media_relay">Media Relay Success Sounds</span><label class="toggle"><input type="checkbox" id="setMediaRelaySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.sounds.media_relay_desc">Plays a sound when Media Relay successfully sends an image to one of your Discord channels.</div>
-                        <div class="sf-toggle-row"><span data-i18n="settings.sounds.overlay">VR Overlay Notification Sounds</span><label class="toggle"><input type="checkbox" id="setSteamOverlaySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.sounds.overlay_desc">Plays a sound when a notification toast appears in the SteamVR overlay.</div>
+                        <div class="sf-toggle-row" data-windows-only><span data-i18n="settings.sounds.media_relay">Media Relay Success Sounds</span><label class="toggle"><input type="checkbox" id="setMediaRelaySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                        <div class="set-desc" data-windows-only style="margin-bottom:10px;" data-i18n="settings.sounds.media_relay_desc">Plays a sound when Media Relay successfully sends an image to one of your Discord channels.</div>
+                        <div class="sf-toggle-row" data-windows-only><span data-i18n="settings.sounds.overlay">VR Overlay Notification Sounds</span><label class="toggle"><input type="checkbox" id="setSteamOverlaySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                        <div class="set-desc" data-windows-only style="margin-bottom:10px;" data-i18n="settings.sounds.overlay_desc">Plays a sound when a notification toast appears in the SteamVR overlay.</div>
                     </div>
 
                     <!-- FRIENDS NOTIFICATION TOASTS -->
@@ -838,7 +855,7 @@
                     </div>
 
                     <!-- WINDOWS FIXES -->
-                    <div class="vrcn-panel-card" data-section="advanced" style="display:none;">
+                    <div class="vrcn-panel-card" data-windows-only data-section="advanced" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">healing</span> <span data-i18n="settings.windowsfixes.title">Windows Fixes</span></div>
                         <div class="sf-toggle-row">
                             <span data-i18n="settings.windowsfixes.npsm_label">Fix NPSMSvc (Now Playing service)</span>
@@ -942,7 +959,7 @@
                         <div class="set-desc" style="margin-bottom:8px;" data-i18n="settings.db.cleanup.user_cache">It will delete all cached non-friended users from the whole database. This is mostly safe as it does not contain any important information. Time Spent and Meet Counts are still present on those profiles and will not be wiped.</div>
                         <div class="set-desc" style="margin-bottom:8px;" data-i18n="settings.db.cleanup.events">It will also delete certain events in your Personal and Friends Timeline. In the Personal Timeline, all notifications and URL entries will be wiped. In the Friends Timeline, all "Online", "Offline", and "Status Change" entries, for example "Ask Me" > "Join Me", will be wiped.</div>
                         <div class="set-desc" style="margin-bottom:4px;" data-i18n="settings.db.cleanup.instructions">Run the analysis first. After that, you will see what will be wiped. It is recommended to create a backup of your database in case you still need those entries. Your database is usually stored at:</div>
-                        <div class="set-desc" style="font-family:monospace;color:var(--tx2);">C:\Users\USERNAME\AppData\Roaming\VRCNext</div>
+                        <div class="set-desc" id="dbPathHint" style="font-family:monospace;color:var(--tx2);">C:\Users\USERNAME\AppData\Roaming\VRCNext</div>
                         <div style="margin-top:12px;padding:10px 12px;border:1px solid var(--warn);border-radius:8px;background:color-mix(in srgb, var(--warn) 12%, transparent);">
                             <div style="font-weight:700;color:var(--warn);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><span class="msi" style="font-size:16px;">warning</span> <span data-i18n="settings.db.warn.title">What gets deleted, and what stays</span></div>
                             <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx1);line-height:1.5;">

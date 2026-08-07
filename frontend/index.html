@@ -125,7 +125,7 @@
     <div class="sidebar" id="sidebarEl">
         <div class="sidebar-resizer" id="sidebarResizer" data-side="left"></div>
         <div class="sidebar-sep"></div>
-        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.40.0</div></div></div>
+        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.40.1</div></div></div>
         <div class="nav vrcn-scrollbar" id="navEl"></div>
         <div class="clock-area"><div class="clock-time" id="clock">00:00:00</div><div class="clock-date" id="clockDate"></div></div>
         <div class="play-area"><button class="btn-play" onclick="playVRChat()" data-i18n-title="sidebar.play_vrchat" title="Play VRChat"><span class="play-icon-wrap"><span class="msi play-icon">play_arrow</span></span><span class="play-copy pl"><strong class="play-title" data-i18n="sidebar.play_vrchat">Play VRChat</strong><span class="play-sub" id="playSubText"></span></span><span class="msi play-arrow pl">chevron_right</span></button></div>
@@ -208,7 +208,7 @@
                                     <button class="tb-dd-item" data-keep-modal onclick="openImportModal('avatars')"><span class="msi">checkroom</span><span data-i18n="import.avatars">Avatars</span></button>
                                 </div>
                             </div>
-                            <div class="tb-dd-submenu">
+                            <div class="tb-dd-submenu" data-windows-only>
                                 <button class="tb-dd-item"><span class="msi">view_in_ar</span><span data-i18n="tb.tools.vr_tools">VR Tools</span><span class="msi tb-dd-arrow">chevron_right</span></button>
                                 <div class="tb-dd-sub-drop">
                                     <div class="tb-dd-item" onclick="showTab(26)"><span class="msi">photo_camera</span><span data-i18n="nav.frame_shot">FrameShot</span></div>
@@ -226,19 +226,19 @@
                                     <div class="tb-dd-item" onclick="showTab(23)"><span class="msi">gps_fixed</span><span data-i18n="nav.event_snipe">Event Snipe</span></div>
                                 </div>
                             </div>
-                            <div class="tb-dd-sep"></div>
-                            <div class="tb-dd-item" onclick="showTab(6)"><span class="msi">cell_tower</span><span data-i18n="nav.media_relay">Media Relay</span></div>
-                            <div class="tb-dd-item" onclick="showTab(11)"><span class="msi">tune</span><span data-i18n="nav.osc_tool">OSC Tool</span></div>
-                            <div class="tb-dd-item" onclick="showTab(14)"><span class="msi">smart_display</span><span data-i18n="nav.youtube_fix">YouTube Fix</span></div>
+                            <div class="tb-dd-sep" data-windows-only></div>
+                            <div class="tb-dd-item" data-windows-only onclick="showTab(6)"><span class="msi">cell_tower</span><span data-i18n="nav.media_relay">Media Relay</span></div>
+                            <div class="tb-dd-item" data-windows-only onclick="showTab(11)"><span class="msi">tune</span><span data-i18n="nav.osc_tool">OSC Tool</span></div>
+                            <div class="tb-dd-item" data-windows-only onclick="showTab(14)"><span class="msi">smart_display</span><span data-i18n="nav.youtube_fix">YouTube Fix</span></div>
                             <div class="tb-dd-sep"></div>
                             <div class="tb-dd-item" onclick="showTab(8)"><span class="msi">article</span><span data-i18n="nav.activity_log">Activity Log</span></div>
                             <div class="tb-dd-item" onclick="showTab(15)"><span class="msi">hub</span><span data-i18n="nav.mutual_network">Mutual Network</span></div>
                             <div class="tb-dd-item" onclick="showTab(16)"><span class="msi">schedule</span><span data-i18n="nav.time_spent">Time Spent</span></div>
-                            <div class="tb-dd-sep"></div>
-                            <div class="tb-dd-item" onclick="showTab(18)"><span class="msi">mic</span><span data-i18n="nav.voice_fight">Voice Fight</span></div>
-                            <div class="tb-dd-item" onclick="showTab(19)"><span class="msi">sensors</span><span data-i18n="nav.discord_presence">Discord Presence</span></div>
-                            <div class="tb-dd-item" onclick="showTab(22)"><span class="msi">translate</span><span data-i18n="nav.kikitan_xd">Kikitan XD</span></div>
-                            <div class="tb-dd-item" onclick="showTab(24)"><span class="msi">height</span><span data-i18n="nav.avatar_scaling">Avatar Scaling</span></div>
+                            <div class="tb-dd-sep" data-windows-only></div>
+                            <div class="tb-dd-item" data-windows-only onclick="showTab(18)"><span class="msi">mic</span><span data-i18n="nav.voice_fight">Voice Fight</span></div>
+                            <div class="tb-dd-item" data-windows-only onclick="showTab(19)"><span class="msi">sensors</span><span data-i18n="nav.discord_presence">Discord Presence</span></div>
+                            <div class="tb-dd-item" data-windows-only onclick="showTab(22)"><span class="msi">translate</span><span data-i18n="nav.kikitan_xd">Kikitan XD</span></div>
+                            <div class="tb-dd-item" data-windows-only onclick="showTab(24)"><span class="msi">height</span><span data-i18n="nav.avatar_scaling">Avatar Scaling</span></div>
                         </div>
                     </div>
                     <div class="tb-menu-item" id="tbMenuPins"><span data-i18n="tb.pins">Pins</span>
@@ -280,7 +280,7 @@
                         <span class="msi ss-icon">search</span>
                     </div>
                 </div>
-                <div id="tbToolsGroup">
+                <div id="tbToolsGroup" data-windows-only>
                     <button class="tb-sidebar-btn" id="badgeRelay" title="Media Relay" data-i18n-title="nav.media_relay" onclick="toggleRelay()"><span class="msi">cell_tower</span></button>
                     <button class="tb-sidebar-btn" id="badgeChatbox" title="Custom Chatbox" data-i18n-title="nav.custom_chatbox" onclick="toggleChatbox()"><span class="msi">chat</span></button>
                     <button class="tb-sidebar-btn" id="badgeSpace" title="Space Flight" data-i18n-title="nav.space_flight" onclick="sfConnect()"><span class="msi">rocket_launch</span></button>
@@ -293,7 +293,7 @@
                     <div class="tb-sep"></div>
                 </div>
                 <button class="tb-sidebar-btn" id="btnUpdate" onclick="toggleUpdatePanel()" title="Update available" data-i18n-title="update.available" style="display:none;"><span class="msi">system_update_alt</span><span class="notif-count" id="updateBadge">1</span></button>
-                <button class="tb-sidebar-btn" id="tbToolsToggle" onclick="tbToggleTools()" title="Tools" data-i18n-title="nav.tools"><span class="msi">adjust</span></button>
+                <button class="tb-sidebar-btn" id="tbToolsToggle" data-windows-only onclick="tbToggleTools()" title="Tools" data-i18n-title="nav.tools"><span class="msi">adjust</span></button>
                 <button class="tb-sidebar-btn" id="btnChat" onclick="toggleChatPanel()" title="Messages" data-i18n-title="common.messages"><span class="msi">forum</span><span class="notif-count" id="chatBadge" style="display:none;">0</span></button>
                 <button class="tb-sidebar-btn" id="btnNotif" onclick="toggleNotifPanel()" title="Notifications" data-i18n-title="common.notifications"><span class="msi">notifications</span><span class="notif-count" id="notifBadge" style="display:none;">0</span></button>
                 <div class="tb-sep"></div>
@@ -311,18 +311,18 @@
                 </button>
                 </div>
                 <div id="tbModalActions"></div>
-                <div class="tb-sep" id="tbModalActionsSep"></div>
-                <button class="tb-win-btn" title="Minimize" data-i18n-title="tb.win.minimize" onclick="sendToCS({action:'windowMinimize'})">
+                <div class="tb-sep" id="tbModalActionsSep" data-windows-only></div>
+                <button class="tb-win-btn" data-windows-only title="Minimize" data-i18n-title="tb.win.minimize" onclick="sendToCS({action:'windowMinimize'})">
                     <svg width="12" height="2" viewBox="0 0 12 2"><rect width="12" height="1.5" y="0.25" fill="currentColor"/></svg>
                 </button>
-                <button class="tb-win-btn" id="tbMaximize" title="Maximize / Restore" data-i18n-title="tb.win.maximize_restore" onclick="sendToCS({action:'windowMaximize'})">
+                <button class="tb-win-btn" id="tbMaximize" data-windows-only title="Maximize / Restore" data-i18n-title="tb.win.maximize_restore" onclick="sendToCS({action:'windowMaximize'})">
                     <span id="winMaxIcon" style="display:none;"></span>
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                         <rect class="tb-icon-max" x="0.5" y="0.5" width="9" height="9" stroke="currentColor" stroke-width="1.1"/>
                         <path class="tb-icon-restore" d="M3.5 0.5h6v6M0.5 3.5v6h6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <button class="tb-win-btn tb-close" title="Close" data-i18n-title="tb.win.close" onclick="sendToCS({action:'windowClose'})">
+                <button class="tb-win-btn tb-close" data-windows-only title="Close" data-i18n-title="tb.win.close" onclick="sendToCS({action:'windowClose'})">
                     <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
                 </button>
             </div>
@@ -379,9 +379,9 @@
             <!-- Tab 4: Avatars -->
             <div class="tab" id="tab4"></div>
             <!-- Tab 5: Custom Chatbox -->
-            <div class="tab" id="tab5"></div>
+            <div class="tab" id="tab5" data-windows-only></div>
             <!-- Tab 6: Media Relay -->
-            <div class="tab" id="tab6"></div>
+            <div class="tab" id="tab6" data-windows-only></div>
             <!-- Tab 7: Media Library -->
             <div class="tab" id="tab7"></div>
             <!-- Tab 8: Activity Log -->
@@ -389,7 +389,7 @@
             <!-- Tab 9: Settings -->
             <div class="tab" id="tab9"></div>
             <!-- Tab 10: Space Flight -->
-            <div class="tab" id="tab10"></div>
+            <div class="tab" id="tab10" data-windows-only></div>
             <!-- Tab 11: OSC Tool -->
             <div class="tab" id="tab11" data-windows-only></div>
             <!-- Tab 12: Timeline -->
@@ -397,7 +397,7 @@
             <!-- Tab 13: Inventory -->
             <div class="tab" id="tab13"></div>
             <!-- Tab 14: YouTube Fix / VRCVideoCacher -->
-            <div class="tab" id="tab14"></div>
+            <div class="tab" id="tab14" data-windows-only></div>
 
             <!-- Tab 15: Mutual Network -->
             <div class="tab" id="tab15"></div>
@@ -408,10 +408,10 @@
             <div class="tab" id="tab17"></div>
 
             <!-- Tab 18: Voice Fight -->
-            <div class="tab" id="tab18"></div>
+            <div class="tab" id="tab18" data-windows-only></div>
 
             <!-- Tab 19: Discord Presence -->
-            <div class="tab" id="tab19"></div>
+            <div class="tab" id="tab19" data-windows-only></div>
             <!-- Tab 20: VR Wrist Overlay -->
             <div class="tab" id="tab20" data-windows-only></div>
 
@@ -734,7 +734,7 @@
         const modalFragments = {
             modal2FA:            'core/modals/auth-modal/auth-modal.html',
             modalStatus:         'core/modals/my-profile-modal/status-modal.html',
-            modalKeybinds:       'core/keybinds/keybind-modal.html',
+            modalKeybinds:       'core/Keybinds/keybind-modal.html',
             modalFriendDetail:   'core/modals/user-modal/user-modal.html',
             modalWorldDetail:    'core/modals/world-modal/world-modal.html',
             modalInstanceInfo:   'core/modals/instance-modal/instance-modal.html',

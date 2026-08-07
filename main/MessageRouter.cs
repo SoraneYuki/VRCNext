@@ -434,6 +434,10 @@ public partial class AppShell
             var action = msg["action"]?.ToString() ?? "";
             CrashHandler.AddBreadcrumb($"JS→C# action={action}");
 
+#if !WINDOWS
+            if (IsWindowsOnlyAction(action)) return;
+#endif
+
             switch (action)
             {
                 case "ready":
@@ -3333,7 +3337,13 @@ public partial class AppShell
                 {
                     var filePath = msg["path"]?.ToString();
                     if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+                    {
+#if WINDOWS
                         Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+#else
+                        _ = Task.Run(() => VRCNext.Services.Helpers.LinuxDesktopHelper.RevealInFileManager(filePath));
+#endif
+                    }
                     break;
                 }
 
@@ -3342,12 +3352,8 @@ public partial class AppShell
                     var folder = msg["folder"]?.ToString();
                     string? dir = folder switch
                     {
-                        "vrchat_data"  => Path.GetFullPath(Path.Combine(
-                                              Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                              "..", "LocalLow", "VRChat", "VRChat")),
-                        "vrchat_crash" => Path.Combine(
-                                              Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                              "Temp", "VRChat", "VRChat", "Crashes"),
+                        "vrchat_data"  => VrcPathsHelper.AppDataDir(),
+                        "vrchat_crash" => VrcPathsHelper.CrashDumpDir(),
                         "vrcn_data"    => Path.Combine(
                                               Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                                               "VRCNext"),
@@ -3603,6 +3609,24 @@ public partial class AppShell
             SendToJS("log", new { msg = $"Error: {ex.Message}", color = "err" });
         }
     }
+
+#if !WINDOWS
+    private static readonly string[] _windowsOnlyActionPrefixes =
+        { "vf", "kxd", "chatbox", "osc", "sf", "fs", "dp", "vc", "vro", "as" };
+
+    private static bool IsWindowsOnlyAction(string action)
+    {
+        if (action == "startRelay" || action == "stopRelay") return true;
+        foreach (var prefix in _windowsOnlyActionPrefixes)
+        {
+            if (action.Length > prefix.Length
+                && action.StartsWith(prefix, StringComparison.Ordinal)
+                && char.IsUpper(action[prefix.Length]))
+                return true;
+        }
+        return false;
+    }
+#endif
 
     private static string NewsIsoDate(JToken? token)
     {

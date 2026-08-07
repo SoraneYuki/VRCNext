@@ -293,6 +293,7 @@ function saveSettings() {
             dbAutoBackupDays:    parseInt(document.getElementById('setDbAutoBackupCycle')?.value ?? '60'),
             textToolsEnabled: document.getElementById('setTextToolsEnabled')?.checked ?? false,
             gpuAcceleration:    document.getElementById('setPerfGpuAccel')?.checked    ?? false,
+            linuxGpuAcceleration: document.getElementById('setLinuxGpuAccel')?.checked ?? false,
             gpuShaderCache:     document.getElementById('setPerfShaderCache')?.checked  ?? false,
             v8Heap128:          document.getElementById('setPerfV8Heap')?.checked       ?? false,
             twoRenderProcesses: document.getElementById('setPerfRenderProc')?.checked   ?? false,
@@ -800,6 +801,7 @@ function loadSettingsToUI(s) {
     // Performance
     const _perfSet = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
     _perfSet('setPerfGpuAccel',    s.GpuAcceleration    ?? s.gpuAcceleration    ?? true);
+    _perfSet('setLinuxGpuAccel',   s.LinuxGpuAcceleration ?? s.linuxGpuAcceleration ?? false);
     _perfSet('setPerfShaderCache', s.GpuShaderCache     ?? s.gpuShaderCache     ?? false);
     _perfSet('setPerfV8Heap',      s.V8Heap128          ?? s.v8Heap128          ?? false);
     _perfSet('setPerfRenderProc',  s.TwoRenderProcesses ?? s.twoRenderProcesses ?? false);
@@ -812,6 +814,8 @@ function loadSettingsToUI(s) {
     applyBlurSetting(blurEnabled);
     const perfHint = document.getElementById('perfRestartHint');
     if (perfHint) perfHint.style.display = 'none';
+    const linuxPerfHint = document.getElementById('linuxPerfRestartHint');
+    if (linuxPerfHint) linuxPerfHint.style.display = 'none';
 
     // Search debounce speed
     const searchDebounceMs = s.SearchDebounceMs ?? s.searchDebounceMs ?? 500;
@@ -881,6 +885,8 @@ function onPerfSettingChange() {
     autoSave();
     const hint = document.getElementById('perfRestartHint');
     if (hint) hint.style.display = '';
+    const linuxHint = document.getElementById('linuxPerfRestartHint');
+    if (linuxHint) linuxHint.style.display = '';
 }
 
 function onSearchDebounceMsChange() {

@@ -117,11 +117,13 @@ internal static class CrashHandler
         try
         {
             var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            var selfExe = VRCNext.AppInfo.SelfExecutable;
+            if (string.IsNullOrEmpty(selfExe)) selfExe = asm.Location;
             File.WriteAllText(_sentinelPath, new StringBuilder()
                 .AppendLine($"Started   : {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}")
                 .AppendLine($"PID       : {Environment.ProcessId}")
                 .AppendLine($"Version   : {asm.GetName().Version}")
-                .AppendLine($"Exe       : {Environment.ProcessPath ?? asm.Location}")
+                .AppendLine($"Exe       : {selfExe}")
                 .AppendLine($"Stderr    : {_stderrPath}")
                 .ToString(), Encoding.UTF8);
         }

@@ -276,7 +276,9 @@ public class AvatarScalingController : IDisposable
         _currentScale = clamped;
         _core.Settings.AsScale = _currentScale;
         SendState();
+#if WINDOWS
         _core.VrOverlay?.VroScaleUpdate(_currentScale);
+#endif
     }
 
     private static string ReadOscString(byte[] data, ref int pos)
@@ -333,8 +335,10 @@ public class AvatarScalingController : IDisposable
 
         if (_connected) SendAllParams();
         SendState();
+#if WINDOWS
         // Push updated scale back to VR overlay if open
         _core.VrOverlay?.VroScaleUpdate(_currentScale);
+#endif
     }
 
     public void ApplyVrScaleDelta(float delta)
