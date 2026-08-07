@@ -75,6 +75,20 @@ public class InstancesAPI(VRChatApiService ctx)
         catch (Exception ex) { ctx.Log($"InviteSelf exception: {ex.Message}"); return false; }
     }
 
+    public async Task<string> GetInstanceShortNameAsync(string location)
+    {
+        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(location)) return "";
+        try
+        {
+            var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/instances/{location}/shortName");
+            if (!resp.IsSuccessStatusCode) return "";
+            var body = await resp.Content.ReadAsStringAsync();
+            var jo = Newtonsoft.Json.Linq.JObject.Parse(body);
+            return jo["shortName"]?.ToString() ?? jo["secureName"]?.ToString() ?? "";
+        }
+        catch (Exception ex) { ctx.Log($"GetInstanceShortName exception: {ex.Message}"); return ""; }
+    }
+
     public static string BuildLaunchUri(string location) =>
         $"vrchat://launch?ref=vrchat.com&id={location}";
 

@@ -1,6 +1,7 @@
-**2026.40.0**
+**2026.40.1**
 
-**Notifications**
+**HOTFIX**
+* Fixed Join modal to work.
 
 **People Tab**
 * **All Friends** now updates live. Friends appear and move between **In-Game**, **Active**, and **Offline** as it happens, without pressing refresh.

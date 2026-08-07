@@ -464,30 +464,39 @@ public class InstanceController
             {
                 var oigLoc = msg["location"]?.ToString() ?? "";
                 if (string.IsNullOrEmpty(oigLoc)) break;
-                try
+                _ = Task.Run(async () =>
                 {
-                    var uri = VRChatApiService.BuildLaunchUri(oigLoc);
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    var url = VRChatApiService.BuildLaunchUri(oigLoc);
+                    var iType = ParseInstanceTypeFromLoc(oigLoc);
+                    if (iType != "public")
                     {
-                        FileName        = uri,
-                        UseShellExecute = true,
-                    });
-                    _core.SendToJS("vrcActionResult", new
+                        var shortName = await _core.Instances.GetInstanceShortNameAsync(oigLoc);
+                        if (!string.IsNullOrEmpty(shortName)) url += $"&shortName={Uri.EscapeDataString(shortName)}";
+                    }
+
+                    var ok = await VrcLaunchPipe.SendAsync(url);
+                    if (ok)
+                    {
+                        Invoke(() => _core.SendToJS("vrcActionResult", new
+                        {
+                            action = "openInGame",
+                            success = true,
+                            message = "Opened in VRChat.",
+                        }));
+                        return;
+                    }
+
+                    _core.SendToJS("log", new { msg = "[INST] Open in-game failed (pipe unavailable) - falling back to self-invite", color = "warn" });
+                    var invited = await _core.Instances.InviteSelfAsync(oigLoc);
+                    Invoke(() => _core.SendToJS("vrcActionResult", new
                     {
                         action = "openInGame",
-                        success = true,
-                        message = "Opening world in VRChat...",
-                    });
-                }
-                catch (Exception ex)
-                {
-                    _core.SendToJS("vrcActionResult", new
-                    {
-                        action = "openInGame",
-                        success = false,
-                        message = $"Failed to open in VRChat: {ex.Message}",
-                    });
-                }
+                        success = invited,
+                        message = invited
+                            ? "Could not open in VRChat, sent a self-invite instead."
+                            : "Could not open in VRChat. Is the game running?",
+                    }));
+                });
                 break;
             }
 

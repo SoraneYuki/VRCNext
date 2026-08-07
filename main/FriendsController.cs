@@ -2437,27 +2437,10 @@ public class FriendsController
 
     // Join Friend
 
-    private async Task HandleJoinFriendAsync(string joinLoc)
+    private Task HandleJoinFriendAsync(string joinLoc)
     {
-        if (_core.IsVrcRunning?.Invoke() ?? false)
-        {
-            var ok = await _core.Instances.InviteSelfAsync(joinLoc);
-            if (ok)
-            {
-                _core.SendToJS("vrcActionResult", new { action = "join", success = true,
-                    message = "Self-invite sent! Check VRChat." });
-            }
-            else
-            {
-                _core.SendToJS("vrcActionResult", new { action = "join", success = false,
-                    message = "Failed to join. The instance may no longer exist." });
-                _core.SendToJS("log", new { msg = "Self-invite failed — instance may be closed or full.", color = "warn" });
-            }
-        }
-        else
-        {
-            _core.SendToJS("vrcLaunchNeeded", new { location = joinLoc, steamVr = _core.IsSteamVrRunning?.Invoke() ?? false });
-        }
+        _core.SendToJS("vrcLaunchNeeded", new { location = joinLoc, steamVr = _core.IsSteamVrRunning?.Invoke() ?? false });
+        return Task.CompletedTask;
     }
 
     // WebSocket Event Handlers

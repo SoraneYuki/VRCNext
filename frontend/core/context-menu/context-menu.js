@@ -1186,11 +1186,10 @@
     }
 
     function buildInstanceLinkItems(loc) {
-        return [{
-            icon: 'link',
-            label: cm('context_menu.copy_instance_link', 'Copy Instance Link'),
-            action: () => copyInstanceLink(loc)
-        }];
+        return [
+            { icon: 'login', label: cm('instance.join', 'Join'), action: () => sendToCS({ action: 'vrcJoinFriend', location: loc }) },
+            { icon: 'link',  label: cm('context_menu.copy_instance_link', 'Copy Instance Link'), action: () => copyInstanceLink(loc) },
+        ];
     }
 
     function buildMyInstanceItems(loc) {
@@ -1202,6 +1201,7 @@
         const favEntry = (typeof favWorldsData !== 'undefined') && favWorldsData.find(fw => fw.id === worldId);
         const items = [];
         if (loc) {
+            items.push({ icon: 'login', label: cm('instance.join', 'Join'), action: () => sendToCS({ action: 'vrcJoinFriend', location: loc }) });
             items.push({ icon: 'person_add', label: cm('instance.invite_friends', 'Invite Friends'), action: () => openInviteModalForLocation(loc, wn, wt, it) });
             items.push({ icon: 'close', label: cm('instance.close', 'Close Instance'), action: () => removeMyInstance(loc), danger: true, confirm: true });
             items.push('sep');

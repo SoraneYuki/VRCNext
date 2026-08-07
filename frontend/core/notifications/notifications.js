@@ -286,13 +286,15 @@ function showLaunchModal(location, steamVrOpen) {
                 </button>
             </div>
             <div class="launch-modes">
-                <button class="launch-mode" id="_lmVr">
+                <button class="launch-mode${running ? ' is-unavailable' : ''}" id="_lmVr"${running ? ' disabled' : ''}>
                     <span class="msi">view_in_ar</span>
                     <span class="launch-mode-label">${esc(t('launch.mode.vr', 'VR'))}</span>
+                    ${running ? `<span class="launch-mode-note">${esc(t('launch.mode.already_running', 'Already running'))}</span>` : ''}
                 </button>
-                <button class="launch-mode" id="_lmDesktop">
+                <button class="launch-mode${running ? ' is-unavailable' : ''}" id="_lmDesktop"${running ? ' disabled' : ''}>
                     <span class="msi">desktop_windows</span>
                     <span class="launch-mode-label">${esc(t('launch.mode.desktop', 'Desktop'))}</span>
+                    ${running ? `<span class="launch-mode-note">${esc(t('launch.mode.already_running', 'Already running'))}</span>` : ''}
                 </button>
                 <button class="launch-mode${running && hasLoc ? '' : ' is-unavailable'}" id="_lmInGame"${running && hasLoc ? '' : ' disabled'}>
                     <span class="msi">sports_esports</span>
@@ -319,8 +321,8 @@ function showLaunchModal(location, steamVrOpen) {
 
     const on = (id, fn) => { const b = el.querySelector(id); if (b) b.addEventListener('click', fn); };
     on('#_lmClose', closeLaunchModal);
-    on('#_lmVr', () => launchAndJoin(location, true));
-    on('#_lmDesktop', () => launchAndJoin(location, false));
+    on('#_lmVr', () => { if (!window.vrcGameRunning) launchAndJoin(location, true); });
+    on('#_lmDesktop', () => { if (!window.vrcGameRunning) launchAndJoin(location, false); });
     on('#_lmInGame', () => {
         if (!window.vrcGameRunning || !hasLoc) return;
         sendToCS({ action: 'vrcOpenInGame', location });
@@ -347,24 +349,32 @@ function showLaunchModal(location, steamVrOpen) {
 }
 
 // Keeps the In-Game button in sync while the modal stays open (game state polls every 5s)
-function launchModalSyncGameState() {
-    const el = window._launchModalEl;
-    if (!el) return;
-    const btn = el.querySelector('#_lmInGame');
+function _lmSetMode(btn, usable, noteText) {
     if (!btn) return;
-    const meta = _launchModalMeta(_launchModalLoc);
-    const hasLoc = !!(meta.worldId && meta.worldId.startsWith('wrld_'));
-    const usable = !!window.vrcGameRunning && hasLoc;
     btn.classList.toggle('is-unavailable', !usable);
     btn.disabled = !usable;
     const note = btn.querySelector('.launch-mode-note');
-    if (usable) { if (note) note.remove(); }
-    else if (!note) {
+    if (usable) { if (note) note.remove(); return; }
+    if (note) note.textContent = noteText;
+    else {
         const s = document.createElement('span');
         s.className = 'launch-mode-note';
-        s.textContent = hasLoc ? t('launch.mode.ingame_note', 'VRChat not running') : t('launch.mode.ingame_no_instance', 'No instance');
+        s.textContent = noteText;
         btn.appendChild(s);
     }
+}
+
+function launchModalSyncGameState() {
+    const el = window._launchModalEl;
+    if (!el) return;
+    const meta = _launchModalMeta(_launchModalLoc);
+    const hasLoc = !!(meta.worldId && meta.worldId.startsWith('wrld_'));
+    const running = !!window.vrcGameRunning;
+    const runNote = t('launch.mode.already_running', 'Already running');
+    _lmSetMode(el.querySelector('#_lmVr'), !running, runNote);
+    _lmSetMode(el.querySelector('#_lmDesktop'), !running, runNote);
+    _lmSetMode(el.querySelector('#_lmInGame'), running && hasLoc,
+        hasLoc ? t('launch.mode.ingame_note', 'VRChat not running') : t('launch.mode.ingame_no_instance', 'No instance'));
 }
 
 function launchAndJoin(location, vr) {

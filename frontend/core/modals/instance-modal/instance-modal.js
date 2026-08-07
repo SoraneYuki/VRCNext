@@ -173,12 +173,16 @@ function openInstanceInfoModal() {
         </div>
     </div>`;
 
+    const joinBtn = data.location
+        ? `<button class="vrcn-button-round vrcn-btn-join" style="margin-left:auto;" title="${esc(t('common.join', 'Join'))}" onclick="sendToCS({action:'vrcJoinFriend',location:'${jsq(data.location)}'})"><span class="msi" style="font-size:14px;">login</span> ${esc(t('common.join', 'Join'))}</button>`
+        : '';
     const cardHeader = `<div class="mi-instance-header">
         <span class="vrcn-badge ${instCls}">${instLabel}</span>
         ${copyBadge}
         ${data.ageGate ? `<span class="vrcn-badge" style="background:rgba(255,75,85,.15);color:var(--err);">${esc(t('worlds.instances.age_gated', 'Age Gated'))}</span>` : ''}
         ${getOwnerBadgeHtml(data.ownerId || '', data.ownerName || '', data.ownerGroup || '', 'closeInstanceInfoModal()')}
         <span class="vrcn-badge"><span class="msi" style="font-size:11px;">person</span>&nbsp;${users.length || data.nUsers || 0}${data.capacity ? '/' + data.capacity : ''}</span>
+        ${joinBtn}
     </div>`;
 
     const playersHtml = enriched.length > 0

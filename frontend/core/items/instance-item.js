@@ -50,7 +50,7 @@ function getInstanceMembers(location) {
  * @returns {string} HTML string
  */
 function renderInstanceItem(opts) {
-    const { thumb, worldName, worldTitle, instanceType, instanceId, owner, ownerGroup, ownerId, region, userCount, capacity, friends, location, onclick, ageGate, languageRatio, noJoin } = opts;
+    const { thumb, worldName, worldTitle, instanceType, instanceId, owner, ownerGroup, ownerId, region, userCount, capacity, friends, location, onclick, ageGate, languageRatio } = opts;
 
     const { cls, label } = getInstanceBadge(instanceType);
     const joinLabel = t('common.join', 'Join');
@@ -115,7 +115,7 @@ function renderInstanceItem(opts) {
     }
 
     let joinHtml = '';
-    if (location && !noJoin && instanceType !== 'private') {
+    if (location && instanceType !== 'private') {
         const loc = location.replace(/'/g, "\\'");
         joinHtml = `<button class="vrcn-button-round vrcn-btn-join" title="${esc(joinLabel)}" onclick="sendToCS({action:'vrcJoinFriend',location:'${loc}'});this.disabled=true;"><span class="msi" style="font-size:14px;">login</span></button>`;
     }

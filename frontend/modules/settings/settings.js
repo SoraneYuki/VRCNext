@@ -1702,9 +1702,6 @@ let _settingsSearchActive = false;
 
 const _SETTINGS_SKIP_TEXT = ['set-desc', 'sf-desc', 'setting-desc'];
 
-// Two haystacks per card: labels only (precise) and everything incl. descriptions
-// (fallback). Searching descriptions first would make generic words like "VRChat"
-// match nearly every card.
 function _settingsCardHaystacks(el) {
     let labels = '', all = '';
     const walk = (node, inDesc) => {
@@ -1730,7 +1727,6 @@ function _settingsCardHaystacks(el) {
     return { labels: norm(labels), all: norm(all) };
 }
 
-// Every term must start a word, so "vr" hits "VR Overlay" / "VRChat" but not "discover"
 function _settingsMatches(hay, terms) {
     return terms.every(term => {
         let i = hay.indexOf(term);
