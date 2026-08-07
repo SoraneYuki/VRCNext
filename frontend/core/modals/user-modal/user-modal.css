@@ -170,6 +170,7 @@
 #modalMyProfile.fd-style-compact .modal-box.wide{
     width: 1144px;
     max-height: var(--fd-compact-h);
+    overflow: hidden;
 }
 
 #modalFriendDetail.fd-style-compact #friendDetailContent,

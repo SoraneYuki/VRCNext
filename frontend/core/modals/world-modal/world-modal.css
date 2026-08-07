@@ -7,6 +7,7 @@
 #modalDetail.gd-style-compact .modal-box {
     width: 1144px;
     max-height: var(--fd-compact-h);
+    overflow: hidden;
 }
 
 #modalDetail.wd-style-compact #detailModalContent,
@@ -182,6 +183,7 @@
 #modalAvatarDetail.av-style-compact .modal-box {
     width: 1144px;
     max-height: var(--fd-compact-h);
+    overflow: hidden;
 }
 #modalAvatarDetail.av-style-compact #avatarDetailContent {
     padding: 0;
