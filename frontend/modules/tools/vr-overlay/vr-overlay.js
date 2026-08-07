@@ -890,6 +890,8 @@ function vroLoadSettings(s) {
         if (el) el.checked = val;
     }
 
+    const vroEngEl = document.getElementById('vroTtsEngine');
+    if (vroEngEl) { vroEngEl.value = s.vroTtsEngine || 'sapi'; if (vroEngEl._vnRefresh) vroEngEl._vnRefresh(); }
     sendToCS({ action: 'getTtsDevices', target: 'vro', engine: s.vroTtsEngine || 'sapi' });
 
     const toastSizeEl = document.getElementById('vroToastSize');
