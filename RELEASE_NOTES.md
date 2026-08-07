@@ -1,4 +1,7 @@
-**2026.40.6**
+**2026.40.8**
+
+**HOTFIX**
+* Removed memory hard limits that could prevent large database searches, vrcx database imports.
 
 **Design**
 * Grouped the top controls (buttons, dropdowns and search bars) of the World, People, Groups, Avatars, Calendar, Inventory, Timeline and Media Library tabs into a single toolbar card.
