@@ -232,48 +232,139 @@ function acceptNotif(notifId, btn) {
     setTimeout(() => refreshNotifications(), 1200);
 }
 
+let _launchModalLoc = '';
+
+function _launchModalMeta(location) {
+    const out = { worldId: '', worldName: '', worldThumb: '', instanceType: '' };
+    if (!location) return out;
+    const colon = location.indexOf(':');
+    out.worldId = colon > 0 ? location.slice(0, colon) : location;
+    if (typeof parseFriendLocation === 'function') {
+        const p = parseFriendLocation(location);
+        out.instanceType = p?.instanceType || '';
+        if (p?.worldId) out.worldId = p.worldId;
+    }
+    const wc = (typeof dashWorldCache !== 'undefined') ? dashWorldCache[out.worldId] : null;
+    out.worldName = wc?.name || '';
+    out.worldThumb = wc?.thumbnailImageUrl || wc?.imageUrl || '';
+    return out;
+}
+
 function showLaunchModal(location, steamVrOpen) {
     closeLaunchModal();
-    let _launchVr = steamVrOpen;
+    location = location || '';
+    _launchModalLoc = location;
+    const meta = _launchModalMeta(location);
+    const hasLoc = !!(meta.worldId && meta.worldId.startsWith('wrld_'));
+    const running = !!window.vrcGameRunning;
+
+    const subParts = [];
+    if (hasLoc) {
+        subParts.push(meta.worldName || t('dashboard.friends.location_world', 'In World'));
+        if (meta.instanceType && typeof getInstanceBadge === 'function') {
+            const b = getInstanceBadge(meta.instanceType);
+            if (b?.label) subParts.push(b.label);
+        }
+    }
+    const subText = subParts.length
+        ? subParts.join(' · ')
+        : (running ? t('launch.sub.running', 'VRChat is running') : t('launch.sub.not_running', 'VRChat is not currently running'));
+
     const el = document.createElement('div');
     el.className = 'modal-overlay';
     el.style.display = 'flex'; // inline display required by _closeTopModal (Escape)
-    el.style.zIndex = '10003';
+    el.style.zIndex = '10004';
     el.innerHTML = `
-        <div class="modal-box launch-modal">
-            <div class="launch-modal-title">${t('notifications.launch.title', 'Ready to play?')}</div>
-            <div class="launch-modal-sub">${t('notifications.launch.subtitle', 'VRChat is not currently running')}</div>
-            <div class="play-grid">
-                <div class="play-card${steamVrOpen ? ' selected' : ''}" id="_lmCardVR">
-                    <span class="msi">vrpano</span>
-                    <div class="play-card-label">${t('notifications.launch.play_vr', 'VR Mode')}</div>
-                    <div class="play-card-sub">SteamVR</div>
+        <div class="launch-modal" role="dialog" aria-labelledby="_lmTitle">
+            <div class="launch-head">
+                <div class="launch-head-txt">
+                    <div class="launch-title" id="_lmTitle">${esc(t('launch.title', 'Launch'))}</div>
+                    <div class="launch-sub">${esc(subText)}</div>
                 </div>
-                <div class="play-card${!steamVrOpen ? ' selected' : ''}" id="_lmCardDesktop">
+                <button class="launch-close" id="_lmClose" title="${esc(t('common.close', 'Close'))}" aria-label="${esc(t('common.close', 'Close'))}">
+                    <span class="msi">close</span>
+                </button>
+            </div>
+            <div class="launch-modes">
+                <button class="launch-mode" id="_lmVr">
+                    <span class="msi">view_in_ar</span>
+                    <span class="launch-mode-label">${esc(t('launch.mode.vr', 'VR'))}</span>
+                </button>
+                <button class="launch-mode" id="_lmDesktop">
                     <span class="msi">desktop_windows</span>
-                    <div class="play-card-label">${t('notifications.launch.play_desktop', 'Desktop')}</div>
-                    <div class="play-card-sub">Mouse &amp; KB</div>
-                </div>
+                    <span class="launch-mode-label">${esc(t('launch.mode.desktop', 'Desktop'))}</span>
+                </button>
+                <button class="launch-mode${running && hasLoc ? '' : ' is-unavailable'}" id="_lmInGame"${running && hasLoc ? '' : ' disabled'}>
+                    <span class="msi">sports_esports</span>
+                    <span class="launch-mode-label">${esc(t('launch.mode.ingame', 'In-Game'))}</span>
+                    ${running && hasLoc ? '' : `<span class="launch-mode-note">${esc(hasLoc ? t('launch.mode.ingame_note', 'VRChat not running') : t('launch.mode.ingame_no_instance', 'No instance'))}</span>`}
+                </button>
             </div>
-            <div class="play-modal-btns">
-                <button class="vrcn-button-round" onclick="closeLaunchModal()">${t('common.cancel', 'Cancel')}</button>
-                <button class="vrcn-button-round vrcn-btn-primary" id="_lmPlayBtn"><span class="msi play-icon">play_circle</span> ${t('notifications.launch.play', 'Play')}</button>
-            </div>
+            ${hasLoc ? `<div class="launch-foot">
+                <button class="launch-act" id="_lmInvite">
+                    <span class="msi">person_add</span>${esc(t('launch.invite', 'Invite'))}
+                </button>
+                <button class="launch-act" id="_lmSelfInvite">
+                    <span class="msi">mail</span>${esc(t('launch.self_invite', 'Self Invite'))}
+                </button>
+                <div class="launch-foot-spacer"></div>
+                <button class="launch-icon-btn" id="_lmCopyInst" title="${esc(t('launch.copy_instance', 'Copy Instance Link'))}" aria-label="${esc(t('launch.copy_instance', 'Copy Instance Link'))}">
+                    <span class="msi">link</span>
+                </button>
+                <button class="launch-icon-btn" id="_lmCopyWorld" title="${esc(t('launch.copy_world', 'Copy World Link'))}" aria-label="${esc(t('launch.copy_world', 'Copy World Link'))}">
+                    <span class="msi">location_on</span>
+                </button>
+            </div>` : ''}
         </div>`;
-    el.querySelector('#_lmCardVR').addEventListener('click', () => {
-        _launchVr = true;
-        el.querySelector('#_lmCardVR').classList.add('selected');
-        el.querySelector('#_lmCardDesktop').classList.remove('selected');
+
+    const on = (id, fn) => { const b = el.querySelector(id); if (b) b.addEventListener('click', fn); };
+    on('#_lmClose', closeLaunchModal);
+    on('#_lmVr', () => launchAndJoin(location, true));
+    on('#_lmDesktop', () => launchAndJoin(location, false));
+    on('#_lmInGame', () => {
+        if (!window.vrcGameRunning || !hasLoc) return;
+        sendToCS({ action: 'vrcOpenInGame', location });
+        closeLaunchModal();
     });
-    el.querySelector('#_lmCardDesktop').addEventListener('click', () => {
-        _launchVr = false;
-        el.querySelector('#_lmCardDesktop').classList.add('selected');
-        el.querySelector('#_lmCardVR').classList.remove('selected');
+    on('#_lmInvite', () => {
+        if (typeof openInviteModalForLocation === 'function')
+            openInviteModalForLocation(location, meta.worldName, meta.worldThumb, meta.instanceType);
     });
-    el.querySelector('#_lmPlayBtn').addEventListener('click', () => launchAndJoin(location, _launchVr));
+    on('#_lmSelfInvite', () => {
+        sendToCS({ action: 'vrcSelfInvite', location });
+        closeLaunchModal();
+    });
+    on('#_lmCopyInst', () => { if (typeof copyInstanceLink === 'function') copyInstanceLink(location); });
+    on('#_lmCopyWorld', () => {
+        navigator.clipboard.writeText('https://vrchat.com/home/world/' + meta.worldId)
+            .then(() => showToast(true, t('launch.toast.world_link_copied', 'World link copied!')))
+            .catch(() => showToast(false, t('timeline.toast.copy_failed', 'Failed to copy')));
+    });
+
     el.addEventListener('click', e => { if (e.target === el) closeLaunchModal(); });
     document.body.appendChild(el);
     window._launchModalEl = el;
+}
+
+// Keeps the In-Game button in sync while the modal stays open (game state polls every 5s)
+function launchModalSyncGameState() {
+    const el = window._launchModalEl;
+    if (!el) return;
+    const btn = el.querySelector('#_lmInGame');
+    if (!btn) return;
+    const meta = _launchModalMeta(_launchModalLoc);
+    const hasLoc = !!(meta.worldId && meta.worldId.startsWith('wrld_'));
+    const usable = !!window.vrcGameRunning && hasLoc;
+    btn.classList.toggle('is-unavailable', !usable);
+    btn.disabled = !usable;
+    const note = btn.querySelector('.launch-mode-note');
+    if (usable) { if (note) note.remove(); }
+    else if (!note) {
+        const s = document.createElement('span');
+        s.className = 'launch-mode-note';
+        s.textContent = hasLoc ? t('launch.mode.ingame_note', 'VRChat not running') : t('launch.mode.ingame_no_instance', 'No instance');
+        btn.appendChild(s);
+    }
 }
 
 function launchAndJoin(location, vr) {
@@ -288,6 +379,7 @@ function closeLaunchModal() {
     el.style.transition = 'opacity .15s';
     setTimeout(() => el.remove(), 150);
     window._launchModalEl = null;
+    _launchModalLoc = '';
 }
 
 function declineNotif(notifId, btn) {

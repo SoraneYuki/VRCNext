@@ -1697,9 +1697,134 @@ function handleDbBackupDone(data) {
     _showBackupResult('manualBackupResult', 'Database backup created', data);
 }
 
-function switchSettingsSection(id, btn) {
+/* === Settings Search === */
+let _settingsSearchActive = false;
+
+const _SETTINGS_SKIP_TEXT = ['set-desc', 'sf-desc', 'setting-desc'];
+
+// Two haystacks per card: labels only (precise) and everything incl. descriptions
+// (fallback). Searching descriptions first would make generic words like "VRChat"
+// match nearly every card.
+function _settingsCardHaystacks(el) {
+    let labels = '', all = '';
+    const walk = (node, inDesc) => {
+        for (const child of node.childNodes) {
+            if (child.nodeType === 3) {
+                all += ' ' + child.nodeValue;
+                if (!inDesc) labels += ' ' + child.nodeValue;
+                continue;
+            }
+            if (child.nodeType !== 1) continue;
+            const desc = inDesc || _SETTINGS_SKIP_TEXT.some(c => child.classList.contains(c));
+            for (const attr of ['placeholder', 'title']) {
+                const v = child.getAttribute(attr);
+                if (!v) continue;
+                all += ' ' + v;
+                if (!desc) labels += ' ' + v;
+            }
+            walk(child, desc);
+        }
+    };
+    walk(el, false);
+    const norm = s => s.toLowerCase().replace(/\s+/g, ' ');
+    return { labels: norm(labels), all: norm(all) };
+}
+
+// Every term must start a word, so "vr" hits "VR Overlay" / "VRChat" but not "discover"
+function _settingsMatches(hay, terms) {
+    return terms.every(term => {
+        let i = hay.indexOf(term);
+        while (i >= 0) {
+            if (i === 0 || !/[a-z0-9]/.test(hay[i - 1])) return true;
+            i = hay.indexOf(term, i + 1);
+        }
+        return false;
+    });
+}
+
+function _settingsActiveSectionId() {
+    const btn = document.querySelector('#tab9 .settings-nav-item.active');
+    const m = btn && (btn.getAttribute('onclick') || '').match(/switchSettingsSection\('([^']+)'/);
+    return m ? m[1] : 'general';
+}
+
+function _settingsEmptyEl() {
+    let el = document.getElementById('settingsSearchEmpty');
+    if (el) return el;
+    const content = document.querySelector('#tab9 .settings-content');
+    if (!content) return null;
+    el = document.createElement('div');
+    el.id = 'settingsSearchEmpty';
+    el.className = 'settings-search-empty';
+    el.style.display = 'none';
+    content.appendChild(el);
+    return el;
+}
+
+function searchSettings() {
+    const wrap = document.getElementById('settingsSearchWrap');
+    const q = (document.getElementById('settingsSearchInput')?.value || '').toLowerCase().trim();
+    if (wrap) wrap.classList.toggle('has-query', !!q);
+    const empty = _settingsEmptyEl();
+
+    if (!q) {
+        if (!_settingsSearchActive) return;
+        _settingsSearchActive = false;
+        if (empty) empty.style.display = 'none';
+        switchSettingsSection(_settingsActiveSectionId(), null);
+        return;
+    }
+
+    _settingsSearchActive = true;
+    const isLinux = !!window._isLinuxUi;
+    const terms = q.split(/\s+/).filter(Boolean);
+
+    const cards = [];
     document.querySelectorAll('#tab9 [data-section]').forEach(el => {
-        el.style.display = el.dataset.section === id ? '' : 'none';
+        if (isLinux && el.hasAttribute('data-windows-only')) { el.style.display = 'none'; return; }
+        const hay = _settingsCardHaystacks(el);
+        cards.push({ el, label: _settingsMatches(hay.labels, terms), all: _settingsMatches(hay.all, terms) });
+    });
+
+    const anyLabelHit = cards.some(c => c.label);
+    let hits = 0;
+    cards.forEach(c => {
+        const match = anyLabelHit ? c.label : c.all;
+        c.el.style.display = match ? '' : 'none';
+        if (match) hits++;
+    });
+    if (empty) {
+        empty.textContent = tf('settings.search.no_results', { query: q }, 'No settings match "{query}"');
+        empty.style.display = hits ? 'none' : '';
+    }
+}
+
+window._dbSettingsSearch = debounceAnim(searchSettings, 150, 'settingsSearchInput');
+
+function clearSettingsSearch() {
+    const input = document.getElementById('settingsSearchInput');
+    if (input) input.value = '';
+    searchSettings();
+    input?.focus();
+}
+
+document.documentElement.addEventListener('languagechange', () => {
+    if (_settingsSearchActive) searchSettings();
+});
+
+function switchSettingsSection(id, btn) {
+    if (btn && _settingsSearchActive) {
+        const input = document.getElementById('settingsSearchInput');
+        if (input) input.value = '';
+        document.getElementById('settingsSearchWrap')?.classList.remove('has-query');
+        const empty = document.getElementById('settingsSearchEmpty');
+        if (empty) empty.style.display = 'none';
+        _settingsSearchActive = false;
+    }
+    const _swLinux = !!window._isLinuxUi;
+    document.querySelectorAll('#tab9 [data-section]').forEach(el => {
+        const show = el.dataset.section === id && !(_swLinux && el.hasAttribute('data-windows-only'));
+        el.style.display = show ? '' : 'none';
     });
     document.querySelectorAll('#tab9 .settings-nav-item').forEach(b => b.classList.remove('active'));
     if (btn) {

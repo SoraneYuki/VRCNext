@@ -16,6 +16,39 @@ function updateTbAppUserHeader() {
     }
 }
 
+// Fills the App > Switch Accounts submenu from the accounts list.
+function renderTbAccountsMenu(state) {
+    var drop = document.getElementById('tbAccountsSubDrop');
+    if (!drop) return;
+    var st       = state || (typeof _accountsState !== 'undefined' ? _accountsState : null) || {};
+    var accounts = st.accounts || [];
+    var activeId = st.activeAccountId || '';
+    var manage   = '<button class="tb-dd-item" onclick="tbCloseMenus();openAccountsSection()"><span class="msi">manage_accounts</span><span>'
+                 + esc(t('tb.app.manage_accounts', 'Manage Accounts')) + '</span></button>';
+
+    if (!accounts.length) {
+        drop.innerHTML = '<div class="tb-dd-acc-empty">' + esc(t('tb.app.no_accounts', 'No accounts yet')) + '</div>'
+                       + '<div class="tb-dd-sep"></div>' + manage;
+        return;
+    }
+
+    drop.innerHTML = accounts.map(function (a) {
+        var isActive = a.isActive || a.accountId === activeId;
+        var name     = a.displayName || a.username || '(unnamed)';
+        var img      = a.avatarImageUrl || '';
+        var av       = img
+            ? '<span class="tb-dd-acc-av" style="background-image:url(\'' + cssUrl(img) + '\')"></span>'
+            : '<span class="tb-dd-acc-av tb-dd-acc-av-letter">' + esc((name[0] || '?').toUpperCase()) + '</span>';
+        var mark = isActive ? '<span class="msi tb-dd-acc-check">check_circle</span>' : '';
+        var cls  = 'tb-dd-item tb-dd-acc' + (isActive ? ' tb-dd-acc-active' : '');
+        var click = isActive ? '' : ' onclick="tbCloseMenus();switchToAccount(\'' + jsq(a.accountId) + '\')"';
+        return '<button class="' + cls + '"' + click + ' data-keep-modal>'
+             + av + '<span class="tb-dd-acc-name">' + esc(name) + '</span>' + mark + '</button>';
+    }).join('') + '<div class="tb-dd-sep"></div>' + manage;
+}
+
+document.documentElement.addEventListener('languagechange', function () { renderTbAccountsMenu(); });
+
 // Opens the Settings tab and switches to the Accounts section.
 function openAccountsSection() {
     if (typeof showTab === 'function') showTab(9);
@@ -92,6 +125,7 @@ function tbToggleTools() {
         closeSubDrop();
         if (_open) { _open.classList.remove('open'); _open = null; }
     }
+    window.tbCloseMenus = closeMenus;
 
     function activateMenu(item) {
         if (_open && _open !== item) _open.classList.remove('open');

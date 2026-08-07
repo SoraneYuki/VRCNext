@@ -238,13 +238,13 @@
     border-radius: 4px;
     font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 600;
-    background: rgba(56, 132, 255, 0.12);
-    color: var(--accent);
+    background: var(--bg-hover);
+    color: var(--tx2);
     cursor: pointer;
-    transition: background .15s;
+    transition: background .15s, color .15s;
 }
 .inst-owner-group-badge:hover {
-    background: rgba(56, 132, 255, 0.22);
+    color: var(--tx1);
 }
 .inst-owner-group-sep {
     opacity: .5;
@@ -407,3 +407,28 @@
 }
 .vrcn-mini-content-badges .vrcn-badge { font-size: calc(9px + var(--fs-off, 0px)); }
 
+
+/* Stats mode: fade long names instead of hard-cutting, reveal them on hover */
+.vrcn-user-item:has(.vrcn-user-item-stats) .vrcn-user-item-info {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent 100%);
+}
+.vrcn-user-item:has(.vrcn-user-item-stats) .vrcn-user-item-name,
+.vrcn-user-item:has(.vrcn-user-item-stats) .vrcn-user-item-status,
+.vrcn-user-item:has(.vrcn-user-item-stats) .vrcn-user-item-world {
+    text-overflow: clip;
+}
+.vrcn-user-item:has(.vrcn-user-item-stats):hover .vrcn-user-item-info {
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+.vrcn-user-item:has(.vrcn-user-item-stats) .vrcn-user-item-stats {
+    max-width: 160px;
+    overflow: hidden;
+    transition: opacity .14s ease, max-width .18s ease;
+}
+.vrcn-user-item:has(.vrcn-user-item-stats):hover .vrcn-user-item-stats {
+    opacity: 0;
+    max-width: 0;
+    pointer-events: none;
+}

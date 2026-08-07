@@ -356,6 +356,26 @@ function setAllFriendsStatusFilter(filter) {
     filterAllFriends();
 }
 
+const ALL_FRIENDS_LIVE_MS = 400;
+let _allFriendsLiveTimer = null;
+
+function filterAllFriendsIfLive() {
+    const tab = document.getElementById('tab3');
+    if (!tab || !tab.classList.contains('active')) return;
+    if (peopleFilter !== 'all') return;
+    if (_peopleAllPage !== 0) return;
+    if ((document.getElementById('allFriendSearchInput')?.value || '').trim()) return;
+    if (_allFriendsLiveTimer) return;
+    _allFriendsLiveTimer = setTimeout(() => {
+        _allFriendsLiveTimer = null;
+        const t3 = document.getElementById('tab3');
+        if (!t3 || !t3.classList.contains('active')) return;
+        if (peopleFilter !== 'all' || _peopleAllPage !== 0) return;
+        if ((document.getElementById('allFriendSearchInput')?.value || '').trim()) return;
+        filterAllFriends();
+    }, ALL_FRIENDS_LIVE_MS);
+}
+
 function filterAllFriends() {
     const el = document.getElementById('allFriendsGrid');
     if (!el) return;

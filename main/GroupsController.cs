@@ -114,6 +114,8 @@ public class GroupsController
                 var canManageRoles = perms != null && (perms.Contains("*") || perms.Contains("group-roles-manage"));
                 var canAssignRoles = perms != null && (perms.Contains("*") || perms.Contains("group-roles-manage") || perms.Contains("group-roles-assign"));
                 var canViewAudit   = perms != null && (perms.Contains("*") || perms.Contains("group-audit-view"));
+                var canModInstance = perms != null && (perms.Contains("*") || perms.Contains("group-instance-moderate") || perms.Contains("group-instance-manage"));
+                var canManageMembers = perms != null && (perms.Contains("*") || perms.Contains("group-members-manage"));
                 var vis            = g["memberVisibility"]?.ToString() ?? "visible";
 
                 newPerms[gid] = new GroupMemberPerms(canPost, canEvent, canInvite, canEdit, canKick, canBan, canManageRoles, canAssignRoles, canViewAudit, vis);
@@ -133,7 +135,7 @@ public class GroupsController
                     visibility     = vis,
                     canCreateInstance = canCreate,
                     canPost, canEvent, canInvite, canEdit, canKick, canBan, canManageRoles, canAssignRoles,
-                    canViewAudit,
+                    canViewAudit, canModInstance, canManageMembers,
                 });
             }
             _memberPerms = newPerms;

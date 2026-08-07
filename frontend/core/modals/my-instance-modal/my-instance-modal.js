@@ -249,11 +249,11 @@ function _buildInstanceCard(locBase, g, isMyInstance) {
         const mwt = jsq(g.worldThumb || '');
         const mit = jsq(g.instanceType || '');
         actionsHtml = `
-            <button class="vrcn-button-round vrcn-btn-join" title="${esc(t('dashboard.instances.join_world', 'Join World'))}" onclick="closeMyInstanceDetail();sendToCS({action:'vrcJoinFriend',location:'${loc}'})"><span class="msi" style="font-size:14px;">login</span></button>
+            <button class="vrcn-button-round vrcn-btn-join" title="${esc(t('dashboard.instances.join_world', 'Join World'))}" onclick="sendToCS({action:'vrcJoinFriend',location:'${loc}'})"><span class="msi" style="font-size:14px;">login</span></button>
             <button class="vrcn-button-round" title="${esc(t('dashboard.instances.invite_friends', 'Invite Friends'))}" onclick="closeMyInstanceDetail();openInviteModalForLocation('${mloc}','${mwn}','${mwt}','${mit}')"><span class="msi" style="font-size:14px;">person_add</span></button>
             <button class="vrcn-button-round vrcn-btn-danger" title="${esc(t('dashboard.instances.remove_instance', 'Remove Instance'))}" onclick="removeMyInstance('${loc}')"><span class="msi" style="font-size:14px;">delete</span></button>`;
     } else {
-        actionsHtml = `<button class="vrcn-button-round vrcn-btn-join" title="${esc(t('dashboard.instances.join_world', 'Join World'))}" onclick="closeMyInstanceDetail();sendToCS({action:'vrcJoinFriend',location:'${loc}'})"><span class="msi" style="font-size:14px;">login</span></button>`;
+        actionsHtml = `<button class="vrcn-button-round vrcn-btn-join" title="${esc(t('dashboard.instances.join_world', 'Join World'))}" onclick="sendToCS({action:'vrcJoinFriend',location:'${loc}'})"><span class="msi" style="font-size:14px;">login</span></button>`;
     }
 
     return `<div class="mi-instance-card" data-miloc="${esc(locBase)}">

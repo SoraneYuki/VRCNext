@@ -286,6 +286,7 @@ window.external.receiveMessage(rawMsg => {
                 else vrcFriendsData.push(payload);
                 scheduleRenderVrcFriends();
                 if (favFriendsData.length > 0) filterFavFriendsIfVisible();
+                if (typeof filterAllFriendsIfLive === 'function') filterAllFriendsIfLive();
                 if (typeof updateUserItemWorld === 'function') updateUserItemWorld(payload);
                 if (typeof patchFriendDetailLive === 'function') patchFriendDetailLive(payload);
                 break;
@@ -302,6 +303,7 @@ window.external.receiveMessage(rawMsg => {
                 requestWorldResolution(); renderDashboard(); requestInstanceInfo();
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);
                 if (favFriendsData.length > 0) filterFavFriendsIfVisible();
+                if (typeof filterAllFriendsIfLive === 'function') filterAllFriendsIfLive();
                 break;
             case 'vrcProfileDecorations':
                 if (typeof onProfileDecorations === 'function') onProfileDecorations(payload);
@@ -1138,6 +1140,7 @@ case 'vrcNews':
                 if (typeof onPeopleStatsData === 'function') onPeopleStatsData(payload);
                 break;
         case 'setPlatform':
+            window._isLinuxUi = !!payload?.isLinux;
             if (payload?.isLinux) {
                 if (typeof navSetLinux === 'function') navSetLinux(true);
                 document.querySelectorAll('[data-windows-only]').forEach(el => el.style.display = 'none');
@@ -1195,6 +1198,7 @@ case 'vrcNews':
         case 'afGameRunning':
             window.vrcGameRunning = !!(payload && payload.running);
             if (typeof navUpdatePlaySubtitle === 'function') navUpdatePlaySubtitle();
+            if (typeof launchModalSyncGameState === 'function') launchModalSyncGameState();
             if (typeof window.__afHandleMessage === 'function') window.__afHandleMessage(type, payload);
             break;
 

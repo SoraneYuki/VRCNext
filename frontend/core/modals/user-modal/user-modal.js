@@ -624,6 +624,8 @@ function renderFriendDetail(d) {
             userCount:    d.userCount || 0,
             capacity:     d.worldCapacity || 0,
             ageGate:      d.ageGate || false,
+            location:     _loc,
+            noJoin:       true,
             onclick,
         });
         _worldPartHtml = _instanceItemHtml;
@@ -1299,7 +1301,7 @@ function patchFriendDetailLive(f) {
             const instanceItemHtml = renderInstanceItem({
                 thumb: worldThumb, worldName, instanceType,
                 instanceId: instId, region, userCount: 0, capacity: 0,
-                ageGate: loc.includes('~ageGate'), onclick,
+                ageGate: loc.includes('~ageGate'), location: loc, noJoin: true, onclick,
             });
             const worldInner = `<div class="fd-group-rep-label">${t('profiles.meta.current_world', 'Current World')}</div>${instanceItemHtml}`;
 
@@ -1386,7 +1388,7 @@ function drawMiniTimeline(events, el) {
         const dt     = `${fmtShortDate(d)} | ${fmtTime(d)}`;
         const ei     = ev.id.replace(/'/g, "\\'");
         const detail = typeof _tlListData === 'function' ? (_tlListData(ev).detail || '') : '';
-        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--brd);cursor:pointer;" onclick="navOpenModal('tlEvent','${ei}','${jsq(meta.label || '')}')">
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--brd);cursor:pointer;" onclick="openTlDetail('${ei}', true)">
             <span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);white-space:nowrap;">${esc(dt)}</span>
             <span class="msi" style="font-size:14px;color:${color};flex-shrink:0;">${meta.icon}</span>
             <span style="font-size:calc(12px + var(--fs-off, 0px));">${esc(meta.label)}</span>

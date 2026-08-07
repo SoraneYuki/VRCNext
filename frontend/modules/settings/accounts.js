@@ -8,6 +8,7 @@ function requestAccountsList() {
 
 function renderAccountsList(payload) {
     _accountsState = payload || { activeAccountId: '', accounts: [] };
+    if (typeof renderTbAccountsMenu === 'function') renderTbAccountsMenu(_accountsState);
     const list = document.getElementById('accountsList');
     if (!list) return;
     const accounts = _accountsState.accounts || [];

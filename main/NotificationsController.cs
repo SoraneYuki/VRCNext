@@ -527,20 +527,33 @@ public class NotificationsController
                 senderImg = ImageCacheHelper.GetUserUrl(senderUserId, fi.image);
         }
 
-        // Extract message — for v1 invite responses the text lives in details, not message
-        var msgText = (string)n.message;
-        if (string.IsNullOrEmpty(msgText))
+        JObject? detObj = null;
         {
-            JObject? detObj = null;
             var rawDet = n.details as JToken;
             if (rawDet is JObject jo) detObj = jo;
             else if (rawDet?.Type == JTokenType.String) { try { detObj = JObject.Parse(rawDet.ToString()); } catch { } }
-            if (detObj != null)
-                msgText = detObj["responseMessage"]?.ToString()
-                       ?? detObj["inviteMessage"]?.ToString()
-                       ?? detObj["requestMessage"]?.ToString()
-                       ?? "";
         }
+
+        // Extract message — for v1 invite responses the text lives in details, not message
+        var msgText = (string)n.message;
+        if (string.IsNullOrEmpty(msgText) && detObj != null)
+        {
+            msgText = detObj["responseMessage"]?.ToString()
+                   ?? detObj["inviteMessage"]?.ToString()
+                   ?? detObj["requestMessage"]?.ToString()
+                   ?? "";
+        }
+
+        // Invite notifications carry the target instance in details.worldId
+        var notifLoc       = detObj?["worldId"]?.ToString() ?? "";
+        var notifWorldName = detObj?["worldName"]?.ToString() ?? "";
+        var notifWorldId   = "";
+        if (notifLoc.StartsWith("wrld_", StringComparison.Ordinal))
+        {
+            var ci = notifLoc.IndexOf(':');
+            notifWorldId = ci > 0 ? notifLoc[..ci] : notifLoc;
+        }
+        else notifLoc = "";
 
         var notifEv = new TimelineService.TimelineEvent
         {
@@ -553,6 +566,9 @@ public class NotificationsController
             SenderId    = n.senderUserId,
             SenderImage = senderImg,
             Message     = msgText,
+            Location    = notifLoc,
+            WorldId     = notifWorldId,
+            WorldName   = notifWorldName,
         };
         _core.Timeline.AddEvent(notifEv);
 

@@ -80,14 +80,53 @@
 }
 
 .settings-nav {
-    width: 152px;
+    width: 175px;
     flex-shrink: 0;
     border-right: 1px solid rgba(255,255,255,.07);
-    padding: 8px 6px;
+    padding: 8px 8px;
     display: flex;
     flex-direction: column;
     gap: 1px;
     overflow-y: hidden;
+}
+
+.settings-search {
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+.settings-search .search-ico { left: 9px; font-size: calc(16px + var(--fs-off, 0px)); }
+.settings-search .vrcn-input {
+    width: 100%;
+    min-width: 0;
+    padding-left: 29px;
+    padding-right: 26px;
+    background: var(--bg-input);
+}
+.settings-search-clear {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 19px;
+    height: 19px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 5px;
+    color: var(--tx3);
+    cursor: pointer;
+}
+.settings-search-clear .msi { font-size: 14px; }
+.settings-search-clear:hover { background: var(--bg-hover); color: var(--tx0); }
+.settings-search.has-query .settings-search-clear { display: inline-flex; }
+
+.settings-search-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--tx3);
+    font-size: calc(13px + var(--fs-off, 0px));
 }
 
 .settings-nav-item {

@@ -1,5 +1,10 @@
                 <div class="settings-layout">
                     <nav class="settings-nav">
+                        <div class="search-bar-row settings-search" id="settingsSearchWrap">
+                            <span class="msi search-ico">search</span>
+                            <input type="text" id="settingsSearchInput" class="vrcn-input" placeholder="Search settings..." data-i18n-placeholder="settings.search.placeholder" oninput="_dbSettingsSearch()">
+                            <button class="settings-search-clear" onclick="clearSettingsSearch()" title="Clear" data-i18n-title="common.clear"><span class="msi">close</span></button>
+                        </div>
                         <button class="settings-nav-item active" onclick="switchSettingsSection('general',this)"><span class="msi">tune</span><span data-i18n="settings.nav.general">General</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('appearance',this)"><span class="msi">palette</span><span data-i18n="settings.nav.appearance">Appearance</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('friends',this)"><span class="msi">group</span><span data-i18n="settings.nav.friends">Friends</span></button>

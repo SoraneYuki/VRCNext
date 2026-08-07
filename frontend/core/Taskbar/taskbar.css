@@ -566,3 +566,44 @@ body.maximized .tb-icon-restore {
     min-height: 0;
     overflow: hidden;
 }
+
+/* === App > Switch Accounts submenu === */
+.tb-dd-sub-drop .tb-dd-acc { gap: 9px; }
+.tb-dd-acc-av {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background-color: var(--bg-hover);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.tb-dd-acc-av-letter {
+    font-size: calc(10px + var(--fs-off, 0px));
+    font-weight: 700;
+    color: var(--tx3);
+}
+.tb-dd-acc-name {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+}
+.tb-dd-acc-active .tb-dd-acc-name { font-weight: 700; color: var(--tx0); }
+.tb-dd-acc-active { cursor: default; }
+.tb-dd-acc-check {
+    margin-left: auto;
+    font-size: calc(16px + var(--fs-off, 0px)) !important;
+    color: var(--ok) !important;
+    flex-shrink: 0;
+}
+.tb-dd-acc-empty {
+    padding: 8px 10px;
+    font-size: calc(11.5px + var(--fs-off, 0px));
+    color: var(--tx3);
+    white-space: nowrap;
+}

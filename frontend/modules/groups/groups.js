@@ -44,13 +44,44 @@ function _renderGroupListCard(g) {
     </div>`;
 }
 
+let _groupTab = 'joined';
+
+const _GROUP_TAB_BTNS = { joined: 'groupFilterJoined', mine: 'groupFilterMine', mod: 'groupFilterMod', search: 'groupFilterSearch' };
+
 function setGroupFilter(filter) {
-    document.getElementById('groupFilterMine').classList.toggle('active', filter === 'mine');
-    document.getElementById('groupFilterSearch').classList.toggle('active', filter === 'search');
-    document.getElementById('groupMineArea').style.display   = filter === 'mine'   ? '' : 'none';
-    document.getElementById('groupSearchArea').style.display = filter === 'search' ? '' : 'none';
-    if (filter === 'mine' && !myGroupsLoaded) loadMyGroups();
-    if (filter === 'search') document.getElementById('searchGroupsInput')?.focus();
+    if (!_GROUP_TAB_BTNS[filter]) filter = 'joined';
+    for (const [key, id] of Object.entries(_GROUP_TAB_BTNS)) {
+        document.getElementById(id)?.classList.toggle('active', key === filter);
+    }
+    const isSearch = filter === 'search';
+    document.getElementById('groupMineArea').style.display   = isSearch ? 'none' : '';
+    document.getElementById('groupSearchArea').style.display = isSearch ? '' : 'none';
+    if (isSearch) { document.getElementById('searchGroupsInput')?.focus(); return; }
+    _groupTab = filter;
+    if (!myGroupsLoaded) loadMyGroups();
+    else filterMyGroups();
+}
+
+function _groupIsOwn(g) {
+    const meId = (typeof currentVrcUser !== 'undefined' && currentVrcUser) ? currentVrcUser.id : '';
+    return !!(meId && g.ownerId === meId);
+}
+
+function _groupCanModerate(g) {
+    return !!(g.canKick || g.canBan || g.canEdit || g.canManageRoles || g.canAssignRoles
+           || g.canViewAudit || g.canModInstance || g.canManageMembers || g.canPost || g.canEvent);
+}
+
+function _groupTabList() {
+    if (_groupTab === 'mine') return myGroups.filter(_groupIsOwn);
+    if (_groupTab === 'mod')  return myGroups.filter(g => !_groupIsOwn(g) && _groupCanModerate(g));
+    return myGroups;
+}
+
+function _groupEmptyMsg() {
+    if (_groupTab === 'mine') return t('groups.mine.empty_owned', 'You have not created any groups');
+    if (_groupTab === 'mod')  return t('groups.mine.empty_moderate', 'No groups where you have moderation rights');
+    return t('groups.mine.empty_joined', 'No groups joined');
 }
 
 document.documentElement.addEventListener('languagechange', () => {
@@ -70,12 +101,13 @@ function filterMyGroups() {
     const q = (document.getElementById('filterGroupsInput')?.value || '').toLowerCase();
     const el = document.getElementById('myGroupsGrid');
     if (!el) return;
+    const base = _groupTabList();
     const filtered = q
-        ? myGroups.filter(g => (g.name||'').toLowerCase().includes(q) || (g.shortCode||'').toLowerCase().includes(q))
-        : myGroups;
+        ? base.filter(g => (g.name||'').toLowerCase().includes(q) || (g.shortCode||'').toLowerCase().includes(q))
+        : base;
     el.innerHTML = filtered.length
         ? filtered.map(_renderGroupListCard).join('')
-        : `<div class="empty-msg">${q ? t('groups.mine.empty_match', 'No groups match') : t('groups.mine.empty_joined', 'No groups joined')}</div>`;
+        : `<div class="empty-msg">${esc(q ? t('groups.mine.empty_match', 'No groups match') : _groupEmptyMsg())}</div>`;
 }
 
 function loadMyGroups() {

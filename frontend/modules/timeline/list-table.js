@@ -3,16 +3,16 @@
 const TL_TABLE_DEFS = {
     personal: [
         { id: 'dt',      key: 'timeline.list.header.date_time', fallback: 'Date / Time', width: '155px', sort: 'timestamp' },
-        { id: 'type',    key: 'timeline.list.header.type',      fallback: 'Type',        width: '135px', sort: 'type' },
+        { id: 'type',    key: 'timeline.list.header.type',      fallback: 'Type',        width: '185px', sort: 'type' },
         { id: 'profile', key: 'timeline.list.header.profile',   fallback: 'Profile',     width: '80px',  sort: 'user_name' },
-        { id: 'user',    key: 'timeline.list.header.user',      fallback: 'User',        width: '130px', sort: 'user_name' },
+        { id: 'user',    key: 'timeline.list.header.user',      fallback: 'User',        width: '156px', sort: 'user_name' },
         { id: 'detail',  key: 'timeline.list.header.detail',    fallback: 'Detail',      width: '',      sort: 'message' },
     ],
     friends: [
         { id: 'dt',      key: 'timeline.list.header.date_time', fallback: 'Date / Time', width: '155px', sort: 'timestamp' },
         { id: 'type',    key: 'timeline.list.header.type',      fallback: 'Type',        width: '135px', sort: 'type' },
         { id: 'profile', key: 'timeline.list.header.profile',   fallback: 'Profile',     width: '80px',  sort: 'friend_name' },
-        { id: 'user',    key: 'timeline.list.header.user',      fallback: 'User',        width: '130px', sort: 'friend_name' },
+        { id: 'user',    key: 'timeline.list.header.user',      fallback: 'User',        width: '156px', sort: 'friend_name' },
         { id: 'detail',  key: 'timeline.list.header.detail',    fallback: 'Detail',      width: '',      sort: 'world_name' },
     ],
     gamelog: [
