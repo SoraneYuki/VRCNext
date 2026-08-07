@@ -50,7 +50,7 @@ function getInstanceMembers(location) {
  * @returns {string} HTML string
  */
 function renderInstanceItem(opts) {
-    const { thumb, worldName, worldTitle, instanceType, instanceId, owner, ownerGroup, ownerId, region, userCount, capacity, friends, location, onclick, ageGate, languageRatio } = opts;
+    const { thumb, worldName, worldTitle, instanceType, instanceId, owner, ownerGroup, ownerId, region, userCount, capacity, friends, location, onclick, ageGate, languageRatio, noJoin } = opts;
 
     const { cls, label } = getInstanceBadge(instanceType);
     const joinLabel = t('common.join', 'Join');
@@ -109,9 +109,16 @@ function renderInstanceItem(opts) {
     }
 
     let joinHtml = '';
-    if (location && instanceType !== 'private') {
+    if (location && !noJoin && instanceType !== 'private') {
         const loc = location.replace(/'/g, "\\'");
         joinHtml = `<button class="vrcn-button-round vrcn-btn-join" title="${esc(joinLabel)}" onclick="sendToCS({action:'vrcJoinFriend',location:'${loc}'});this.disabled=true;"><span class="msi" style="font-size:14px;">login</span></button>`;
+    }
+
+    let instIdBadge = '';
+    if (instNum) {
+        instIdBadge = location
+            ? `<span class="vrcn-badge" style="cursor:pointer;" title="${esc(typeof t === 'function' ? t('timeline.actions.copy_instance_link', 'Copy Instance Link') : 'Copy Instance Link')}" onclick="event.stopPropagation();copyInstanceLink('${location.replace(/'/g, "\\'")}')"><span class="msi" style="font-size:10px;">content_copy</span>#${esc(instNum)}</span>`
+            : `<span class="vrcn-badge">#${esc(instNum)}</span>`;
     }
 
     const hasSep = friendsHtml ? ' inst-item-card-hdr-sep' : '';
@@ -122,7 +129,6 @@ function renderInstanceItem(opts) {
     if (userCount > 0) titleParts.push(`<span class="vrcn-badge"><span class="msi" style="font-size:10px;">person</span>${userCount}${capacity > 0 ? '/' + capacity : ''}</span>`);
     if (worldTitle) titleParts.push(`<span style="color:var(--tx1);font-weight:700;">${esc(worldTitle)}</span>`);
     titleParts.push(`<span style="color:var(--tx3);">·</span><span>${esc(label)}</span>`);
-    if (instNum) titleParts.push(`<span style="color:var(--tx3);">·</span><span style="color:var(--tx2);">#${esc(instNum)}</span>`);
     if (ownerGroup) titleParts.push(`<span style="color:var(--tx3);">(${esc(ownerGroup)})</span>`);
     const titleHtml = `<div class="inst-item-card-title">${titleParts.join(' ')}</div>`;
 
@@ -132,7 +138,7 @@ function renderInstanceItem(opts) {
             <div class="inst-item-card-body">
                 ${titleHtml}
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    ${badgeHtml}${instNum && location ? `<span class="vrcn-badge" style="cursor:pointer;" onclick="event.stopPropagation();copyInstanceLink('${location.replace(/'/g, "\\'")}')"><span class="msi" style="font-size:10px;">content_copy</span>#${esc(instNum)}</span>` : ''}${ownerBadge}${regionHtml}${langHtml}
+                    ${badgeHtml}${instIdBadge}${ownerBadge}${regionHtml}${langHtml}
                     <div class="inst-item-right">${joinHtml}</div>
                 </div>
             </div>

@@ -29,6 +29,8 @@
 * The Groups tab now has separate **Joined Groups**, **My Groups**, and **Moderate Groups** views.
 * **App > Switch Accounts** now lists your accounts with icon and name, so you can switch without opening Settings.
 * Long names no longer get cut off when Stats are enabled. They fade out instead, and the stats fade away on hover so you can read the full name.
+* Changed the group badge color to the same color as instance id badge.
+* In user profiles current world you have now an instance id badge to copy the instance link.
 
 **Fixed Bugs**
 * Fixed Timeline details closing the profile or world modal instead of opening on top of it.
