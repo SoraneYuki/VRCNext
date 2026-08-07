@@ -13,6 +13,8 @@ static class Program
     [STAThread]
     static void Main(string[] args)
     {
+        EnsureConfigRootExists();
+
         if (args.Length >= 4 && args[0] == "--watchdog")
         {
             if (!AcquireMutex("Global\\VRCNext_Watchdog", out var wdMutex)) return;
@@ -41,7 +43,7 @@ static class Program
         if (!AcquireMutex("Global\\VRCNext", out var mainMutex, waitMs: isRelaunch ? 10000 : 0))
         {
             if (deepLink != null) { DeepLinkService.Forward(deepLink); return; }
-            MessageBox.Show(GetAlreadyRunningMessage(), "VRCNext", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ShowAlreadyRunningMessage();
             return;
         }
         using (mainMutex)
@@ -52,6 +54,22 @@ static class Program
             Velopack.VelopackApp.Build().Run();
             new AppShell(args).Run();
         }
+    }
+
+    static void EnsureConfigRootExists()
+    {
+        if (OperatingSystem.IsWindows()) return;
+        try
+        {
+            if (!string.IsNullOrEmpty(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)))
+                return;
+            var xdg = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+            var home = Environment.GetEnvironmentVariable("HOME");
+            var cfg = !string.IsNullOrEmpty(xdg) ? xdg
+                : !string.IsNullOrEmpty(home) ? Path.Combine(home, ".config") : "";
+            if (!string.IsNullOrEmpty(cfg)) Directory.CreateDirectory(cfg);
+        }
+        catch { }
     }
 
     static bool AcquireMutex(string name, out Mutex mutex, int waitMs = 0)
@@ -67,6 +85,26 @@ static class Program
 
         mutex.Dispose();
         return false;
+    }
+
+    static void ShowAlreadyRunningMessage()
+    {
+        var text = GetAlreadyRunningMessage();
+#if WINDOWS
+        MessageBox.Show(text, "VRCNext", MessageBoxButtons.OK, MessageBoxIcon.Information);
+#else
+        Console.Error.WriteLine(text);
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "notify-send",
+                ArgumentList = { "VRCNext", text.Replace('\n', ' ') },
+                UseShellExecute = false,
+            });
+        }
+        catch { }
+#endif
     }
 
     static string GetAlreadyRunningMessage()

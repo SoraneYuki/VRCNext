@@ -1,8 +1,23 @@
+#if WINDOWS
 using DiscordRPC;
 using DiscordRPC.Logging;
+#endif
 
 namespace VRCNext.Services;
 
+#if !WINDOWS
+public class DiscordPresenceService : IDisposable
+{
+    public bool IsConnected => false;
+    public event Action<string>? OnLog;
+    public DiscordPresenceService(string clientId) { }
+    public bool Connect() { OnLog?.Invoke("[Discord] Rich Presence is not available on this platform"); return false; }
+    public void Disconnect() { }
+    public void UpdatePresence(string worldName, string instanceState, string worldImageUrl, string status, DateTime joinedAt, string? joinUrl = null) { }
+    public void ClearPresence() { }
+    public void Dispose() { }
+}
+#else
 public class DiscordPresenceService : IDisposable
 {
     private DiscordRpcClient? _client;
@@ -117,3 +132,4 @@ public class DiscordPresenceService : IDisposable
         Disconnect();
     }
 }
+#endif

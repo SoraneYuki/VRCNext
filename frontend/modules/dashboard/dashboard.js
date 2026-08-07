@@ -78,17 +78,9 @@ function renderDashBgPreview() {
     _dashVideoSync();
 }
 
-function renderDashboard() {
-    const _tab0 = document.getElementById('tab0');
-    if (_tab0 && !_tab0.classList.contains('active')) return;
-    const name = currentVrcUser?.displayName;
-    document.getElementById('dashWelcome').innerHTML = name
-        ? tf('dashboard.welcome.named', { name: `<span style="color:var(--accent)">${esc(name)}</span>` }, 'Welcome, {name}!')
-        : esc(t('dashboard.welcome.default', 'Welcome!'));
-    updateDashSub();
-    updateDashHeroStats();
-
+function applyDashHeroBg() {
     const bgEl = document.getElementById('dashHeroBg');
+    if (!bgEl) return;
     const isVideoBg = dashBgPath && dashBgPath.toLowerCase().endsWith('.mp4');
     if (isVideoBg) {
         const src = dashBgDataUri || ('file:///' + dashBgPath.replace(/\\/g, '/'));
@@ -120,6 +112,20 @@ function renderDashboard() {
             bgEl.style.backgroundImage = `url('fallback_bg.png')`;
         }
     }
+    _dashVideoSync();
+}
+
+function renderDashboard() {
+    const _tab0 = document.getElementById('tab0');
+    if (_tab0 && !_tab0.classList.contains('active')) return;
+    const name = currentVrcUser?.displayName;
+    document.getElementById('dashWelcome').innerHTML = name
+        ? tf('dashboard.welcome.named', { name: `<span style="color:var(--accent)">${esc(name)}</span>` }, 'Welcome, {name}!')
+        : esc(t('dashboard.welcome.default', 'Welcome!'));
+    updateDashSub();
+    updateDashHeroStats();
+
+    applyDashHeroBg();
     if (currentSpecialTheme === 'auto') applyAutoColor();
     renderDashBgPreview();
 
@@ -1285,7 +1291,7 @@ const DASH_SECTION_META = [
     { id: 'friend_locations_small',  nameKey: 'dashboard.section.friend_locations_small',  name: 'Friends Location (Small)' },
     { id: 'recently_visited',        nameKey: 'dashboard.section.recently_visited',        name: 'Recently Visited' },
     { id: 'recent_photos',           nameKey: 'dashboard.section.recent_photos',           name: 'Recent Photos' },
-    { id: 'quick_controls',          nameKey: 'dashboard.section.quick_controls',          name: 'Quick Controls' },
+    { id: 'quick_controls',          nameKey: 'dashboard.section.quick_controls',          name: 'Quick Controls', windowsOnly: true },
     { id: 'friend_locations',        nameKey: 'dashboard.section.friend_locations',        name: 'Friends Locations' },
     { id: 'discovery',               nameKey: 'dashboard.section.discovery',               name: 'Discover Worlds' },
     { id: 'friend_activity',         nameKey: 'dashboard.section.friend_activity',         name: 'Friends Activity' },
@@ -1331,7 +1337,8 @@ function applyDashLayout() {
         const wrap = container.querySelector(`.dash-section-wrap[data-section="${id}"]`);
         if (!wrap) return;
         wrap.style.order = idx;
-        const hidden = _dashLayout.hidden.includes(id);
+        const meta = DASH_SECTION_META.find(s => s.id === id);
+        const hidden = _dashLayout.hidden.includes(id) || !!(meta?.windowsOnly && window._isLinuxUi);
         wrap.toggleAttribute('data-hidden', hidden);
         if (!hidden && id === 'my_instances') renderMyInstances(_myInstancesData);
         if (!hidden && id === 'quick_controls') renderDashQuickControls();
@@ -1369,6 +1376,7 @@ function _renderDashLayoutList() {
     if (!list || !_dashModalLayout) return;
     list.innerHTML = _dashModalLayout.order.map((id) => {
         const meta   = DASH_SECTION_META.find(s => s.id === id) || { nameKey: id, name: id };
+        if (meta.windowsOnly && window._isLinuxUi) return '';
         const label  = t(meta.nameKey, meta.name);
         const hidden = _dashModalLayout.hidden.includes(id);
         const sid    = jsq(id);

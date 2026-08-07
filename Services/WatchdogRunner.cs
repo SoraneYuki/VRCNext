@@ -94,7 +94,7 @@ internal static class WatchdogRunner
                 if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
                 {
                     Thread.Sleep(2000);
-                    Process.Start(new ProcessStartInfo { FileName = exePath, UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo { FileName = exePath, UseShellExecute = OperatingSystem.IsWindows() });
                 }
             }
         }

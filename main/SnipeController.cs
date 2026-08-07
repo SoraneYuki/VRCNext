@@ -191,7 +191,7 @@ public class SnipeController : IDisposable
         if (ct.IsCancellationRequested) return;
         try
         {
-            var vrcRunning = System.Diagnostics.Process.GetProcessesByName("VRChat").Length > 0;
+            var vrcRunning = RelayController.IsVrcRunning();
 
             if (vrcRunning)
             {
@@ -204,11 +204,20 @@ public class SnipeController : IDisposable
             {
                 Log($"[SNIPE] VRChat not running — launching via Steam URI for {location}");
                 var uri = VRChatApiService.BuildLaunchUri(location);
+#if WINDOWS
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName        = uri,
                     UseShellExecute = true,
                 });
+#else
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName        = "steam",
+                    Arguments       = $"steam://rungameid/438100//{Uri.EscapeDataString(uri)}",
+                    UseShellExecute = false,
+                });
+#endif
                 _core.SendToJS("snipeJoinResult", new { success = true, location, method = "steamLaunch" });
             }
         }

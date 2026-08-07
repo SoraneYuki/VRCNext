@@ -34,11 +34,11 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.2" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="Velopack" Version="0.0.915" />
-    <PackageReference Include="Vosk" Version="0.3.38" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Vosk" Version="0.3.38" Condition="'$(_LinuxBuild)'!='true'" />
+    <PackageReference Include="NAudio" Version="2.2.1" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="System.Speech" Version="9.0.0" Condition="'$(_LinuxBuild)'!='true'" />
-    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
-    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" Condition="'$(_LinuxBuild)'!='true'" />
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" Condition="'$(_LinuxBuild)'!='true'" />
   </ItemGroup>
   <ItemGroup>
     <Compile  Remove="REFS\**" />
@@ -60,7 +60,7 @@
   </ItemGroup>
 
   <ItemGroup>
-  <None Update="voice\**\*">
+  <None Update="voice\**\*" Condition="'$(_LinuxBuild)'!='true'">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>
   <None Include="Services\Assets\SystemTray\*.png" Condition="'$(_LinuxBuild)'!='true'" Link="tray\%(Filename)%(Extension)">

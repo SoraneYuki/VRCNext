@@ -72,7 +72,7 @@ public class PhotosController
             }
         }
         // Fallback: VRChat screenshot folder
-        var vrcPhotoDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VRChat");
+        var vrcPhotoDir = VrcPathsHelper.PhotoDir();
         if (filePath.StartsWith(vrcPhotoDir, StringComparison.OrdinalIgnoreCase))
         {
             var rel = filePath.Substring(vrcPhotoDir.Length).TrimStart('\\', '/').Replace('\\', '/');
@@ -97,8 +97,7 @@ public class PhotosController
 
             // Build list of search roots (VRChat photo dir + watch folders)
             var searchRoots = new List<string>();
-            var vrcPhotoDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VRChat");
+            var vrcPhotoDir = VrcPathsHelper.PhotoDir();
             if (Directory.Exists(vrcPhotoDir)) searchRoots.Add(vrcPhotoDir);
             foreach (var folder in _core.Settings.WatchFolders.Where(Directory.Exists))
             {
@@ -218,9 +217,7 @@ public class PhotosController
     {
         if (_vrcPhotoWatcher != null) return; // already running
 
-        var vrcPhotoDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-            "VRChat");
+        var vrcPhotoDir = VrcPathsHelper.PhotoDir();
         if (!Directory.Exists(vrcPhotoDir))
         {
             try { Directory.CreateDirectory(vrcPhotoDir); }
@@ -381,6 +378,7 @@ public class PhotosController
                     var clipPath = msg["path"]?.ToString() ?? "";
                     if (!string.IsNullOrEmpty(clipPath) && File.Exists(clipPath))
                     {
+#if WINDOWS
                         try
                         {
                             var escaped = clipPath.Replace("'", "''");
@@ -395,6 +393,15 @@ public class PhotosController
                         {
                             _core.SendToJS("toast", new { ok = false, msg = $"Clipboard failed: {ex.Message}" });
                         }
+#else
+                        await Task.Run(() =>
+                        {
+                            if (LinuxDesktopHelper.CopyImageToClipboard(clipPath, out var clipErr))
+                                _core.SendToJS("toast", new { ok = true, msg = "Copied to clipboard" });
+                            else
+                                _core.SendToJS("toast", new { ok = false, msg = $"Clipboard failed: {clipErr}" });
+                        });
+#endif
                     }
                 }
                 break;
@@ -447,10 +454,11 @@ public class PhotosController
                 break;
 
             case "setDesktopBackground":
-#if WINDOWS
+            {
                 var wallPath = msg["path"]?.ToString();
                 if (!string.IsNullOrEmpty(wallPath) && File.Exists(wallPath))
                 {
+#if WINDOWS
                     try
                     {
                         using var regKey = Microsoft.Win32.Registry.CurrentUser
@@ -468,9 +476,18 @@ public class PhotosController
                     {
                         _core.SendToJS("toast", new { ok = false, msg = $"Wallpaper error: {ex.Message}" });
                     }
-                }
+#else
+                    await Task.Run(() =>
+                    {
+                        if (LinuxDesktopHelper.SetWallpaper(wallPath, out var wallErr))
+                            _core.SendToJS("toast", new { ok = true, msg = "Desktop background updated" });
+                        else
+                            _core.SendToJS("toast", new { ok = false, msg = $"Wallpaper error: {wallErr}" });
+                    });
 #endif
+                }
                 break;
+            }
         }
     }
 

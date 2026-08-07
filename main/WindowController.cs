@@ -49,6 +49,10 @@ public class WindowController
     private static volatile bool _forceClose;
 
     public static void AllowNextClose() => _forceClose = true;
+#else
+    public static void AllowNextClose() { }
+#endif
+#if WINDOWS
 
     [StructLayout(LayoutKind.Sequential)]
     private struct MARGINS { public int leftWidth, rightWidth, topHeight, bottomHeight; }
@@ -438,6 +442,31 @@ public class WindowController
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase)
                         .ToList();
+                }
+                catch { }
+#else
+                try
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo("fc-list")
+                    {
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                    };
+                    psi.ArgumentList.Add(":");
+                    psi.ArgumentList.Add("family");
+                    using var proc = System.Diagnostics.Process.Start(psi);
+                    if (proc != null)
+                    {
+                        var output = proc.StandardOutput.ReadToEnd();
+                        proc.WaitForExit(10000);
+                        fonts = output.Split('\n')
+                            .Select(l => l.Split(',')[0].Trim())
+                            .Where(n => !string.IsNullOrWhiteSpace(n))
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase)
+                            .ToList();
+                    }
                 }
                 catch { }
 #endif

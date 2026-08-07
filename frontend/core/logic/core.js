@@ -1433,7 +1433,7 @@ function tryLoadLogo() {
         };
         el._repaintLogo();
     };
-    i.src = 'Logo.png';
+    i.src = 'logo.png';
 }
 
 function _initAudio(path) {

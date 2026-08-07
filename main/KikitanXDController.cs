@@ -37,7 +37,7 @@ public class KikitanXDController : IDisposable
                     oscEnabled = _settings.OscEnabled,
                     partialOsc = _settings.PartialOsc,
                     noiseGatePct = _settings.NoiseGatePercent,
-                    profileTranslationEnabled = _settings.ProfileTranslationEnabled,
+                    profileTranslationEnabled = OperatingSystem.IsWindows() && _settings.ProfileTranslationEnabled,
                     profileTargetLang = _settings.ProfileTargetLang,
                     personality = _settings.Personality,
                     blockWords = _settings.BlockedWords,

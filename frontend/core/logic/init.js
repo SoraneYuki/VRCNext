@@ -109,10 +109,12 @@ if (winDrag) {
     });
 
     document.addEventListener('mousemove', e => {
+        if (window._isLinuxUi) return;
         const dir = getDir(e.clientX, e.clientY);
         document.documentElement.style.cursor = dir ? cursorMap[dir] : '';
     });
     document.addEventListener('mousedown', e => {
+        if (window._isLinuxUi) return;
         if (e.button !== 0) return;
         const dir = getDir(e.clientX, e.clientY);
         if (dir) { e.preventDefault(); sendToCS({ action: 'windowResizeStart', direction: dir }); }

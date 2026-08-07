@@ -213,22 +213,31 @@ public class RelayController : IDisposable
                     LaunchExtraApps(llExtraApps, log: true, vr: llVr);
 #else
                     // On Linux, launch via Steam so Proton is applied automatically
-                    string steamArgs;
-                    if (!string.IsNullOrEmpty(llLoc))
+                    var joinUriLnx   = !string.IsNullOrEmpty(llLoc) ? VRChatApiService.BuildLaunchUri(llLoc) : "";
+                    var noVrFlagLnx  = llVr ? "" : "--no-vr";
+                    var extraArgsLnx = (_core.Settings.VrcLaunchArgs ?? "").Trim();
+                    var profileLnx   = GetVrcProfileArg();
+                    var applaunchLnx = System.Text.RegularExpressions.Regex.Replace(
+                        string.IsNullOrEmpty(joinUriLnx)
+                            ? $"-applaunch 438100 {noVrFlagLnx} {profileLnx} {extraArgsLnx}"
+                            : $"-applaunch 438100 {noVrFlagLnx} {profileLnx} {extraArgsLnx} \"{joinUriLnx}\"",
+                        "\\s+", " ").Trim();
+                    try
                     {
-                        var joinUri = VRChatApiService.BuildLaunchUri(llLoc);
-                        steamArgs = $"steam://rungameid/438100//{Uri.EscapeDataString(joinUri)}";
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "steam",
+                            Arguments = applaunchLnx,
+                            UseShellExecute = false
+                        });
                     }
-                    else
+                    catch
                     {
-                        steamArgs = "steam://rungameid/438100";
+                        var steamUrl = string.IsNullOrEmpty(joinUriLnx)
+                            ? "steam://rungameid/438100"
+                            : $"steam://rungameid/438100//{Uri.EscapeDataString(joinUriLnx)}";
+                        Process.Start(new ProcessStartInfo { FileName = steamUrl, UseShellExecute = true });
                     }
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "steam",
-                        Arguments = steamArgs,
-                        UseShellExecute = false
-                    });
 #endif
                     var modeLabel = llVr ? "VR" : "Desktop";
                     var locLabel  = !string.IsNullOrEmpty(llLoc) ? $" → {llLoc}" : "";
@@ -465,12 +474,23 @@ public class RelayController : IDisposable
             }
 #else
             // On Linux, launch via Steam so Proton is applied automatically
-            Process.Start(new ProcessStartInfo
+            var lvExtraArgs = (_core.Settings.VrcLaunchArgs ?? "").Trim();
+            var lvProfile   = GetVrcProfileArg();
+            var lvApplaunch = System.Text.RegularExpressions.Regex.Replace(
+                $"-applaunch 438100 --no-vr {lvProfile} {lvExtraArgs}", "\\s+", " ").Trim();
+            try
             {
-                FileName = "steam",
-                Arguments = "steam://rungameid/438100",
-                UseShellExecute = false
-            });
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "steam",
+                    Arguments = lvApplaunch,
+                    UseShellExecute = false
+                });
+            }
+            catch
+            {
+                Process.Start(new ProcessStartInfo { FileName = "steam://rungameid/438100", UseShellExecute = true });
+            }
 #endif
             _core.SendToJS("log", new { msg = "Launched VRChat", color = "ok" });
 
@@ -507,6 +527,7 @@ public class RelayController : IDisposable
 
             try
             {
+#if WINDOWS
                 var launchPath = path;
                 if (path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                 {
@@ -520,7 +541,27 @@ public class RelayController : IDisposable
                     Arguments = $"\"{launchPath}\"",
                     UseShellExecute = false
                 });
-
+#else
+                bool isExecutable = false;
+                try { isExecutable = (File.GetUnixFileMode(path) & (UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute)) != 0; } catch { }
+                if (isExecutable)
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = path,
+                        WorkingDirectory = Path.GetDirectoryName(path) ?? "",
+                        UseShellExecute = false
+                    });
+                }
+                else
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = path,
+                        UseShellExecute = true
+                    });
+                }
+#endif
                 var exeName = ResolveTargetExeName(path);
                 if (!string.IsNullOrEmpty(exeName))
                     lock (_launchedLock)
@@ -545,6 +586,7 @@ public class RelayController : IDisposable
     {
         try
         {
+#if WINDOWS
             var ext = Path.GetExtension(path).ToLowerInvariant();
             if (ext == ".exe")
                 return Path.GetFileNameWithoutExtension(path);
@@ -554,11 +596,15 @@ public class RelayController : IDisposable
                 if (!string.IsNullOrEmpty(target) && target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                     return Path.GetFileNameWithoutExtension(target);
             }
+#else
+            return Path.GetFileNameWithoutExtension(path);
+#endif
         }
         catch { }
         return "";
     }
 
+#if WINDOWS
     private static string ResolveShortcutTarget(string lnkPath)
     {
         try
@@ -575,6 +621,7 @@ public class RelayController : IDisposable
         }
         catch { return ""; }
     }
+#endif
 
     // VRChat process monitor (Close / Start always with VRChat)
 
@@ -683,7 +730,15 @@ public class RelayController : IDisposable
 
     public static bool IsVrcRunning()
     {
-        try { return Process.GetProcessesByName("VRChat").Any(p => { try { return !p.HasExited; } catch { return false; } }); }
+        try
+        {
+            bool Alive(Process p) { try { return !p.HasExited; } catch { return false; } }
+            if (Process.GetProcessesByName("VRChat").Any(Alive)) return true;
+#if !WINDOWS
+            if (Process.GetProcessesByName("VRChat.exe").Any(Alive)) return true;
+#endif
+            return false;
+        }
         catch { return false; }
     }
 

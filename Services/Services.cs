@@ -619,6 +619,7 @@ public class AppSettings
 
     // Performance — WebView2/Chromium flags (all require restart)
     public bool GpuAcceleration     { get; set; } = true;
+    public bool LinuxGpuAcceleration { get; set; } = false;
     public bool GpuShaderCache      { get; set; } = false;
     public bool V8Heap128           { get; set; } = false;
     public bool TwoRenderProcesses  { get; set; } = false;
