@@ -2,6 +2,7 @@
 
 .gp-modal {
     background: var(--bg-card);
+    border: 1px solid var(--brd);
     border-radius: 16px;
     width: 480px;
     max-width: calc(100vw - 32px);

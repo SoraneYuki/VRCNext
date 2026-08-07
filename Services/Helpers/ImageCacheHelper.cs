@@ -463,14 +463,9 @@ public static class ImageCacheHelper
     {
         var key = $"{subdir}/{entityId}";
         var now = DateTime.UtcNow;
-        if (_revalidated.TryGetValue(key, out var last) && now - last < TimeSpan.FromDays(7)) return;
         var forced = _forcePrefix.TryGetValue(subdir, out var ft) && now - ft < TimeSpan.FromMinutes(2);
-        if (!forced)
-        {
-            DateTime mtime;
-            try { mtime = File.GetLastWriteTimeUtc(cachedPath); } catch { return; }
-            if (now - mtime < TimeSpan.FromDays(7)) return;
-        }
+        if (!forced) return;
+        if (_revalidated.TryGetValue(key, out var last) && now - last < TimeSpan.FromMinutes(2)) return;
         _revalidated[key] = now;
         _ = Task.Run(async () =>
         {
@@ -492,11 +487,7 @@ public static class ImageCacheHelper
                 if (remoteLen <= 0) return;
                 long localLen;
                 try { localLen = new FileInfo(cachedPath).Length; } catch { return; }
-                if (remoteLen == localLen)
-                {
-                    try { File.SetLastWriteTimeUtc(cachedPath, DateTime.UtcNow); } catch { }
-                    return;
-                }
+                if (remoteLen == localLen) return;
                 Log?.Invoke($"CDN CHANGED - {key} - {localLen} -> {remoteLen} bytes, re-downloading", "warn");
                 var result = await CacheAsync(subdir, entityId, imageUrl, forceRefresh: true);
                 if (result != null) OnImageRefreshed?.Invoke(subdir, entityId);

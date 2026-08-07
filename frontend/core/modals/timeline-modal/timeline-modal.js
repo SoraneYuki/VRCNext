@@ -4,8 +4,9 @@
 // modal lives there), detail renders into the stacked '#modalDetail2' so the
 // underlying modal stays open — same behaviour as the profile modal.
 let _tlMid = 'modalDetail';
+let _tlStacked = false;
 
-function openTlDetail(id) {
+function openTlDetail(id, stacked) {
     const ev = timelineEvents.find(e => e.id === id)
              || _tlSearchEvents.find(e => e.id === id)
              || _fdTimelineEvents.find(e => e.id === id)
@@ -30,8 +31,9 @@ function openTlDetail(id) {
         return;
     }
 
-    const mainOpen = document.getElementById('modalDetail')?.style.display === 'flex';
+    const mainOpen = !!stacked || document.getElementById('modalDetail')?.style.display === 'flex';
     _tlMid = mainOpen ? 'modalDetail2' : 'modalDetail';
+    _tlStacked = !!stacked;
     const el = document.getElementById(mainOpen ? 'detailModalContent2' : 'detailModalContent');
     if (!el) return;
 
@@ -95,6 +97,9 @@ function _tlBar(title) {
 function closeTlDetail(fromNav = false) {
     const ov = document.getElementById(_tlMid);
     if (ov) ov.style.display = 'none';
+    const wasStacked = _tlStacked;
+    _tlStacked = false;
+    if (wasStacked) return;
     if (!fromNav && typeof navClear === 'function') navClear();
 }
 function _tlBanner(hasThumb) {
@@ -261,7 +266,7 @@ function renderTlDetailJoin(ev, el) {
                 <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);margin-bottom:12px;">${esc(dateStr)}</div>
             </div>
             <div class="fd-actions">
-                <button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="closeTlDetail();sendToCS({action:'vrcJoinFriend',location:'${jsq(ev.location)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>
+                <button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="sendToCS({action:'vrcJoinFriend',location:'${jsq(ev.location)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>
                 ${canCopyLink ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.copy_instance_link', 'Copy Instance Link'))}" onclick="copyInstanceLink('${jsq(ev.location)}')"><span class="msi" style="font-size:16px;">content_copy</span></button>` : ''}
             </div>
             ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
@@ -340,19 +345,44 @@ function renderTlDetailNotif(ev, el) {
     const dateStr   = tlFormatLongDate(ev.timestamp);
     const timeStr   = tlFormatTime(ev.timestamp);
     const typeLabel = tlNotifTypeLabel(ev.notifType);
+    const loc       = ev.location || '';
+    const hasInst   = loc.startsWith('wrld_') && loc.indexOf(':') > 0;
+
+    let instRows = '';
+    if (hasInst) {
+        const { instanceType } = parseFriendLocation(loc);
+        const { cls: instCls, label: instLabel } = getInstanceBadge(instanceType);
+        const idMatch    = loc.match(/:(\d+)/);
+        const instanceId = idMatch ? idMatch[1] : '';
+        const worldClick = ev.worldId ? ` onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')" style="cursor:pointer;"` : '';
+        instRows = [
+            (ev.worldName || ev.worldId)
+                ? `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));"${worldClick}><span style="color:var(--tx3);">${esc(t('timeline.detail.world', 'World'))}</span><span style="color:var(--accent-lt);text-align:right;">${esc(ev.worldName || ev.worldId)}</span></div>`
+                : '',
+            _tlMr(esc(t('timeline.detail.instance_type', 'Instance Type')), `<span class="vrcn-badge ${instCls}">${instLabel}</span>`),
+            instanceId ? _tlMr(esc(t('timeline.detail.instance_id', 'Instance ID')), `<span style="font-family:monospace;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">#${esc(instanceId)}</span>`) : '',
+        ].filter(Boolean).join('');
+    }
+
     const infoRows = [
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
         _tlMr(esc(t('timeline.detail.type', 'Type')), esc(typeLabel)),
+        instRows,
         ev.notifTitle ? _tlMr(esc(t('timeline.detail.context', 'Context')), esc(ev.notifTitle)) : '',
         ev.message    ? _tlMr(esc(t('timeline.detail.message', 'Message')), esc(ev.message))    : '',
     ].filter(Boolean).join('');
+
+    const actions = [
+        hasInst ? `<button class="vrcn-button-round vrcn-btn-join" onclick="sendToCS({action:'vrcJoinFriend',location:'${jsq(loc)}'})"><span class="msi" style="font-size:16px;">play_arrow</span> ${esc(t('timeline.actions.join_instance', 'Join Instance'))}</button>` : '',
+        hasInst ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.copy_instance_link', 'Copy Instance Link'))}" onclick="copyInstanceLink('${jsq(loc)}')"><span class="msi" style="font-size:16px;">content_copy</span></button>` : '',
+        ev.senderId ? `<button class="vrcn-button-round" onclick="navOpenModal('friend','${jsq(ev.senderId)}','${jsq(ev.senderName || '')}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>` : '',
+    ].filter(Boolean).join('');
+
     el.innerHTML = `${_tlBar(ev.senderName || typeLabel)}<div class="fd-content" style="padding:20px 0;">
         ${_tlAvRow(ev.senderImage, ev.senderName || typeLabel, typeLabel.toUpperCase(), 'var(--warn)')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
-        ${ev.senderId ? `<div style="margin-top:14px;display:flex;gap:8px;">
-            <button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('friend','${jsq(ev.senderId)}','${jsq(ev.senderName || '')}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
-        </div>` : ''}
+        ${actions ? `<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">${actions}</div>` : ''}
     </div>`;
 }
 
@@ -537,7 +567,7 @@ function renderFtGpsDetailModal(ev) {
                 ${idBadge(ev.worldId || '')}
             </div>
             <div class="fd-actions">
-                ${loc ? `<button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="closeFtGpsDetail();sendToCS({action:'vrcJoinFriend',location:'${jsq(loc)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>` : ''}
+                ${loc ? `<button class="vrcn-button-round vrcn-btn-join" title="${esc(t('instance.actions.force_join', 'Force-Join'))}" onclick="sendToCS({action:'vrcJoinFriend',location:'${jsq(loc)}'});"><span class="msi" style="font-size:16px;">play_arrow</span></button>` : ''}
                 ${canCopyLink ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.copy_instance_link', 'Copy Instance Link'))}" onclick="copyInstanceLink('${jsq(loc)}')"><span class="msi" style="font-size:16px;">content_copy</span></button>` : ''}
                 ${ev.worldId ? `<button class="vrcn-button-round" title="${esc(t('timeline.actions.open_world', 'Open World'))}" onclick="navOpenModal('worldSearch','${jsq(ev.worldId)}','${jsq(ev.worldName || '')}')"><span class="msi" style="font-size:16px;">travel_explore</span></button>` : ''}
             </div>
@@ -588,6 +618,7 @@ function openFtDetail(id) {
              || (typeof _fdUserActivityEvents !== 'undefined' ? _fdUserActivityEvents.find(e => e.id === id) : null);
     if (!ev) return;
     _tlMid = 'modalDetail';
+    _tlStacked = false;
     const el = document.getElementById('detailModalContent');
     if (!el) return;
 
@@ -844,7 +875,8 @@ function buildPersonalListHtml(events, staticHeader) {
         const ei    = jsq(ev.id);
         const { userHtml, detail } = _tlListData(ev);
         const listMeetCount = ev.type === 'meet_again' ? (ev.meetCount || 0) : 0;
-        const listTypeLabel = listMeetCount > 0 ? `${meta.label} (${listMeetCount})` : meta.label;
+        let listTypeLabel = listMeetCount > 0 ? `${meta.label} (${listMeetCount})` : meta.label;
+        if (ev.type === 'notification') listTypeLabel = tlNotifTypeLabel(ev.notifType);
 
         rows += tlTableRow('personal', ` data-tlid="${esc(ev.id)}" onclick="openTlDetail('${ei}')"`, {
             dt:      `<td class="tl-list-dt">${esc(`${tlFormatShortDate(ev.timestamp)} | ${tlFormatTime(ev.timestamp)}`)}</td>`,
@@ -884,12 +916,19 @@ function _tlListData(ev) {
         case 'meet_again':
             return { userHtml: esc(ev.userName || t('timeline.unknown', 'Unknown')), detail: ev.worldName ? esc(ev.worldName) : '' };
         case 'notification': {
-            const typeLabel = tlNotifTypeLabel(ev.notifType);
-            const sender    = ev.senderName ? ` | ${esc(tf('timeline.list.from', { name: ev.senderName }, `from ${ev.senderName}`))}` : '';
-            const msg       = ev.message
-                ? `${ev.senderName ? ' | ' : ''}${esc(ev.message.slice(0, 80))}${ev.message.length > 80 ? '...' : ''}`
-                : '';
-            return { userHtml: ev.senderName ? esc(ev.senderName) : '', detail: esc(typeLabel) + sender + msg };
+            const sender = ev.senderName || '';
+            const userHtml = sender ? esc(sender) : '';
+            if (sender && ev.notifType === 'invite') {
+                const s = ev.worldName
+                    ? tf('timeline.notif.invited_you_to', { name: sender, world: ev.worldName }, `${sender} invited you to ${ev.worldName}`)
+                    : tf('timeline.notif.invited_you', { name: sender }, `${sender} invited you`);
+                return { userHtml, detail: esc(s) };
+            }
+            if (sender && ev.notifType === 'requestInvite') {
+                return { userHtml, detail: esc(tf('timeline.notif.wants_invite', { name: sender }, `${sender} wants an invite`)) };
+            }
+            const text = ev.message || ev.notifTitle || '';
+            return { userHtml, detail: text ? `${esc(text.slice(0, 90))}${text.length > 90 ? '…' : ''}` : '' };
         }
         case 'avatar_switch':
             return { userHtml: esc(currentVrcUser?.displayName || t('timeline.unknown', 'Unknown')), detail: esc(ev.userName || '') };

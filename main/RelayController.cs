@@ -131,11 +131,12 @@ public class RelayController : IDisposable
                 StopRelay();
                 break;
             case "playVRChat":
-                if (IsVrcRunning())
-                    _core.SendToJS("log", new { msg = "VRChat is already running.", color = "ok" });
-                else
-                    _core.SendToJS("vrcLaunchNeeded", new { location = "", steamVr = IsSteamVrRunning() });
+            {
+                var pvRunning = IsVrcRunning();
+                var pvLoc = pvRunning ? (_core.LogWatcher?.CurrentLocation ?? "") : "";
+                _core.SendToJS("vrcLaunchNeeded", new { location = pvLoc, steamVr = IsSteamVrRunning() });
                 break;
+            }
             case "vcCheck":
                 _core.SendToJS("vcState", GetVcState());
                 break;

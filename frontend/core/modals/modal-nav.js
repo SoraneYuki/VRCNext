@@ -172,6 +172,9 @@ function navSetCurrent(type, id, id2) {
 function navOpenModal(type, id, label, id2) {
     if (!id) return;
 
+    const _stackedTl = document.getElementById('modalDetail2');
+    if (_stackedTl && _stackedTl.style.display === 'flex') _stackedTl.style.display = 'none';
+
     _navCaptureTab(_navLiveEntry());
 
     if (_navIdx === -1 && _navCurrentEntry && _navCurrentEntry.id) {

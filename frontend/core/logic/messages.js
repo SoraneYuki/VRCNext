@@ -1138,6 +1138,7 @@ case 'vrcNews':
                 if (typeof onPeopleStatsData === 'function') onPeopleStatsData(payload);
                 break;
         case 'setPlatform':
+            window._isLinuxUi = !!payload?.isLinux;
             if (payload?.isLinux) {
                 if (typeof navSetLinux === 'function') navSetLinux(true);
                 document.querySelectorAll('[data-windows-only]').forEach(el => el.style.display = 'none');
@@ -1195,6 +1196,7 @@ case 'vrcNews':
         case 'afGameRunning':
             window.vrcGameRunning = !!(payload && payload.running);
             if (typeof navUpdatePlaySubtitle === 'function') navUpdatePlaySubtitle();
+            if (typeof launchModalSyncGameState === 'function') launchModalSyncGameState();
             if (typeof window.__afHandleMessage === 'function') window.__afHandleMessage(type, payload);
             break;
 

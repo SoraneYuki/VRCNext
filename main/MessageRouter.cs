@@ -990,6 +990,8 @@ public partial class AppShell
                     break;
 
                 case "vrcCreateInstance":
+                case "vrcSelfInvite":
+                case "vrcOpenInGame":
                     await _instance.HandleMessage(action, msg);
                     break;
 

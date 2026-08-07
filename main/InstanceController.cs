@@ -443,6 +443,54 @@ public class InstanceController
                 });
                 break;
 
+            case "vrcSelfInvite":
+            {
+                var siLoc = msg["location"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(siLoc)) break;
+                _ = Task.Run(async () =>
+                {
+                    var ok = await _core.Instances.InviteSelfAsync(siLoc);
+                    Invoke(() => _core.SendToJS("vrcActionResult", new
+                    {
+                        action = "selfInvite",
+                        success = ok,
+                        message = ok ? "Self-invite sent! Check VRChat." : "Self-invite failed. The instance may no longer exist.",
+                    }));
+                });
+                break;
+            }
+
+            case "vrcOpenInGame":
+            {
+                var oigLoc = msg["location"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(oigLoc)) break;
+                try
+                {
+                    var uri = VRChatApiService.BuildLaunchUri(oigLoc);
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName        = uri,
+                        UseShellExecute = true,
+                    });
+                    _core.SendToJS("vrcActionResult", new
+                    {
+                        action = "openInGame",
+                        success = true,
+                        message = "Opening world in VRChat...",
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _core.SendToJS("vrcActionResult", new
+                    {
+                        action = "openInGame",
+                        success = false,
+                        message = $"Failed to open in VRChat: {ex.Message}",
+                    });
+                }
+                break;
+            }
+
             case "vrcCreateInstance":
                 var ciWorldId = msg["worldId"]?.ToString() ?? "";
                 var ciType = msg["type"]?.ToString() ?? "public";

@@ -98,6 +98,7 @@
     font-weight: 600;
     overflow: hidden;
 }
+.tl-list-table[data-tl-list="personal"] .tl-list-type { width: 185px; }
 .tl-list-type > span:not(.tl-list-icon) {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -111,7 +112,7 @@
 .tl-list-user {
     white-space: nowrap;
     font-weight: 600;
-    width: 130px;
+    width: 156px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
