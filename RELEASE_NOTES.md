@@ -1,4 +1,4 @@
-**2026.40.5**
+**2026.40.6**
 
 **Design**
 * Grouped the top controls (buttons, dropdowns and search bars) of the World, People, Groups, Avatars, Calendar, Inventory, Timeline and Media Library tabs into a single toolbar card.
