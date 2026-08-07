@@ -286,6 +286,7 @@ window.external.receiveMessage(rawMsg => {
                 else vrcFriendsData.push(payload);
                 scheduleRenderVrcFriends();
                 if (favFriendsData.length > 0) filterFavFriendsIfVisible();
+                if (typeof filterAllFriendsIfLive === 'function') filterAllFriendsIfLive();
                 if (typeof updateUserItemWorld === 'function') updateUserItemWorld(payload);
                 if (typeof patchFriendDetailLive === 'function') patchFriendDetailLive(payload);
                 break;
@@ -302,6 +303,7 @@ window.external.receiveMessage(rawMsg => {
                 requestWorldResolution(); renderDashboard(); requestInstanceInfo();
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);
                 if (favFriendsData.length > 0) filterFavFriendsIfVisible();
+                if (typeof filterAllFriendsIfLive === 'function') filterAllFriendsIfLive();
                 break;
             case 'vrcProfileDecorations':
                 if (typeof onProfileDecorations === 'function') onProfileDecorations(payload);

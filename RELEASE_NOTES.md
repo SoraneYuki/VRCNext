@@ -2,6 +2,10 @@
 
 **Notifications**
 
+**People Tab**
+* **All Friends** now updates live. Friends appear and move between **In-Game**, **Active**, and **Offline** as it happens, without pressing refresh.
+* The list is left alone while you are searching or on a later page, so your view never jumps.
+
 **Group Tab**
 * Added "My Groups" showing your own created groups.
 * Added "Moderate Groups" showing groups wher eyou have mod rights.
