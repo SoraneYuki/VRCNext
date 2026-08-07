@@ -52,6 +52,7 @@ function setWorldFilter(filter) {
     document.getElementById('worldRecentArea').style.display = filter === 'recent'    ? '' : 'none';
     document.getElementById('worldMineArea').style.display   = filter === 'mine'      ? '' : 'none';
     document.getElementById('worldSearchArea').style.display = filter === 'search'    ? '' : 'none';
+    document.getElementById('worldToolbar')?.classList.toggle('tt-split', filter === 'favorites' || filter === 'search');
     const editBtn = document.getElementById('worldEditModeBtn');
     if (editBtn) editBtn.style.display = filter === 'favorites' ? '' : 'none';
     if (filter === 'favorites' && favWorldsData.length === 0) sendToCS({ action: 'vrcGetFavoriteWorlds' });

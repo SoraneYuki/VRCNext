@@ -84,7 +84,7 @@
 .search-input, .vrcn-input {
     flex: 1;
     padding: 9px 10px 9px 32px;
-    background: var(--bg-card);
+    background: var(--ui-input-bg);
     border: 1px solid transparent;
     border-radius: 9px;
     color: var(--tx1);

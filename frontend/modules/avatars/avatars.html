@@ -1,4 +1,4 @@
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                <div class="tab-toolbar tt-split" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
                     <div id="avatarFilterBtns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <button class="vrcn-button sub-tab-btn active" id="avatarFilterOwn" onclick="setAvatarFilter('own')"><span class="msi" style="font-size:16px;">person</span> <span data-i18n="avatars.filters.own">My Avatars</span></button>
                         <button class="vrcn-button sub-tab-btn" id="avatarFilterFav" onclick="setAvatarFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="avatars.filters.favorites">Favorites</span></button>
@@ -35,6 +35,7 @@
                 </div>
                 <!-- Own Avatars -->
                 <div id="avatarOwnArea">
+                    <div class="tab-toolbar-body">
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
                         <div class="search-bar-row" style="margin-bottom:0;flex:1;min-width:140px;"><span class="msi search-ico">search</span><input type="text" id="ownAvatarSearchInput" class="vrcn-input" placeholder="Filter my avatars..." data-i18n-placeholder="avatars.own.filter_placeholder" oninput="filterOwnAvatars()"></div>
                         <select class="vrcn-dropdown av-publish-filter" onchange="setAvPublishFilter(this.value)" style="min-width:130px;flex-shrink:0;">
@@ -49,10 +50,12 @@
                         </select>
                         <button id="ownAvatarsRefreshBtn" class="vrcn-button" onclick="refreshAvatars()" title="Refresh" data-i18n-title="common.refresh"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
                     </div>
+                    </div>
                     <div id="avatarGrid" class="avatar-grid"><div class="empty-msg" data-i18n="avatars.empty.login_prompt">Login to VRChat to see your avatars</div></div>
                 </div>
                 <!-- Favorites with group dropdown -->
                 <div id="avatarFavArea" style="display:none;">
+                    <div class="tab-toolbar-body">
                     <div id="favAvatarGroupHeader" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;min-height:24px;">
                         <span id="favAvatarGroupLabel" style="font-size:calc(13px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);" data-i18n="avatars.favorites.group.all">All Favorites</span>
                         <span id="favAvatarGroupVrcPlusBadge" class="vrcn-supporter-badge" style="display:none;">VRC+</span>
@@ -82,10 +85,12 @@
                         </select>
                         <button id="favAvatarsRefreshBtn" class="vrcn-button" onclick="refreshFavAvatars()" title="Refresh" data-i18n-title="common.refresh"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
                     </div>
+                    </div>
                     <div id="favAvatarsGrid" class="avatar-grid"><div class="empty-msg" data-i18n="avatars.favorites.loading">Loading favorite avatars...</div></div>
                 </div>
                 <!-- Recently Used -->
                 <div id="avatarRecentArea" style="display:none;">
+                    <div class="tab-toolbar-body">
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
                         <div class="search-bar-row" style="margin-bottom:0;flex:1;min-width:140px;"><span class="msi search-ico">search</span><input type="text" id="recentAvatarSearchInput" class="vrcn-input" placeholder="Filter recently used..." data-i18n-placeholder="avatars.recent.filter_placeholder" oninput="filterRecentAvatars()"></div>
                         <select class="vrcn-dropdown av-publish-filter" onchange="setAvPublishFilter(this.value)" style="min-width:130px;flex-shrink:0;">
@@ -99,18 +104,23 @@
                             <option value="quest">Quest</option><option value="ios">iOS</option>
                         </select>
                     </div>
+                    </div>
                     <div id="avatarRecentGrid" class="avatar-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
                 </div>
                 <!-- Rose Database -->
                 <div id="avatarRoseArea" style="display:none;">
+                    <div class="tab-toolbar-body">
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
                         <div class="search-bar-row" style="margin-bottom:0;flex:1;min-width:140px;"><span class="msi search-ico">search</span><input type="text" id="roseSearchInput" class="vrcn-input" placeholder="Filter by name, author or tag..." data-i18n-placeholder="avatars.rose.filter_placeholder" oninput="filterRoseDb()"></div>
                         <button class="vrcn-button" id="roseRefreshBtn" onclick="loadRoseDatabase(true)" title="Refresh" data-i18n-title="common.refresh"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
+                    </div>
                     </div>
                     <div id="roseDbGrid" class="avatar-grid"><div class="empty-msg" data-i18n="avatars.rose.loading">Loading Rose Database...</div></div>
                 </div>
                 <!-- Search -->
                 <div id="avatarSearchArea" style="display:none;">
+                    <div class="tab-toolbar-body">
                     <div class="search-bar-row" style="margin-bottom:14px;"><span class="msi search-ico">search</span><input type="text" id="avatarSearchInput" class="vrcn-input" placeholder="Search public avatars..." data-i18n-placeholder="avatars.search.placeholder" onkeydown="if(event.key==='Enter')doAvatarSearch()"><select class="vrcn-dropdown av-publish-filter" onchange="setAvPublishFilter(this.value)" style="min-width:130px;flex-shrink:0;"><option value="all" data-i18n="avatars.filter.publish_all">All Status</option><option value="public" data-i18n="avatars.labels.public">Public</option><option value="private" data-i18n="avatars.labels.private">Private</option></select><select class="vrcn-dropdown av-platform-filter" onchange="setAvPlatformFilter(this.value)" style="min-width:140px;flex-shrink:0;"><option value="all" data-i18n="avatars.filter.platform_all">All Platforms</option><option value="pc">PC</option><option value="quest">Quest</option><option value="ios">iOS</option></select><select class="vrcn-dropdown av-vrcn-filter" id="avVrcnPerf" onchange="if(avatarSearchQuery)doAvatarSearch()" style="min-width:120px;flex-shrink:0;display:none;"><option value="" data-i18n="avatars.filter.perf_any">Performance</option><option value="excellent" data-i18n="avatars.perf.excellent">Excellent</option><option value="good" data-i18n="avatars.perf.good">Good</option><option value="medium" data-i18n="avatars.perf.medium">Medium</option><option value="poor" data-i18n="avatars.perf.poor">Poor</option><option value="verypoor" data-i18n="avatars.perf.very_poor">Very Poor</option></select><button class="vrcn-button av-vrcn-filter" id="avVrcnFtBtn" onclick="toggleAvVrcnFt()" style="flex-shrink:0;display:none;" title="Face Tracking"><span class="msi" style="font-size:16px;">face</span> <span data-i18n="avatars.filter.face_tracking">Face Tracking</span></button><div class="av-vrcn-filter" id="avVrcnContentWrap" style="position:relative;flex-shrink:0;display:none;"><button class="vrcn-button" onclick="toggleAvVrcnContentMenu()"><span class="msi" style="font-size:16px;">shield</span> <span data-i18n="avatars.filter.content_filter">Content Filter</span><span id="avVrcnContentCount" style="display:none;margin-left:4px;color:var(--accent);"></span></button><div id="avVrcnContentMenu" class="vn-select-panel" style="display:none;position:absolute;top:100%;right:0;min-width:210px;z-index:200;padding:6px;"><label class="av-cf-item"><input type="checkbox" value="sexual" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.sexual">Sexually Suggestive</span></label><label class="av-cf-item"><input type="checkbox" value="adult" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.adult">Adult Themes</span></label><label class="av-cf-item"><input type="checkbox" value="violence" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.violence">Graphic Violence</span></label><label class="av-cf-item"><input type="checkbox" value="gore" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.gore">Excessive Gore</span></label><label class="av-cf-item"><input type="checkbox" value="horror" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.horror">Extreme Horror</span></label></div></div><button class="vrcn-button" onclick="doAvatarSearch()" data-i18n="common.search">Search</button></div>
+                    </div>
                     <div id="avatarSearchGrid" class="avatar-grid"><div class="empty-msg" data-i18n="avatars.search.empty_prompt">Search for public avatars</div></div>
                 </div>

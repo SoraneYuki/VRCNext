@@ -1,4 +1,4 @@
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                <div class="tab-toolbar tt-split" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
                     <div id="peopleFilterBtns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <button class="vrcn-button sub-tab-btn active" id="peopleFilterFav" onclick="setPeopleFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="profiles.people.filters.favorites">Favorites</span></button>
                         <button class="vrcn-button sub-tab-btn" id="peopleFilterAll" onclick="setPeopleFilter('all')"><span class="msi" style="font-size:16px;">group</span> <span data-i18n="profiles.people.filters.all">All Friends</span></button>
@@ -39,6 +39,7 @@
                     </div>
                 </div>
                 <div id="peopleFavArea">
+                    <div class="tab-toolbar-body">
                     <div id="favFriendGroupHeader" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;min-height:24px;">
                         <span id="favFriendGroupLabel" style="font-size:calc(13px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);">All Favorites</span>
                         <span id="favFriendGroupLocalBadge" class="vrcn-local-badge" style="display:none;" data-i18n="favorites.local_badge">Local</span>
@@ -71,9 +72,11 @@
                             <input type="text" id="favFriendSearchInput" class="vrcn-input" placeholder="Filter favorite friends..." data-i18n-placeholder="friends.favorites.filter_placeholder" oninput="_dbFilterFavFriends()">
                         </div>
                     </div>
+                    </div>
                     <div id="favFriendsGrid" class="search-grid"><div class="empty-msg" data-i18n="friends.favorites.loading">Loading favorite friends...</div></div>
                 </div>
                 <div id="peopleAllArea" style="display:none;">
+                    <div class="tab-toolbar-body">
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
                         <div style="display:flex;gap:4px;flex-shrink:0;">
                             <button class="vrcn-button sub-tab-btn active" id="allFriendFilterAll" onclick="setAllFriendsStatusFilter('all')" data-i18n="profiles.people.status_filter.all">All</button>
@@ -83,22 +86,23 @@
                         </div>
                         <div class="search-bar-row" style="margin-bottom:0;flex:1;min-width:140px;"><span class="msi search-ico">search</span><input type="text" id="allFriendSearchInput" class="vrcn-input" placeholder="Filter friends..." data-i18n-placeholder="profiles.people.all_search_placeholder" oninput="_dbFilterAllFriends()"></div>
                     </div>
+                    </div>
                     <div id="allFriendsGrid" class="search-grid"><div class="empty-msg" data-i18n="profiles.people.loading_all">Loading friends...</div></div>
                 </div>
                 <div id="peopleRecentArea" style="display:none;">
-                    <div class="search-bar-row" style="margin-bottom:12px;"><span class="msi search-ico">search</span><input type="text" id="recentSeenSearchInput" class="vrcn-input" placeholder="Filter recently seen..." data-i18n-placeholder="profiles.people.recent_seen.filter_placeholder" oninput="filterRecentSeen()"></div>
+                    <div class="tab-toolbar-body"><div class="search-bar-row" style="margin-bottom:0;"><span class="msi search-ico">search</span><input type="text" id="recentSeenSearchInput" class="vrcn-input" placeholder="Filter recently seen..." data-i18n-placeholder="profiles.people.recent_seen.filter_placeholder" oninput="filterRecentSeen()"></div></div>
                     <div id="recentSeenGrid" class="search-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
                 </div>
                 <div id="peopleSearchArea" style="display:none;">
-                    <div class="search-bar-row"><span class="msi search-ico">search</span><input type="text" id="searchPeopleInput" class="vrcn-input" placeholder="Search people..." data-i18n-placeholder="profiles.people.search_people_placeholder" onkeydown="if(event.key==='Enter')doSearch('people')"><button class="vrcn-button" onclick="doSearch('people')" data-i18n="common.search">Search</button></div>
+                    <div class="tab-toolbar-body"><div class="search-bar-row"><span class="msi search-ico">search</span><input type="text" id="searchPeopleInput" class="vrcn-input" placeholder="Search people..." data-i18n-placeholder="profiles.people.search_people_placeholder" onkeydown="if(event.key==='Enter')doSearch('people')"><button class="vrcn-button" onclick="doSearch('people')" data-i18n="common.search">Search</button></div></div>
                     <div id="searchPeopleResults" class="search-grid"><div class="empty-msg" data-i18n="profiles.people.search_prompt">Search for VRChat users</div></div>
                 </div>
                 <div id="peopleBlockedArea" style="display:none;">
-                    <div class="search-bar-row" style="margin-bottom:12px;"><span class="msi search-ico">search</span><input type="text" id="blockedSearch" class="vrcn-input" placeholder="Filter blocked users..." data-i18n-placeholder="profiles.people.blocked_search_placeholder" oninput="_dbFilterBlocked()"></div>
+                    <div class="tab-toolbar-body"><div class="search-bar-row" style="margin-bottom:0;"><span class="msi search-ico">search</span><input type="text" id="blockedSearch" class="vrcn-input" placeholder="Filter blocked users..." data-i18n-placeholder="profiles.people.blocked_search_placeholder" oninput="_dbFilterBlocked()"></div></div>
                     <div id="blockedList" class="search-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
                 </div>
                 <div id="peopleMutedArea" style="display:none;">
-                    <div class="search-bar-row" style="margin-bottom:12px;"><span class="msi search-ico">search</span><input type="text" id="mutedSearch" class="vrcn-input" placeholder="Filter muted users..." data-i18n-placeholder="profiles.people.muted_search_placeholder" oninput="_dbFilterMuted()"></div>
+                    <div class="tab-toolbar-body"><div class="search-bar-row" style="margin-bottom:0;"><span class="msi search-ico">search</span><input type="text" id="mutedSearch" class="vrcn-input" placeholder="Filter muted users..." data-i18n-placeholder="profiles.people.muted_search_placeholder" oninput="_dbFilterMuted()"></div></div>
                     <div id="mutedList" class="search-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
                 </div>
                 <div id="peopleAllPaginatorBar" class="tl-paginator-bar"></div>

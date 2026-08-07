@@ -1,11 +1,13 @@
 :root {
-    --bg-base: #0A0A0A;
+    --bg-base: #050505;
     --bg-side: #0A0A0A;
-    --bg-card: #0F0F0F;
+    --bg-card: #0D0D0E;
     --bg-hover: #1C1C1F;
-    --bg-input: #141414;
-    --bg-btn: #0F0F0F;
+    --bg-input: #101011;
+    --bg-btn: #0D0D0E;
     --bg-btn-h: #1C1C1F;
+    --ui-input-bg: var(--bg-card);
+    --ui-input-hover-bg: var(--bg-hover);
     --accent: #5C76FF;
     --accent-lt: #9797B1;
     --cyan: #8CA5FF;
@@ -154,6 +156,29 @@
 }
 
 html.design-flat { --sep-color: transparent; }
+
+.tab-toolbar {
+    background: var(--bg-input);
+    border: 1px solid var(--brd);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+}
+.tab-toolbar.tt-split {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+    margin-bottom: 0;
+}
+.tab-toolbar-body {
+    background: var(--bg-input);
+    border: 1px solid var(--brd);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+}
+.tab-toolbar-body > :last-child { margin-bottom: 0 !important; }
 
 html { overflow: hidden; }
 body {

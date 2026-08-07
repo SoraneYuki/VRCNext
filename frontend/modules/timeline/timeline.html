@@ -1,4 +1,4 @@
-                <div class="tl-mode-row">
+                <div class="tl-mode-row tab-toolbar tt-split">
                     <button class="vrcn-button sub-tab-btn active" id="tlModePersonal" onclick="setTlMode('personal')" title="Personal" data-i18n-title="timeline.mode.personal"><span class="msi" style="font-size:16px;">person</span></button>
                     <button class="vrcn-button sub-tab-btn" id="tlModeFriends" onclick="setTlMode('friends')" title="Friends" data-i18n-title="timeline.mode.friends"><span class="msi" style="font-size:16px;">group</span></button>
                     <button class="vrcn-button sub-tab-btn" id="tlModeInstanceChart" onclick="setTlMode('instancechart')" title="Instance Chart" data-i18n-title="timeline.mode.instance_chart"><span class="msi" style="font-size:16px;">stacks</span></button>
@@ -46,7 +46,7 @@
                         <button class="vrcn-button" style="flex:1;justify-content:center;font-size:calc(11px + var(--fs-off, 0px));" onclick="dpClear()" data-i18n="timeline.datepicker.clear">Clear</button>
                     </div>
                 </div>
-                <div class="tl-filter-row" id="tlPersonalFilters">
+                <div class="tl-filter-row tab-toolbar-body" id="tlPersonalFilters">
                     <button class="vrcn-button sub-tab-btn active" id="tlFAll" onclick="setTlFilter('all')" data-i18n="timeline.filters.all">All</button>
                     <button class="vrcn-button sub-tab-btn" id="tlFJoin" onclick="setTlFilter('instance_join')"><span class="msi" style="font-size:14px;">travel_explore</span> <span data-i18n="timeline.filters.instances">Instances</span></button>
                     <button class="vrcn-button sub-tab-btn" id="tlFPhoto" onclick="setTlFilter('photo')"><span class="msi" style="font-size:14px;">camera</span> <span data-i18n="timeline.filters.photos">Photos</span></button>
@@ -58,7 +58,7 @@
                     <button class="vrcn-button sub-tab-btn" id="tlFModeration" onclick="setTlFilter('moderation')"><span class="msi" style="font-size:14px;">gavel</span> <span data-i18n="timeline.filters.moderation">Moderation</span></button>
                     <button class="vrcn-button sub-tab-btn" id="tlFProfile" onclick="setTlFilter('profile')"><span class="msi" style="font-size:14px;">account_circle</span> <span data-i18n="timeline.filters.profile">Profile</span></button>
                 </div>
-                <div class="tl-filter-row" id="tlFriendsFilters" style="display:none;">
+                <div class="tl-filter-row tab-toolbar-body" id="tlFriendsFilters" style="display:none;">
                     <button class="vrcn-button sub-tab-btn active" id="ftFAll"        onclick="setFtFilter('all')" data-i18n="timeline.filters.all">All</button>
                     <button class="vrcn-button sub-tab-btn" id="ftFGps"        onclick="setFtFilter('friend_gps')"><span class="msi" style="font-size:14px;">location_on</span> <span data-i18n="timeline.filters.location">Location</span></button>
                     <button class="vrcn-button sub-tab-btn" id="ftFStatus"     onclick="setFtFilter('friend_status')"><span class="msi" style="font-size:14px;">circle</span> <span data-i18n="timeline.filters.status">Status</span></button>
@@ -70,7 +70,7 @@
                     <button class="vrcn-button sub-tab-btn" id="ftFAdded"     onclick="setFtFilter('friend_added')"><span class="msi" style="font-size:14px;">person_add</span> <span data-i18n="timeline.filters.friended">Friended</span></button>
                     <button class="vrcn-button sub-tab-btn" id="ftFRemoved"   onclick="setFtFilter('friend_removed')"><span class="msi" style="font-size:14px;">person_remove</span> <span data-i18n="timeline.filters.unfriended">Unfriended</span></button>
                 </div>
-                <div class="tl-filter-row" id="glFilters" style="display:none;">
+                <div class="tl-filter-row tab-toolbar-body" id="glFilters" style="display:none;">
                     <button class="vrcn-button sub-tab-btn active" data-f="all"     onclick="setGlFilter('all')"     data-i18n="timeline.filters.all">All</button>
                     <button class="vrcn-button sub-tab-btn"        data-f="world"   onclick="setGlFilter('world')"><span class="msi" style="font-size:14px;">travel_explore</span> <span data-i18n="timeline.filters.world">World</span></button>
                     <button class="vrcn-button sub-tab-btn"        data-f="players" onclick="setGlFilter('players')"><span class="msi" style="font-size:14px;">group</span> <span data-i18n="timeline.filters.players">Players</span></button>

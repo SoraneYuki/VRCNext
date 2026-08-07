@@ -281,6 +281,7 @@ function setTlMode(mode) {
     if (pf) pf.style.display = mode === 'personal' ? '' : 'none';
     if (ff) ff.style.display = mode === 'friends'  ? '' : 'none';
     if (gf) gf.style.display = mode === 'gamelog'  ? '' : 'none';
+    document.querySelector('.tl-mode-row')?.classList.toggle('tt-split', !isChart);
     if (tc) tc.style.display = (mode === 'gamelog' || isChart) ? 'none' : '';
     if (gc) gc.style.display = mode === 'gamelog'  ? '' : 'none';
     if (ic) ic.style.display = isChart ? '' : 'none';

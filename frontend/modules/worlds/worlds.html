@@ -1,4 +1,4 @@
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                <div class="tab-toolbar tt-split" id="worldToolbar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
                     <div id="worldFilterBtns" style="display:flex;gap:8px;align-items:center;">
                         <button class="vrcn-button sub-tab-btn active" id="worldFilterFav" onclick="setWorldFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="worlds.filters.favorites">Favorites</span></button>
                         <button class="vrcn-button sub-tab-btn" id="worldFilterRecent" onclick="setWorldFilter('recent')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="worlds.filters.recent">Recently Visited</span></button>
@@ -37,6 +37,7 @@
                     <div id="worldRecentGrid" class="search-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
                 </div>
                 <div id="worldSearchArea" style="display:none;">
+                    <div class="tab-toolbar-body">
                     <div class="search-bar-row">
                         <select id="worldSortSelect" class="vrcn-dropdown" style="flex-shrink:0;">
                             <option value="relevance" data-i18n="worlds.search.sort.relevance">Relevance</option>
@@ -48,9 +49,11 @@
                         <div style="position:relative;flex:1;display:flex;align-items:center;"><span class="msi search-ico">search</span><input type="text" id="searchWorldsInput" class="vrcn-input" style="width:100%;" placeholder="Search worlds..." data-i18n-placeholder="worlds.search.placeholder" onkeydown="if(event.key==='Enter')doSearch('worlds')"></div>
                         <button class="vrcn-button" onclick="doSearch('worlds')" data-i18n="common.search">Search</button>
                     </div>
+                    </div>
                     <div id="searchWorldsResults" class="search-grid"><div class="empty-msg" data-i18n="worlds.search.empty_prompt">Search for VRChat worlds</div></div>
                 </div>
                 <div id="worldFavArea">
+                    <div class="tab-toolbar-body">
                     <!-- Category label + inline rename -->
                     <div id="favWorldGroupHeader" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;min-height:24px;">
                         <span id="favWorldGroupLabel" style="font-size:calc(13px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);" data-i18n="worlds.favorites.group.all">All Favorites</span>
@@ -79,6 +82,7 @@
                         </select>
                         <div class="search-bar-row" style="margin-bottom:0;flex:1;min-width:140px;"><span class="msi search-ico">search</span><input type="text" id="favWorldSearchInput" class="vrcn-input" placeholder="Filter favorite worlds..." data-i18n-placeholder="worlds.favorites.filter_placeholder" oninput="filterFavWorlds()"></div>
                         <button id="favWorldsRefreshBtn" class="vrcn-button" onclick="refreshFavWorlds()" title="Refresh favorites" data-i18n-title="worlds.favorites.refresh_title"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
+                    </div>
                     </div>
                     <div id="favWorldsGrid" class="search-grid"><div class="empty-msg" data-i18n="worlds.favorites.loading">Loading favorite worlds...</div></div>
                 </div>

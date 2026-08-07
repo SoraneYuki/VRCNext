@@ -24,7 +24,7 @@ function _renderCalUI() {
     const refreshDisabled = _calLoading ? ' disabled' : '';
 
     tab.innerHTML = `<div id="calInner">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px;">
+        <div class="tab-toolbar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
             <div style="display:flex;align-items:center;gap:4px;">
                 <button class="vrcn-button" onclick="_calNavMonth(-1)"><span class="msi" style="font-size:18px;">chevron_left</span></button>
                 <span id="calMonthLabel" style="min-width:140px;text-align:center;font-size:calc(14px + var(--fs-off, 0px));font-weight:700;color:var(--tx0);"></span>
