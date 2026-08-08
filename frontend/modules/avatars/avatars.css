@@ -58,3 +58,6 @@
     outline: 2px solid var(--accent);
     box-shadow: 0 0 20px rgba(56,132,255,.2);
 }
+
+#avatarFilterBtns > .sub-tab-btn { flex-shrink: 0; }
+#avatarFilterBtns > .vn-select { flex-shrink: 0; }
