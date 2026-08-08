@@ -1318,13 +1318,21 @@ function filterRoseDb() {
 
 function _roseToAvatar(a) {
     const d = a._detail || {};
+    const p = d.performance || null;
+    const compat = [];
+    if (p) {
+        if (p.pc)    compat.push('standalonewindows');
+        if (p.quest) compat.push('android');
+        if (p.ios)   compat.push('ios');
+    }
     return {
         id: a.avatar_id || '',
         name: a.avatar_name || '',
         authorName: a.author || d.authorName || '',
         thumbnailImageUrl: a._cachedThumb || a.avatar_image_url || '',
         releaseStatus: d.releaseStatus || 'public',
-        performance: d.performance || undefined,
+        performance: p || undefined,
+        compatibility: compat.length ? compat : undefined,
     };
 }
 
@@ -1451,10 +1459,14 @@ function renderRoseAvatarCard(a) {
     ];
     const tags = sorted.map(t => _roseTagBadge(t)).join('');
 
+    const av = _roseToAvatar(a);
+    const platIcons = _avPlatformIcons(av);
+
     return `<div class="vrcn-content-card av-card" onclick="selectAvatar('${aid}')">
         <div class="cc-bg" style="${thumbStyle}"></div>
         <div class="cc-scrim"></div>
-        <div class="cc-badges-top">${avatarStatusBadge(true)}</div>
+        <div class="cc-badges-top">${platIcons || avatarStatusBadge(true)}</div>${_avPerfBadges(av)}
+        ${platIcons ? `<div class="cc-badge-db">${avatarStatusBadge(true)}</div>` : ''}
         <div class="cc-content">
             <div class="cc-name">${esc(a.avatar_name || t('avatars.labels.unnamed', 'Unnamed'))}</div>
             <div class="cc-bottom-row">
