@@ -92,6 +92,21 @@ const NAV_DEFAULT_LAYOUT = [
     { type: 'item', key: 'settings' },
 ];
 
+const NAV_DEFAULT_NAMES = {
+    'sep-overview': ['nav.section.overview', 'Overview'],
+    'sep-activity': ['nav.section.activity', 'Activity'],
+    'sep-tools':    ['nav.section.tools',    'Tools'],
+    'folder-tools': ['nav.section.tools',    'Tools'],
+};
+
+function navEntryLabel(entry) {
+    const def = entry && NAV_DEFAULT_NAMES[entry.id];
+    if (def && (!entry.name || entry.name === def[1])) {
+        return typeof t === 'function' ? t(def[0], def[1]) : def[1];
+    }
+    return (entry && entry.name) || '';
+}
+
 const _NAV_STORAGE_KEY = 'vrcnext_nav_layout_v1';
 
 function navLoadLayout() {

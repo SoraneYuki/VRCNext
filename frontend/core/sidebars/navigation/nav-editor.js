@@ -175,7 +175,8 @@ function _edMakeSeparatorRow(entry) {
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.className = 'ne-sep-name vrcn-edit-field';
-    nameInput.value = entry.name || '';
+    nameInput.value = navEntryLabel(entry);
+    nameInput.dataset.defaultLabel = navEntryLabel(entry);
     nameInput.placeholder = _edT('nav.editor.separator_name', 'Separator name');
     nameInput.addEventListener('mousedown', e => e.stopPropagation());
     row.appendChild(nameInput);
@@ -225,7 +226,8 @@ function _edMakeFolderSection(entry, topIdx) {
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.className = 'ne-folder-name vrcn-edit-field';
-    nameInput.value = entry.name || 'Folder';
+    nameInput.value = navEntryLabel(entry) || 'Folder';
+    nameInput.dataset.defaultLabel = navEntryLabel(entry) || 'Folder';
     nameInput.placeholder = 'Folder name';
     nameInput.addEventListener('mousedown', e => e.stopPropagation());
     row.appendChild(nameInput);
@@ -313,6 +315,13 @@ function _edHideItem(key, folderId) {
 
 // ===== Sync layout from DOM =====
 
+function _edKeepName(input, entryId, fallback) {
+    if (!input) return fallback;
+    const def = NAV_DEFAULT_NAMES[entryId];
+    if (def && input.value === (input.dataset.defaultLabel || '')) return def[1];
+    return input.value;
+}
+
 function _edSyncLayoutFromDom() {
     const list = document.getElementById('navEditorList');
     if (!list || !list.children.length) return;
@@ -321,10 +330,11 @@ function _edSyncLayoutFromDom() {
         if (child.classList.contains('ne-hidden-sep')) break;
         if (child.classList.contains('ne-sep-row')) {
             const nameInput = child.querySelector('.ne-sep-name');
+            const sepId = child.dataset.sepId || _navMakeSeparatorId();
             newLayout.push({
                 type: 'separator',
-                id: child.dataset.sepId || _navMakeSeparatorId(),
-                name: nameInput ? nameInput.value : '',
+                id: sepId,
+                name: _edKeepName(nameInput, sepId, ''),
             });
         } else if (child.classList.contains('ne-folder-section')) {
             const folderId = child.dataset.folderId;
@@ -338,7 +348,7 @@ function _edSyncLayoutFromDom() {
             newLayout.push({
                 type: 'folder',
                 id: folderId,
-                name: nameInput ? nameInput.value : (old.name || 'Folder'),
+                name: _edKeepName(nameInput, folderId, old.name || 'Folder'),
                 icon: iconEl ? iconEl.textContent.trim() : (old.icon || 'folder'),
                 items,
             });

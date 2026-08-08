@@ -610,6 +610,10 @@ const SmartSearch = (() => {
             closeLaunchModal();
             return true;
         }
+        if (el === window._avatarWearModalEl && typeof closeAvatarWearModal === 'function') {
+            closeAvatarWearModal();
+            return true;
+        }
 
         const closeHandler = MODAL_CLOSE_HANDLERS[el.id];
         if (closeHandler) {

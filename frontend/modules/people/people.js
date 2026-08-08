@@ -287,8 +287,13 @@ window.fmtPeopleStatTime = function (seconds) { return _peopleStatsFmtTime(secon
 
 function setPeopleFilter(filter) {
     if (_favFriendEditMode) exitFriendEditMode();
-    _peopleAllPage = 0; _peopleBlockedPage = 0; _peopleMutedPage = 0;
+    _peopleAllPage = 0; _peopleBlockedPage = 0; _peopleMutedPage = 0; _peopleFavPage = 0;
     peopleFilter = filter;
+    _peopleRecentPage = 0;
+    const viewBtns = document.getElementById('peopleViewBtns');
+    if (viewBtns) viewBtns.style.display = 'flex';
+    ['peopleFavPaginatorBar', 'peopleAllPaginatorBar', 'peopleRecentPaginatorBar', 'peopleBlockedPaginatorBar', 'peopleMutedPaginatorBar']
+        .forEach(id => setPaginator(id, ''));
     document.getElementById('peopleFilterFav').classList.toggle('active', filter === 'favorites');
     document.getElementById('peopleFilterAll').classList.toggle('active', filter === 'all');
     document.getElementById('peopleFilterRecent').classList.toggle('active', filter === 'recentseen');
@@ -310,19 +315,86 @@ function setPeopleFilter(filter) {
     refreshPeopleTab();
 }
 
-function refreshPeopleTab() {
+const _PL_PROFILE_FACTS = ['dateJoined', 'pronouns', 'lastLogin', 'lastActivity', 'bioLinks'];
+
+let _plFactsRerender = null;
+
+function applyFriendFacts(u) {
+    if (!u || !u.id || typeof vrcFriendsData === 'undefined') return;
+    const f = vrcFriendsData.find(x => x.id === u.id);
+    if (!f) return;
+    let changed = false;
+    ['dateJoined', 'pronouns'].forEach(k => {
+        if (u[k] && f[k] !== u[k]) { f[k] = u[k]; changed = true; }
+    });
+    ['mutualFriends', 'mutualGroups'].forEach(k => {
+        if (typeof u[k] === 'number' && f[k] !== u[k]) { f[k] = u[k]; changed = true; }
+    });
+    if (!changed || _plFactsRerender) return;
+    _plFactsRerender = setTimeout(() => {
+        _plFactsRerender = null;
+        const tab = document.getElementById('tab3');
+        if (tab && tab.classList.contains('active')) renderPeopleListView();
+    }, 600);
+}
+
+function patchFriendProfileFacts(u) {
+    if (!u || !u.id || typeof vrcFriendsData === 'undefined') return;
+    const f = vrcFriendsData.find(x => x.id === u.id);
+    if (!f) return;
+    let changed = false;
+    if (Array.isArray(u.mutuals) && !u.mutualsOptedOut && f.mutualFriends !== u.mutuals.length) {
+        f.mutualFriends = u.mutuals.length;
+        changed = true;
+    }
+    if (Array.isArray(u.mutualGroups) && f.mutualGroups !== u.mutualGroups.length) {
+        f.mutualGroups = u.mutualGroups.length;
+        changed = true;
+    }
+    _PL_PROFILE_FACTS.forEach(k => {
+        const v = u[k];
+        const hasValue = Array.isArray(v) ? v.length > 0 : !!v;
+        if (!hasValue) return;
+        if (JSON.stringify(f[k]) === JSON.stringify(v)) return;
+        f[k] = v;
+        changed = true;
+    });
+    if (!changed) return;
+    const tab = document.getElementById('tab3');
+    if (tab && tab.classList.contains('active') && _peopleListMode()) renderPeopleListView();
+}
+
+function refreshPeopleTab(force) {
     if (typeof applyPeopleAlwaysStats === 'function') applyPeopleAlwaysStats();
     if (peopleFilter === 'favorites')  sendToCS({ action: 'vrcGetFavoriteFriends' });
-    if (peopleFilter === 'all')        filterAllFriends();
+    if (peopleFilter === 'all') {
+        if (force) sendToCS({ action: 'vrcRefreshFriends' });
+        else filterAllFriends();
+    }
     if (peopleFilter === 'recentseen') sendToCS({ action: 'vrcGetRecentSeen' });
     if (peopleFilter === 'blocked')    sendToCS({ action: 'vrcGetBlocked' });
     if (peopleFilter === 'muted')      sendToCS({ action: 'vrcGetMuted' });
 }
 
 let _recentSeenData = [];
+let _peopleRecentPage = 0;
+
 function renderRecentSeen(players) {
     _recentSeenData = Array.isArray(players) ? players : [];
     filterRecentSeen();
+}
+
+function peopleRecentGoPage(page) {
+    if (page < 0) return;
+    _peopleRecentPage = page;
+    filterRecentSeen();
+    document.getElementById('recentSeenGrid')?.scrollTo(0, 0);
+}
+
+function _plMergeFriend(p) {
+    const f = vrcFriendsData.find(x => x.id === p.id);
+    if (!f) return p;
+    return { ...f, image: f.image || p.image, displayName: f.displayName || p.displayName };
 }
 
 function filterRecentSeen() {
@@ -332,10 +404,24 @@ function filterRecentSeen() {
     const list = q
         ? _recentSeenData.filter(p => (p.displayName || '').toLowerCase().includes(q) || (p.id || '').toLowerCase().includes(q))
         : _recentSeenData;
+    const listMode = _peopleListMode();
+    el.classList.toggle('search-grid', !listMode);
     if (!list.length) {
         el.innerHTML = `<div class="empty-msg">${q ? t('profiles.people.no_results', 'No results') : t('profiles.people.recent_seen.empty', 'No recently seen players')}</div>`;
+        plSetPaginator('peopleRecentPaginatorBar', '');
         return;
     }
+    if (listMode) {
+        const sorted = _plSort(list.map(_plMergeFriend));
+        const totalPages = Math.ceil(sorted.length / peopleListPageSize) || 1;
+        if (_peopleRecentPage >= totalPages) _peopleRecentPage = totalPages - 1;
+        if (_peopleRecentPage < 0) _peopleRecentPage = 0;
+        const page = _peopleRecentPage;
+        el.innerHTML = buildPeopleListHtml(sorted.slice(page * peopleListPageSize, (page + 1) * peopleListPageSize));
+        plSetPaginator('peopleRecentPaginatorBar', plPaginator(page, totalPages, 'peopleRecentGoPage', sorted.length));
+        return;
+    }
+    plSetPaginator('peopleRecentPaginatorBar', '');
     el.innerHTML = list.map(p => renderUserItem(p, `openFriendDetail('${jsq(p.id)}')`)).join('');
 }
 
@@ -354,6 +440,214 @@ function setAllFriendsStatusFilter(filter) {
         if (btn) btn.classList.toggle('active', k === filter);
     });
     filterAllFriends();
+}
+
+let peopleViewMode = localStorage.getItem('vrcn_peopleView') === 'list' ? 'list' : 'grid';
+
+const PL_PAGE_SIZES = [10, 15, 20, 25, 50, 100];
+const PL_PAGE_SIZE_KEY = 'vrcn_people_page_size';
+let peopleListPageSize = (() => {
+    try {
+        const v = parseInt(localStorage.getItem(PL_PAGE_SIZE_KEY), 10);
+        return PL_PAGE_SIZES.includes(v) ? v : 25;
+    } catch { return 25; }
+})();
+
+function plPageSizeSelectHtml() {
+    const opts = PL_PAGE_SIZES.map(n => `<option value="${n}"${n === peopleListPageSize ? ' selected' : ''}>${n}</option>`).join('');
+    return `<select class="vrcn-dropdown tl-page-size" onchange="setPeopleListPageSize(this.value)" title="${esc(t('timeline.page_size', 'Entries per page'))}">${opts}</select>`;
+}
+
+function setPeopleListPageSize(value) {
+    const n = parseInt(value, 10);
+    if (!PL_PAGE_SIZES.includes(n) || n === peopleListPageSize) return;
+    peopleListPageSize = n;
+    try { localStorage.setItem(PL_PAGE_SIZE_KEY, String(n)); } catch {}
+    _peopleAllPage = 0;
+    _peopleFavPage = 0;
+    _peopleRecentPage = 0;
+    _peopleBlockedPage = 0;
+    _peopleMutedPage = 0;
+    renderPeopleListView();
+}
+
+function plPaginator(page, totalPages, onPageFn, total) {
+    const bar = buildPaginator(page, totalPages, onPageFn,
+        `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${total.toLocaleString()} total</span>`);
+    return plPageSizeSelectHtml() + (bar || `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${total.toLocaleString()} total</span>`);
+}
+
+document.getElementById('peopleViewGrid')?.classList.toggle('active', peopleViewMode === 'grid');
+document.getElementById('peopleViewList')?.classList.toggle('active', peopleViewMode === 'list');
+
+function setPeopleViewMode(mode) {
+    peopleViewMode = mode === 'list' ? 'list' : 'grid';
+    localStorage.setItem('vrcn_peopleView', peopleViewMode);
+    document.getElementById('peopleViewGrid')?.classList.toggle('active', peopleViewMode === 'grid');
+    document.getElementById('peopleViewList')?.classList.toggle('active', peopleViewMode === 'list');
+    _peopleAllPage = 0; _peopleFavPage = 0; _peopleRecentPage = 0;
+    _peopleBlockedPage = 0; _peopleMutedPage = 0;
+    renderPeopleListView();
+}
+
+function _plLangs(tags) {
+    if (!Array.isArray(tags)) return [];
+    return tags.filter(x => typeof x === 'string' && x.startsWith('language_'));
+}
+
+function _plLangCell(f) {
+    const langs = _plLangs(f.tags);
+    if (!langs.length) return '';
+    return langs.slice(0, 3).map(k => {
+        const name = (typeof LANG_MAP !== 'undefined' && LANG_MAP[k]) ? LANG_MAP[k] : k.replace('language_', '').toUpperCase();
+        const flag = (typeof LANG_FLAG !== 'undefined' && LANG_FLAG[k]) ? LANG_FLAG[k] : '';
+        return `<span class="pl-lang" title="${esc(name)}">${flag ? esc(flag) : esc(name)}</span>`;
+    }).join('');
+}
+
+function _plBioLinksCell(f) {
+    const links = Array.isArray(f.bioLinks) ? f.bioLinks.filter(Boolean) : [];
+    if (!links.length) return '';
+    return links.slice(0, 4).map(l => {
+        let host = '';
+        try { host = new URL(l).hostname; } catch { host = l; }
+        const info = (typeof getPlatformInfo === 'function') ? getPlatformInfo(host) : null;
+        const icon = info && typeof PLATFORM_ICONS !== 'undefined' && PLATFORM_ICONS[info.key]
+            ? `<svg viewBox="0 0 24 24" class="pl-bio-ico"><path d="${PLATFORM_ICONS[info.key].svg}"/></svg>`
+            : `<span class="msi pl-bio-ico">link</span>`;
+        return `<span class="pl-bio-link" title="${esc(l)}" onclick="event.stopPropagation();sendToCS({action:'openUrl',url:'${jsq(l)}'})">${icon}</span>`;
+    }).join('');
+}
+
+function _plTimeSpent(seconds) {
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const ds = t('timespent.unit.day_short', 'd');
+    const hs = t('timespent.unit.hour_short', 'h');
+    const ms = t('timespent.unit.minute_short', 'm');
+    const parts = [];
+    if (d > 0) parts.push(`${d}${ds}`);
+    if (h > 0) parts.push(`${h}${hs}`);
+    if (m > 0 && d === 0) parts.push(`${m}${ms}`);
+    return parts.length ? parts.join(' ') : `0${ms}`;
+}
+
+function _plDate(v) {
+    if (!v) return '';
+    const d = new Date(v);
+    return isNaN(d) ? '' : fmtShortDate(d);
+}
+
+function _plDateTime(v) {
+    if (!v) return '';
+    const d = new Date(v);
+    return isNaN(d) ? '' : `${fmtShortDate(d)} | ${fmtTime(d)}`;
+}
+
+function _plSortValue(f, field) {
+    const st = _peopleStatsMap[f.id];
+    switch (field) {
+        case 'name':      return (f.displayName || '').toLowerCase();
+        case 'rank':      return _PL_RANK_ORDER.indexOf((getTrustRank(f.tags || [])?.cls) || '');
+        case 'status':    return _allFriendCategory(f) + '|' + (f.status || '');
+        case 'language':  return (_plLangs(f.tags)[0] || '');
+        case 'biolinks':  return (Array.isArray(f.bioLinks) ? f.bioLinks.filter(Boolean).length : 0);
+        case 'pronouns':  return (f.pronouns || '').toLowerCase();
+        case 'mutualfriends': return f.mutualFriends || 0;
+        case 'mutualgroups':  return f.mutualGroups || 0;
+        case 'meets':     return st ? (st.meets || 0) : 0;
+        case 'timespent': return st ? (st.seconds || 0) : 0;
+        case 'joined':    return f.dateJoined || '';
+        case 'lastlogin': return f.lastLogin || '';
+        case 'profile':   return (f.displayName || '').toLowerCase();
+        default:          return (f.displayName || '').toLowerCase();
+    }
+}
+
+const _PL_RANK_ORDER = ['rank-visitor', 'rank-new', 'rank-user', 'rank-known', 'rank-trusted'];
+
+function _peopleListMode() {
+    return peopleViewMode === 'list' && typeof tlTableHtml === 'function' && typeof tlTableRow === 'function';
+}
+
+function _plSort(list) {
+    const { field, dir } = tlTableSortField('friendsList');
+    const mul = dir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+        const va = _plSortValue(a, field), vb = _plSortValue(b, field);
+        if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * mul;
+        return String(va).localeCompare(String(vb)) * mul;
+    });
+}
+
+function buildPeopleListHtml(friends) {
+    let rows = '';
+    friends.forEach(f => {
+        const uid = jsq(f.id || '');
+        const img = f.image || '';
+        const av = img
+            ? `<span class="pl-av" style="background-image:url('${cssUrl(img)}')"></span>`
+            : `<span class="pl-av pl-av-letter">${esc((f.displayName || '?')[0].toUpperCase())}</span>`;
+        const rank = getTrustRank(f.tags || []);
+        const st = _peopleStatsMap[f.id];
+        const cat = _allFriendCategory(f);
+        const dotKind = f.presence === 'web' ? 'vrc-status-ring' : 'vrc-status-dot';
+        const dotCls = cat === 'offline' ? 's-offline' : statusDotClass(f.status);
+        const statusTxt = f.statusDescription || statusLabel(f.status);
+        const statusCell = f.status
+            ? `<span class="${dotKind} ${dotCls}"></span><span class="pl-status-txt">${esc(statusTxt)}</span>`
+            : '';
+
+        rows += tlTableRow('friendsList', ` onclick="openFriendDetail('${uid}')"`, {
+            profile:   `<td class="pl-profile">${av}</td>`,
+            name:      `<td class="pl-name">${esc(f.displayName || '')}</td>`,
+            rank:      `<td>${rank ? `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>` : ''}</td>`,
+            status:    `<td class="pl-status">${statusCell}</td>`,
+            language:  `<td class="pl-langs">${_plLangCell(f)}</td>`,
+            biolinks:  `<td class="pl-bios">${_plBioLinksCell(f)}</td>`,
+            pronouns:  `<td class="lv-sub">${esc(f.pronouns || '')}</td>`,
+            mutualfriends: `<td class="pl-num">${f.mutualFriends ? esc(String(f.mutualFriends)) : ''}</td>`,
+            mutualgroups:  `<td class="pl-num">${f.mutualGroups ? esc(String(f.mutualGroups)) : ''}</td>`,
+            meets:     `<td class="pl-num">${st && st.meets ? esc(String(st.meets)) : ''}</td>`,
+            timespent: `<td class="pl-num">${st && st.seconds > 0 ? esc(_plTimeSpent(st.seconds)) : ''}</td>`,
+            joined:    `<td class="pl-date">${esc(_plDate(f.dateJoined))}</td>`,
+            lastlogin: `<td class="pl-date">${esc(_plDateTime(f.lastLogin))}</td>`,
+        });
+    });
+    return tlTableHtml('friendsList', rows);
+}
+
+const _PL_BAR_FILTER = {
+    peopleFavPaginatorBar:     'favorites',
+    peopleAllPaginatorBar:     'all',
+    peopleRecentPaginatorBar:  'recentseen',
+    peopleBlockedPaginatorBar: 'blocked',
+    peopleMutedPaginatorBar:   'muted',
+};
+
+function plSetPaginator(id, html) {
+    setPaginator(id, _PL_BAR_FILTER[id] === peopleFilter ? html : '');
+}
+
+function renderPeopleListView() {
+    if (peopleFilter === 'favorites')       filterFavFriends();
+    else if (peopleFilter === 'recentseen') filterRecentSeen();
+    else if (peopleFilter === 'blocked')    filterModList('block');
+    else if (peopleFilter === 'muted')      filterModList('mute');
+    else if (peopleFilter === 'search') {
+        const st = searchState?.people;
+        if (st && st.results && st.results.length) renderSearchResults('users', st.results, 0, st.hasMore);
+    }
+    else filterAllFriends();
+}
+
+let _peopleFavPage = 0;
+function peopleFavGoPage(page) {
+    if (page < 0) return;
+    _peopleFavPage = page;
+    filterFavFriends();
+    document.getElementById('favFriendsGrid')?.scrollTo(0, 0);
 }
 
 const ALL_FRIENDS_LIVE_MS = 400;
@@ -387,32 +681,40 @@ function filterAllFriends() {
             (f.id || '').toLowerCase().includes(q))
         : [...vrcFriendsData];
     if (_allFriendsStatusFilter !== 'all') all = all.filter(f => _allFriendCategory(f) === _allFriendsStatusFilter);
-    all = all.sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
-    const totalPages = Math.ceil(all.length / PEOPLE_PAGE_SIZE) || 1;
+    const listMode = _peopleListMode();
+    all = listMode ? _plSort(all) : all.sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
+    const pageSize = listMode ? peopleListPageSize : PEOPLE_PAGE_SIZE;
+    const totalPages = Math.ceil(all.length / pageSize) || 1;
     if (_peopleAllPage >= totalPages) _peopleAllPage = totalPages - 1;
     if (_peopleAllPage < 0) _peopleAllPage = 0;
     const page = _peopleAllPage;
-    const slice = all.slice(page * PEOPLE_PAGE_SIZE, (page + 1) * PEOPLE_PAGE_SIZE);
+    const slice = all.slice(page * pageSize, (page + 1) * pageSize);
     if (!all.length) {
         el.innerHTML = `<div class="empty-msg">${q ? t('profiles.people.no_results', 'No results') : t('profiles.people.no_friends', 'No friends yet')}</div>`;
-        setPaginator('peopleAllPaginatorBar', '');
+        plSetPaginator('peopleAllPaginatorBar', '');
         return;
     }
-    el.innerHTML = slice.map(f => renderUserItem(f, `openFriendDetail('${jsq(f.id)}')`)).join('');
-    setPaginator('peopleAllPaginatorBar', buildPaginator(page, totalPages, 'peopleAllGoPage',
-        `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${all.length.toLocaleString()} total</span>`));
+    el.classList.toggle('search-grid', !listMode);
+    el.innerHTML = listMode
+        ? buildPeopleListHtml(slice)
+        : slice.map(f => renderUserItem(f, `openFriendDetail('${jsq(f.id)}')`)).join('');
+    plSetPaginator('peopleAllPaginatorBar', listMode
+        ? plPaginator(page, totalPages, 'peopleAllGoPage', all.length)
+        : buildPaginator(page, totalPages, 'peopleAllGoPage',
+            `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${all.length.toLocaleString()} total</span>`));
 }
 
 function peopleAllGoPage(page) {
     if (page < 0) return;
     const q = (document.getElementById('allFriendSearchInput')?.value || '').toLowerCase();
-    const all = q
+    let all = q
         ? vrcFriendsData.filter(f =>
             (f.displayName || '').toLowerCase().includes(q) ||
             (f.username || f.userName || '').toLowerCase().includes(q) ||
             (f.id || '').toLowerCase().includes(q))
         : [...vrcFriendsData];
-    const totalPages = Math.ceil(all.length / PEOPLE_PAGE_SIZE) || 1;
+    if (_allFriendsStatusFilter !== 'all') all = all.filter(f => _allFriendCategory(f) === _allFriendsStatusFilter);
+    const totalPages = Math.ceil(all.length / (_peopleListMode() ? peopleListPageSize : PEOPLE_PAGE_SIZE)) || 1;
     if (page >= totalPages) return;
     _peopleAllPage = page;
     filterAllFriends();
@@ -422,6 +724,35 @@ function peopleAllGoPage(page) {
 function filterModList(type) {
     const isBlock = type === 'block';
     renderModList(isBlock ? 'blockedList' : 'mutedList', isBlock ? (blockedData || []) : (mutedData || []), type);
+}
+
+function _mlValue(e, field) {
+    switch (field) {
+        case 'userid': return (e.targetUserId || '').toLowerCase();
+        default:       return (e.targetDisplayName || e.targetUserId || '').toLowerCase();
+    }
+}
+
+function buildModListHtml(entries, actionType) {
+    const isBlock = actionType === 'block';
+    const btnLabel = isBlock ? t('profiles.people.unblock', 'Unblock') : t('profiles.people.unmute', 'Unmute');
+    let rows = '';
+    entries.forEach(entry => {
+        const uid = jsq(entry.targetUserId || '');
+        const displayName = entry.targetDisplayName || entry.targetUserId || '?';
+        const friend = vrcFriendsData.find(f => f.id === entry.targetUserId);
+        const img = entry.image || (friend && friend.image) || '';
+        const av = img
+            ? `<span class="pl-av" style="background-image:url('${cssUrl(img)}')"></span>`
+            : `<span class="pl-av pl-av-letter">${esc(displayName[0].toUpperCase())}</span>`;
+        rows += tlTableRow('modList', ` onclick="openFriendDetail('${uid}')"`, {
+            profile: `<td class="pl-profile">${av}</td>`,
+            name:    `<td class="pl-name">${esc(displayName)}</td>`,
+            userid:  `<td class="lv-sub">${esc(entry.targetUserId || '')}</td>`,
+            action:  `<td><button class="vrcn-button-round vrcn-btn-danger" onclick="event.stopPropagation();doUnmod('${uid}','${actionType}')">${esc(btnLabel)}</button></td>`,
+        });
+    });
+    return tlTableHtml('modList', rows);
 }
 
 function renderModList(containerId, list, actionType) {
@@ -437,7 +768,11 @@ function renderModList(containerId, list, actionType) {
             (e.targetDisplayName || '').toLowerCase().includes(query) ||
             (e.targetUserId || '').toLowerCase().includes(query))
         : (list || []));
-    const totalPages = Math.ceil(all.length / PEOPLE_PAGE_SIZE) || 1;
+    const listMode = _peopleListMode();
+    el.classList.toggle('search-grid', !listMode);
+    const pageSize = listMode ? peopleListPageSize : PEOPLE_PAGE_SIZE;
+    const sorted = listMode ? lvSort(all, 'modList', _mlValue) : all;
+    const totalPages = Math.ceil(sorted.length / pageSize) || 1;
     if (isBlock) {
         if (_peopleBlockedPage >= totalPages) _peopleBlockedPage = totalPages - 1;
         if (_peopleBlockedPage < 0) _peopleBlockedPage = 0;
@@ -446,12 +781,17 @@ function renderModList(containerId, list, actionType) {
         if (_peopleMutedPage < 0) _peopleMutedPage = 0;
     }
     const page = isBlock ? _peopleBlockedPage : _peopleMutedPage;
-    if (!all.length) {
+    if (!sorted.length) {
         el.innerHTML = `<div class="empty-msg">${query ? t('profiles.people.no_results', 'No results') : (isBlock ? t('profiles.people.no_blocked', 'No blocked users') : t('profiles.people.no_muted', 'No muted users'))}</div>`;
-        setPaginator(paginatorBarId, '');
+        plSetPaginator(paginatorBarId, '');
         return;
     }
-    const slice = all.slice(page * PEOPLE_PAGE_SIZE, (page + 1) * PEOPLE_PAGE_SIZE);
+    const slice = sorted.slice(page * pageSize, (page + 1) * pageSize);
+    if (listMode) {
+        el.innerHTML = buildModListHtml(slice, actionType);
+        plSetPaginator(paginatorBarId, plPaginator(page, totalPages, goPageFn, sorted.length));
+        return;
+    }
     const btnLabel = isBlock ? t('profiles.people.unblock', 'Unblock') : t('profiles.people.unmute', 'Unmute');
     const btnClass = 'vrcn-button-round vrcn-btn-danger';
     el.innerHTML = slice.map(entry => {
@@ -462,19 +802,12 @@ function renderModList(containerId, list, actionType) {
         const trailing = `<button class="${btnClass}" style="margin-left:auto;flex-shrink:0;" onclick="event.stopPropagation();doUnmod('${uid}','${actionType}')">${btnLabel}</button>`;
         return renderUserItem(user, `openFriendDetail('${uid}')`, { trailing });
     }).join('');
-    setPaginator(paginatorBarId, buildPaginator(page, totalPages, goPageFn,
+    plSetPaginator(paginatorBarId, buildPaginator(page, totalPages, goPageFn,
         `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${all.length.toLocaleString()} total</span>`));
 }
 
 function peopleBlockedGoPage(page) {
     if (page < 0) return;
-    const q = (document.getElementById('blockedSearch')?.value || '').toLowerCase().trim();
-    const all = q ? (blockedData || []).filter(e =>
-        (e.targetDisplayName || '').toLowerCase().includes(q) ||
-        (e.targetUserId || '').toLowerCase().includes(q))
-        : (blockedData || []);
-    const totalPages = Math.ceil(all.length / PEOPLE_PAGE_SIZE) || 1;
-    if (page >= totalPages) return;
     _peopleBlockedPage = page;
     renderModList('blockedList', blockedData || [], 'block');
     document.getElementById('blockedList')?.scrollTo(0, 0);
@@ -482,13 +815,6 @@ function peopleBlockedGoPage(page) {
 
 function peopleMutedGoPage(page) {
     if (page < 0) return;
-    const q = (document.getElementById('mutedSearch')?.value || '').toLowerCase().trim();
-    const all = q ? (mutedData || []).filter(e =>
-        (e.targetDisplayName || '').toLowerCase().includes(q) ||
-        (e.targetUserId || '').toLowerCase().includes(q))
-        : (mutedData || []);
-    const totalPages = Math.ceil(all.length / PEOPLE_PAGE_SIZE) || 1;
-    if (page >= totalPages) return;
     _peopleMutedPage = page;
     renderModList('mutedList', mutedData || [], 'mute');
     document.getElementById('mutedList')?.scrollTo(0, 0);
@@ -709,11 +1035,25 @@ function filterFavFriends() {
     let friends = vrcFriendsData.filter(f => favMap.has(f.id));
     if (favFriendGroupFilter) friends = friends.filter(f => favMap.get(f.id)?.groupName === favFriendGroupFilter);
     if (q) friends = friends.filter(f => (f.displayName || '').toLowerCase().includes(q));
+    const favListMode = _peopleListMode();
+    el.classList.toggle('search-grid', !favListMode);
     if (!friends.length) {
         el.innerHTML = `<div class="empty-msg">${q || favFriendGroupFilter ? t('friends.favorites.no_match', 'No favorites match your filter') : t('friends.favorites.empty', 'No favorite friends yet')}</div>`;
+        plSetPaginator('peopleFavPaginatorBar', '');
         if (_favFriendEditMode) updateFriendEditBar();
         return;
     }
+    if (favListMode && !_favFriendEditMode) {
+        const sorted = _plSort(friends);
+        const totalPages = Math.ceil(sorted.length / peopleListPageSize) || 1;
+        if (_peopleFavPage >= totalPages) _peopleFavPage = totalPages - 1;
+        if (_peopleFavPage < 0) _peopleFavPage = 0;
+        const slice = sorted.slice(_peopleFavPage * peopleListPageSize, (_peopleFavPage + 1) * peopleListPageSize);
+        el.innerHTML = buildPeopleListHtml(slice);
+        plSetPaginator('peopleFavPaginatorBar', plPaginator(_peopleFavPage, totalPages, 'peopleFavGoPage', sorted.length));
+        return;
+    }
+    plSetPaginator('peopleFavPaginatorBar', '');
     if (!favFriendGroupFilter && favFriendGroups.length > 1) {
         let html = '', first = true;
         favFriendGroups.forEach(g => {

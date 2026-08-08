@@ -294,6 +294,7 @@ window.external.receiveMessage(rawMsg => {
             }
             case 'vrcFriends':
                 vrcFriendsLoaded = true;
+                if (typeof friendFetchInit === 'function') friendFetchInit();
                 if (payload.friends) {
                     renderVrcFriends(payload.friends, payload.counts);
                     vrcFriendsData = payload.friends;
@@ -335,7 +336,16 @@ window.external.receiveMessage(rawMsg => {
                     document.getElementById('vrcQuickPass').value = payload.password || '';
                 }
                 break;
-            case 'vrcFriendDetail': renderFriendDetail(payload); break;
+            case 'vrcFriendDetail':
+                renderFriendDetail(payload);
+                if (typeof patchFriendProfileFacts === 'function') patchFriendProfileFacts(payload);
+                break;
+            case 'vrcFriendFetchProgress':
+                if (typeof onFriendFetchProgress === 'function') onFriendFetchProgress(payload);
+                break;
+            case 'vrcFriendFacts':
+                if (typeof applyFriendFacts === 'function') applyFriendFacts(payload);
+                break;
             case 'vrcFriendPreview': if (typeof handleFriendPreview === 'function') handleFriendPreview(payload); break;
             case 'vrcUserBasic':
                 if (typeof handleUserBasic === 'function') handleUserBasic(payload);

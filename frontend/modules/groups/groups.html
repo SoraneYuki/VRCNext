@@ -7,8 +7,9 @@
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
                         <button id="groupsRefreshBtn" class="vrcn-button" onclick="refreshGroups()" title="Refresh my groups" data-i18n-title="groups.mine.refresh_title"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
-                        <button class="vrcn-button sub-tab-btn active" id="groupGridLarge" onclick="setGridSize('groups','default')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="groupGridSmall" onclick="setGridSize('groups','compact')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
+                        <button class="vrcn-button sub-tab-btn active" id="groupGridLarge" onclick="setGridSize('groups','default');setGroupsViewMode('grid')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="groupGridSmall" onclick="setGridSize('groups','compact');setGroupsViewMode('grid')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="groupViewList" onclick="setGroupsViewMode('list')" title="List view" data-i18n-title="people.view.list"><span class="msi" style="font-size:14px;">format_list_bulleted</span></button>
                     </div>
                 </div>
                 <div id="groupMineArea">
@@ -18,6 +19,7 @@
                     </div>
                     </div>
                     <div id="myGroupsGrid" class="search-grid"></div>
+                    <div id="groupsPaginatorBar" class="tl-paginator-bar"></div>
                 </div>
                 <div id="groupSearchArea" style="display:none;">
                     <div class="tab-toolbar-body"><div class="search-bar-row"><span class="msi search-ico">search</span><input type="text" id="searchGroupsInput" class="vrcn-input" placeholder="Search groups..." data-i18n-placeholder="groups.search.placeholder" onkeydown="if(event.key==='Enter')doSearch('groups')"><button class="vrcn-button" onclick="doSearch('groups')" data-i18n="common.search">Search</button></div></div>

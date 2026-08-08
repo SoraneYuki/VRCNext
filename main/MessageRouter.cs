@@ -627,8 +627,9 @@ public partial class AppShell
                             var url = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                             w["imageUrl"] = url; w["thumbnailImageUrl"] = url;
                             var stats = _core.TimeEngine.GetWorldStats(wid);
-                            w["worldTimeSeconds"] = stats.totalSeconds;
-                            w["worldVisitCount"]  = stats.visitCount;
+                            w["worldTimeSeconds"]  = stats.totalSeconds;
+                            w["worldVisitCount"]   = stats.visitCount;
+                            w["worldLastVisited"]  = stats.lastVisited;
                         }
                         Invoke(() => SendToJS("visitedWorlds", new { worlds }));
                     });
@@ -711,6 +712,12 @@ public partial class AppShell
 
                 case "vrcRefreshFriends":
                     await _friends.RefreshFriendsAsync();
+                    break;
+
+                case "vrcFriendFetchState":
+                case "vrcFriendFetchStart":
+                case "vrcFriendFetchCancel":
+                    await _friendFetch.HandleMessage(action, msg);
                     break;
 
                 // Update own status
@@ -1362,6 +1369,7 @@ public partial class AppShell
                         var list = res.Cast<JObject>().Select(w => {
                             var wid2 = w["id"]?.ToString() ?? "";
                             var wurl = ImageCacheHelper.GetWorldUrl(wid2, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
+                            var wStats = _core.TimeEngine.GetWorldStats(wid2);
                             return new {
                             id = wid2, name = w["name"]?.ToString() ?? "",
                             imageUrl = wurl, thumbnailImageUrl = wurl,
@@ -1369,7 +1377,9 @@ public partial class AppShell
                             capacity = w["capacity"]?.Value<int>() ?? 0, favorites = w["favorites"]?.Value<int>() ?? 0,
                             visits = w["visits"]?.Value<int>() ?? 0, description = w["description"]?.ToString() ?? "",
                             tags = w["tags"]?.ToObject<List<string>>() ?? new(),
-                            worldTimeSeconds = _core.TimeEngine.GetWorldStats(wid2).totalSeconds,
+                            worldTimeSeconds = wStats.totalSeconds,
+                            worldVisitCount  = wStats.visitCount,
+                            worldLastVisited = wStats.lastVisited,
                             };
                         }).ToList();
                         Invoke(() => SendToJS("vrcSearchResults", new { type = "worlds", results = list, offset = wOff, hasMore = list.Count >= 20 }));
@@ -2032,6 +2042,7 @@ public partial class AppShell
                             var stats = _core.TimeEngine.GetWorldStats(wid);
                             w["worldTimeSeconds"] = stats.totalSeconds;
                             w["worldVisitCount"]  = stats.visitCount;
+                            w["worldLastVisited"] = stats.lastVisited;
                         }
                         Invoke(() => SendToJS("vrcMyWorlds", worlds));
                     });

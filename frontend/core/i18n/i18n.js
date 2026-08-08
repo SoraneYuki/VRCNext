@@ -45,7 +45,18 @@ function handleTranslationData(payload) {
     applyTranslations();
 }
 
+let _i18nApplying = false;
+
 function applyTranslations(root = document) {
+    applyTranslationAttributes(root);
+    if (root !== document || _i18nApplying) return;
+    _i18nApplying = true;
+    try { applyTranslationRerenders(); }
+    finally { _i18nApplying = false; }
+    document.documentElement.dispatchEvent(new CustomEvent('languagechange', { detail: { language: currentLanguage } }));
+}
+
+function applyTranslationAttributes(root) {
     root.querySelectorAll('[data-i18n]').forEach(el => {
         const value = t(el.dataset.i18n);
         if (value) el.textContent = value;
@@ -62,6 +73,9 @@ function applyTranslations(root = document) {
         const value = t(el.dataset.i18nTitle);
         if (value) el.setAttribute('title', value);
     });
+}
+
+function applyTranslationRerenders() {
     renderLanguageChips();
     if (typeof renderThemeChips === 'function') renderThemeChips();
     if (typeof renderSpecialThemeChips === 'function') renderSpecialThemeChips();
@@ -102,7 +116,6 @@ function applyTranslations(root = document) {
         && document.getElementById('modalDetail')?.style.display !== 'none') {
         renderWorldSearchDetail(worldInfoCache[_wdCurrentWorldId]);
     }
-    document.documentElement.dispatchEvent(new CustomEvent('languagechange', { detail: { language: currentLanguage } }));
 }
 
 function renderLanguageChips() {

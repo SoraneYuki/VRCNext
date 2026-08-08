@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using VRCNext.Services;
 using VRCNext.Services.Helpers;
@@ -1303,6 +1303,7 @@ public class FriendsController
                 var platform = f["platform"]?.ToString() ?? f["last_platform"]?.ToString() ?? "";
                 bool isWebPlatform = platform.Equals("web", StringComparison.OrdinalIgnoreCase);
                 bool isInGame = !string.IsNullOrEmpty(location) && location != "offline" && location != "" && !isWebPlatform;
+                var facts = CachedFacts(id);
                 return new
                 {
                     id, displayName = f["displayName"]?.ToString() ?? "",
@@ -1318,12 +1319,22 @@ public class FriendsController
                     location, platform,
                     presence = isInGame ? "game" : "web",
                     tags = f["tags"]?.ToObject<List<string>>() ?? new(),
+                    bioLinks = f["bioLinks"]?.ToObject<List<string>>() ?? new(),
+                    lastLogin = f["last_login"]?.ToString() ?? "",
+                    lastActivity = f["last_activity"]?.ToString() ?? "",
+                    dateJoined = facts.dateJoined,
+                    pronouns = PickPronouns(f, facts.pronouns),
+                    mutualFriends = facts.mutualFriends,
+                    mutualGroups = facts.mutualGroups,
                 };
             }).ToList();
 
             var offlineList = offline
                 .Where(f => !seenIds.Contains(f["id"]?.ToString() ?? ""))
-                .Select(f => new
+                .Select(f =>
+                {
+                var offFacts = CachedFacts(f["id"]?.ToString() ?? "");
+                return new
                 {
                     id = f["id"]?.ToString() ?? "",
                     displayName = f["displayName"]?.ToString() ?? "",
@@ -1340,6 +1351,14 @@ public class FriendsController
                     platform = f["last_platform"]?.ToString() ?? "",
                     presence = "offline",
                     tags = f["tags"]?.ToObject<List<string>>() ?? new(),
+                    bioLinks = f["bioLinks"]?.ToObject<List<string>>() ?? new(),
+                    lastLogin = f["last_login"]?.ToString() ?? "",
+                    lastActivity = f["last_activity"]?.ToString() ?? "",
+                    dateJoined = offFacts.dateJoined,
+                    pronouns = PickPronouns(f, offFacts.pronouns),
+                    mutualFriends = offFacts.mutualFriends,
+                    mutualGroups = offFacts.mutualGroups,
+                };
                 }).ToList();
 
             var friendList = onlineList
@@ -1591,6 +1610,7 @@ public class FriendsController
         (string name, string thumb) locWorld = ("", "");
         if (locWorldId.StartsWith("wrld_"))
             lock (_core.VrWorldCache) _core.VrWorldCache.TryGetValue(locWorldId, out locWorld);
+        var upFacts = CachedFacts(f["id"]?.ToString() ?? "");
         _core.SendToJS("vrcFriendUpdate", new
         {
             id = f["id"]?.ToString() ?? "",
@@ -1611,9 +1631,14 @@ public class FriendsController
             ageVerified = f["ageVerified"]?.Value<bool>() ?? false,
             avatarFileId = ExtractAvatarFileId(f),
             bio = f["bio"]?.ToString() ?? "",
-            pronouns = f["pronouns"]?.ToString() ?? "",
+            pronouns = PickPronouns(f, upFacts.pronouns),
             bioLinks = f["bioLinks"]?.ToObject<List<string>>() ?? new List<string>(),
             profilePicOverride = f["profilePicOverride"]?.ToString() ?? "",
+            lastLogin = f["last_login"]?.ToString() ?? "",
+            lastActivity = f["last_activity"]?.ToString() ?? "",
+            dateJoined = upFacts.dateJoined,
+            mutualFriends = upFacts.mutualFriends,
+            mutualGroups = upFacts.mutualGroups,
             bannerUrl = f["bannerUrl"]?.ToString() ?? "",
             currentAvatarImageUrl = f["currentAvatarImageUrl"]?.ToString() ?? f["currentAvatarThumbnailImageUrl"]?.ToString() ?? "",
             badges = f["badges"] ?? new JArray(),
@@ -1635,6 +1660,7 @@ public class FriendsController
             bool isInGame = !string.IsNullOrEmpty(location) && location != "offline" && location != "" && !isWebPlatform;
             var status = f["status"]?.ToString() ?? "offline";
             var presence = (location == "offline" && status == "offline") ? "offline" : isInGame ? "game" : "web";
+            var facts = CachedFacts(f["id"]?.ToString() ?? "");
             return new
             {
                 id = f["id"]?.ToString() ?? "",
@@ -1651,6 +1677,13 @@ public class FriendsController
                 tags = f["tags"]?.ToObject<List<string>>() ?? new List<string>(),
                 ageVerified = f["ageVerified"]?.Value<bool>() ?? false,
                 avatarFileId = ExtractAvatarFileId(f),
+                bioLinks = f["bioLinks"]?.ToObject<List<string>>() ?? new List<string>(),
+                lastLogin = f["last_login"]?.ToString() ?? "",
+                lastActivity = f["last_activity"]?.ToString() ?? "",
+                dateJoined = facts.dateJoined,
+                pronouns = PickPronouns(f, facts.pronouns),
+                mutualFriends = facts.mutualFriends,
+                mutualGroups = facts.mutualGroups,
             };
         })
         .OrderBy(f => f.presence switch { "game" => 0, "web" => 1, _ => 2 })
@@ -2176,7 +2209,7 @@ public class FriendsController
         return ("", "", "");
     }
 
-    public async Task<object?> BuildUserDetailPayloadAsync(string userId)
+    public async Task<object?> BuildUserDetailPayloadAsync(string userId, bool forceFresh = false)
     {
         JObject? user;
         JObject? storeSnapshot;
@@ -2188,7 +2221,7 @@ public class FriendsController
         var activeTheme = ResolveActiveTheme(appearance);
 
         user = storeSnapshot;
-        if (user == null || user["badges"] == null)
+        if (forceFresh || user == null || user["badges"] == null)
         {
             var fresh = await _core.Users.GetUserAsync(userId);
             if (fresh != null) user = fresh;
@@ -2436,6 +2469,57 @@ public class FriendsController
     }
 
     // Join Friend
+
+    private (string dateJoined, string pronouns, int mutualFriends, int mutualGroups) CachedFacts(string userId)
+    {
+        if (string.IsNullOrEmpty(userId)) return ("", "", 0, 0);
+        try
+        {
+            var c = _core.TimeEngine.GetUserProfileCache(userId);
+            if (c == null) return ("", "", 0, 0);
+            return (c.ProfileDateJoined, c.ProfilePronouns, MutualFriendCount(c.MutualsJson), JsonArrayCount(c.MutualGroupsJson));
+        }
+        catch { return ("", "", 0, 0); }
+    }
+
+    private static int MutualFriendCount(string json)
+    {
+        try
+        {
+            var o = JObject.Parse(json);
+            if (o["optedOut"]?.Value<bool>() == true) return 0;
+            return (o["mutuals"] as JArray)?.Count ?? 0;
+        }
+        catch { return 0; }
+    }
+
+    private static int JsonArrayCount(string json)
+    {
+        try { return JArray.Parse(json).Count; }
+        catch { return 0; }
+    }
+
+    public void PushFriendFacts(string userId)
+    {
+        if (string.IsNullOrEmpty(userId)) return;
+        var facts = CachedFacts(userId);
+        JObject? f;
+        lock (_friendStore) _friendStore.TryGetValue(userId, out f);
+        _core.SendToJS("vrcFriendFacts", new
+        {
+            id = userId,
+            dateJoined = facts.dateJoined,
+            pronouns = f != null ? PickPronouns(f, facts.pronouns) : facts.pronouns,
+            mutualFriends = facts.mutualFriends,
+            mutualGroups = facts.mutualGroups,
+        });
+    }
+
+    private static string PickPronouns(JObject f, string cached)
+    {
+        var live = f["pronouns"]?.ToString() ?? "";
+        return string.IsNullOrEmpty(live) ? cached : live;
+    }
 
     private Task HandleJoinFriendAsync(string joinLoc)
     {

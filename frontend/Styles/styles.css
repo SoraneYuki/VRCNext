@@ -265,7 +265,10 @@ html.text-tools-active * { user-select: text !important; }
     box-shadow: 0 0 0 2px var(--accent);
 }
 
+.content.tab1-active,
+.content.tab2-active,
 .content.tab3-active,
+.content.tab4-active,
 .content.tab7-active,
 .content.tab12-active,
 .content.tab16-active { overflow-y: hidden; padding-bottom: 0; }

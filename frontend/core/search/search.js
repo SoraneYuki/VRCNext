@@ -38,7 +38,9 @@ function doSearch(type, loadMore) {
 
     if (!loadMore) {
         searchState[sType] = { query, offset: 0, results: [], hasMore: false };
-        document.getElementById(targetEl).innerHTML = sk(type === 'people' ? 'friend' : 'world', type === 'people' ? 5 : 3);
+        const skEl = document.getElementById(targetEl);
+        skEl.classList.add('search-grid');
+        skEl.innerHTML = sk(type === 'people' ? 'friend' : 'world', type === 'people' ? 5 : 3);
     } else {
         const btn = document.getElementById(targetEl).querySelector('.load-more-btn');
         if (btn) btn.textContent = searchLoadingText();
@@ -46,6 +48,14 @@ function doSearch(type, loadMore) {
 
     const sort = type === 'worlds' ? (document.getElementById('worldSortSelect')?.value || 'relevance') : undefined;
     sendToCS({ action, query: searchState[sType].query, offset: searchState[sType].offset, ...(sort !== undefined ? { sort } : {}) });
+}
+
+function _searchListMode(type) {
+    if (typeof tlTableHtml !== 'function' || typeof tlTableRow !== 'function') return false;
+    if (type === 'worlds') return typeof lvViewMode === 'function' && lvViewMode('worlds') === 'list';
+    if (type === 'groups') return typeof lvViewMode === 'function' && lvViewMode('groups') === 'list';
+    if (type === 'users')  return typeof _peopleListMode === 'function' && _peopleListMode();
+    return false;
 }
 
 function renderSearchResults(type, results, offset, hasMore) {
@@ -71,8 +81,23 @@ function renderSearchResults(type, results, offset, hasMore) {
     state.offset = state.results.length;
     state.hasMore = hasMore;
 
+    const listMode = _searchListMode(type);
+    el.classList.toggle('search-grid', !listMode);
+
     if (state.results.length === 0) {
         el.innerHTML = `<div class="empty-msg">${esc(searchNoResultsText())}</div>`;
+        return;
+    }
+
+    if (listMode) {
+        let table = '';
+        if (type === 'worlds') table = buildWorldsListHtml(state.results);
+        else if (type === 'groups') table = buildGroupsListHtml(state.results);
+        else if (type === 'users') table = buildPeopleListHtml(state.results);
+        const more = state.hasMore
+            ? `<div class="lv-more"><button class="vrcn-button load-more-btn" onclick="doSearch('${sType === 'people' ? 'people' : sType}',true)"><span class="msi" style="font-size:16px;">expand_more</span> ${esc(searchLoadMoreText())}</button></div>`
+            : '';
+        el.innerHTML = table + more;
         return;
     }
 

@@ -45,6 +45,7 @@ public partial class AppShell
     private CoreLibrary _core = null!;
     private AuthController _authCtrl = null!;
     private FriendsController _friends = null!;
+    private FriendFetchController _friendFetch = null!;
     private InstanceController _instance = null!;
     private NotificationsController _notifications = null!;
     private GroupsController _groups = null!;
@@ -199,6 +200,7 @@ public partial class AppShell
         _memTrim.OnTrim = () => _core.TrimCaches();
 #endif
         _friends = new FriendsController(_core);
+        _friendFetch = new FriendFetchController(_core, _friends);
         _instance = new InstanceController(_core, _friends);
         _notifications = new NotificationsController(_core, _friends, _instance);
         _groups = new GroupsController(_core, _friends);

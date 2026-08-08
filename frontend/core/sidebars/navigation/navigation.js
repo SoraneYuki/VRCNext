@@ -105,6 +105,10 @@ function toggleSidebar() {
     if (typeof _applyLightInterp === 'function') _applyLightInterp();
 }
 
+document.documentElement.addEventListener('languagechange', () => {
+    if (document.getElementById('navEl')) navRender();
+});
+
 function navRender() {
     const navEl = document.getElementById('navEl');
     if (!navEl) return;
@@ -207,7 +211,7 @@ function openNavFolderPopout(groupId, anchorEl) {
 
     const title = document.createElement('div');
     title.className = 'nav-folder-popout-title';
-    title.textContent = entry.name || 'Folder';
+    title.textContent = navEntryLabel(entry) || 'Folder';
     pop.appendChild(title);
 
     const grid = document.createElement('div');
@@ -271,7 +275,7 @@ function _navMakeSeparator(entry) {
 
     const lbl = document.createElement('span');
     lbl.className = 'nav-sep-label nl';
-    lbl.textContent = entry.name || '';
+    lbl.textContent = navEntryLabel(entry);
     sep.appendChild(lbl);
 
     return sep;
@@ -338,7 +342,7 @@ function _navMakeFolderGroup(entry, visItems) {
 
     const nl = document.createElement('span');
     nl.className = 'nl';
-    nl.textContent = entry.name || 'Folder';
+    nl.textContent = navEntryLabel(entry) || 'Folder';
     hdr.appendChild(nl);
 
     const arrow = document.createElement('span');

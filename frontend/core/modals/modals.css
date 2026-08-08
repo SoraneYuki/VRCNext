@@ -440,3 +440,19 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
 @media (prefers-reduced-motion: reduce) {
     .launch-mode, .launch-mode:hover { transform: none; }
 }
+
+.aw-modes { grid-template-columns: repeat(2, 1fr); }
+.aw-thumb {
+    width: 34px;
+    height: 26px;
+    border-radius: 6px;
+    background: var(--bg-input) center/cover no-repeat;
+    flex-shrink: 0;
+}
+.aw-meta {
+    font-size: calc(12px + var(--fs-off, 0px));
+    color: var(--tx3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

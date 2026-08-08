@@ -2477,6 +2477,7 @@ public class AuthController
                         favoriteId        = w["favoriteId"]?.ToString() ?? "",
                         worldTimeSeconds  = stats.totalSeconds,
                         worldVisitCount   = stats.visitCount,
+                        worldLastVisited  = stats.lastVisited,
                     });
                 }
             }
@@ -2504,6 +2505,7 @@ public class AuthController
                     favoriteId        = it.Id,
                     worldTimeSeconds  = stats.totalSeconds,
                     worldVisitCount   = stats.visitCount,
+                    worldLastVisited  = stats.lastVisited,
                 });
             }
 

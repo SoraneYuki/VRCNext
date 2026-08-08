@@ -227,14 +227,32 @@ function initNetwork() {
 function networkCacheLoaded(json) {
     if (!_cacheLoadPending) return;
     _cacheLoadPending = false;
+    _netCacheReady = true;
     try { _mutualCache = JSON.parse(json) || {}; } catch { _mutualCache = {}; }
     if (_netGraph) _netGraph.loadFriends();
 }
 
-function networkAddMutuals(data) {
-    if (data && data.userId) _netMutualSets.delete(data.userId);
-    if (_netGraph) _netGraph.onMutualsReceived(data);
+let _netCacheReady = false;
+
+function netEnsureMutualCache() {
+    if (_netGraph || _netCacheReady || _cacheLoadPending) return;
+    _cacheLoadPending = true;
+    sendToCS({ action: 'vrcLoadMutualCache' });
 }
+
+function networkAddMutuals(data) {
+    if (!data || !data.userId) return;
+    _netMutualSets.delete(data.userId);
+    if (_netGraph) { _netGraph.onMutualsReceived(data); return; }
+    if (!_netCacheReady) { netEnsureMutualCache(); return; }
+    _mutualCache[data.userId] = { mutualIds: data.mutualIds || [], optedOut: !!data.optedOut };
+    clearTimeout(_netBgSaveTimer);
+    _netBgSaveTimer = setTimeout(() => {
+        sendToCS({ action: 'vrcSaveMutualCache', cache: JSON.stringify(_mutualCache) });
+    }, 2000);
+}
+
+let _netBgSaveTimer = null;
 
 function networkCancel() {
     if (_netGraph) _netGraph.cancelLoading();
