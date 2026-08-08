@@ -3406,6 +3406,8 @@ public partial class AppShell
                             enabled = _core.Settings.SaveInstancePrints,
                             path = _core.Settings.InstancePrintsPath ?? "",
                             defaultPath = Path.Combine(VrcPathsHelper.PhotoDir(), "Prints"),
+                            flagSet = (_core.Settings.VrcLaunchArgs ?? "").Contains("--enable-sdk-log-levels", StringComparison.OrdinalIgnoreCase),
+                            logOk = VrcConfigHelper.LogHasApiRequests(),
                         };
                         var inGame = new { cameraRes = VrcConfigHelper.ReadInGameCameraResolution() };
                         Invoke(() => SendToJS("vrcConfigData", new { config = cfgJson, cacheBytes, prints, inGame }));

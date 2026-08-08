@@ -2703,6 +2703,8 @@
   "vrc_config.prints_folder": "Prints Folder",
   "vrc_config.prints_requires_flag": "VRChat only logs the required data with the launch option --enable-sdk-log-levels.",
   "vrc_config.prints_add_flag": "Add launch option",
+  "vrc_config.prints_status_ok": "VRChat is logging the required data. Prints will be saved.",
+  "vrc_config.prints_status_pending": "Launch option is set. Restart VRChat through VRCNext so it takes effect.",
   "vrc_config.cache_directory": "Custom Cache Folder Location",
   "vrc_config.picture_directory": "Custom Picture Folder Location",
   "vrc_config.camera_resolution": "Camera Resolution",

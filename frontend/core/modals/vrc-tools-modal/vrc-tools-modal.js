@@ -24,8 +24,28 @@ function _vrcCfgFillResSelect(id, rows) {
     }).join('');
 }
 
+function _vrcCfgPrintsStatus(p) {
+    var ico = document.getElementById('vrcCfgPrintsStatusIco');
+    var txt = document.getElementById('vrcCfgPrintsStatus');
+    var btn = document.getElementById('vrcCfgPrintsFlagBtn');
+    if (!txt) return;
+    var state = p.logOk ? 'ok' : (p.flagSet ? 'pending' : 'off');
+    if (state === 'ok') {
+        txt.textContent = t('vrc_config.prints_status_ok', 'VRChat is logging the required data. Prints will be saved.');
+        if (ico) { ico.textContent = 'check_circle'; ico.style.color = 'var(--ok)'; }
+    } else if (state === 'pending') {
+        txt.textContent = t('vrc_config.prints_status_pending', 'Launch option is set. Restart VRChat through VRCNext so it takes effect.');
+        if (ico) { ico.textContent = 'restart_alt'; ico.style.color = 'var(--tx3)'; }
+    } else {
+        txt.textContent = t('vrc_config.prints_requires_flag', 'VRChat only logs the required data with the launch option --enable-sdk-log-levels.');
+        if (ico) { ico.textContent = 'error'; ico.style.color = 'var(--err)'; }
+    }
+    if (btn) btn.style.display = p.flagSet ? 'none' : '';
+}
+
 function vrcCfgAddSdkLogFlag() {
     sendToCS({ action: 'vrcAddSdkLogFlag' });
+    setTimeout(function () { sendToCS({ action: 'vrcConfigGet' }); }, 300);
 }
 
 function vrcCfgSavePrintsToggle() {
@@ -94,6 +114,7 @@ function _vrcCfgApplyData(payload) {
         document.getElementById('vrcCfgSavePrints').checked = !!payload.prints.enabled;
         document.getElementById('vrcCfgPrintsDir').value = payload.prints.path || '';
         document.getElementById('vrcCfgPrintsDir').placeholder = payload.prints.defaultPath || '';
+        _vrcCfgPrintsStatus(payload.prints);
         vrcCfgSavePrintsToggle();
     }
     if (payload.cacheBytes != null) {

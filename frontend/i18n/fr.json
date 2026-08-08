@@ -2647,6 +2647,8 @@
   "vrc_config.prints_folder": "Dossier des prints",
   "vrc_config.prints_requires_flag": "VRChat ne journalise les données nécessaires qu’avec l’option de lancement --enable-sdk-log-levels.",
   "vrc_config.prints_add_flag": "Ajouter l’option",
+  "vrc_config.prints_status_ok": "VRChat journalise les données nécessaires. Les prints seront enregistrés.",
+  "vrc_config.prints_status_pending": "L’option de lancement est définie. Redémarrez VRChat via VRCNext pour l’appliquer.",
   "vrc_config.cache_directory": "Dossier de cache personnalisé",
   "vrc_config.picture_directory": "Dossier d’images personnalisé",
   "vrc_config.camera_resolution": "Résolution de la caméra",

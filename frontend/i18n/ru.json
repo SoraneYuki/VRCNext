@@ -2702,6 +2702,8 @@
   "vrc_config.prints_folder": "Папка для принтов",
   "vrc_config.prints_requires_flag": "VRChat записывает нужные данные в лог только с параметром запуска --enable-sdk-log-levels.",
   "vrc_config.prints_add_flag": "Добавить параметр",
+  "vrc_config.prints_status_ok": "VRChat записывает нужные данные. Принты будут сохраняться.",
+  "vrc_config.prints_status_pending": "Параметр запуска задан. Перезапустите VRChat через VRCNext.",
   "vrc_config.cache_directory": "Своя папка кеша",
   "vrc_config.picture_directory": "Своя папка скриншотов",
   "vrc_config.camera_resolution": "Разрешение камеры",

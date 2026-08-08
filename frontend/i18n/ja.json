@@ -2646,6 +2646,8 @@
   "vrc_config.prints_folder": "プリントフォルダー",
   "vrc_config.prints_requires_flag": "VRChat は起動オプション --enable-sdk-log-levels を付けた場合のみ必要な情報をログに出力します。",
   "vrc_config.prints_add_flag": "起動オプションを追加",
+  "vrc_config.prints_status_ok": "VRChat は必要な情報をログに出力しています。プリントは保存されます。",
+  "vrc_config.prints_status_pending": "起動オプションは設定済みです。反映するには VRCNext から VRChat を再起動してください。",
   "vrc_config.cache_directory": "キャッシュフォルダーの場所",
   "vrc_config.picture_directory": "画像フォルダーの場所",
   "vrc_config.camera_resolution": "カメラ解像度",

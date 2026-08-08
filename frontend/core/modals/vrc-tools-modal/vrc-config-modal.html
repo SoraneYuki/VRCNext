@@ -68,8 +68,8 @@
             <div class="sf-section-label" style="margin-top:18px;margin-bottom:6px;" data-i18n="vrc_config.prints_section">Instance Prints</div>
             <div class="set-desc" style="margin-bottom:8px;" data-i18n="vrc_config.prints_desc">Automatically save prints that players drop in your instance. VRCNext downloads each print once and stores it in the folder below.</div>
             <div id="vrcCfgPrintsFlagRow" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                <span class="msi" style="font-size:16px;color:var(--warn, var(--tx3));">info</span>
-                <span class="set-desc" style="flex:1;margin:0;" data-i18n="vrc_config.prints_requires_flag">VRChat only logs the required data with the launch option --enable-sdk-log-levels.</span>
+                <span class="msi" id="vrcCfgPrintsStatusIco" style="font-size:16px;">info</span>
+                <span class="set-desc" id="vrcCfgPrintsStatus" style="flex:1;margin:0;"></span>
                 <button class="vrcn-button" id="vrcCfgPrintsFlagBtn" onclick="vrcCfgAddSdkLogFlag()" data-i18n="vrc_config.prints_add_flag">Add launch option</button>
             </div>
             <div class="vrc-cfg-grid">
