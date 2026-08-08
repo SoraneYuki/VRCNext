@@ -48,3 +48,4 @@
 * Fixed an issue where VRCNDb filters did not work correctly when using VRCNDb in Avatar Search.
 * Fixed missing rank data from avtrdb and icu database searches.
 * Fixed other avatar related issues that showed missing data.
+* Fixed missing metadata issues in avatar modals.

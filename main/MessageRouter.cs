@@ -1814,8 +1814,9 @@ public partial class AppShell
                                 updated_at = avdCached.UpdatedAt, description = avdCached.Description,
                                 tags = avdCached.Tags, hasPC = avdCached.HasPC, hasQuest = avdCached.HasQuest,
                                 hasIos = avdCached.HasIos,
-                                hasImpostor = avdCached.HasImpostor, pcPerf = avdCached.PcPerf, questPerf = avdCached.QuestPerf,
-                                iosPerf = avdCached.IosPerf,
+                                hasImpostor = avdCached.HasImpostor,
+                                pcPerf = ValidPerf(avdCached.PcPerf), questPerf = ValidPerf(avdCached.QuestPerf),
+                                iosPerf = ValidPerf(avdCached.IosPerf),
                             }));
                         if (ModalCacheHelper.IsCached(avdId)) break;
                         ModalCacheHelper.Mark(avdId);
@@ -1833,13 +1834,7 @@ public partial class AppShell
                             var hasQuest = realPkgs.Any(p => p["platform"]?.ToString() == "android");
                             var hasIos   = realPkgs.Any(p => p["platform"]?.ToString() == "ios");
                             var hasImpostor = packages.Any(p => p["variant"]?.ToString() == "impostor");
-                            var pcPerf    = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "standalonewindows")?["performanceRating"]?.ToString() ?? "";
-                            var questPerf = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "android")?["performanceRating"]?.ToString() ?? "";
-                            var iosPerf   = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "ios")?["performanceRating"]?.ToString() ?? "";
-                            var perf = avatar["performance"] as JObject;
-                            if (string.IsNullOrEmpty(pcPerf))    pcPerf    = perf?["standalonewindows"]?.ToString() ?? "";
-                            if (string.IsNullOrEmpty(questPerf)) questPerf = perf?["android"]?.ToString() ?? "";
-                            if (string.IsNullOrEmpty(iosPerf))   iosPerf   = perf?["ios"]?.ToString() ?? "";
+                            var (pcPerf, questPerf, iosPerf) = ResolveAvatarPerf(avatar);
                             // Save immediately so future opens are instant from DB
                             var avtSaveId = avatar["id"]?.ToString() ?? avdId;
                             _core.TimeEngine.SaveAvatarDetail(
@@ -3759,24 +3754,10 @@ public partial class AppShell
         Str("updated_at", c.UpdatedAt);
         if (a["tags"] == null && c.Tags.Count > 0) a["tags"] = JArray.FromObject(c.Tags);
 
-        var live = a["performance"] as JObject;
-        var pkgs = (a["unityPackages"] as JArray)?.OfType<JObject>()
-            .Where(p => p["variant"]?.ToString() != "impostor").ToList() ?? new List<JObject>();
-
-        string FromPkg(string platform) => pkgs
-            .FirstOrDefault(p => p["platform"]?.ToString() == platform)?["performanceRating"]?.ToString() ?? "";
-
-        string Pick(string liveKey, string platform, string cached)
-        {
-            var v = live?[liveKey]?.ToString() ?? "";
-            if (v.Length == 0) v = FromPkg(platform);
-            if (v.Length == 0) v = cached ?? "";
-            return v;
-        }
-
-        var pcPerf    = Pick("pc",    "standalonewindows", c.PcPerf);
-        var questPerf = Pick("quest", "android",           c.QuestPerf);
-        var iosPerf   = Pick("ios",   "ios",               c.IosPerf);
+        var (livePc, liveQuest, liveIos) = ResolveAvatarPerf(a);
+        var pcPerf    = livePc.Length    > 0 ? livePc    : ValidPerf(c.PcPerf);
+        var questPerf = liveQuest.Length > 0 ? liveQuest : ValidPerf(c.QuestPerf);
+        var iosPerf   = liveIos.Length   > 0 ? liveIos   : ValidPerf(c.IosPerf);
 
         if (pcPerf.Length > 0 || questPerf.Length > 0 || iosPerf.Length > 0)
             a["performance"] = new JObject { ["pc"] = pcPerf, ["quest"] = questPerf, ["ios"] = iosPerf };

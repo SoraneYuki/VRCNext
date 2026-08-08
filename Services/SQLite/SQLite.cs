@@ -522,6 +522,14 @@ public class UnifiedTimeEngine : IDisposable
         }
     }
 
+    private static readonly string[] _perfNames = { "excellent", "good", "medium", "poor", "verypoor" };
+
+    private static string NormalizePerf(string value)
+    {
+        var key = new string((value ?? "").ToLowerInvariant().Where(char.IsLetter).ToArray());
+        return Array.IndexOf(_perfNames, key) >= 0 ? value : "";
+    }
+
     public AvatarDetailCache? GetAvatarDetail(string avatarId)
     {
         if (string.IsNullOrEmpty(avatarId)) return null;
@@ -548,10 +556,10 @@ public class UnifiedTimeEngine : IDisposable
                     HasPC             = r.GetInt32(11) != 0,
                     HasQuest          = r.GetInt32(12) != 0,
                     HasImpostor       = r.GetInt32(13) != 0,
-                    PcPerf            = r.GetString(14),
-                    QuestPerf         = r.GetString(15),
+                    PcPerf            = NormalizePerf(r.GetString(14)),
+                    QuestPerf         = NormalizePerf(r.GetString(15)),
                     HasIos            = r.GetInt32(17) != 0,
-                    IosPerf           = r.GetString(18),
+                    IosPerf           = NormalizePerf(r.GetString(18)),
                 };
             }
             catch { return null; }
