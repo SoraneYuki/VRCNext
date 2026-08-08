@@ -136,13 +136,16 @@ function setAvatarFilter(filter) {
         if (inp) inp.value = '';
         refreshAvatars();
     } else if (filter === 'favorites') {
+        updateFavAvatarGroupHeader();
+        filterFavAvatars();
         if (favAvatarsData.length === 0) sendToCS({ action: 'vrcGetAvatars', filter: 'favorites' });
-        else { updateFavAvatarGroupHeader(); filterFavAvatars(); }
     } else if (filter === 'recent') {
         const inp = document.getElementById('recentAvatarSearchInput');
         if (inp) inp.value = '';
+        filterRecentAvatars();
         sendToCS({ action: 'vrcGetRecentAvatars' });
     } else if (filter === 'rose') {
+        if (roseDbLoaded) filterRoseDb();
         loadRoseDatabase();
     } else {
         document.getElementById('avatarSearchGrid').innerHTML = avatarEmptyMessage('avatars.search.empty_prompt', 'Search for public avatars');

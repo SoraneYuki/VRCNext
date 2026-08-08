@@ -1,6 +1,10 @@
-**2026.41.1**
+**2026.41.2**
 
 **HOTFIX**
+* Fixed an bug in avatar tab causing flickering between list and grid view.
+* Fixed an bug in world tab causing flickering between list and grid view.
+* Fixed an bug in group tab causing flickering between list and grid view.
+* Fixed an bug in people tab causing flickering between list and grid view.
 * Fixed an bug where TTS settings are not saved/loaded properly in VR Overlay.
 
 **Live Instance List**

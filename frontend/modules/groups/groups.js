@@ -58,10 +58,14 @@ function setGroupFilter(filter) {
     document.getElementById('groupSearchArea').style.display = isSearch ? '' : 'none';
     const glBtn = document.getElementById('groupViewList');
     if (glBtn) glBtn.style.display = '';
-    if (isSearch) { document.getElementById('searchGroupsInput')?.focus(); return; }
+    if (isSearch) {
+        renderGroupsListView();
+        document.getElementById('searchGroupsInput')?.focus();
+        return;
+    }
     _groupTab = filter;
+    filterMyGroups();
     if (!myGroupsLoaded) loadMyGroups();
-    else filterMyGroups();
 }
 
 function _groupIsOwn(g) {

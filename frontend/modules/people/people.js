@@ -394,15 +394,28 @@ function patchFriendProfileFacts(u) {
 function refreshPeopleTab(force) {
     if (force) { _peopleStatsLoaded = false; _plStatsPending = false; _plEnsureStats(); }
     if (typeof applyPeopleAlwaysStats === 'function') applyPeopleAlwaysStats();
-    if (peopleFilter === 'favorites')  sendToCS({ action: 'vrcGetFavoriteFriends' });
+    if (peopleFilter === 'favorites') {
+        filterFavFriends();
+        sendToCS({ action: 'vrcGetFavoriteFriends' });
+    }
     if (peopleFilter === 'all') {
         if (force) sendToCS({ action: 'vrcRefreshFriends' });
         else filterAllFriends();
     }
     if (peopleFilter === 'instance') { renderInstancePlayers(); instancePlayersSyncTicker(); }
-    if (peopleFilter === 'recentseen') sendToCS({ action: 'vrcGetRecentSeen' });
-    if (peopleFilter === 'blocked')    sendToCS({ action: 'vrcGetBlocked' });
-    if (peopleFilter === 'muted')      sendToCS({ action: 'vrcGetMuted' });
+    if (peopleFilter === 'recentseen') {
+        filterRecentSeen();
+        sendToCS({ action: 'vrcGetRecentSeen' });
+    }
+    if (peopleFilter === 'blocked') {
+        if (typeof blockedData !== 'undefined' && blockedData) renderModList('blockedList', blockedData, 'block');
+        sendToCS({ action: 'vrcGetBlocked' });
+    }
+    if (peopleFilter === 'muted') {
+        if (typeof mutedData !== 'undefined' && mutedData) renderModList('mutedList', mutedData, 'mute');
+        sendToCS({ action: 'vrcGetMuted' });
+    }
+    if (peopleFilter === 'search') renderPeopleListView();
 }
 
 let _recentSeenData = [];

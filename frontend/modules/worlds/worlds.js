@@ -58,6 +58,7 @@ function setWorldFilter(filter) {
     const wlBtn = document.getElementById('worldViewList');
     if (wlBtn) wlBtn.style.display = '';
     setPaginator('worldRecentPaginatorBar', '');
+    renderWorldsListView();
     if (filter === 'favorites' && favWorldsData.length === 0) sendToCS({ action: 'vrcGetFavoriteWorlds' });
     if (filter === 'mine' && !_myWorldsLoaded) {
         _myWorldsLoaded = true;
