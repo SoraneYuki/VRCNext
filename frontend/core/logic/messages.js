@@ -677,6 +677,9 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcAvatarBatchCached':
                 if (typeof onRoseDbBatchCached === 'function') onRoseDbBatchCached(payload);
                 break;
+            case 'vrcAvatarBatchDetails':
+                if (typeof onRoseDbBatchDetails === 'function') onRoseDbBatchDetails(payload);
+                break;
             case 'vrcUserAvatars':
                 renderFdUserAvatars(payload);
                 if (typeof onMypUserAvatars === 'function') onMypUserAvatars(payload);

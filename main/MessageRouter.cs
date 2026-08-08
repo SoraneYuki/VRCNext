@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NativeFileDialogSharp;
 using VRCNext.Services;
@@ -667,6 +667,7 @@ public partial class AppShell
                             JObject? full = null;
                             try { full = await _core.Avatars.GetAvatarAsync(id); } catch { }
                             var a = full ?? m;
+                            EnrichAvatarFromCache(a, id);
                             var img = a["thumbnailImageUrl"]?.ToString() ?? a["imageUrl"]?.ToString() ?? m["thumbnailImageUrl"]?.ToString();
                             a["thumbnailImageUrl"] = ImageCacheHelper.GetAvatarUrl(id, img);
                             return a;
@@ -1263,14 +1264,28 @@ public partial class AppShell
                     if (msg["avatars"] is JArray batchArr)
                     {
                         var mapping = new Dictionary<string, string>();
+                        var details = new Dictionary<string, object>();
                         foreach (var item in batchArr.OfType<JObject>())
                         {
                             var bid  = item["id"]?.ToString();
                             var bUrl = item["imageUrl"]?.ToString();
-                            if (!string.IsNullOrEmpty(bid))
-                                mapping[bid] = ImageCacheHelper.GetAvatarUrl(bid, bUrl);
+                            if (string.IsNullOrEmpty(bid)) continue;
+                            mapping[bid] = ImageCacheHelper.GetAvatarUrl(bid, bUrl);
+                            try
+                            {
+                                var d = _core.TimeEngine.GetAvatarDetail(bid);
+                                if (d != null)
+                                    details[bid] = new
+                                    {
+                                        authorName = d.AuthorName,
+                                        releaseStatus = d.ReleaseStatus,
+                                        performance = new { pc = d.PcPerf, quest = d.QuestPerf, ios = d.IosPerf },
+                                    };
+                            }
+                            catch { }
                         }
                         SendToJS("vrcAvatarBatchCached", mapping);
+                        if (details.Count > 0) SendToJS("vrcAvatarBatchDetails", details);
                     }
                     break;
 
@@ -3693,4 +3708,38 @@ public partial class AppShell
         catch { return token.ToString(); }
     }
 
+    private void EnrichAvatarFromCache(JObject a, string avatarId)
+    {
+        if (a == null || string.IsNullOrEmpty(avatarId)) return;
+        UnifiedTimeEngine.AvatarDetailCache? c;
+        try { c = _core.TimeEngine.GetAvatarDetail(avatarId); }
+        catch { return; }
+        if (c == null) return;
+
+        void Str(string key, string value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            if (!string.IsNullOrEmpty(a[key]?.ToString())) return;
+            a[key] = value;
+        }
+
+        Str("name", c.Name);
+        Str("authorName", c.AuthorName);
+        Str("authorId", c.AuthorId);
+        Str("releaseStatus", c.ReleaseStatus);
+        Str("description", c.Description);
+        Str("created_at", c.CreatedAt);
+        Str("updated_at", c.UpdatedAt);
+        if (a["tags"] == null && c.Tags.Count > 0) a["tags"] = JArray.FromObject(c.Tags);
+
+        if (a["performance"] == null && a["unityPackages"] == null)
+        {
+            a["performance"] = new JObject
+            {
+                ["pc"]    = c.PcPerf ?? "",
+                ["quest"] = c.QuestPerf ?? "",
+                ["ios"]   = c.IosPerf ?? "",
+            };
+        }
+    }
 }

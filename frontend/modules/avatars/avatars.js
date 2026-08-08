@@ -1296,12 +1296,14 @@ function filterRoseDb() {
 }
 
 function _roseToAvatar(a) {
+    const d = a._detail || {};
     return {
         id: a.avatar_id || '',
         name: a.avatar_name || '',
-        authorName: a.author || '',
+        authorName: a.author || d.authorName || '',
         thumbnailImageUrl: a._cachedThumb || a.avatar_image_url || '',
-        releaseStatus: 'public',
+        releaseStatus: d.releaseStatus || 'public',
+        performance: d.performance || undefined,
     };
 }
 
@@ -1340,6 +1342,18 @@ function _roseTagBadge(rawTag) {
     if (!s) return `<span class="vrcn-badge" style="background:var(--bg2);color:var(--tx2);border:1px solid var(--brd-lt);">${esc(rawTag)}</span>`;
     const bg = s.bg.startsWith('linear') ? s.bg : s.bg;
     return `<span class="vrcn-badge" style="background:${bg};color:${s.color};border:${s.border};">${esc(s.label)}</span>`;
+}
+
+function onRoseDbBatchDetails(details) {
+    if (!details) return;
+    let changed = false;
+    roseDbData.forEach(a => {
+        const d = details[a.avatar_id];
+        if (!d) return;
+        a._detail = d;
+        changed = true;
+    });
+    if (changed && avatarFilter === 'rose') filterRoseDb();
 }
 
 function onRoseDbBatchCached(mapping) {
