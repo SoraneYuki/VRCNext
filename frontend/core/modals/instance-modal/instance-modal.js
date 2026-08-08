@@ -309,7 +309,7 @@ const IIM_COL_WIDTHS = {
     name:     'minmax(120px, .72fr)',
     rank:     '110px',
     status:   'minmax(100px, 136px)',
-    age:      '56px',
+    age:      '76px',
     platform: '98px',
     language: 'minmax(100px, .8fr)',
     biolinks: '96px',

@@ -1014,12 +1014,12 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
 }
 .iim-list {
     --iim-grid-cols: 88px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
-    min-width: 908px;
+    min-width: 928px;
     width: 100%;
 }
 .iim-list.has-timers {
     --iim-grid-cols: 88px 76px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
-    min-width: 988px;
+    min-width: 1008px;
 }
 .iim-list-head,
 .iim-user-row {
