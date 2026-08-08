@@ -1194,3 +1194,16 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     align-items: center;
     min-width: max-content;
 }
+
+.iim-head-grip {
+    font-size: calc(13px + var(--fs-off, 0px)) !important;
+    color: var(--tx3);
+    opacity: 0;
+    cursor: grab;
+    margin-left: 2px;
+    transition: opacity .12s;
+    touch-action: none;
+}
+.iim-head-cell:hover .iim-head-grip { opacity: .7; }
+.iim-head-grip:active { cursor: grabbing; }
+.iim-head-cell.iim-head-dragging { opacity: .45; }

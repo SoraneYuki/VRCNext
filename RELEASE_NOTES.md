@@ -4,9 +4,11 @@
 * This is already a thing when you look at the friends sidebar or click the world modal it shows all player slive. However alot of you did use VRCX before so theres a new tab in People > Instance which shows all players with additional filters live.
 * Added Bio links to the existing modal.
 * Enhanced instance view shows: timer, joined, display name, presence, rank, status, 18+, platform, pronouns, meets, time spent, date joined, last seen, language and more.
+* Allowing sorting for cells in list modal.
 
 
 **VRChat Config**
+* Added "Save" Prints players.
 * Added **Custom Cache Folder Location** with a folder picker.
 * Added **Custom Picture Folder Location** with a folder picker.
 * Added **Camera Resolution**, **Spout Resolution** and **Screenshot Resolution** presets from 720p up to 4K, and 8K for the camera.

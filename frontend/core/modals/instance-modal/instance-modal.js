@@ -53,19 +53,21 @@ function openInstanceInfoModal() {
         return formatInstanceTimer(joinedAt, now);
     }
 
-    const timerHead = hasTimers ? _iimHeadCell('timer', t('instance.table.timer', 'Timer')) : '';
-    const listHead = `<div class="iim-list-head">
-        ${_iimHeadCell('profile', t('instance.table.profile', 'Profile'))}
-        ${timerHead}
-        ${_iimHeadCell('joined', t('instance.table.joined', 'Joined'))}
-        ${_iimHeadCell('name', t('instance.table.display_name', 'Display Name'))}
-        ${_iimHeadCell('rank', t('instance.table.rank', 'Rank'))}
-        ${_iimHeadCell('status', t('instance.table.status', 'Status'))}
-        ${_iimHeadCell('age', '18+')}
-        ${_iimHeadCell('platform', t('instance.table.platform', 'Platform'))}
-        ${_iimHeadCell('language', t('instance.table.language', 'Language'))}
-        ${_iimHeadCell('biolinks', t('people.list.header.bio_links', 'Bio Links'))}
-    </div>`;
+    const iimCols = _iimOrder(hasTimers);
+    const iimLabels = {
+        profile:  t('instance.table.profile', 'Profile'),
+        timer:    t('instance.table.timer', 'Timer'),
+        joined:   t('instance.table.joined', 'Joined'),
+        name:     t('instance.table.display_name', 'Display Name'),
+        rank:     t('instance.table.rank', 'Rank'),
+        status:   t('instance.table.status', 'Status'),
+        age:      '18+',
+        platform: t('instance.table.platform', 'Platform'),
+        language: t('instance.table.language', 'Language'),
+        biolinks: t('people.list.header.bio_links', 'Bio Links'),
+    };
+    const listHead = `<div class="iim-list-head">${iimCols.map(id => _iimHeadCell(id, iimLabels[id])).join('')}</div>`;
+    const iimGridStyle = `--iim-grid-cols:${iimCols.map(id => IIM_COL_WIDTHS[id]).join(' ')};`;
 
     const copyBadge = instNum
         ? `<span class="vrcn-id-clip" onclick="copyInstanceLink('${jsq(data.location || '')}')"><span class="msi" style="font-size:12px;">content_copy</span>#${esc(instNum)}</span>`
@@ -124,19 +126,20 @@ function openInstanceInfoModal() {
         }
         const itemClick    = id ? ` onclick="openFriendDetail('${jsq(id)}')"` : '';
         const clickableCls = id ? ' clickable' : '';
+        const cellMap = {
+            profile:  `<div class="iim-cell iim-profile-cell">${avHtml}</div>`,
+            timer:    timerCell,
+            joined:   fromCell,
+            name:     nameCell,
+            rank:     rankCell,
+            status:   statusCell,
+            age:      ageCell,
+            platform: platformCell,
+            language: langCell,
+            biolinks: bioCell,
+        };
         return `<div class="iim-user-item${clickableCls}"${itemClick}>
-            <div class="iim-user-row">
-                <div class="iim-cell iim-profile-cell">${avHtml}</div>
-                ${timerCell}
-                ${fromCell}
-                ${nameCell}
-                ${rankCell}
-                ${statusCell}
-                ${ageCell}
-                ${platformCell}
-                ${langCell}
-                ${bioCell}
-            </div>
+            <div class="iim-user-row">${iimCols.map(id => cellMap[id] || '').join('')}</div>
             ${barHtml}
         </div>`;
     }
@@ -190,7 +193,7 @@ function openInstanceInfoModal() {
     </div>`;
 
     const playersHtml = enriched.length > 0
-        ? `<div class="iim-list${hasTimers ? ' has-timers' : ''}">${listHead}<div class="iim-list-body">${bodyRows}</div></div>`
+        ? `<div class="iim-list${hasTimers ? ' has-timers' : ''}" style="${iimGridStyle}">${listHead}<div class="iim-list-body">${bodyRows}</div></div>`
         : `<div style="padding:14px;color:var(--tx3);font-size:calc(12px + var(--fs-off, 0px));">${t('instance.no_player_data_available', 'No player data available.')}</div>`;
 
     const rightHtml = `<div class="mi-right"><div class="mi-right-scroll" style="overflow:auto;"><div class="mi-instance-list"><div class="mi-instance-card">${cardHeader}${playersHtml}</div></div></div></div>`;
@@ -299,13 +302,47 @@ function _iimSortEntries(entries) {
     });
 }
 
+const IIM_COL_WIDTHS = {
+    profile:  '88px',
+    timer:    '76px',
+    joined:   '82px',
+    name:     'minmax(120px, .72fr)',
+    rank:     '110px',
+    status:   'minmax(100px, 136px)',
+    age:      '56px',
+    platform: '98px',
+    language: 'minmax(100px, .8fr)',
+    biolinks: '96px',
+};
+const IIM_DEFAULT_ORDER = ['profile', 'timer', 'joined', 'name', 'rank', 'status', 'age', 'platform', 'language', 'biolinks'];
+const IIM_ORDER_KEY = 'vrcn_iim_order';
+
+function _iimOrder(hasTimers) {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(IIM_ORDER_KEY) || 'null'); } catch {}
+    let order;
+    if (Array.isArray(saved)) {
+        order = saved.filter(id => IIM_DEFAULT_ORDER.includes(id));
+        IIM_DEFAULT_ORDER.forEach((id, idx) => {
+            if (!order.includes(id)) order.splice(Math.min(idx, order.length), 0, id);
+        });
+    } else {
+        order = IIM_DEFAULT_ORDER.slice();
+    }
+    return hasTimers ? order : order.filter(id => id !== 'timer');
+}
+
+function _iimSaveOrder(order) {
+    try { localStorage.setItem(IIM_ORDER_KEY, JSON.stringify(order)); } catch {}
+}
+
 function _iimHeadCell(id, label, extraCls) {
     const st     = _iimSortState();
     const active = st.id === id;
     const arrow  = active ? (st.dir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
     return `<div class="iim-head-cell iim-head-sortable${active ? ' iim-head-sorted' : ''}${extraCls ? ' ' + extraCls : ''}"
-        onclick="iimSort('${id}')" title="${esc(t('timeline.list.header.sort_hint', 'Click to sort'))}">
-        <span>${esc(label)}</span><span class="msi iim-head-arrow">${arrow}</span>
+        data-iim-col="${id}" onclick="iimSort('${id}')" title="${esc(t('timeline.list.header.hint', 'Click to sort, drag to reorder'))}">
+        <span>${esc(label)}</span><span class="msi iim-head-arrow">${arrow}</span><span class="msi iim-head-grip" title="${esc(t('timeline.list.header.reorder', 'Drag to reorder'))}">drag_indicator</span>
     </div>`;
 }
 
@@ -339,3 +376,45 @@ function requestInstanceInfo() {
     clearTimeout(_instanceInfoTimer);
     _instanceInfoTimer = setTimeout(() => sendToCS({ action: 'vrcGetCurrentInstance' }), 500);
 }
+
+let _iimDrag = null;
+
+document.addEventListener('mousedown', e => {
+    const grip = e.target.closest?.('.iim-head-grip');
+    if (!grip || e.button !== 0) return;
+    const cell = grip.closest('.iim-head-cell');
+    const head = cell?.closest('.iim-list-head');
+    if (!cell || !head) return;
+    e.preventDefault();
+    e.stopPropagation();
+    _iimDrag = { head, id: cell.dataset.iimCol, moved: false };
+    cell.classList.add('iim-head-dragging');
+});
+
+document.addEventListener('mousemove', e => {
+    if (!_iimDrag) return;
+    _iimDrag.moved = true;
+    const cells = [...(_iimDrag.head.querySelectorAll('.iim-head-cell'))];
+    const from = cells.findIndex(c => c.dataset.iimCol === _iimDrag.id);
+    if (from < 0) return;
+    const target = cells.findIndex(c => {
+        const r = c.getBoundingClientRect();
+        return e.clientX >= r.left && e.clientX <= r.right;
+    });
+    if (target < 0 || target === from) return;
+    const node = cells[from];
+    const ref  = cells[target];
+    _iimDrag.head.insertBefore(node, target > from ? ref.nextSibling : ref);
+}, { passive: true });
+
+document.addEventListener('mouseup', () => {
+    if (!_iimDrag) return;
+    const { head, moved } = _iimDrag;
+    head.querySelector('.iim-head-dragging')?.classList.remove('iim-head-dragging');
+    _iimDrag = null;
+    if (!moved) return;
+    const order = [...head.querySelectorAll('.iim-head-cell')].map(c => c.dataset.iimCol).filter(Boolean);
+    const full = IIM_DEFAULT_ORDER.filter(id => !order.includes(id));
+    _iimSaveOrder(order.concat(full));
+    openInstanceInfoModal();
+});

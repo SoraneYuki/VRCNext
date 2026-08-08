@@ -129,7 +129,20 @@ function renderInstancePlayers() {
     }
 
     if (titleEl) titleEl.textContent = data.worldName || '';
-    if (countEl) countEl.textContent = tf('profiles.people.instance.count', { n: users.length }, `${users.length} players`);
+    if (countEl) {
+        const badge = (typeof getInstanceBadge === 'function') ? getInstanceBadge(data.instanceType) : null;
+        const instNum = (data.location || '').split(':')[1]?.split('~')[0] || '';
+        const parts = [];
+        if (badge?.label) parts.push(`<span class="vrcn-badge ${badge.cls || ''}">${esc(badge.label)}</span>`);
+        if (instNum) parts.push(`<span class="vrcn-id-clip" onclick="copyInstanceLink('${jsq(data.location || '')}')"><span class="msi" style="font-size:12px;">content_copy</span>#${esc(instNum)}</span>`);
+        if (data.ageGate) parts.push(`<span class="vrcn-badge" style="background:rgba(255,75,85,.15);color:var(--err);">${esc(t('worlds.instances.age_gated', 'Age Gated'))}</span>`);
+        if (typeof getOwnerBadgeHtml === 'function') {
+            const owner = getOwnerBadgeHtml(data.ownerId || '', data.ownerName || '', data.ownerGroup || '', '');
+            if (owner) parts.push(owner);
+        }
+        parts.push(`<span class="vrcn-badge"><span class="msi" style="font-size:11px;">person</span>&nbsp;${users.length || data.nUsers || 0}${data.capacity ? '/' + data.capacity : ''}</span>`);
+        countEl.innerHTML = parts.join('');
+    }
 
     const q = (document.getElementById('instancePlayersSearch')?.value || '').toLowerCase();
     const filtered = q ? users.filter(u => (u.displayName || '').toLowerCase().includes(q)) : users;
