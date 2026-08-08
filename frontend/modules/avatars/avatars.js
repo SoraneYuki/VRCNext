@@ -1384,6 +1384,20 @@ function _avApplyDetails(list, keyField, details) {
     return changed;
 }
 
+function _avApplyRoseDetails(details) {
+    if (typeof roseDbData === 'undefined' || !Array.isArray(roseDbData)) return false;
+    let changed = false;
+    roseDbData.forEach(a => {
+        const d = details[a.avatar_id];
+        if (!d) return;
+        const cur = a._detail || {};
+        if (JSON.stringify(cur) === JSON.stringify(d)) return;
+        a._detail = d;
+        changed = true;
+    });
+    return changed;
+}
+
 function onAvatarDetailsBatch(details) {
     if (!details) return;
     let changed = false;
@@ -1391,6 +1405,7 @@ function onAvatarDetailsBatch(details) {
     if (typeof _recentAvatarsData !== 'undefined')  changed = _avApplyDetails(_recentAvatarsData, 'id', details) || changed;
     if (typeof favAvatarsData !== 'undefined')      changed = _avApplyDetails(favAvatarsData, 'id', details) || changed;
     if (typeof avatarsData !== 'undefined')         changed = _avApplyDetails(avatarsData, 'id', details) || changed;
+    changed = _avApplyRoseDetails(details) || changed;
     if (!changed) return;
     const tab = document.getElementById('tab4');
     if (!tab || !tab.classList.contains('active')) return;
@@ -1398,16 +1413,20 @@ function onAvatarDetailsBatch(details) {
     lvKeepScroll(document.getElementById(gridId), () => renderAvatarsListView());
 }
 
+function onAvatarDetailLive(a) {
+    if (!a || !a.id) return;
+    const perf = { pc: a.pcPerf || '', quest: a.questPerf || '', ios: a.iosPerf || '' };
+    if (!perf.pc && !perf.quest && !perf.ios && !a.authorName) return;
+    onAvatarDetailsBatch({
+        [a.id]: { authorName: a.authorName || '', releaseStatus: a.releaseStatus || '', performance: perf },
+    });
+}
+
 function onRoseDbBatchDetails(details) {
     if (!details) return;
-    let changed = false;
-    roseDbData.forEach(a => {
-        const d = details[a.avatar_id];
-        if (!d) return;
-        a._detail = d;
-        changed = true;
-    });
-    if (changed && avatarFilter === 'rose') lvKeepScroll(document.getElementById('roseDbGrid'), () => filterRoseDb());
+    if (_avApplyRoseDetails(details) && avatarFilter === 'rose') {
+        lvKeepScroll(document.getElementById('roseDbGrid'), () => filterRoseDb());
+    }
 }
 
 function onRoseDbBatchCached(mapping) {
