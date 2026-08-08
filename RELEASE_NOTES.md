@@ -1,5 +1,13 @@
 **2026.41.0**
 
+**VRChat Config**
+* Added **Custom Cache Folder Location** with a folder picker.
+* Added **Custom Picture Folder Location** with a folder picker.
+* Added **Camera Resolution**, **Spout Resolution** and **Screenshot Resolution** presets from 720p up to 4K, and 8K for the camera.
+* Added **Sort pictures into folders by date** toggle.
+* Added **Disable Discord Rich Presence** toggle.
+* Settings that match VRChat's own default are no longer written to the config file, so the file stays clean.
+
 **Wiki**
 * Added "Wiki" button to Taskbar > Help > Wiki
 

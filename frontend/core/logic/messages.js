@@ -171,6 +171,11 @@ window.external.receiveMessage(rawMsg => {
                     addLog(t('messages.relay.deleted_from_discord', 'Deleted from Discord'), 'ok');
                 } else addLog(t('messages.delete_failed', 'Delete failed'), 'err');
                 break;
+            case 'folderPicked': {
+                const el = document.getElementById(payload.target || '');
+                if (el && payload.path) el.value = payload.path;
+                break;
+            }
             case 'folderAdded':
                 if (!settings.folders) settings.folders = [];
                 settings.folders.push(payload);

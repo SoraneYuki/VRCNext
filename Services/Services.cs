@@ -571,6 +571,10 @@ public class AppSettings
     // Memory Trim
     public bool MemoryTrimEnabled { get; set; } = false;
 
+    // Instance prints — download prints other players drop in the instance
+    public bool   SaveInstancePrints { get; set; } = false;
+    public string InstancePrintsPath { get; set; } = "";
+
     // Windows Fixes
     public bool MediaFixEnabled { get; set; } = true;
 

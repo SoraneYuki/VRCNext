@@ -456,3 +456,25 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.vrc-cfg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 18px;
+}
+.vrc-cfg-field { min-width: 0; }
+.vrc-cfg-field > .sf-section-label { margin-bottom: 6px; }
+.vrc-cfg-field .vrcn-edit-field,
+.vrc-cfg-field .vrcn-dropdown,
+.vrc-cfg-field .vn-select { width: 100%; }
+.vrc-cfg-path {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.vrc-cfg-path .vrcn-edit-field { flex: 1; min-width: 0; }
+.vrc-cfg-path .vrcn-button { flex-shrink: 0; }
+.vrc-cfg-field .sf-toggle-row { height: 100%; align-items: center; }
+@media (max-width: 720px) {
+    .vrc-cfg-grid { grid-template-columns: 1fr; }
+}

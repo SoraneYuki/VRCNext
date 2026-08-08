@@ -36,6 +36,8 @@ public class AuthController
     private List<JObject>? _cachedFavGroups;
     public void ClearFavGroupsCache() => _cachedFavGroups = null;
 
+    private readonly VRCNext.Services.Tools.InstancePrintSaver _printSaver;
+
     // Constructor
 
     public AuthController(
@@ -54,6 +56,7 @@ public class AuthController
         _relayCtrl = relayCtrl;
         _groups = groups;
         _discordCtrl = discordCtrl;
+        _printSaver = new VRCNext.Services.Tools.InstancePrintSaver(core);
 
         // Allow RelayController to trigger a session resume....
         _relayCtrl.OnWakeResumeRequested = VrcTryResumeAsync;
@@ -793,6 +796,10 @@ public class AuthController
         _core.LogWatcher.AvatarSeen += id =>
         {
             try { _core.VrcndbSubmit?.Invoke(id); } catch { }
+        };
+        _core.LogWatcher.PrintSeen += printId =>
+        {
+            try { _printSaver.OnPrintSeen(printId); } catch { }
         };
         _core.LogWatcher.VideoUrl += url =>
         {

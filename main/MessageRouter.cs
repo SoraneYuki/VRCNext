@@ -541,6 +541,14 @@ public partial class AppShell
                     }
                     break;
 
+                case "pickFolder":
+                    {
+                        var target = msg["target"]?.ToString() ?? "";
+                        var r = Dialog.FolderPicker();
+                        if (r.IsOk) SendToJS("folderPicked", new { target, path = r.Path });
+                    }
+                    break;
+
                 case "importVrcxSelect":
                 case "importVrcxStart":
                     await _timelineCtrl.HandleMessage(action, msg);
@@ -3393,7 +3401,14 @@ public partial class AppShell
                     _ = Task.Run(() =>
                     {
                         var (cfgJson, cacheBytes) = VrcConfigHelper.ReadConfigAndCacheSize();
-                        Invoke(() => SendToJS("vrcConfigData", new { config = cfgJson, cacheBytes }));
+                        var prints = new
+                        {
+                            enabled = _core.Settings.SaveInstancePrints,
+                            path = _core.Settings.InstancePrintsPath ?? "",
+                            defaultPath = Path.Combine(VrcPathsHelper.PhotoDir(), "Prints"),
+                        };
+                        var inGame = new { cameraRes = VrcConfigHelper.ReadInGameCameraResolution() };
+                        Invoke(() => SendToJS("vrcConfigData", new { config = cfgJson, cacheBytes, prints, inGame }));
                     });
                     break;
                 }
@@ -3436,6 +3451,12 @@ public partial class AppShell
                 }
                 case "vrcConfigSave":
                 {
+                    if (msg["prints"] is JObject pr)
+                    {
+                        _core.Settings.SaveInstancePrints = pr["enabled"]?.Value<bool>() ?? false;
+                        _core.Settings.InstancePrintsPath = (pr["path"]?.ToString() ?? "").Trim();
+                        _core.Settings.Save();
+                    }
                     var cfg = msg["config"] as JObject;
                     if (cfg != null)
                     {
@@ -3445,6 +3466,18 @@ public partial class AppShell
                             Invoke(() => SendToJS("toast", new { ok, msg = ok ? "VRChat config saved" : ("Config save failed: " + err) }));
                         });
                     }
+                    break;
+                }
+                case "vrcAddSdkLogFlag":
+                {
+                    const string flag = "--enable-sdk-log-levels";
+                    var cur = (_core.Settings.VrcLaunchArgs ?? "").Trim();
+                    if (!cur.Contains(flag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _core.Settings.VrcLaunchArgs = (cur.Length > 0 ? cur + " " : "") + flag;
+                        _core.Settings.Save();
+                    }
+                    Invoke(() => SendToJS("toast", new { ok = true, msg = "Launch option set: " + flag }));
                     break;
                 }
                 case "vrcLaunchOptionsGet":
