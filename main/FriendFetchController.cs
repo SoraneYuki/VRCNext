@@ -77,7 +77,7 @@ public class FriendFetchController
 
             case "vrcFriendFetchCancel":
                 _cts?.Cancel();
-                WriteLastRun(null);
+                PushState();
                 break;
         }
         await Task.CompletedTask;
@@ -155,6 +155,7 @@ public class FriendFetchController
             _running = 0;
             _cts?.Dispose();
             _cts = null;
+            WriteLastRun(DateTime.UtcNow);
             PushState();
             _core.SendToJS("log", new { msg = $"Friend fetch done: {_done - _failed}/{_total} profiles cached, {_failed} failed", color = _failed > 0 ? "warn" : "ok" });
             _friends.PushFriendsFromStore();

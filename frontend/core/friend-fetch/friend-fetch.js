@@ -1,10 +1,15 @@
 let _ffState = { running: false, done: 0, total: 0, cooldownMs: 0 };
+let _ffStateKnown = false;
 let _ffTicker = null;
 
 function friendFetchStart() {
-    if (_ffState.running || _ffState.cooldownMs > 0) return;
+    if (!_ffStateKnown || _ffState.running || _ffState.cooldownMs > 0) {
+        friendFetchRequestState();
+        return;
+    }
     if (typeof netEnsureMutualCache === 'function') netEnsureMutualCache();
     sendToCS({ action: 'vrcFriendFetchStart' });
+    friendFetchRequestState();
 }
 
 function friendFetchCancel() {
@@ -27,6 +32,7 @@ function ffProgressText(done, total) {
 }
 
 function onFriendFetchProgress(payload) {
+    _ffStateKnown = true;
     _ffState = {
         running: !!payload.running,
         done: payload.done || 0,
@@ -64,7 +70,7 @@ function friendFetchSyncUi() {
     _FF_BUTTONS.forEach(id => {
         const btn = document.getElementById(id);
         if (!btn) return;
-        btn.disabled = running || cooldownMs > 0;
+        btn.disabled = !_ffStateKnown || running || cooldownMs > 0;
         btn.classList.toggle('active', running);
         const ico = btn.querySelector('.msi');
         if (ico) ico.textContent = running ? 'sync' : 'cloud_download';
