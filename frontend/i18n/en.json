@@ -3110,7 +3110,7 @@
   "friend_fetch.cooldown_title": "Available again after the cooldown",
   "friend_fetch.progress": "Fetching profiles: {done} / {total}",
   "friend_fetch.progress_initial": "Fetching profiles: 0 / 0",
-  "friend_fetch.cooldown": "Fetch ({time})",
+  "friend_fetch.cooldown": "Available again in {time}",
   "nav.section.overview": "Overview",
   "nav.section.activity": "Activity",
   "nav.section.tools": "Tools",

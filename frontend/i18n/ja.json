@@ -3054,7 +3054,7 @@
   "friend_fetch.cooldown_title": "クールダウン後に再度利用できます",
   "friend_fetch.progress": "プロフィール取得中: {done} / {total}",
   "friend_fetch.progress_initial": "プロフィール取得中: 0 / 0",
-  "friend_fetch.cooldown": "取得 ({time})",
+  "friend_fetch.cooldown": "{time} 後に再度利用できます",
   "nav.section.overview": "概要",
   "nav.section.activity": "アクティビティ",
   "nav.section.tools": "ツール",

@@ -17,6 +17,7 @@ public class FriendFetchController
     private int _done;
     private int _total;
     private int _failed;
+    private DateTime? _lastRunUtc;
     private CancellationTokenSource? _cts;
 
     public FriendFetchController(CoreLibrary core, FriendsController friends)
@@ -34,13 +35,22 @@ public class FriendFetchController
         try
         {
             if (!File.Exists(StatePath)) return null;
-            var o = JObject.Parse(File.ReadAllText(StatePath, System.Text.Encoding.UTF8));
+            using var sr = new StringReader(File.ReadAllText(StatePath, System.Text.Encoding.UTF8));
+            using var jr = new JsonTextReader(sr) { DateParseHandling = DateParseHandling.None };
+            var o = JObject.Load(jr);
             var s = o["lastRun"]?.ToString();
             if (string.IsNullOrEmpty(s)) return null;
-            return DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.RoundtripKind, out var dt)
+            return DateTime.TryParse(s, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind, out var dt)
                 ? dt.ToUniversalTime() : null;
         }
         catch { return null; }
+    }
+
+    private void MarkRun(DateTime utc)
+    {
+        _lastRunUtc = utc;
+        WriteLastRun(utc);
     }
 
     private static void WriteLastRun(DateTime? utc)
@@ -55,9 +65,11 @@ public class FriendFetchController
         catch { }
     }
 
-    private static long CooldownRemainingMs()
+    private long CooldownRemainingMs()
     {
-        var last = ReadLastRun();
+        var fileRun = ReadLastRun();
+        DateTime? last = _lastRunUtc;
+        if (fileRun != null && (last == null || fileRun.Value > last.Value)) last = fileRun;
         if (last == null) return 0;
         var left = (last.Value + Cooldown) - DateTime.UtcNow;
         return left.TotalMilliseconds > 0 ? (long)left.TotalMilliseconds : 0;
@@ -98,7 +110,7 @@ public class FriendFetchController
         if (!force && CooldownRemainingMs() > 0) { _running = 0; PushState(); return; }
 
         _cts = new CancellationTokenSource();
-        WriteLastRun(DateTime.UtcNow);
+        MarkRun(DateTime.UtcNow);
         _ = Task.Run(() => RunAsync(_cts.Token));
     }
 
@@ -155,7 +167,7 @@ public class FriendFetchController
             _running = 0;
             _cts?.Dispose();
             _cts = null;
-            WriteLastRun(DateTime.UtcNow);
+            MarkRun(DateTime.UtcNow);
             PushState();
             _core.SendToJS("log", new { msg = $"Friend fetch done: {_done - _failed}/{_total} profiles cached, {_failed} failed", color = _failed > 0 ? "warn" : "ok" });
             _friends.PushFriendsFromStore();

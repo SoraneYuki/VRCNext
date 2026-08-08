@@ -3067,7 +3067,7 @@
   "friend_fetch.cooldown_title": "Nach Ablauf der Wartezeit wieder verfügbar",
   "friend_fetch.progress": "Profile werden geladen: {done} / {total}",
   "friend_fetch.progress_initial": "Profile werden geladen: 0 / 0",
-  "friend_fetch.cooldown": "Laden ({time})",
+  "friend_fetch.cooldown": "Wieder verfügbar in {time}",
   "nav.section.overview": "Übersicht",
   "nav.section.activity": "Aktivität",
   "nav.section.tools": "Werkzeuge",

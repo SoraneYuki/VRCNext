@@ -32,6 +32,7 @@ function ffProgressText(done, total) {
 }
 
 function onFriendFetchProgress(payload) {
+    const wasRunning = _ffState.running;
     _ffStateKnown = true;
     _ffState = {
         running: !!payload.running,
@@ -41,6 +42,7 @@ function onFriendFetchProgress(payload) {
     };
     _ffSyncTicker();
     friendFetchSyncUi();
+    if (wasRunning && !_ffState.running) setTimeout(friendFetchRequestState, 400);
 }
 
 function _ffSyncTicker() {
@@ -61,11 +63,7 @@ const _FF_BUTTONS = ['peopleFetchBtn', 'netFetchBtn'];
 
 function friendFetchSyncUi() {
     const { running, done, total, cooldownMs } = _ffState;
-    const label = running
-        ? `${done} / ${total}`
-        : cooldownMs > 0
-            ? tf('friend_fetch.cooldown', { time: ffCooldownText(cooldownMs) }, `Fetch (${ffCooldownText(cooldownMs)})`)
-            : t('friend_fetch.button', 'Fetch');
+    const label = running ? `${done} / ${total}` : t('friend_fetch.button', 'Fetch');
 
     _FF_BUTTONS.forEach(id => {
         const btn = document.getElementById(id);
@@ -79,7 +77,7 @@ function friendFetchSyncUi() {
         btn.title = running
             ? t('friend_fetch.running_title', 'Fetching friend profiles')
             : cooldownMs > 0
-                ? t('friend_fetch.cooldown_title', 'Available again after the cooldown')
+                ? tf('friend_fetch.cooldown', { time: ffCooldownText(cooldownMs) }, `Available again in ${ffCooldownText(cooldownMs)}`)
                 : t('friend_fetch.button_title', 'Fetches all friends information such as biography, images, names, joined date, status, and many more informations.');
     });
 }

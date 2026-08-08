@@ -3055,7 +3055,7 @@
   "friend_fetch.cooldown_title": "Disponible de nuevo tras la espera",
   "friend_fetch.progress": "Cargando perfiles: {done} / {total}",
   "friend_fetch.progress_initial": "Cargando perfiles: 0 / 0",
-  "friend_fetch.cooldown": "Cargar ({time})",
+  "friend_fetch.cooldown": "Disponible de nuevo en {time}",
   "nav.section.overview": "Resumen",
   "nav.section.activity": "Actividad",
   "nav.section.tools": "Herramientas",

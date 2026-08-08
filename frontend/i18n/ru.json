@@ -3079,7 +3079,7 @@
   "friend_fetch.cooldown_title": "Снова доступно после ожидания",
   "friend_fetch.progress": "Загрузка профилей: {done} / {total}",
   "friend_fetch.progress_initial": "Загрузка профилей: 0 / 0",
-  "friend_fetch.cooldown": "Загрузка ({time})",
+  "friend_fetch.cooldown": "Снова доступно через {time}",
   "nav.section.overview": "Обзор",
   "nav.section.activity": "Активность",
   "nav.section.tools": "Инструменты",
