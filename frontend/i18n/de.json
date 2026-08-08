@@ -2544,6 +2544,7 @@
   "pins.type.event": "Event",
   "pins.type.feature": "Feature",
   "tb.help.show_keybinds": "Tastenkürzel anzeigen",
+  "tb.help.wiki": "Wiki",
   "tb.help.explain_tab": "Diesen Tab erklären",
   "tb.help.join_discord": "Discord beitreten",
   "tb.help.report_bug": "Fehler melden",

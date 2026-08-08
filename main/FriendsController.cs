@@ -2499,6 +2499,48 @@ public class FriendsController
         catch { return 0; }
     }
 
+    public void EnrichFromProfileCache(JObject target, string userId, bool preferLive)
+    {
+        if (target == null || string.IsNullOrEmpty(userId)) return;
+        UnifiedTimeEngine.UserProfileCache? c;
+        try { c = _core.TimeEngine.GetUserProfileCache(userId); }
+        catch { return; }
+        if (c == null) return;
+
+        void Str(string key, string value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            if (preferLive && !string.IsNullOrEmpty(target[key]?.ToString())) return;
+            target[key] = value;
+        }
+        void Arr(string key, string json)
+        {
+            JArray arr;
+            try { arr = JArray.Parse(json); } catch { return; }
+            if (arr.Count == 0) return;
+            if (preferLive && target[key] is JArray live && live.Count > 0) return;
+            target[key] = arr;
+        }
+
+        Str("displayName", c.DisplayName);
+        Str("image", c.Image);
+        Str("status", c.ProfileStatus);
+        Str("statusDescription", c.ProfileStatusDesc);
+        Str("bio", c.ProfileBio);
+        Str("pronouns", c.ProfilePronouns);
+        Str("lastLogin", c.ProfileLastLogin);
+        Str("lastActivity", c.ProfileLastActivity);
+        Str("dateJoined", c.ProfileDateJoined);
+        Str("platform", c.ProfileLastPlatform);
+        Arr("tags", c.ProfileTags);
+        Arr("bioLinks", c.ProfileBioLinks);
+
+        var mf = MutualFriendCount(c.MutualsJson);
+        var mg = JsonArrayCount(c.MutualGroupsJson);
+        if (mf > 0) target["mutualFriends"] = mf;
+        if (mg > 0) target["mutualGroups"] = mg;
+    }
+
     public void PushFriendFacts(string userId)
     {
         if (string.IsNullOrEmpty(userId)) return;

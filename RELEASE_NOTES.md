@@ -1,5 +1,8 @@
 **2026.41.0**
 
+**Wiki**
+* Added "Wiki" button to Taskbar > Help > Wiki
+
 **People Tab**
 * Added grid and list views to **Favorites** and **All Friends**.
 * The list view now shows more information, including Profile, Username, Trust Rank, Status, Language, Bio Links, Meets, Date Joined, Last Login, and more.

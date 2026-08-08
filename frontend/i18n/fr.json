@@ -2532,6 +2532,7 @@
   "pins.type.event": "Événement",
   "pins.type.feature": "Fonction",
   "tb.help.show_keybinds": "Afficher les raccourcis",
+  "tb.help.wiki": "Wiki",
   "tb.help.explain_tab": "Expliquer cet onglet",
   "tb.help.join_discord": "Rejoindre Discord",
   "tb.help.report_bug": "Signaler un bug",

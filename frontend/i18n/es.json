@@ -2532,6 +2532,7 @@
   "pins.type.event": "Evento",
   "pins.type.feature": "Función",
   "tb.help.show_keybinds": "Mostrar atajos",
+  "tb.help.wiki": "Wiki",
   "tb.help.explain_tab": "Explicar esta pestaña",
   "tb.help.join_discord": "Unirse a Discord",
   "tb.help.report_bug": "Reportar error",

@@ -2484,6 +2484,7 @@
   "pins.type.event": "Событие",
   "pins.type.feature": "Функция",
   "tb.help.show_keybinds": "Горячие клавиши",
+  "tb.help.wiki": "Вики",
   "tb.help.explain_tab": "Объяснение вкладок",
   "tb.help.join_discord": "Discord сервер",
   "tb.help.report_bug": "Сообщить об ошибке",

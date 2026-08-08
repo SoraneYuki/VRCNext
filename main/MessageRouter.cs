@@ -640,7 +640,11 @@ public partial class AppShell
                     {
                         var players = _core.Timeline.GetRecentSeenPlayers(64, _core.CurrentVrcUserId);
                         foreach (JObject p in players)
-                            p["image"] = ImageCacheHelper.GetUserUrl(p["id"]?.ToString(), p["image"]?.ToString());
+                        {
+                            var pid = p["id"]?.ToString() ?? "";
+                            _friends.EnrichFromProfileCache(p, pid, false);
+                            p["image"] = ImageCacheHelper.GetUserUrl(pid, p["image"]?.ToString());
+                        }
                         Invoke(() => SendToJS("recentSeenPlayers", new { players }));
                     });
                     break;
@@ -1342,11 +1346,16 @@ public partial class AppShell
                                      .SelectMany(u => new[] { u["iconFrame"]?.ToString(), u["nameplateEffect"]?.ToString(), u["profileEffect"]?.ToString() })
                                      .Where(x => !string.IsNullOrEmpty(x)).Distinct())
                             await _core.Inventory.ResolveDecorationAsync(did!);
-                        var list = res.Cast<JObject>().Select(u => new {
+                        var list = res.Cast<JObject>().Select(u => {
+                        var uEnrichId = u["id"]?.ToString() ?? "";
+                        var uObj = JObject.FromObject(new {
                             id = u["id"]?.ToString() ?? "", displayName = u["displayName"]?.ToString() ?? "",
                             image = ImageCacheHelper.GetUserUrl(u["id"]?.ToString(), VRChatApiService.GetUserImage(u)), status = u["status"]?.ToString() ?? "offline",
                             statusDescription = u["statusDescription"]?.ToString() ?? "", bio = u["bio"]?.ToString() ?? "",
                             isFriend = u["isFriend"]?.Value<bool>() ?? false,
+                            bioLinks = u["bioLinks"]?.ToObject<List<string>>() ?? new(),
+                            pronouns = u["pronouns"]?.ToString() ?? "",
+                            platform = u["last_platform"]?.ToString() ?? "",
                             location = u["location"]?.ToString() ?? "",
                             iconFrame = u["iconFrame"]?.ToString() ?? "",
                             iconFrameUrl = IconFrameHelper.UrlFor(u["iconFrame"]?.ToString(), _core.Inventory),
@@ -1354,6 +1363,9 @@ public partial class AppShell
                             nameplateUrl = IconFrameHelper.UrlFor(u["nameplateEffect"]?.ToString(), _core.Inventory),
                             profileEffect = u["profileEffect"]?.ToString() ?? "",
                             profileEffectUrl = IconFrameHelper.UrlFor(u["profileEffect"]?.ToString(), _core.Inventory),
+                        });
+                        _friends.EnrichFromProfileCache(uObj, uEnrichId, true);
+                        return uObj;
                         }).ToList();
                         Invoke(() => SendToJS("vrcSearchResults", new { type = "users", results = list, offset = uOff, hasMore = list.Count >= 20 }));
                     });

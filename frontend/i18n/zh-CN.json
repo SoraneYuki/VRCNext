@@ -2532,6 +2532,7 @@
   "pins.type.event": "活动",
   "pins.type.feature": "功能",
   "tb.help.show_keybinds": "显示快捷键",
+  "tb.help.wiki": "Wiki",
   "tb.help.explain_tab": "解释此标签页",
   "tb.help.join_discord": "加入 Discord",
   "tb.help.report_bug": "报告错误",

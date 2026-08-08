@@ -134,7 +134,7 @@ function formatLastSeen(apiLastLogin, localLastSeen) {
 
 // Trust rank from tags (offset by 1 in API naming)
 function getTrustRank(tags) {
-    if (!tags || !Array.isArray(tags)) return null;
+    if (!tags || !Array.isArray(tags) || tags.length === 0) return null;
     // Order matters: check highest first
     if (tags.includes('system_trust_legend')) return { label: t('profiles.trust.trusted', 'Trusted User'), color: 'var(--bdg-rank-trusted)', cls: 'rank-trusted' };
     if (tags.includes('system_trust_veteran')) return { label: t('profiles.trust.trusted', 'Trusted User'), color: 'var(--bdg-rank-trusted)', cls: 'rank-trusted' };
@@ -591,7 +591,7 @@ function buildPeopleListHtml(friends) {
             : `<span class="pl-av pl-av-letter">${esc((f.displayName || '?')[0].toUpperCase())}</span>`;
         const rank = getTrustRank(f.tags || []);
         const st = _peopleStatsMap[f.id];
-        const cat = _allFriendCategory(f);
+        const cat = f.presence ? _allFriendCategory(f) : '';
         const dotKind = f.presence === 'web' ? 'vrc-status-ring' : 'vrc-status-dot';
         const dotCls = cat === 'offline' ? 's-offline' : statusDotClass(f.status);
         const statusTxt = f.statusDescription || statusLabel(f.status);

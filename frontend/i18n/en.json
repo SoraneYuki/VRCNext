@@ -2588,6 +2588,7 @@
   "pins.type.event": "Event",
   "pins.type.feature": "Feature",
   "tb.help.show_keybinds": "Show Keybinds",
+  "tb.help.wiki": "Wiki",
   "tb.help.explain_tab": "Explain this Tab",
   "tb.help.join_discord": "Join Discord",
   "tb.help.report_bug": "Report Bug",

@@ -2531,6 +2531,7 @@
   "pins.type.event": "イベント",
   "pins.type.feature": "機能",
   "tb.help.show_keybinds": "キーバインドを表示",
+  "tb.help.wiki": "Wiki",
   "tb.help.explain_tab": "このタブを説明",
   "tb.help.join_discord": "Discordに参加",
   "tb.help.report_bug": "バグを報告",
