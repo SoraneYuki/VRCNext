@@ -627,7 +627,7 @@ public partial class AppShell
                 case "vrcGetVisitedWorlds":
                     _ = Task.Run(async () =>
                     {
-                        var ids = _core.Timeline.GetRecentVisitedWorldIds(32);
+                        var ids = _core.Timeline.GetRecentVisitedWorldIds(100);
                         var worlds = await _core.World.GetWorldsByIdsAsync(ids);
                         foreach (JObject w in worlds.OfType<JObject>())
                         {
@@ -646,7 +646,7 @@ public partial class AppShell
                 case "vrcGetRecentSeen":
                     _ = Task.Run(() =>
                     {
-                        var players = _core.Timeline.GetRecentSeenPlayers(64, _core.CurrentVrcUserId);
+                        var players = _core.Timeline.GetRecentSeenPlayers(100, _core.CurrentVrcUserId);
                         foreach (JObject p in players)
                         {
                             var pid = p["id"]?.ToString() ?? "";
@@ -660,14 +660,22 @@ public partial class AppShell
                 case "vrcGetRecentAvatars":
                     _ = Task.Run(async () =>
                     {
-                        var minimal = _core.Timeline.GetRecentUsedAvatars(32);
+                        var minimal = _core.Timeline.GetRecentUsedAvatars(100);
                         var resolved = await Task.WhenAll(minimal.Select(async m =>
                         {
                             var id = m["id"]?.ToString() ?? "";
-                            JObject? full = null;
-                            try { full = await _core.Avatars.GetAvatarAsync(id); } catch { }
-                            if (full != null) CacheAvatarDetailFrom(full);
-                            var a = full ?? m;
+                            JObject a;
+                            if (_core.TimeEngine.GetAvatarDetail(id) != null)
+                            {
+                                a = m;
+                            }
+                            else
+                            {
+                                JObject? full = null;
+                                try { full = await _core.Avatars.GetAvatarAsync(id); } catch { }
+                                if (full != null) CacheAvatarDetailFrom(full);
+                                a = full ?? m;
+                            }
                             EnrichAvatarFromCache(a, id);
                             var img = a["thumbnailImageUrl"]?.ToString() ?? a["imageUrl"]?.ToString() ?? m["thumbnailImageUrl"]?.ToString();
                             a["thumbnailImageUrl"] = ImageCacheHelper.GetAvatarUrl(id, img);

@@ -6,7 +6,6 @@
 * Enhanced instance view shows: timer, joined, display name, presence, rank, status, 18+, platform, pronouns, meets, time spent, date joined, last seen, language and more.
 * Allowing sorting for cells in list modal.
 
-
 **VRChat Config**
 * Added "Save" Prints players.
 * Added **Custom Cache Folder Location** with a folder picker.
@@ -38,6 +37,9 @@
 **Improvements**
 * Avatar, World, People, Groups, Inventory, Media Library, and several other tabs now have a fixed navigation card that no longer scrolls with the content, making navigation easier at the cost of a small amount of screen space.
 * When clicking an avatar it wont immedically use that avatar anymore. instead an modal opens that ask you if you really want to use this avatar or if you want to open the avatar informations modal.
+* Recently visited world limit set to 100. for more check timeline.
+* Recently used avatars limit set to 100. for more check timeline.
+* Recently seen users limit set to 100. for more check timeline.
 
 **Removed**
 * Removed Favorite title on World Tab
