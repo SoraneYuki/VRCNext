@@ -2213,6 +2213,8 @@ public class AuthController
             "ja" => "ja",
             "zh-cn" => "zh-CN",
             "zh_cn" => "zh-CN",
+            "zh-tw" => "zh-TW",
+            "zh_tw" => "zh-TW",
             "ru"    => "ru",
             _ => "en"
         };
