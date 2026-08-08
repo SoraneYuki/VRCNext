@@ -666,6 +666,7 @@ public partial class AppShell
                             var id = m["id"]?.ToString() ?? "";
                             JObject? full = null;
                             try { full = await _core.Avatars.GetAvatarAsync(id); } catch { }
+                            if (full != null) CacheAvatarDetailFrom(full);
                             var a = full ?? m;
                             EnrichAvatarFromCache(a, id);
                             var img = a["thumbnailImageUrl"]?.ToString() ?? a["imageUrl"]?.ToString() ?? m["thumbnailImageUrl"]?.ToString();
@@ -3732,14 +3733,65 @@ public partial class AppShell
         Str("updated_at", c.UpdatedAt);
         if (a["tags"] == null && c.Tags.Count > 0) a["tags"] = JArray.FromObject(c.Tags);
 
-        if (a["performance"] == null && a["unityPackages"] == null)
+        var live = a["performance"] as JObject;
+        var pkgs = (a["unityPackages"] as JArray)?.OfType<JObject>()
+            .Where(p => p["variant"]?.ToString() != "impostor").ToList() ?? new List<JObject>();
+
+        string FromPkg(string platform) => pkgs
+            .FirstOrDefault(p => p["platform"]?.ToString() == platform)?["performanceRating"]?.ToString() ?? "";
+
+        string Pick(string liveKey, string platform, string cached)
         {
-            a["performance"] = new JObject
-            {
-                ["pc"]    = c.PcPerf ?? "",
-                ["quest"] = c.QuestPerf ?? "",
-                ["ios"]   = c.IosPerf ?? "",
-            };
+            var v = live?[liveKey]?.ToString() ?? "";
+            if (v.Length == 0) v = FromPkg(platform);
+            if (v.Length == 0) v = cached ?? "";
+            return v;
         }
+
+        var pcPerf    = Pick("pc",    "standalonewindows", c.PcPerf);
+        var questPerf = Pick("quest", "android",           c.QuestPerf);
+        var iosPerf   = Pick("ios",   "ios",               c.IosPerf);
+
+        if (pcPerf.Length > 0 || questPerf.Length > 0 || iosPerf.Length > 0)
+            a["performance"] = new JObject { ["pc"] = pcPerf, ["quest"] = questPerf, ["ios"] = iosPerf };
+    }
+
+    private void CacheAvatarDetailFrom(JObject avatar)
+    {
+        try
+        {
+            var id = avatar["id"]?.ToString() ?? "";
+            if (string.IsNullOrEmpty(id)) return;
+            var packages = (avatar["unityPackages"] as JArray)?.OfType<JObject>().ToList() ?? new List<JObject>();
+            if (packages.Count == 0) return;
+            var realPkgs = packages.Where(p => p["variant"]?.ToString() != "impostor").ToList();
+            var hasPC    = realPkgs.Any(p => p["platform"]?.ToString() == "standalonewindows");
+            var hasQuest = realPkgs.Any(p => p["platform"]?.ToString() == "android");
+            var hasIos   = realPkgs.Any(p => p["platform"]?.ToString() == "ios");
+            var hasImpostor = packages.Any(p => p["variant"]?.ToString() == "impostor");
+            var pcPerf    = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "standalonewindows")?["performanceRating"]?.ToString() ?? "";
+            var questPerf = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "android")?["performanceRating"]?.ToString() ?? "";
+            var iosPerf   = realPkgs.FirstOrDefault(p => p["platform"]?.ToString() == "ios")?["performanceRating"]?.ToString() ?? "";
+            var perf = avatar["performance"] as JObject;
+            if (string.IsNullOrEmpty(pcPerf))    pcPerf    = perf?["standalonewindows"]?.ToString() ?? "";
+            if (string.IsNullOrEmpty(questPerf)) questPerf = perf?["android"]?.ToString() ?? "";
+            if (string.IsNullOrEmpty(iosPerf))   iosPerf   = perf?["ios"]?.ToString() ?? "";
+            if (pcPerf.Length == 0 && questPerf.Length == 0 && iosPerf.Length == 0) return;
+            _core.TimeEngine.SaveAvatarDetail(
+                id,
+                avatar["name"]?.ToString() ?? "",
+                avatar["authorName"]?.ToString() ?? "",
+                avatar["authorId"]?.ToString() ?? "",
+                avatar["thumbnailImageUrl"]?.ToString() ?? "",
+                avatar["imageUrl"]?.ToString() ?? "",
+                avatar["releaseStatus"]?.ToString() ?? "",
+                avatar["version"]?.Value<int>() ?? 0,
+                avatar["created_at"]?.ToString() ?? "",
+                avatar["updated_at"]?.ToString() ?? "",
+                avatar["description"]?.ToString() ?? "",
+                avatar["tags"]?.ToObject<List<string>>() ?? new(),
+                hasPC, hasQuest, hasImpostor, pcPerf, questPerf, hasIos, iosPerf);
+        }
+        catch { }
     }
 }
