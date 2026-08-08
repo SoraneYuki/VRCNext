@@ -682,6 +682,8 @@ public class AuthController
         try
         {
             using var client = new HttpClient();
+            client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+            client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
             client.Timeout = TimeSpan.FromSeconds(15);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
             var resp = await client.GetAsync($"https://api.github.com/repos/shinyflvre/VRCNext/releases/tags/v{AppInfo.Version}");
@@ -1595,6 +1597,8 @@ public class AuthController
         var cookies = new CookieContainer();
         var handler = new HttpClientHandler { CookieContainer = cookies, UseCookies = true };
         var http = new HttpClient(handler);
+        http.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        http.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
         _pendingAddAccount = new PendingAddAccount { Http = http, Cookies = cookies, Username = username, Password = password };
 

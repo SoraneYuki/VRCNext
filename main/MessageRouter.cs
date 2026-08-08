@@ -214,6 +214,8 @@ public partial class AppShell
         try
         {
             using var client = new HttpClient();
+            client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+            client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
             client.Timeout = TimeSpan.FromSeconds(15);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
             var userId = _vrcApi.CurrentUserId;
@@ -302,6 +304,8 @@ public partial class AppShell
         try
         {
             using var client = new HttpClient();
+            client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+            client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
             client.Timeout = TimeSpan.FromSeconds(15);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
             var payload = avatarIds.Select(id => new { id }).ToArray();
@@ -393,6 +397,8 @@ public partial class AppShell
         try
         {
             using var client = new HttpClient();
+            client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+            client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
             client.Timeout = TimeSpan.FromSeconds(15);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
             var userId = _vrcApi.CurrentUserId;

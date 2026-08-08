@@ -39,6 +39,8 @@ public class UpdateService
         try
         {
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+            http.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+            http.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
             http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
             var body = await http.GetStringAsync(ApiLatest);
             var json = Newtonsoft.Json.Linq.JObject.Parse(body);

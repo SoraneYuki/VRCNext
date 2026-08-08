@@ -161,6 +161,8 @@ public class AvatarsAPI(VRChatApiService ctx)
     {
         var url = $"https://api.avtrdb.com/v2/avatar/search?query={Uri.EscapeDataString(query)}&limit={n}&page={page}";
         using var client = new HttpClient();
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         client.Timeout = TimeSpan.FromSeconds(15);
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
@@ -183,6 +185,8 @@ public class AvatarsAPI(VRChatApiService ctx)
     {
         var url = $"https://avtr.icu/search?search={Uri.EscapeDataString(query)}&limit={n}&offset={offset}";
         using var client = new HttpClient();
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         client.Timeout = TimeSpan.FromSeconds(15);
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
@@ -220,6 +224,8 @@ public class AvatarsAPI(VRChatApiService ctx)
 
         var url = "https://db.vrcnext.com/api/search.php?" + string.Join("&", qs);
         using var client = new HttpClient();
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         client.Timeout = TimeSpan.FromSeconds(15);
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
@@ -242,6 +248,8 @@ public class AvatarsAPI(VRChatApiService ctx)
     {
         var url = $"https://db.vrcnext.com/api/avatar.php?id={Uri.EscapeDataString(avatarId)}";
         using var client = new HttpClient();
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         client.Timeout = TimeSpan.FromSeconds(15);
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
@@ -263,6 +271,8 @@ public class AvatarsAPI(VRChatApiService ctx)
     {
         var url = $"https://avtr.icu/similar/{Uri.EscapeDataString(avatarId)}?limit={n}";
         using var client = new HttpClient();
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         client.Timeout = TimeSpan.FromSeconds(15);
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
@@ -285,6 +295,8 @@ public class AvatarsAPI(VRChatApiService ctx)
         var all = new JArray();
         var seen = new HashSet<string>();
         using var client = new HttpClient();
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         client.Timeout = TimeSpan.FromSeconds(15);
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
@@ -327,6 +339,8 @@ public class AvatarsAPI(VRChatApiService ctx)
     {
         var url = $"https://api.avtrdb.com/v3/avatar/search/vrcx?fileId={Uri.EscapeDataString(fileId)}";
         using var client = new HttpClient();
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         client.Timeout = TimeSpan.FromSeconds(15);
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
         client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", $"https://{AppInfo.Website}");
@@ -477,6 +491,8 @@ public class AvatarsAPI(VRChatApiService ctx)
             {
                 fileContent.Headers.Add("Content-MD5", md5Base64);
                 using var s3Client = new HttpClient();
+                s3Client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+                s3Client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
                 s3Client.Timeout = TimeSpan.FromSeconds(120);
                 cdnResp = await s3Client.PutAsync(uploadUrl, fileContent);
             }
