@@ -277,9 +277,20 @@ function onPeopleStatsData(payload) {
     });
     _peopleStatsMax = max;
     _peopleStatsLoaded = true;
+    _plStatsPending = false;
     if (window._peopleStatsMode) applyPeopleStatsBars();
     if (typeof window._fpOnStatsLoaded === 'function') window._fpOnStatsLoaded();
+    const tab = document.getElementById('tab3');
+    if (tab && tab.classList.contains('active') && _peopleListMode()) renderPeopleListView();
 }
+
+function _plEnsureStats() {
+    if (_peopleStatsLoaded || _plStatsPending) return;
+    _plStatsPending = true;
+    sendToCS({ action: 'vrcGetPeopleStats' });
+}
+
+let _plStatsPending = false;
 
 window.getPeopleStat = function (userId) { return _peopleStatsMap[userId] || null; };
 window.requestPeopleStats = function () { if (!_peopleStatsLoaded) sendToCS({ action: 'vrcGetPeopleStats' }); };
@@ -365,6 +376,7 @@ function patchFriendProfileFacts(u) {
 }
 
 function refreshPeopleTab(force) {
+    if (force) { _peopleStatsLoaded = false; _plStatsPending = false; _plEnsureStats(); }
     if (typeof applyPeopleAlwaysStats === 'function') applyPeopleAlwaysStats();
     if (peopleFilter === 'favorites')  sendToCS({ action: 'vrcGetFavoriteFriends' });
     if (peopleFilter === 'all') {
@@ -582,6 +594,7 @@ function _plSort(list) {
 }
 
 function buildPeopleListHtml(friends) {
+    _plEnsureStats();
     let rows = '';
     friends.forEach(f => {
         const uid = jsq(f.id || '');
