@@ -57,26 +57,10 @@
                 </div>
                 <div id="worldFavArea">
                     <div class="tab-toolbar-body">
-                    <!-- Category label + inline rename -->
-                    <div id="favWorldGroupHeader" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;min-height:24px;">
-                        <span id="favWorldGroupLabel" style="font-size:calc(13px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);" data-i18n="worlds.favorites.group.all">All Favorites</span>
+                    <div id="favWorldGroupHeader" style="display:none;align-items:center;gap:6px;margin-bottom:10px;">
                         <span id="favWorldGroupVrcPlusBadge" class="vrcn-supporter-badge" style="display:none;">VRC+</span>
                         <span id="favWorldGroupLocalBadge" class="vrcn-local-badge" style="display:none;" data-i18n="favorites.local_badge">Local</span>
-                        <button id="favWorldGroupEditBtn" class="myp-edit-btn" onclick="startEditWorldGroupName()" style="display:none;" title="Rename category" data-i18n-title="worlds.favorites.rename_category"><span class="msi" style="font-size:14px;">edit</span></button>
                         <button id="favWorldGroupDeleteBtn" class="myp-edit-btn" onclick="deleteCurrentLocalWorldGroup(this)" style="display:none;" title="Delete local group" data-i18n-title="favorites.delete_local_group"><span class="msi" style="font-size:14px;">delete</span></button>
-                        <span id="favWorldGroupVisLabel" style="display:none;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);font-weight:400;"></span>
-                        <div id="favWorldGroupVisDropWrap" style="display:none;">
-                            <select id="favWorldGroupVisDrop" class="vrcn-dropdown" onchange="saveFavGroupVisibility(this.value)" style="min-width:160px;">
-                                <option value="public" data-i18n="worlds.favorites.visibility.public">Visible for everyone</option>
-                                <option value="friends" data-i18n="worlds.favorites.visibility.friends">Visible for friends</option>
-                                <option value="private" data-i18n="worlds.favorites.visibility.private">Visible only to you</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="favWorldGroupRenameRow" style="display:none;align-items:center;gap:6px;margin-bottom:10px;">
-                        <input type="text" id="favWorldGroupNameInput" class="vrcn-edit-field" maxlength="64" style="flex:1;max-width:280px;">
-                        <button class="vrcn-button vrcn-btn-primary" onclick="saveWorldGroupName()" data-i18n="common.save">Save</button>
-                        <button class="vrcn-button" onclick="cancelEditWorldGroupName()" data-i18n="common.cancel">Cancel</button>
                     </div>
                     <!-- Dropdown + search -->
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">

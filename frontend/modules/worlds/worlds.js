@@ -238,50 +238,30 @@ function renderFavWorlds(payload) {
 
 function setFavWorldGroup(val) {
     favWorldGroupFilter = val;
-    cancelEditWorldGroupName();
     updateFavWorldGroupHeader();
     filterFavWorlds();
 }
 
 function updateFavWorldGroupHeader() {
-    const label = document.getElementById('favWorldGroupLabel');
-    const editBtn = document.getElementById('favWorldGroupEditBtn');
+    const header = document.getElementById('favWorldGroupHeader');
     const delBtn = document.getElementById('favWorldGroupDeleteBtn');
     const badge = document.getElementById('favWorldGroupVrcPlusBadge');
     const localBadge = document.getElementById('favWorldGroupLocalBadge');
-    const visEl = document.getElementById('favWorldGroupVisLabel');
-    const visDropWrap = document.getElementById('favWorldGroupVisDropWrap');
-    const visDrop = document.getElementById('favWorldGroupVisDrop');
-    if (!label) return;
+    if (!header) return;
     if (!favWorldGroupFilter) {
-        label.textContent = t('worlds.favorites.group.all', 'All Favorites');
-        if (editBtn) editBtn.style.display = 'none';
         if (delBtn) delBtn.style.display = 'none';
         if (badge) badge.style.display = 'none';
         if (localBadge) localBadge.style.display = 'none';
-        if (visEl) visEl.style.display = 'none';
-        if (visDropWrap) visDropWrap.style.display = 'none';
     } else {
         const g = favWorldGroups.find(x => x.name === favWorldGroupFilter);
         const isLocal = isLocalFavGroup(g);
-        label.textContent = g ? (g.displayName || g.name) : favWorldGroupFilter;
-        if (editBtn) editBtn.style.display = '';
         if (delBtn) delBtn.style.display = isLocal ? '' : 'none';
         if (badge) badge.style.display = (g?.type === 'vrcPlusWorld') ? '' : 'none';
         if (localBadge) localBadge.style.display = isLocal ? '' : 'none';
-        if (visEl) {
-            visEl.textContent = g ? _favGroupVisLabel(g.visibility) : '';
-            visEl.style.display = (_worldEditMode || !g || isLocal) ? 'none' : '';
-        }
-        if (visDropWrap) {
-            const showDrop = _worldEditMode && !!g && !isLocal;
-            visDropWrap.style.display = showDrop ? '' : 'none';
-            if (showDrop && visDrop) {
-                visDrop.value = g.visibility || 'private';
-                if (visDrop._vnRefresh) visDrop._vnRefresh();
-            }
-        }
     }
+    const anyVisible = [delBtn, badge, localBadge]
+        .some(el => el && el.style.display !== 'none');
+    header.style.display = anyVisible ? 'flex' : 'none';
 }
 
 function _favGroupVisLabel(vis) {
@@ -309,38 +289,8 @@ function saveFavGroupVisibility(visibility, groupName) {
     sendToCS({ action: 'vrcUpdateFavoriteGroup', groupType: g.type, groupName: g.name, displayName: g.displayName || g.name, visibility });
 }
 
-function startEditWorldGroupName() {
-    const g = favWorldGroups.find(x => x.name === favWorldGroupFilter);
-    if (!g) return;
-    const input = document.getElementById('favWorldGroupNameInput');
-    if (input) input.value = g.displayName || g.name;
-    document.getElementById('favWorldGroupHeader').style.display = 'none';
-    const row = document.getElementById('favWorldGroupRenameRow');
-    if (row) { row.style.display = 'flex'; }
-    if (input) input.focus();
-}
-
-function cancelEditWorldGroupName() {
-    document.getElementById('favWorldGroupHeader').style.display = 'flex';
-    const row = document.getElementById('favWorldGroupRenameRow');
-    if (row) row.style.display = 'none';
-    const saveBtn = document.querySelector('#favWorldGroupRenameRow .vrcn-btn-primary');
-    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = t('common.save', 'Save'); }
-}
-
-function saveWorldGroupName() {
-    const g = favWorldGroups.find(x => x.name === favWorldGroupFilter);
-    if (!g) return;
-    const input = document.getElementById('favWorldGroupNameInput');
-    const newName = (input?.value || '').trim();
-    if (!newName) return;
-    const saveBtn = document.querySelector('#favWorldGroupRenameRow .vrcn-btn-primary');
-    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = t('common.saving', 'Saving...'); }
-    sendToCS({ action: 'vrcUpdateFavoriteGroup', groupType: g.type, groupName: g.name, displayName: newName });
-}
-
 function onFavoriteGroupUpdated(data) {
-    if (!data.ok) { if (_worldEditMode) filterFavWorlds(); else cancelEditWorldGroupName(); return; }
+    if (!data.ok) { if (_worldEditMode) filterFavWorlds(); return; }
     const g = favWorldGroups.find(x => x.name === data.groupName);
     if (g) {
         if (data.displayName) g.displayName = data.displayName;
@@ -352,9 +302,22 @@ function onFavoriteGroupUpdated(data) {
         const opt = [...sel.options].find(o => o.value === data.groupName);
         if (opt && g) opt.textContent = _wdGroupOptionLabel(g);
     }
-    cancelEditWorldGroupName();
     updateFavWorldGroupHeader();
     filterFavWorlds(); // re-render headers with updated visibility
+}
+
+function _wdGroupHeaderHtml(g, count, first) {
+    const isLocal = isLocalFavGroup(g);
+    const cap = isLocal ? (g.capacity || 200) : Math.max(g.capacity || 100, 100);
+    const visHtml = (!isLocal && _worldEditMode)
+        ? _favGroupVisDropdown(g.name, g.type, g.visibility)
+        : '';
+    return `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
+        ${_wdGroupTitleHtml(g)}
+        ${favGroupBadge(g)}
+        <span class="fav-group-count">${count}/${cap}</span>
+        ${visHtml}
+    </div>`;
 }
 
 function _wdGroupTitleHtml(g) {
@@ -461,28 +424,19 @@ function filterFavWorlds() {
         favWorldGroups.forEach(g => {
             const groupWorlds = filtered.filter(w => w.favoriteGroup === g.name);
             if (!groupWorlds.length && !_worldEditMode) return;
-            const isLocal = isLocalFavGroup(g);
-            const cap = isLocal ? (g.capacity || 200) : Math.max(g.capacity || 100, 100);
-            const badge = favGroupBadge(g);
-            const visLabel = _favGroupVisLabel(g.visibility);
-            const visHtml = isLocal
-                ? ''
-                : (_worldEditMode
-                    ? _favGroupVisDropdown(g.name, g.type, g.visibility)
-                    : `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);font-weight:400;">${esc(visLabel)}</span>`);
-            html += `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
-                ${_wdGroupTitleHtml(g)}
-                ${badge}
-                <span class="fav-group-count">${groupWorlds.length}/${cap}</span>
-                ${visHtml}
-            </div>`;
+            html += _wdGroupHeaderHtml(g, groupWorlds.length, first);
             html += groupWorlds.map(w => renderWorldCard(w)).join('');
             first = false;
         });
         el.innerHTML = html;
         el.querySelectorAll('select.vrcn-dropdown').forEach(initVnSelect);
     } else {
-        el.innerHTML = filtered.map(w => renderWorldCard(w)).join('');
+        const selected = favWorldGroupFilter
+            ? favWorldGroups.find(x => x.name === favWorldGroupFilter)
+            : null;
+        const head = selected ? _wdGroupHeaderHtml(selected, filtered.length, true) : '';
+        el.innerHTML = head + filtered.map(w => renderWorldCard(w)).join('');
+        if (head) el.querySelectorAll('select.vrcn-dropdown').forEach(initVnSelect);
     }
     if (_worldEditMode) updateWorldEditBar();
 }

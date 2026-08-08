@@ -23,6 +23,10 @@
 * Avatar, World, People, Groups, Inventory, Media Library, and several other tabs now have a fixed navigation card that no longer scrolls with the content, making navigation easier at the cost of a small amount of screen space.
 * When clicking an avatar it wont immedically use that avatar anymore. instead an modal opens that ask you if you really want to use this avatar or if you want to open the avatar informations modal.
 
+**Removed**
+* Removed Favorite title on World Tab
+* Removed Edit Group name since we have the edit mode now.
+
 **i18n**
 * Added missing loc. keys for various ui elements.
 * Added missing translation for the new sidebar.

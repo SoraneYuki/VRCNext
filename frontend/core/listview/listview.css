@@ -117,11 +117,10 @@
 }
 #tab13.active > .tab-toolbar,
 #tab13.active > .inv-topbar { flex-shrink: 0; }
-#tab13.active #invGrid {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-    align-content: start;
+.lv-tab-scroll > .inv-grid {
+    flex: none;
+    overflow: visible;
+    height: auto;
 }
 #tab17.active #calInner {
     flex: 1;
