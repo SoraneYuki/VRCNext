@@ -1963,6 +1963,8 @@ public class AuthController
             _core.Settings.VroTtsDevice = data["vroTtsDevice"]?.Value<int>() ?? -1;
             _core.Settings.VroTtsVoice  = data["vroTtsVoice"]?.ToString() ?? "";
             _core.Settings.VroTtsEngine = data["vroTtsEngine"]?.ToString() ?? "sapi";
+            _core.Settings.VroTtsLang   = data["vroTtsLang"]?.ToString() ?? "";
+            _core.Settings.VroTtsGender = data["vroTtsGender"]?.ToString() ?? "";
             _core.Settings.FontSizeOffset = Math.Clamp(data["fontSizeOffset"]?.Value<int>() ?? 0, -5, 5);
             var activeCustomThemes = data["activeCustomThemes"]?.ToObject<List<string>>();
             if (activeCustomThemes != null) _core.Settings.ActiveCustomThemes = activeCustomThemes;

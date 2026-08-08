@@ -1,4 +1,7 @@
-**2026.41.0**
+**2026.41.1**
+
+**HOTFIX**
+* Fixed an bug where TTS settings are not saved/loaded properly in VR Overlay.
 
 **Live Instance List**
 * This is already a thing when you look at the friends sidebar or click the world modal it shows all player slive. However alot of you did use VRCX before so theres a new tab in People > Instance which shows all players with additional filters live.

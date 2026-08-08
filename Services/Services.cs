@@ -521,6 +521,8 @@ public class AppSettings
     public int        VroTtsDevice         { get; set; } = -1;
     public string     VroTtsVoice          { get; set; } = "";
     public string     VroTtsEngine         { get; set; } = "sapi";
+    public string     VroTtsLang           { get; set; } = "";
+    public string     VroTtsGender         { get; set; } = "";
 
     // VR Dashboard — Water Reminder
     public bool VroWaterEnabled { get; set; } = false;

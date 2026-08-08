@@ -241,9 +241,11 @@ function saveSettings() {
             vroToastTtsGroupInv:     !!document.getElementById('vroToastGroupInvTts')?.checked,
             vroToastTtsJoined:       !!document.getElementById('vroToastJoinedTts')?.checked,
             vroToastJoined:          !!document.getElementById('vroToastJoined')?.checked,
-            vroTtsDevice:       parseInt(document.getElementById('vroTtsDevice')?.value ?? '-1', 10) || -1,
+            vroTtsDevice:       _vroParseDevice(document.getElementById('vroTtsDevice')?.value),
             vroTtsVoice:        document.getElementById('vroTtsVoice')?.value || '',
             vroTtsEngine:       document.getElementById('vroTtsEngine')?.value || 'sapi',
+            vroTtsLang:         document.getElementById('vroTtsLang')?.value || '',
+            vroTtsGender:       document.getElementById('vroTtsGender')?.value || '',
             vroToastOffline:    !!document.getElementById('vroToastOffline')?.checked,
             vroToastGps:        !!document.getElementById('vroToastGps')?.checked,
             vroToastStatus:     !!document.getElementById('vroToastStatus')?.checked,
@@ -374,6 +376,11 @@ function updateSquareFrameToggle() {
     el.disabled = !(typeof settings !== 'undefined' && settings.enableProfileIconFrames);
     const row = el.closest('.sf-toggle-row');
     if (row) row.style.opacity = el.disabled ? '.45' : '';
+}
+
+function _vroParseDevice(v) {
+    const n = parseInt(v ?? '-1', 10);
+    return Number.isNaN(n) ? -1 : n;
 }
 
 function loadSettingsToUI(s) {
@@ -710,6 +717,8 @@ function loadSettingsToUI(s) {
         vroTtsDevice:       s.VroTtsDevice       ?? s.vroTtsDevice       ?? -1,
         vroTtsVoice:        s.VroTtsVoice        ?? s.vroTtsVoice        ?? '',
         vroTtsEngine:       s.VroTtsEngine       ?? s.vroTtsEngine       ?? 'sapi',
+        vroTtsLang:         s.VroTtsLang         ?? s.vroTtsLang         ?? '',
+        vroTtsGender:       s.VroTtsGender       ?? s.vroTtsGender       ?? '',
         vroWaterEnabled:    s.VroWaterEnabled    ?? s.vroWaterEnabled    ?? false,
         vroWaterHours:      s.VroWaterHours      ?? s.vroWaterHours      ?? 1,
         vroWaterMinutes:    s.VroWaterMinutes    ?? s.vroWaterMinutes    ?? 0,

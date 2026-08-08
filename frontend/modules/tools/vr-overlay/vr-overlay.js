@@ -385,6 +385,8 @@ function vroToastUpdateLabel(id) {
 
 let _vroTtsVoices = [];
 
+let _vroTtsWanted = null;
+
 function vroTtsEngineChanged() {
     const eng = document.getElementById('vroTtsEngine')?.value || 'sapi';
     const voiceSel = document.getElementById('vroTtsVoice');
@@ -392,6 +394,15 @@ function vroTtsEngineChanged() {
         voiceSel.innerHTML = `<option value="">${esc(t('tts.loading', 'Loading voices...'))}</option>`;
         if (voiceSel._vnRefresh) voiceSel._vnRefresh();
     }
+    const devSel = document.getElementById('vroTtsDevice');
+    _vroTtsWanted = {
+        device: devSel ? parseInt(devSel.value ?? '-1', 10) : -1,
+        engine: eng,
+        voice: '',
+        lang: '',
+        gender: '',
+    };
+    if (Number.isNaN(_vroTtsWanted.device)) _vroTtsWanted.device = -1;
     sendToCS({ action: 'getTtsDevices', target: 'vro', engine: eng });
     vroToastAutoSave();
 }
@@ -425,23 +436,40 @@ function vroPopulateTtsDevices(p) {
         if (typeof kxdTtsHandleDevices === 'function') kxdTtsHandleDevices(p);
         return;
     }
+
+    // Snapshot taken when the request was sent — the reply is async and the global
+    // settings object may not be populated yet on a cold start.
+    const want = _vroTtsWanted || {};
+    const wantDevice = want.device ?? settings?.vroTtsDevice ?? -1;
+    const wantVoice  = want.voice  ?? settings?.vroTtsVoice  ?? '';
+    const wantEngine = want.engine ?? settings?.vroTtsEngine ?? 'sapi';
+    const wantLang   = want.lang   ?? settings?.vroTtsLang   ?? '';
+    const wantGender = want.gender ?? settings?.vroTtsGender ?? '';
+
     const devSel = document.getElementById('vroTtsDevice');
     if (devSel && p.devices) {
         let html = `<option value="-1">${esc(t('vro.notifications.tts_device_default', 'System default'))}</option>`;
         p.devices.forEach((name, i) => { html += `<option value="${i}">${esc(name)}</option>`; });
         devSel.innerHTML = html;
-        devSel.value = String(settings?.vroTtsDevice ?? -1);
+        devSel.value = String(wantDevice);
         if (devSel.selectedIndex < 0) devSel.value = '-1';
         if (devSel._vnRefresh) devSel._vnRefresh();
     }
     const engSel = document.getElementById('vroTtsEngine');
     if (engSel && !p.engine) {
-        engSel.value = settings?.vroTtsEngine || 'sapi';
+        engSel.value = wantEngine || 'sapi';
         if (engSel._vnRefresh) engSel._vnRefresh();
     }
+
+    const langSel = document.getElementById('vroTtsLang');
+    const genSel  = document.getElementById('vroTtsGender');
+    if (langSel && wantLang) langSel.dataset.pick = wantLang;
+    if (genSel  && wantGender) genSel.dataset.pick = wantGender;
+
     _vroTtsVoices = p.voices || [];
-    ttsBuildCascade('vro', _vroTtsVoices, settings?.vroTtsVoice || '',
+    ttsBuildCascade('vro', _vroTtsVoices, wantVoice,
                     t('vro.notifications.tts_voice_default', 'Default voice'));
+    _vroTtsWanted = null;
 }
 
 function vroTtsFilterChanged() {
@@ -451,6 +479,7 @@ function vroTtsFilterChanged() {
     if (gen)  gen.dataset.pick  = gen.value;
     ttsBuildCascade('vro', _vroTtsVoices, '', t('vro.notifications.tts_voice_default', 'Default voice'));
     vroToastAutoSave();
+    saveSettings();
 }
 
 function vroToastAutoSave() {
@@ -892,6 +921,13 @@ function vroLoadSettings(s) {
 
     const vroEngEl = document.getElementById('vroTtsEngine');
     if (vroEngEl) { vroEngEl.value = s.vroTtsEngine || 'sapi'; if (vroEngEl._vnRefresh) vroEngEl._vnRefresh(); }
+    _vroTtsWanted = {
+        device: Number.isNaN(parseInt(s.vroTtsDevice, 10)) ? -1 : parseInt(s.vroTtsDevice, 10),
+        engine: s.vroTtsEngine || 'sapi',
+        voice: s.vroTtsVoice || '',
+        lang: s.vroTtsLang || '',
+        gender: s.vroTtsGender || '',
+    };
     sendToCS({ action: 'getTtsDevices', target: 'vro', engine: s.vroTtsEngine || 'sapi' });
 
     const toastSizeEl = document.getElementById('vroToastSize');
