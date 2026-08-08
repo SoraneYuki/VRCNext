@@ -48,8 +48,6 @@ const TL_TABLE_DEFS = {
         { id: 'language', key: 'instance.table.language',         fallback: 'Language',     width: '110px', sort: 'language' },
         { id: 'biolinks', key: 'people.list.header.bio_links',    fallback: 'Bio Links',    width: '100px', sort: 'biolinks' },
         { id: 'pronouns', key: 'people.list.header.pronouns',     fallback: 'Pronouns',     width: '120px', sort: 'pronouns' },
-        { id: 'mutualfriends', key: 'people.list.header.mutual_friends', fallback: 'Mutual Friends', width: '140px', sort: 'mutualfriends' },
-        { id: 'mutualgroups',  key: 'people.list.header.mutual_groups',  fallback: 'Mutual Groups',  width: '140px', sort: 'mutualgroups' },
         { id: 'meets',    key: 'people.list.header.meets',        fallback: 'Meets',        width: '80px',  sort: 'meets' },
         { id: 'timespent', key: 'people.list.header.time_spent',  fallback: 'Time Spent',   width: '110px', sort: 'timespent' },
         { id: 'joineddate', key: 'people.list.header.date_joined', fallback: 'Date Joined', width: '120px', sort: 'joineddate' },

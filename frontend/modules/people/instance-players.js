@@ -45,8 +45,6 @@ function _ipValue(u, field) {
         case 'language': return ((f?.tags || u.tags || []).find(x => x.startsWith('language_')) || '');
         case 'biolinks': return (Array.isArray(u.bioLinks) ? u.bioLinks.filter(Boolean).length : 0);
         case 'pronouns': return (u.pronouns || f?.pronouns || '').toLowerCase();
-        case 'mutualfriends': return u.mutualFriends || 0;
-        case 'mutualgroups':  return u.mutualGroups || 0;
         case 'meets':     return (_peopleStatsMap[u.id]?.meets) || 0;
         case 'timespent': return (_peopleStatsMap[u.id]?.seconds) || 0;
         case 'joineddate': return u.dateJoined || '';
@@ -105,8 +103,6 @@ function buildInstancePlayersHtml(users, iStart, iTotal, now) {
             language: `<td class="pl-langs">${langs}</td>`,
             biolinks: `<td class="pl-bios">${_plBioLinksCell(u)}</td>`,
             pronouns: `<td class="lv-sub">${esc(u.pronouns || f?.pronouns || '')}</td>`,
-            mutualfriends: `<td class="pl-num">${u.mutualFriends ? esc(String(u.mutualFriends)) : ''}</td>`,
-            mutualgroups:  `<td class="pl-num">${u.mutualGroups ? esc(String(u.mutualGroups)) : ''}</td>`,
             meets:     `<td class="pl-num">${st && st.meets ? esc(String(st.meets)) : ''}</td>`,
             timespent: `<td class="pl-num">${st && st.seconds > 0 ? esc(_plTimeSpent(st.seconds)) : ''}</td>`,
             joineddate: `<td class="pl-date">${esc(_plDate(u.dateJoined))}</td>`,
