@@ -680,6 +680,9 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcAvatarBatchDetails':
                 if (typeof onRoseDbBatchDetails === 'function') onRoseDbBatchDetails(payload);
                 break;
+            case 'vrcAvatarDetailsBatch':
+                if (typeof onAvatarDetailsBatch === 'function') onAvatarDetailsBatch(payload);
+                break;
             case 'vrcUserAvatars':
                 renderFdUserAvatars(payload);
                 if (typeof onMypUserAvatars === 'function') onMypUserAvatars(payload);

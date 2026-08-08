@@ -280,8 +280,20 @@ function onPeopleStatsData(payload) {
     _plStatsPending = false;
     if (window._peopleStatsMode) applyPeopleStatsBars();
     if (typeof window._fpOnStatsLoaded === 'function') window._fpOnStatsLoaded();
+    _plLiveRerender();
+}
+
+function _plGridId() {
+    return {
+        favorites: 'favFriendsGrid', all: 'allFriendsGrid', recentseen: 'recentSeenGrid',
+        search: 'searchPeopleResults', blocked: 'blockedList', muted: 'mutedList',
+    }[peopleFilter] || '';
+}
+
+function _plLiveRerender() {
     const tab = document.getElementById('tab3');
-    if (tab && tab.classList.contains('active') && _peopleListMode()) renderPeopleListView();
+    if (!tab || !tab.classList.contains('active') || !_peopleListMode()) return;
+    lvKeepScroll(document.getElementById(_plGridId()), () => renderPeopleListView());
 }
 
 function _plEnsureStats() {
@@ -344,8 +356,7 @@ function applyFriendFacts(u) {
     if (!changed || _plFactsRerender) return;
     _plFactsRerender = setTimeout(() => {
         _plFactsRerender = null;
-        const tab = document.getElementById('tab3');
-        if (tab && tab.classList.contains('active')) renderPeopleListView();
+        _plLiveRerender();
     }, 600);
 }
 
@@ -371,8 +382,7 @@ function patchFriendProfileFacts(u) {
         changed = true;
     });
     if (!changed) return;
-    const tab = document.getElementById('tab3');
-    if (tab && tab.classList.contains('active') && _peopleListMode()) renderPeopleListView();
+    _plLiveRerender();
 }
 
 function refreshPeopleTab(force) {

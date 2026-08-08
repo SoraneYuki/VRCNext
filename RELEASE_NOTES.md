@@ -46,3 +46,5 @@
 * Fixed a garbage collection issue that prevented unloaded pages from being properly cleaned up.
 * Fixed an issue that could cause VRCN to crash when using the Avatar Search tab.
 * Fixed an issue where VRCNDb filters did not work correctly when using VRCNDb in Avatar Search.
+* Fixed missing rank data from avtrdb and icu database searches.
+* Fixed other avatar related issues that showed missing data.

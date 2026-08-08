@@ -201,7 +201,7 @@ function renderMyGroups(list) {
     if (btn) { btn.disabled = false; btn.querySelector('.msi').textContent = 'refresh'; }
     myGroups = list || [];
     myGroupsLoaded = true;
-    filterMyGroups();
+    lvKeepScroll(document.getElementById('myGroupsGrid'), () => filterMyGroups());
     if (typeof renderDashGroupActivity === 'function') renderDashGroupActivity();
 }
 

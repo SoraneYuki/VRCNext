@@ -80,7 +80,7 @@ function renderVisitedWorlds(worlds) {
         return;
     }
     if (lvViewMode('worlds') === 'list' && lvReady()) {
-        _worldsListPage(el, list, _worldRecentPage, 'worldRecentPaginatorBar', 'worldRecentGoPage', p => { _worldRecentPage = p; });
+        lvKeepScroll(el, () => _worldsListPage(el, list, _worldRecentPage, 'worldRecentPaginatorBar', 'worldRecentGoPage', p => { _worldRecentPage = p; }));
         return;
     }
     setPaginator('worldRecentPaginatorBar', '');
@@ -191,7 +191,7 @@ function renderMyWorlds(worlds) {
         return;
     }
     if (lvViewMode('worlds') === 'list' && lvReady()) {
-        _worldsListPage(el, list, _worldMinePage, 'worldMinePaginatorBar', 'worldMineGoPage', p => { _worldMinePage = p; });
+        lvKeepScroll(el, () => _worldsListPage(el, list, _worldMinePage, 'worldMinePaginatorBar', 'worldMineGoPage', p => { _worldMinePage = p; }));
         return;
     }
     setPaginator('worldMinePaginatorBar', '');
@@ -412,7 +412,7 @@ function filterFavWorlds() {
         return;
     }
     if (lvViewMode('worlds') === 'list' && lvReady() && !_worldEditMode) {
-        _worldsListPage(el, filtered, _favWorldsPage, 'favWorldsPaginatorBar', 'favWorldsGoPage', p => { _favWorldsPage = p; });
+        lvKeepScroll(el, () => _worldsListPage(el, filtered, _favWorldsPage, 'favWorldsPaginatorBar', 'favWorldsGoPage', p => { _favWorldsPage = p; }));
         return;
     }
     setPaginator('favWorldsPaginatorBar', '');

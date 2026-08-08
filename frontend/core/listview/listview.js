@@ -44,6 +44,17 @@ function lvSyncViewButtons(key, gridBtnId, listBtnId) {
     document.getElementById(listBtnId)?.classList.toggle('active', isList);
 }
 
+function lvKeepScroll(startEl, render) {
+    const saved = [];
+    let n = startEl instanceof Element ? startEl : null;
+    while (n && n !== document.body) {
+        if (n.scrollTop > 0 || n.scrollLeft > 0) saved.push([n, n.scrollTop, n.scrollLeft]);
+        n = n.parentElement;
+    }
+    render();
+    saved.forEach(([el, top, left]) => { el.scrollTop = top; el.scrollLeft = left; });
+}
+
 function lvSort(list, listId, valueFn) {
     const { field, dir } = tlTableSortField(listId);
     const mul = dir === 'asc' ? 1 : -1;

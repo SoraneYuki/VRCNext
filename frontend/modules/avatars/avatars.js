@@ -241,8 +241,10 @@ function _avatarsListPage(el, all, page, barId, pageFn, setPage) {
     if (p >= totalPages) p = totalPages - 1;
     if (p < 0) p = 0;
     setPage(p);
-    el.classList.remove('avatar-grid');
-    el.innerHTML = buildAvatarsListHtml(sorted.slice(p * size, (p + 1) * size));
+    lvKeepScroll(el, () => {
+        el.classList.remove('avatar-grid');
+        el.innerHTML = buildAvatarsListHtml(sorted.slice(p * size, (p + 1) * size));
+    });
     setPaginator(barId, lvPaginator('avatars', p, totalPages, pageFn, sorted.length, 'setAvatarsListPageSize'));
 }
 
@@ -420,13 +422,32 @@ function avatarPerfIcon(perf, size = 16, label = '') {
     return `<img src="assets/Avatars/${key}.png" title="${esc(title)}" style="height:${size}px;width:auto;vertical-align:middle;">`;
 }
 
+function _avPerfValid(v) {
+    const k = String(v || '').toLowerCase().replace(/[^a-z]/g, '');
+    return ['excellent', 'good', 'medium', 'poor', 'verypoor'].includes(k) ? v : '';
+}
+
 function _avPerfByPlatform(a) {
-    if (a.performance && typeof a.performance === 'object') {
-        return { pc: a.performance.pc || '', quest: a.performance.quest || a.performance.android || '', ios: a.performance.ios || '' };
-    }
+    const perf = (a.performance && typeof a.performance === 'object') ? a.performance : null;
+    const fromObj = (...keys) => {
+        for (const k of keys) {
+            const v = _avPerfValid(perf?.[k]);
+            if (v) return v;
+        }
+        return '';
+    };
     const real = (a.unityPackages || []).filter(p => p.variant !== 'impostor');
-    const get = plat => real.find(p => p.platform === plat)?.performanceRating || '';
-    return { pc: get('standalonewindows'), quest: get('android'), ios: get('ios') };
+    const fromPkg = plat => real
+        .filter(p => p.platform === plat)
+        .map(p => _avPerfValid(p.performanceRating))
+        .filter(Boolean)
+        .sort((x, y) => _avPerfRank(x) - _avPerfRank(y))[0] || '';
+
+    return {
+        pc:    fromObj('pc', 'standalonewindows')  || fromPkg('standalonewindows'),
+        quest: fromObj('quest', 'android')         || fromPkg('android'),
+        ios:   fromObj('ios')                      || fromPkg('ios'),
+    };
 }
 
 function _avPerfBadges(a) {
@@ -1344,6 +1365,39 @@ function _roseTagBadge(rawTag) {
     return `<span class="vrcn-badge" style="background:${bg};color:${s.color};border:${s.border};">${esc(s.label)}</span>`;
 }
 
+function _avApplyDetails(list, keyField, details) {
+    let changed = false;
+    (list || []).forEach(a => {
+        const d = details[a[keyField]];
+        if (!d) return;
+        if (d.authorName && !a.authorName) { a.authorName = d.authorName; changed = true; }
+        if (d.releaseStatus && !a.releaseStatus) { a.releaseStatus = d.releaseStatus; changed = true; }
+        const p = d.performance;
+        if (p && (p.pc || p.quest || p.ios)) {
+            const cur = a.performance || {};
+            if (cur.pc !== p.pc || cur.quest !== p.quest || cur.ios !== p.ios) {
+                a.performance = { pc: p.pc || cur.pc || '', quest: p.quest || cur.quest || '', ios: p.ios || cur.ios || '' };
+                changed = true;
+            }
+        }
+    });
+    return changed;
+}
+
+function onAvatarDetailsBatch(details) {
+    if (!details) return;
+    let changed = false;
+    if (typeof avatarSearchResults !== 'undefined') changed = _avApplyDetails(avatarSearchResults, 'id', details) || changed;
+    if (typeof _recentAvatarsData !== 'undefined')  changed = _avApplyDetails(_recentAvatarsData, 'id', details) || changed;
+    if (typeof favAvatarsData !== 'undefined')      changed = _avApplyDetails(favAvatarsData, 'id', details) || changed;
+    if (typeof avatarsData !== 'undefined')         changed = _avApplyDetails(avatarsData, 'id', details) || changed;
+    if (!changed) return;
+    const tab = document.getElementById('tab4');
+    if (!tab || !tab.classList.contains('active')) return;
+    const gridId = { search: 'avatarSearchGrid', recent: 'avatarRecentGrid', favorites: 'favAvatarsGrid', own: 'avatarGrid', rose: 'roseDbGrid' }[avatarFilter];
+    lvKeepScroll(document.getElementById(gridId), () => renderAvatarsListView());
+}
+
 function onRoseDbBatchDetails(details) {
     if (!details) return;
     let changed = false;
@@ -1353,7 +1407,7 @@ function onRoseDbBatchDetails(details) {
         a._detail = d;
         changed = true;
     });
-    if (changed && avatarFilter === 'rose') filterRoseDb();
+    if (changed && avatarFilter === 'rose') lvKeepScroll(document.getElementById('roseDbGrid'), () => filterRoseDb());
 }
 
 function onRoseDbBatchCached(mapping) {
