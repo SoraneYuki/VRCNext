@@ -49,3 +49,4 @@
 * Fixed missing rank data from avtrdb and icu database searches.
 * Fixed other avatar related issues that showed missing data.
 * Fixed missing metadata issues in avatar modals.
+* Fixed rose avatar base not showing rank data when cached in sqlite.

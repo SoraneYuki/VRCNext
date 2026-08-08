@@ -1252,6 +1252,7 @@ public partial class AppShell
                                 var enriched = list.Select(o =>
                                 {
                                     var jo = JObject.FromObject(o);
+                                    CacheSearchAvatar(jo);
                                     EnrichAvatarFromCache(jo, jo["id"]?.ToString() ?? "");
                                     return jo;
                                 }).ToList();
@@ -3875,5 +3876,39 @@ public partial class AppShell
         var quest = Obj("quest", "android");        if (quest.Length == 0) quest = BestPkgPerf(pkgs, "android");
         var ios   = Obj("ios");                     if (ios.Length == 0)   ios   = BestPkgPerf(pkgs, "ios");
         return (pc, quest, ios);
+    }
+
+    private void CacheSearchAvatar(JObject a)
+    {
+        try
+        {
+            var id = a["id"]?.ToString() ?? "";
+            if (!id.StartsWith("avtr_", StringComparison.Ordinal)) return;
+            if (_core.TimeEngine.GetAvatarDetail(id) != null) return;
+
+            var (pc, quest, ios) = ResolveAvatarPerf(a);
+            if (pc.Length == 0 && quest.Length == 0 && ios.Length == 0) return;
+
+            var compat = (a["compatibility"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>();
+            var hasPC    = pc.Length > 0    || compat.Contains("pc") || compat.Contains("standalonewindows");
+            var hasQuest = quest.Length > 0 || compat.Contains("android") || compat.Contains("quest");
+            var hasIos   = ios.Length > 0   || compat.Contains("ios");
+
+            _core.TimeEngine.SaveAvatarDetail(
+                id,
+                a["name"]?.ToString() ?? "",
+                a["authorName"]?.ToString() ?? "",
+                a["authorId"]?.ToString() ?? "",
+                a["thumbnailImageUrl"]?.ToString() ?? "",
+                a["imageUrl"]?.ToString() ?? "",
+                a["releaseStatus"]?.ToString() ?? "public",
+                0,
+                a["created_at"]?.ToString() ?? "",
+                a["updated_at"]?.ToString() ?? "",
+                a["description"]?.ToString() ?? "",
+                (a["tags"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>(),
+                hasPC, hasQuest, false, pc, quest, hasIos, ios);
+        }
+        catch { }
     }
 }
