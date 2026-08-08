@@ -64,6 +64,7 @@ function openInstanceInfoModal() {
         ${_iimHeadCell('age', '18+')}
         ${_iimHeadCell('platform', t('instance.table.platform', 'Platform'))}
         ${_iimHeadCell('language', t('instance.table.language', 'Language'))}
+        ${_iimHeadCell('biolinks', t('people.list.header.bio_links', 'Bio Links'))}
     </div>`;
 
     const copyBadge = instNum
@@ -107,6 +108,8 @@ function openInstanceInfoModal() {
         const langsHtml = tags.filter(x => x.startsWith('language_'))
             .map(x => `<span class="vrcn-badge">${esc(LANG_MAP[x] || x.replace('language_', '').toUpperCase())}</span>`).join('');
         const langCell  = `<div class="iim-cell"><div class="iim-lang-cell">${langsHtml}</div></div>`;
+        const bioLinks  = (Array.isArray(u.bioLinks) && u.bioLinks.length ? u.bioLinks : f?.bioLinks) || [];
+        const bioCell   = `<div class="iim-cell">${typeof _plBioLinksCell === 'function' ? _plBioLinksCell({ bioLinks }) : ''}</div>`;
         const nameCell  = `<div class="iim-cell"><span class="iim-name">${esc(displayName)}</span></div>`;
         const ageCell   = `<div class="iim-cell">${ageVerified ? `<span class="vrcn-badge" style="font-size:calc(10px + var(--fs-off, 0px));color:#3ba55d;border-color:#3ba55d30;background:#3ba55d18;">18+</span>` : ''}</div>`;
         const fromCell  = `<div class="iim-cell iim-muted-cell">${u.joinedAt ? esc(fmtTime(new Date(u.joinedAt))) : '&mdash;'}</div>`;
@@ -132,6 +135,7 @@ function openInstanceInfoModal() {
                 ${ageCell}
                 ${platformCell}
                 ${langCell}
+                ${bioCell}
             </div>
             ${barHtml}
         </div>`;
@@ -270,6 +274,10 @@ function _iimSortValue(u, id) {
             return idx < 0 ? IIM_STATUS_ORDER.length : idx;
         }
         case 'age':      return (live?.ageVerified || u.ageVerified) ? 1 : 0;
+        case 'biolinks': {
+            const bl = (Array.isArray(u.bioLinks) && u.bioLinks.length ? u.bioLinks : live?.bioLinks) || [];
+            return bl.filter(Boolean).length;
+        }
         case 'platform': return (live?.platform || u.platform || '').toLowerCase();
         case 'language': {
             const tags = (live?.tags?.length ? live.tags : null) || u.tags || [];

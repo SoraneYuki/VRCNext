@@ -2,6 +2,9 @@
 
 **Live Instance List**
 * This is already a thing when you look at the friends sidebar or click the world modal it shows all player slive. However alot of you did use VRCX before so theres a new tab in People > Instance which shows all players with additional filters live.
+* Added Bio links to the existing modal.
+* Enhanced instance view shows: timer, joined, display name, presence, rank, status, 18+, platform, pronouns, meets, time spent, date joined, last seen, language and more.
+
 
 **VRChat Config**
 * Added **Custom Cache Folder Location** with a folder picker.

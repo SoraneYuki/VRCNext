@@ -715,7 +715,7 @@
                 : buildFriendItems(id);
         }
 
-        const friendCard = el.closest('.vrc-friend-card, .vrcn-user-item, .inst-user-row, .iim-user-item, .dash-feed-card, .tl-list-table[data-tl-list="friendsList"] .tl-list-row, .tl-list-table[data-tl-list="modList"] .tl-list-row');
+        const friendCard = el.closest('.vrc-friend-card, .vrcn-user-item, .inst-user-row, .iim-user-item, .dash-feed-card, .tl-list-table[data-tl-list="friendsList"] .tl-list-row, .tl-list-table[data-tl-list="modList"] .tl-list-row, .tl-list-table[data-tl-list="instanceList"] .tl-list-row');
         if (friendCard) {
             const id = extractFriendId(friendCard);
             if (id) {
