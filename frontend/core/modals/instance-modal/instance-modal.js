@@ -203,7 +203,12 @@ function openInstanceInfoModal() {
             : t('instance.actions.hide_world_panel', 'Hide world panel'),
         onclick: 'iimToggleLeftPanel()',
     };
-    c.innerHTML = `${renderModalBar(name, [panelAction, modalCloseAction('closeInstanceInfoModal()')])}<div class="mi-layout">${leftHtml}${rightHtml}</div>`;
+    const moreAction = {
+        icon: 'open_in_full',
+        title: t('instance.actions.show_more_info', 'Show More Informations'),
+        onclick: 'iimOpenInstanceTab()',
+    };
+    c.innerHTML = `${renderModalBar(name, [moreAction, panelAction, modalCloseAction('closeInstanceInfoModal()')])}<div class="mi-layout">${leftHtml}${rightHtml}</div>`;
 
     m.style.display = 'flex';
     if (prevScrollTop > 0) {
@@ -217,6 +222,12 @@ const IIM_LEFT_KEY = 'vrcn_iim_hide_left';
 
 function _iimLeftHidden() {
     try { return localStorage.getItem(IIM_LEFT_KEY) === '1'; } catch { return false; }
+}
+
+function iimOpenInstanceTab() {
+    closeInstanceInfoModal();
+    if (typeof showTab === 'function') showTab(3);
+    if (typeof setPeopleFilter === 'function') setPeopleFilter('instance');
 }
 
 function iimToggleLeftPanel() {

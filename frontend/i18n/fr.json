@@ -1685,6 +1685,7 @@
   "instance.no_player_data_available": "Aucune donnée de joueur disponible.",
   "instance.actions.invite": "Inviter",
   "instance.actions.hide_world_panel": "Masquer le panneau du monde",
+  "instance.actions.show_more_info": "Afficher plus d’informations",
   "instance.actions.show_world_panel": "Afficher le panneau du monde",
   "instance.actions.force_join": "Rejoindre",
   "instance.sections.friends_in_instance": "AMIS DANS L'INSTANCE ({count})",

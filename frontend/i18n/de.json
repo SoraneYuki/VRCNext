@@ -1697,6 +1697,7 @@
   "instance.no_player_data_available": "Keine Spielerdaten verfuegbar.",
   "instance.actions.invite": "Einladen",
   "instance.actions.hide_world_panel": "Weltbereich ausblenden",
+  "instance.actions.show_more_info": "Mehr Informationen anzeigen",
   "instance.actions.show_world_panel": "Weltbereich einblenden",
   "instance.actions.force_join": "Beitreten",
   "instance.sections.friends_in_instance": "FREUNDE IN DIESER INSTANZ ({count})",

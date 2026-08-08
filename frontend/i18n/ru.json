@@ -1671,6 +1671,7 @@
   "instance.no_player_data_available": "Данные недоступны",
   "instance.actions.invite": "Пригласить",
   "instance.actions.hide_world_panel": "Скрыть панель мира",
+  "instance.actions.show_more_info": "Показать подробности",
   "instance.actions.show_world_panel": "Показать панель мира",
   "instance.actions.force_join": "Принудительно войти",
   "instance.sections.friends_in_instance": "Друзья в инстансе",

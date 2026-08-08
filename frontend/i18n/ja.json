@@ -1684,6 +1684,7 @@
   "instance.no_player_data_available": "プレイヤーデータがありません。",
   "instance.actions.invite": "招待",
   "instance.actions.hide_world_panel": "ワールドパネルを隠す",
+  "instance.actions.show_more_info": "詳細情報を表示",
   "instance.actions.show_world_panel": "ワールドパネルを表示",
   "instance.actions.force_join": "強制参加",
   "instance.sections.friends_in_instance": "インスタンス内のフレンド ({count})",
