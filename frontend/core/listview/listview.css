@@ -137,3 +137,8 @@
 }
 #tab17.active #calDayPanel[style*="display: none"],
 #tab17.active #calDayPanel[style*="display:none"] { flex: 0; }
+
+#favWorldsGrid:has(.lv-scroll), #worldMineGrid:has(.lv-scroll),
+#worldRecentGrid:has(.lv-scroll), #searchWorldsResults:has(.lv-scroll),
+#myGroupsGrid:has(.lv-scroll), #searchGroupsResults:has(.lv-scroll),
+.lv-tab-scroll:has(.lv-scroll) { margin-bottom: 8px; }

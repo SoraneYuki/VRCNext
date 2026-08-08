@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using VRCNext.Services;
 using VRCNext.Services.Helpers;
 
@@ -1056,17 +1056,8 @@ public class InstanceController
                             img = fi.image;
                         }
                     }
-                    users.Add(new {
-                        id                = p.UserId,
-                        displayName       = p.DisplayName,
-                        image             = img,
-                        status,
-                        statusDescription,
-                        joinedAt          = new DateTimeOffset(p.JoinedAt).ToUnixTimeMilliseconds(),
-                        tags              = profObj?["tags"]?.ToObject<List<string>>() ?? new List<string>(),
-                        ageVerified       = profObj?["ageVerified"]?.Value<bool>() ?? false,
-                        platform          = profObj?["last_platform"]?.ToString() ?? "",
-                    });
+                    users.Add(BuildInstanceUser(p.UserId, p.DisplayName, img,
+                        new DateTimeOffset(p.JoinedAt).ToUnixTimeMilliseconds(), profObj, false));
                 }
             }
 
@@ -1121,29 +1112,16 @@ public class InstanceController
 
             var av = !string.IsNullOrEmpty(p.UserId) && _core.PlayerAgeVerifiedCache.TryGetValue(p.UserId, out var cached) && cached;
 
-            string status = "", statusDescription = "", platform = "";
-            var tags = new List<string>();
+            JObject? profObj = null;
             if (!string.IsNullOrEmpty(p.UserId) && _core.PlayerProfileCache.TryGetValue(p.UserId, out var prof))
             {
-                status            = prof["status"]?.ToString() ?? "";
-                statusDescription = prof["statusDescription"]?.ToString() ?? "";
-                platform          = prof["last_platform"]?.ToString() ?? "";
-                tags              = prof["tags"]?.ToObject<List<string>>() ?? new List<string>();
+                profObj = prof;
                 if (string.IsNullOrEmpty(img))
                     img = VRChatApiService.GetUserImage(prof);
             }
 
-            return (object)new {
-                id                = p.UserId,
-                displayName       = p.DisplayName,
-                image             = img,
-                status,
-                statusDescription,
-                joinedAt          = new DateTimeOffset(p.JoinedAt).ToUnixTimeMilliseconds(),
-                tags,
-                ageVerified       = av,
-                platform,
-            };
+            return (object)BuildInstanceUser(p.UserId, p.DisplayName, img,
+                new DateTimeOffset(p.JoinedAt).ToUnixTimeMilliseconds(), profObj, av);
         }).ToList();
 
         _core.SendToJS("vrcCurrentInstance", new {
@@ -1662,4 +1640,28 @@ public class InstanceController
     // Photino compatibility shim
     private static void Invoke(Action action) => action();
     private static T Invoke<T>(Func<T> func) => func();
+
+    private JObject BuildInstanceUser(string userId, string displayName, string image, long joinedAtMs, JObject? prof, bool ageVerifiedFallback)
+    {
+        var o = new JObject
+        {
+            ["id"] = userId ?? "",
+            ["displayName"] = displayName ?? "",
+            ["image"] = image ?? "",
+            ["joinedAt"] = joinedAtMs,
+            ["status"] = prof?["status"]?.ToString() ?? "",
+            ["statusDescription"] = prof?["statusDescription"]?.ToString() ?? "",
+            ["platform"] = prof?["last_platform"]?.ToString() ?? prof?["platform"]?.ToString() ?? "",
+            ["ageVerified"] = prof?["ageVerified"]?.Value<bool>() ?? ageVerifiedFallback,
+            ["tags"] = prof?["tags"] as JArray ?? new JArray(),
+            ["bioLinks"] = prof?["bioLinks"] as JArray ?? new JArray(),
+            ["bio"] = prof?["bio"]?.ToString() ?? "",
+            ["pronouns"] = prof?["pronouns"]?.ToString() ?? "",
+            ["dateJoined"] = prof?["date_joined"]?.ToString() ?? "",
+            ["lastLogin"] = prof?["last_login"]?.ToString() ?? "",
+            ["lastActivity"] = prof?["last_activity"]?.ToString() ?? "",
+        };
+        _friends.EnrichFromProfileCache(o, userId ?? "", true);
+        return o;
+    }
 }

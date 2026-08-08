@@ -1538,6 +1538,33 @@ public class TimelineService : IDisposable
     }
 
     // Distinct world IDs ordered by most recent visit (instance_join events).
+    public Dictionary<string, string> GetLastSeenTogetherMap()
+    {
+        var map = new Dictionary<string, string>();
+        try
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = @"SELECT user_id, MAX(ts) AS last_seen FROM (
+                    SELECT ep.user_id AS user_id, j.value AS ts
+                      FROM event_players ep, json_each(ep.left_at) j
+                     WHERE ep.user_id <> '' AND ep.left_at LIKE '[%'
+                    UNION ALL
+                    SELECT ep.user_id, j.value
+                      FROM event_players ep, json_each(ep.joined_at) j
+                     WHERE ep.user_id <> '' AND ep.joined_at LIKE '[%'
+                ) GROUP BY user_id";
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                var uid = r.IsDBNull(0) ? "" : r.GetString(0);
+                if (uid.Length == 0) continue;
+                map[uid] = r.IsDBNull(1) ? "" : r.GetString(1);
+            }
+        }
+        catch { }
+        return map;
+    }
+
     public List<string> GetRecentVisitedWorldIds(int limit = 32)
     {
         var ids = new List<string>();

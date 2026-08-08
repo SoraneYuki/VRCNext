@@ -12,6 +12,7 @@
 #peopleRecentArea,
 #peopleSearchArea,
 #peopleBlockedArea,
+#peopleInstanceArea,
 #peopleMutedArea {
     flex: 1;
     min-height: 0;
@@ -204,3 +205,24 @@
 }
 .pl-num { color: var(--tx2); }
 .pl-date { white-space: nowrap; color: var(--tx2); }
+
+#instancePlayersGrid {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+#instancePlayersGrid:has(.tl-list-wrap) { overflow-x: auto; position: relative; z-index: 2; }
+#instancePlayersGrid .tl-list-wrap { padding: 4px 0 0; }
+#instancePlayersGrid .tl-list-table { table-layout: fixed; }
+.ip-age { color: #3ba55d; border-color: #3ba55d30; background: #3ba55d18; }
+.ip-bar-cell { padding-right: 14px !important; }
+.ip-bar-cell .tl-player-bar-wrap { width: 100%; }
+
+/* Keep the horizontal scrollbar clear of the window resize edge */
+#instancePlayersGrid,
+#favFriendsGrid:has(.tl-list-wrap),
+#allFriendsGrid:has(.tl-list-wrap),
+#recentSeenGrid:has(.tl-list-wrap),
+#searchPeopleResults:has(.tl-list-wrap),
+#blockedList:has(.tl-list-wrap),
+#mutedList:has(.tl-list-wrap) { margin-bottom: 8px; }

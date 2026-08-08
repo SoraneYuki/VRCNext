@@ -34,6 +34,19 @@ const TL_TABLE_DEFS = {
         { id: 'timespent',  key: 'people.list.header.time_spent',  fallback: 'Time Spent',  width: '110px', sort: 'timespent' },
         { id: 'joined',     key: 'people.list.header.date_joined', fallback: 'Date Joined', width: '120px', sort: 'joined' },
         { id: 'lastlogin',  key: 'people.list.header.last_login',  fallback: 'Last Login',  width: '150px', sort: 'lastlogin' },
+        { id: 'lastseen',   key: 'people.list.header.last_seen',   fallback: 'Last Seen',   width: '150px', sort: 'lastseen' },
+    ],
+    instanceList: [
+        { id: 'profile',  key: 'people.list.header.profile',      fallback: 'Profile',      width: '64px',  sort: 'profile' },
+        { id: 'timer',    key: 'instance.table.timer',            fallback: 'Timer',        width: '100px', sort: 'timer' },
+        { id: 'joined',   key: 'instance.table.joined',           fallback: 'Joined',       width: '100px', sort: 'joined' },
+        { id: 'name',     key: 'instance.table.display_name',     fallback: 'Display Name', width: '',      sort: 'name' },
+        { id: 'rank',     key: 'instance.table.rank',             fallback: 'Rank',         width: '120px', sort: 'rank' },
+        { id: 'status',   key: 'instance.table.status',           fallback: 'Status',       width: '160px', sort: 'status' },
+        { id: 'age',      key: 'instance.table.age',              fallback: '18+',          width: '70px',  sort: 'age' },
+        { id: 'platform', key: 'instance.table.platform',         fallback: 'Platform',     width: '90px',  sort: 'platform' },
+        { id: 'language', key: 'instance.table.language',         fallback: 'Language',     width: '110px', sort: 'language' },
+        { id: 'presence', key: 'profiles.people.instance.presence', fallback: 'Presence',   width: '220px', sort: 'joined' },
     ],
     modList: [
         { id: 'profile', key: 'people.list.header.profile',  fallback: 'Profile',  width: '64px',  sort: 'profile' },
@@ -130,6 +143,7 @@ function _tlTableRerender(list) {
     else if (list === 'gamelog' && typeof renderGameLog === 'function') renderGameLog();
     else if (list === 'friendsList' && typeof renderPeopleListView === 'function') renderPeopleListView();
     else if (list === 'modList'     && typeof renderPeopleListView === 'function') renderPeopleListView();
+    else if (list === 'instanceList' && typeof renderInstancePlayers === 'function') renderInstancePlayers();
     else if (list === 'worldsList'  && typeof renderWorldsListView === 'function') renderWorldsListView();
     else if (list === 'groupsList'  && typeof renderGroupsListView === 'function') renderGroupsListView();
     else if (list === 'avatarsList' && typeof renderAvatarsListView === 'function') renderAvatarsListView();
@@ -285,7 +299,7 @@ function _tlDragUp() {
 
 document.addEventListener('pointerdown', _tlDragDown, true);
 
-const TL_TABLE_SCROLL_LISTS = new Set(['friendsList', 'modList', 'worldsList', 'groupsList', 'avatarsList']);
+const TL_TABLE_SCROLL_LISTS = new Set(['friendsList', 'modList', 'instanceList', 'worldsList', 'groupsList', 'avatarsList']);
 const TL_TABLE_FLEX_WIDTH = 240;
 
 function _tlTableMinWidth(cols) {

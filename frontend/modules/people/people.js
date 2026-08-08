@@ -287,12 +287,15 @@ function _plGridId() {
     return {
         favorites: 'favFriendsGrid', all: 'allFriendsGrid', recentseen: 'recentSeenGrid',
         search: 'searchPeopleResults', blocked: 'blockedList', muted: 'mutedList',
+        instance: 'instancePlayersGrid',
     }[peopleFilter] || '';
 }
 
 function _plLiveRerender() {
     const tab = document.getElementById('tab3');
-    if (!tab || !tab.classList.contains('active') || !_peopleListMode()) return;
+    if (!tab || !tab.classList.contains('active')) return;
+    if (peopleFilter === 'instance') { renderInstancePlayers(); return; }
+    if (!_peopleListMode()) return;
     lvKeepScroll(document.getElementById(_plGridId()), () => renderPeopleListView());
 }
 
@@ -314,17 +317,20 @@ function setPeopleFilter(filter) {
     peopleFilter = filter;
     _peopleRecentPage = 0;
     const viewBtns = document.getElementById('peopleViewBtns');
-    if (viewBtns) viewBtns.style.display = 'flex';
+    if (viewBtns) viewBtns.style.display = filter === 'instance' ? 'none' : 'flex';
     ['peopleFavPaginatorBar', 'peopleAllPaginatorBar', 'peopleRecentPaginatorBar', 'peopleBlockedPaginatorBar', 'peopleMutedPaginatorBar']
         .forEach(id => setPaginator(id, ''));
     document.getElementById('peopleFilterFav').classList.toggle('active', filter === 'favorites');
     document.getElementById('peopleFilterAll').classList.toggle('active', filter === 'all');
+    document.getElementById('peopleFilterInstance')?.classList.toggle('active', filter === 'instance');
     document.getElementById('peopleFilterRecent').classList.toggle('active', filter === 'recentseen');
     document.getElementById('peopleFilterSearch').classList.toggle('active', filter === 'search');
     document.getElementById('peopleFilterBlocked').classList.toggle('active', filter === 'blocked');
     document.getElementById('peopleFilterMuted').classList.toggle('active', filter === 'muted');
     document.getElementById('peopleFavArea').style.display     = filter === 'favorites'  ? '' : 'none';
     document.getElementById('peopleAllArea').style.display     = filter === 'all'        ? '' : 'none';
+    const instArea = document.getElementById('peopleInstanceArea');
+    if (instArea) instArea.style.display = filter === 'instance' ? '' : 'none';
     document.getElementById('peopleRecentArea').style.display  = filter === 'recentseen' ? '' : 'none';
     document.getElementById('peopleSearchArea').style.display  = filter === 'search'     ? '' : 'none';
     document.getElementById('peopleBlockedArea').style.display = filter === 'blocked'    ? '' : 'none';
@@ -338,7 +344,7 @@ function setPeopleFilter(filter) {
     refreshPeopleTab();
 }
 
-const _PL_PROFILE_FACTS = ['dateJoined', 'pronouns', 'lastLogin', 'lastActivity', 'bioLinks'];
+const _PL_PROFILE_FACTS = ['dateJoined', 'pronouns', 'lastLogin', 'lastActivity', 'bioLinks', 'lastSeen'];
 
 let _plFactsRerender = null;
 
@@ -393,6 +399,7 @@ function refreshPeopleTab(force) {
         if (force) sendToCS({ action: 'vrcRefreshFriends' });
         else filterAllFriends();
     }
+    if (peopleFilter === 'instance') { renderInstancePlayers(); instancePlayersSyncTicker(); }
     if (peopleFilter === 'recentseen') sendToCS({ action: 'vrcGetRecentSeen' });
     if (peopleFilter === 'blocked')    sendToCS({ action: 'vrcGetBlocked' });
     if (peopleFilter === 'muted')      sendToCS({ action: 'vrcGetMuted' });
@@ -582,6 +589,7 @@ function _plSortValue(f, field) {
         case 'timespent': return st ? (st.seconds || 0) : 0;
         case 'joined':    return f.dateJoined || '';
         case 'lastlogin': return f.lastLogin || '';
+        case 'lastseen':  return f.lastSeen || '';
         case 'profile':   return (f.displayName || '').toLowerCase();
         default:          return (f.displayName || '').toLowerCase();
     }
@@ -636,6 +644,7 @@ function buildPeopleListHtml(friends) {
             timespent: `<td class="pl-num">${st && st.seconds > 0 ? esc(_plTimeSpent(st.seconds)) : ''}</td>`,
             joined:    `<td class="pl-date">${esc(_plDate(f.dateJoined))}</td>`,
             lastlogin: `<td class="pl-date">${esc(_plDateTime(f.lastLogin))}</td>`,
+            lastseen:  `<td class="pl-date">${esc(_plDateTime(f.lastSeen))}</td>`,
         });
     });
     return tlTableHtml('friendsList', rows);
@@ -654,7 +663,8 @@ function plSetPaginator(id, html) {
 }
 
 function renderPeopleListView() {
-    if (peopleFilter === 'favorites')       filterFavFriends();
+    if (peopleFilter === 'instance')        renderInstancePlayers();
+    else if (peopleFilter === 'favorites')  filterFavFriends();
     else if (peopleFilter === 'recentseen') filterRecentSeen();
     else if (peopleFilter === 'blocked')    filterModList('block');
     else if (peopleFilter === 'muted')      filterModList('mute');

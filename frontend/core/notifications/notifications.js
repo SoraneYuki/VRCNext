@@ -409,6 +409,7 @@ function declineNotif(notifId, btn) {
 /* === Current Instance (sidebar) === */
 function renderCurrentInstance(data) {
     currentInstanceData = data;
+    if (typeof onInstancePlayersLive === 'function') onInstancePlayersLive();
 
     // Feed Discord presence preview
     if (typeof dpOnInstanceUpdate === 'function' && data && !data.empty && !data.error && data.worldName) {

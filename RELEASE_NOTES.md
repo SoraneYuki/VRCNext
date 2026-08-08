@@ -1,5 +1,8 @@
 **2026.41.0**
 
+**Live Instance List**
+* This is already a thing when you look at the friends sidebar or click the world modal it shows all player slive. However alot of you did use VRCX before so theres a new tab in People > Instance which shows all players with additional filters live.
+
 **VRChat Config**
 * Added **Custom Cache Folder Location** with a folder picker.
 * Added **Custom Picture Folder Location** with a folder picker.

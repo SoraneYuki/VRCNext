@@ -1326,6 +1326,7 @@ public class FriendsController
                     pronouns = PickPronouns(f, facts.pronouns),
                     mutualFriends = facts.mutualFriends,
                     mutualGroups = facts.mutualGroups,
+                    lastSeen = facts.lastSeen,
                 };
             }).ToList();
 
@@ -1358,6 +1359,7 @@ public class FriendsController
                     pronouns = PickPronouns(f, offFacts.pronouns),
                     mutualFriends = offFacts.mutualFriends,
                     mutualGroups = offFacts.mutualGroups,
+                    lastSeen = offFacts.lastSeen,
                 };
                 }).ToList();
 
@@ -1639,6 +1641,7 @@ public class FriendsController
             dateJoined = upFacts.dateJoined,
             mutualFriends = upFacts.mutualFriends,
             mutualGroups = upFacts.mutualGroups,
+            lastSeen = upFacts.lastSeen,
             bannerUrl = f["bannerUrl"]?.ToString() ?? "",
             currentAvatarImageUrl = f["currentAvatarImageUrl"]?.ToString() ?? f["currentAvatarThumbnailImageUrl"]?.ToString() ?? "",
             badges = f["badges"] ?? new JArray(),
@@ -1684,6 +1687,7 @@ public class FriendsController
                 pronouns = PickPronouns(f, facts.pronouns),
                 mutualFriends = facts.mutualFriends,
                 mutualGroups = facts.mutualGroups,
+                lastSeen = facts.lastSeen,
             };
         })
         .OrderBy(f => f.presence switch { "game" => 0, "web" => 1, _ => 2 })
@@ -2470,16 +2474,38 @@ public class FriendsController
 
     // Join Friend
 
-    private (string dateJoined, string pronouns, int mutualFriends, int mutualGroups) CachedFacts(string userId)
+    private (string dateJoined, string pronouns, int mutualFriends, int mutualGroups, string lastSeen) CachedFacts(string userId)
     {
-        if (string.IsNullOrEmpty(userId)) return ("", "", 0, 0);
+        if (string.IsNullOrEmpty(userId)) return ("", "", 0, 0, "");
+        var lastSeen = LastSeenTogether(userId);
         try
         {
             var c = _core.TimeEngine.GetUserProfileCache(userId);
-            if (c == null) return ("", "", 0, 0);
-            return (c.ProfileDateJoined, c.ProfilePronouns, MutualFriendCount(c.MutualsJson), JsonArrayCount(c.MutualGroupsJson));
+            if (c == null) return ("", "", 0, 0, lastSeen);
+            return (c.ProfileDateJoined, c.ProfilePronouns, MutualFriendCount(c.MutualsJson), JsonArrayCount(c.MutualGroupsJson), lastSeen);
         }
-        catch { return ("", "", 0, 0); }
+        catch { return ("", "", 0, 0, lastSeen); }
+    }
+
+    private readonly object _lastSeenLock = new();
+    private Dictionary<string, string>? _lastSeenMap;
+    private DateTime _lastSeenMapAt = DateTime.MinValue;
+
+    private string LastSeenTogether(string userId)
+    {
+        try
+        {
+            lock (_lastSeenLock)
+            {
+                if (_lastSeenMap == null || (DateTime.UtcNow - _lastSeenMapAt).TotalSeconds > 30)
+                {
+                    _lastSeenMap = _core.Timeline.GetLastSeenTogetherMap();
+                    _lastSeenMapAt = DateTime.UtcNow;
+                }
+                return _lastSeenMap.TryGetValue(userId, out var v) ? v : "";
+            }
+        }
+        catch { return ""; }
     }
 
     private static int MutualFriendCount(string json)
@@ -2502,6 +2528,11 @@ public class FriendsController
     public void EnrichFromProfileCache(JObject target, string userId, bool preferLive)
     {
         if (target == null || string.IsNullOrEmpty(userId)) return;
+
+        var seen = LastSeenTogether(userId);
+        if (seen.Length > 0 && string.IsNullOrEmpty(target["lastSeen"]?.ToString()))
+            target["lastSeen"] = seen;
+
         UnifiedTimeEngine.UserProfileCache? c;
         try { c = _core.TimeEngine.GetUserProfileCache(userId); }
         catch { return; }
@@ -2554,6 +2585,7 @@ public class FriendsController
             pronouns = f != null ? PickPronouns(f, facts.pronouns) : facts.pronouns,
             mutualFriends = facts.mutualFriends,
             mutualGroups = facts.mutualGroups,
+            lastSeen = facts.lastSeen,
         });
     }
 
