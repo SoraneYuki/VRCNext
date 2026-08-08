@@ -55,6 +55,9 @@ function setWorldFilter(filter) {
     document.getElementById('worldToolbar')?.classList.toggle('tt-split', filter === 'favorites' || filter === 'search');
     const editBtn = document.getElementById('worldEditModeBtn');
     if (editBtn) editBtn.style.display = filter === 'favorites' ? '' : 'none';
+    const wlBtn = document.getElementById('worldViewList');
+    if (wlBtn) wlBtn.style.display = '';
+    setPaginator('worldRecentPaginatorBar', '');
     if (filter === 'favorites' && favWorldsData.length === 0) sendToCS({ action: 'vrcGetFavoriteWorlds' });
     if (filter === 'mine' && !_myWorldsLoaded) {
         _myWorldsLoaded = true;
@@ -63,24 +66,137 @@ function setWorldFilter(filter) {
     if (filter === 'recent') sendToCS({ action: 'vrcGetVisitedWorlds' });
 }
 
+let _visitedWorldsData = [];
+let _worldRecentPage = 0;
+
 function renderVisitedWorlds(worlds) {
+    if (Array.isArray(worlds)) _visitedWorldsData = worlds;
     const el = document.getElementById('worldRecentGrid');
     if (!el) return;
-    if (!Array.isArray(worlds) || worlds.length === 0) {
+    const list = _visitedWorldsData;
+    if (!Array.isArray(list) || list.length === 0) {
         el.innerHTML = `<div class="empty-msg">${t('worlds.recent.empty', 'No recently visited worlds')}</div>`;
+        setPaginator('worldRecentPaginatorBar', '');
         return;
     }
-    el.innerHTML = worlds.map(w => renderWorldCard(w)).join('');
+    if (lvViewMode('worlds') === 'list' && lvReady()) {
+        lvKeepScroll(el, () => _worldsListPage(el, list, _worldRecentPage, 'worldRecentPaginatorBar', 'worldRecentGoPage', p => { _worldRecentPage = p; }));
+        return;
+    }
+    setPaginator('worldRecentPaginatorBar', '');
+    el.classList.add('search-grid');
+    el.innerHTML = list.map(w => renderWorldCard(w)).join('');
+}
+
+let _myWorldsData = [];
+let _worldMinePage = 0;
+let _favWorldsPage = 0;
+
+function setWorldsViewMode(mode) {
+    lvSetViewMode('worlds', mode);
+    _worldMinePage = 0; _favWorldsPage = 0; _worldRecentPage = 0;
+    _worldsSyncViewBtns();
+    renderWorldsListView();
+}
+
+function _worldsSyncViewBtns() {
+    const isList = lvViewMode('worlds') === 'list';
+    document.getElementById('worldViewList')?.classList.toggle('active', isList);
+    if (isList) {
+        document.getElementById('worldGridLarge')?.classList.remove('active');
+        document.getElementById('worldGridSmall')?.classList.remove('active');
+    } else {
+        const compact = localStorage.getItem('vrcn_gridSize_worlds') === 'compact';
+        document.getElementById('worldGridLarge')?.classList.toggle('active', !compact);
+        document.getElementById('worldGridSmall')?.classList.toggle('active', compact);
+    }
+}
+
+function renderWorldsListView() {
+    if (worldFilter === 'mine') renderMyWorlds(_myWorldsData);
+    else if (worldFilter === 'recent') renderVisitedWorlds();
+    else if (worldFilter === 'search') {
+        const st = searchState?.worlds;
+        if (st && st.results && st.results.length) renderSearchResults('worlds', st.results, 0, st.hasMore);
+    }
+    else filterFavWorlds();
+}
+
+function setWorldsListPageSize(v) { lvSetPageSize('worlds', v, () => { _worldMinePage = 0; _favWorldsPage = 0; _worldRecentPage = 0; renderWorldsListView(); }); }
+function worldMineGoPage(p) { if (p < 0) return; _worldMinePage = p; renderMyWorlds(_myWorldsData); document.getElementById('worldMineGrid')?.scrollTo(0, 0); }
+function favWorldsGoPage(p) { if (p < 0) return; _favWorldsPage = p; filterFavWorlds(); document.getElementById('favWorldsGrid')?.scrollTo(0, 0); }
+function worldRecentGoPage(p) { if (p < 0) return; _worldRecentPage = p; renderVisitedWorlds(); document.getElementById('worldRecentGrid')?.scrollTo(0, 0); }
+
+function _wlAuthorTags(w) {
+    return (w.tags || []).filter(x => x.startsWith('author_tag_')).map(x => x.replace('author_tag_', ''));
+}
+
+function _wlValue(w, field) {
+    switch (field) {
+        case 'name':      return (w.name || '').toLowerCase();
+        case 'tags':      return _wlAuthorTags(w).join(' ').toLowerCase();
+        case 'favorites': return w.favorites || 0;
+        case 'users':     return w.occupants || 0;
+        case 'visits':    return w.worldVisitCount || 0;
+        case 'time':      return w.worldTimeSeconds || 0;
+        case 'lastseen':  return w.worldLastVisited || '';
+        default:          return (w.name || '').toLowerCase();
+    }
+}
+
+function buildWorldsListHtml(worlds) {
+    let rows = '';
+    worlds.forEach(w => {
+        const wid = jsq(w.id || '');
+        const thumb = w.thumbnailImageUrl || w.imageUrl || '';
+        const tags = _wlAuthorTags(w);
+        const tagsHtml = tags.length
+            ? `<div class="lv-tags" title="${esc(tags.join(', '))}">${tags.slice(0, 3).map(x => `<span class="vrcn-badge">${esc(x)}</span>`).join('')}${tags.length > 3 ? `<span class="lv-tags-more">+${tags.length - 3}</span>` : ''}</div>`
+            : '';
+        rows += tlTableRow('worldsList', ` onclick="openWorldSearchDetail('${wid}')"`, {
+            icon:      `<td>${lvIcon(thumb, w.name, true)}</td>`,
+            name:      `<td class="lv-name">${esc(w.name || '')}</td>`,
+            tags:      `<td>${tagsHtml}</td>`,
+            favorites: `<td class="lv-num">${w.favorites ? esc(Number(w.favorites).toLocaleString()) : ''}</td>`,
+            users:     `<td class="lv-num">${w.occupants ? esc(Number(w.occupants).toLocaleString()) : ''}</td>`,
+            visits:    `<td class="lv-num">${w.worldVisitCount ? esc(String(w.worldVisitCount)) : ''}</td>`,
+            time:      `<td class="lv-num">${esc(lvDuration(w.worldTimeSeconds))}</td>`,
+            lastseen:  `<td class="lv-date">${esc(lvDateTime(w.worldLastVisited))}</td>`,
+        });
+    });
+    return `<div class="lv-scroll">${tlTableHtml('worldsList', rows)}</div>`;
+}
+
+function _worldsListPage(el, all, page, barId, pageFn, setPage) {
+    const sorted = lvSort(all, 'worldsList', _wlValue);
+    const size = lvPageSize('worlds');
+    const totalPages = Math.ceil(sorted.length / size) || 1;
+    let p = page;
+    if (p >= totalPages) p = totalPages - 1;
+    if (p < 0) p = 0;
+    setPage(p);
+    el.classList.remove('search-grid');
+    el.innerHTML = buildWorldsListHtml(sorted.slice(p * size, (p + 1) * size));
+    setPaginator(barId, lvPaginator('worlds', p, totalPages, pageFn, sorted.length, 'setWorldsListPageSize'));
 }
 
 function renderMyWorlds(worlds) {
     const el = document.getElementById('worldMineGrid');
     if (!el) return;
-    if (!Array.isArray(worlds) || worlds.length === 0) {
+    if (Array.isArray(worlds)) _myWorldsData = worlds;
+    const list = _myWorldsData;
+    if (!Array.isArray(list) || list.length === 0) {
         el.innerHTML = `<div class="empty-msg">${t('worlds.mine.empty', 'No worlds uploaded yet')}</div>`;
+        setPaginator('worldMinePaginatorBar', '');
         return;
     }
-    el.innerHTML = worlds.map(w => renderWorldCard(w)).join('');
+    if (lvViewMode('worlds') === 'list' && lvReady()) {
+        lvKeepScroll(el, () => _worldsListPage(el, list, _worldMinePage, 'worldMinePaginatorBar', 'worldMineGoPage', p => { _worldMinePage = p; }));
+        return;
+    }
+    setPaginator('worldMinePaginatorBar', '');
+    el.classList.add('search-grid');
+    el.innerHTML = list.map(w => renderWorldCard(w)).join('');
 }
 
 function _wdGroupOptionLabel(g) {
@@ -122,50 +238,30 @@ function renderFavWorlds(payload) {
 
 function setFavWorldGroup(val) {
     favWorldGroupFilter = val;
-    cancelEditWorldGroupName();
     updateFavWorldGroupHeader();
     filterFavWorlds();
 }
 
 function updateFavWorldGroupHeader() {
-    const label = document.getElementById('favWorldGroupLabel');
-    const editBtn = document.getElementById('favWorldGroupEditBtn');
+    const header = document.getElementById('favWorldGroupHeader');
     const delBtn = document.getElementById('favWorldGroupDeleteBtn');
     const badge = document.getElementById('favWorldGroupVrcPlusBadge');
     const localBadge = document.getElementById('favWorldGroupLocalBadge');
-    const visEl = document.getElementById('favWorldGroupVisLabel');
-    const visDropWrap = document.getElementById('favWorldGroupVisDropWrap');
-    const visDrop = document.getElementById('favWorldGroupVisDrop');
-    if (!label) return;
+    if (!header) return;
     if (!favWorldGroupFilter) {
-        label.textContent = t('worlds.favorites.group.all', 'All Favorites');
-        if (editBtn) editBtn.style.display = 'none';
         if (delBtn) delBtn.style.display = 'none';
         if (badge) badge.style.display = 'none';
         if (localBadge) localBadge.style.display = 'none';
-        if (visEl) visEl.style.display = 'none';
-        if (visDropWrap) visDropWrap.style.display = 'none';
     } else {
         const g = favWorldGroups.find(x => x.name === favWorldGroupFilter);
         const isLocal = isLocalFavGroup(g);
-        label.textContent = g ? (g.displayName || g.name) : favWorldGroupFilter;
-        if (editBtn) editBtn.style.display = '';
         if (delBtn) delBtn.style.display = isLocal ? '' : 'none';
         if (badge) badge.style.display = (g?.type === 'vrcPlusWorld') ? '' : 'none';
         if (localBadge) localBadge.style.display = isLocal ? '' : 'none';
-        if (visEl) {
-            visEl.textContent = g ? _favGroupVisLabel(g.visibility) : '';
-            visEl.style.display = (_worldEditMode || !g || isLocal) ? 'none' : '';
-        }
-        if (visDropWrap) {
-            const showDrop = _worldEditMode && !!g && !isLocal;
-            visDropWrap.style.display = showDrop ? '' : 'none';
-            if (showDrop && visDrop) {
-                visDrop.value = g.visibility || 'private';
-                if (visDrop._vnRefresh) visDrop._vnRefresh();
-            }
-        }
     }
+    const anyVisible = [delBtn, badge, localBadge]
+        .some(el => el && el.style.display !== 'none');
+    header.style.display = anyVisible ? 'flex' : 'none';
 }
 
 function _favGroupVisLabel(vis) {
@@ -193,38 +289,8 @@ function saveFavGroupVisibility(visibility, groupName) {
     sendToCS({ action: 'vrcUpdateFavoriteGroup', groupType: g.type, groupName: g.name, displayName: g.displayName || g.name, visibility });
 }
 
-function startEditWorldGroupName() {
-    const g = favWorldGroups.find(x => x.name === favWorldGroupFilter);
-    if (!g) return;
-    const input = document.getElementById('favWorldGroupNameInput');
-    if (input) input.value = g.displayName || g.name;
-    document.getElementById('favWorldGroupHeader').style.display = 'none';
-    const row = document.getElementById('favWorldGroupRenameRow');
-    if (row) { row.style.display = 'flex'; }
-    if (input) input.focus();
-}
-
-function cancelEditWorldGroupName() {
-    document.getElementById('favWorldGroupHeader').style.display = 'flex';
-    const row = document.getElementById('favWorldGroupRenameRow');
-    if (row) row.style.display = 'none';
-    const saveBtn = document.querySelector('#favWorldGroupRenameRow .vrcn-btn-primary');
-    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = t('common.save', 'Save'); }
-}
-
-function saveWorldGroupName() {
-    const g = favWorldGroups.find(x => x.name === favWorldGroupFilter);
-    if (!g) return;
-    const input = document.getElementById('favWorldGroupNameInput');
-    const newName = (input?.value || '').trim();
-    if (!newName) return;
-    const saveBtn = document.querySelector('#favWorldGroupRenameRow .vrcn-btn-primary');
-    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = t('common.saving', 'Saving...'); }
-    sendToCS({ action: 'vrcUpdateFavoriteGroup', groupType: g.type, groupName: g.name, displayName: newName });
-}
-
 function onFavoriteGroupUpdated(data) {
-    if (!data.ok) { if (_worldEditMode) filterFavWorlds(); else cancelEditWorldGroupName(); return; }
+    if (!data.ok) { if (_worldEditMode) filterFavWorlds(); return; }
     const g = favWorldGroups.find(x => x.name === data.groupName);
     if (g) {
         if (data.displayName) g.displayName = data.displayName;
@@ -236,9 +302,22 @@ function onFavoriteGroupUpdated(data) {
         const opt = [...sel.options].find(o => o.value === data.groupName);
         if (opt && g) opt.textContent = _wdGroupOptionLabel(g);
     }
-    cancelEditWorldGroupName();
     updateFavWorldGroupHeader();
     filterFavWorlds(); // re-render headers with updated visibility
+}
+
+function _wdGroupHeaderHtml(g, count, first) {
+    const isLocal = isLocalFavGroup(g);
+    const cap = isLocal ? (g.capacity || 200) : Math.max(g.capacity || 100, 100);
+    const visHtml = (!isLocal && _worldEditMode)
+        ? _favGroupVisDropdown(g.name, g.type, g.visibility)
+        : '';
+    return `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
+        ${_wdGroupTitleHtml(g)}
+        ${favGroupBadge(g)}
+        <span class="fav-group-count">${count}/${cap}</span>
+        ${visHtml}
+    </div>`;
 }
 
 function _wdGroupTitleHtml(g) {
@@ -328,9 +407,16 @@ function filterFavWorlds() {
         el.innerHTML = `<div class="empty-msg">${q || favWorldGroupFilter
             ? t('worlds.favorites.no_match', 'No favorites match your filter')
             : t('worlds.favorites.empty', 'No favorite worlds found')}</div>`;
+        setPaginator('favWorldsPaginatorBar', '');
         if (_worldEditMode) updateWorldEditBar();
         return;
     }
+    if (lvViewMode('worlds') === 'list' && lvReady() && !_worldEditMode) {
+        lvKeepScroll(el, () => _worldsListPage(el, filtered, _favWorldsPage, 'favWorldsPaginatorBar', 'favWorldsGoPage', p => { _favWorldsPage = p; }));
+        return;
+    }
+    setPaginator('favWorldsPaginatorBar', '');
+    el.classList.add('search-grid');
     // Group by category when showing All Favorites
     if (!favWorldGroupFilter && favWorldGroups.length > 1) {
         let html = '';
@@ -338,28 +424,19 @@ function filterFavWorlds() {
         favWorldGroups.forEach(g => {
             const groupWorlds = filtered.filter(w => w.favoriteGroup === g.name);
             if (!groupWorlds.length && !_worldEditMode) return;
-            const isLocal = isLocalFavGroup(g);
-            const cap = isLocal ? (g.capacity || 200) : Math.max(g.capacity || 100, 100);
-            const badge = favGroupBadge(g);
-            const visLabel = _favGroupVisLabel(g.visibility);
-            const visHtml = isLocal
-                ? ''
-                : (_worldEditMode
-                    ? _favGroupVisDropdown(g.name, g.type, g.visibility)
-                    : `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);font-weight:400;">${esc(visLabel)}</span>`);
-            html += `<div class="fav-group-header${first ? ' fav-group-header-first' : ''}">
-                ${_wdGroupTitleHtml(g)}
-                ${badge}
-                <span class="fav-group-count">${groupWorlds.length}/${cap}</span>
-                ${visHtml}
-            </div>`;
+            html += _wdGroupHeaderHtml(g, groupWorlds.length, first);
             html += groupWorlds.map(w => renderWorldCard(w)).join('');
             first = false;
         });
         el.innerHTML = html;
         el.querySelectorAll('select.vrcn-dropdown').forEach(initVnSelect);
     } else {
-        el.innerHTML = filtered.map(w => renderWorldCard(w)).join('');
+        const selected = favWorldGroupFilter
+            ? favWorldGroups.find(x => x.name === favWorldGroupFilter)
+            : null;
+        const head = selected ? _wdGroupHeaderHtml(selected, filtered.length, true) : '';
+        el.innerHTML = head + filtered.map(w => renderWorldCard(w)).join('');
+        if (head) el.querySelectorAll('select.vrcn-dropdown').forEach(initVnSelect);
     }
     if (_worldEditMode) updateWorldEditBar();
 }
@@ -551,3 +628,5 @@ function deleteCurrentLocalWorldGroup(btn) {
     favWorldGroupFilter = '';
 }
 
+
+_worldsSyncViewBtns();

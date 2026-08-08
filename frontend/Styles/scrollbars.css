@@ -10,3 +10,12 @@
 
 .content { scrollbar-width: none; }
 .content::-webkit-scrollbar { display: none; }
+
+/* Horizontal scrollbars sit near the window edge where the resize hitbox lives,
+   so they need a bigger grab area than the vertical ones. */
+::-webkit-scrollbar:horizontal { height: 12px; }
+::-webkit-scrollbar-thumb:horizontal {
+    border: 3px solid transparent;
+    background-clip: content-box;
+    min-width: 40px;
+}

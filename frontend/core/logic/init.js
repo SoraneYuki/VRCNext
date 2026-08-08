@@ -18,8 +18,9 @@ function setGridSize(tab, size) {
     const pfx = btnPrefix[tab] || tab;
     const largeBtn = document.getElementById(pfx + 'GridLarge');
     const smallBtn = document.getElementById(pfx + 'GridSmall');
-    if (largeBtn) largeBtn.classList.toggle('active', !compact);
-    if (smallBtn) smallBtn.classList.toggle('active', compact);
+    const isList = typeof lvViewMode === 'function' && lvViewMode(tab) === 'list';
+    if (largeBtn) largeBtn.classList.toggle('active', !compact && !isList);
+    if (smallBtn) smallBtn.classList.toggle('active', compact && !isList);
 }
 
 // Restore nav group collapsed states (default: collapsed)
@@ -37,6 +38,9 @@ initAllVnSelects();
         const saved = localStorage.getItem('vrcn_gridSize_' + tab) || 'default';
         setGridSize(tab, saved);
     });
+    if (typeof _worldsSyncViewBtns  === 'function') _worldsSyncViewBtns();
+    if (typeof _groupsSyncViewBtns  === 'function') _groupsSyncViewBtns();
+    if (typeof _avatarsSyncViewBtns === 'function') _avatarsSyncViewBtns();
 }());
 (function() {
     const el = document.getElementById('avatarSearchDbDrop');

@@ -55,6 +55,7 @@ public class VRChatLogWatcher : IDisposable
     public event Action? ConnectionLost;
     public event Action<string, string, bool>? PlayerModerated;
     public event Action<string>? AvatarSeen;
+    public event Action<string>? PrintSeen;
 
     public event Action<GameLogLine>? GameLogEntry;
 
@@ -377,6 +378,18 @@ public class VRChatLogWatcher : IDisposable
         return false;
     }
 
+    internal static string ExtractPrintId(string line)
+    {
+        const string marker = "/api/1/prints/";
+        var idx = line.IndexOf(marker, StringComparison.Ordinal);
+        if (idx < 0) return "";
+        var start = idx + marker.Length;
+        var end = start;
+        while (end < line.Length && (char.IsLetterOrDigit(line[end]) || line[end] == '_' || line[end] == '-')) end++;
+        var id = line.Substring(start, end - start);
+        return id.StartsWith("prnt_", StringComparison.Ordinal) ? id : "";
+    }
+
     private void ParseLine(string line, bool catchUp)
     {
         if (line.Length < 30) return;
@@ -520,6 +533,12 @@ public class VRChatLogWatcher : IDisposable
                 EmitGameLog(catchUp, "gl_instance_closed", ParseLogTimestamp(line), "Instance closed", loc);
             }
             return;
+        }
+
+        if (!catchUp && PrintSeen != null && line.Contains("] Sending Get request to "))
+        {
+            var pid = ExtractPrintId(line);
+            if (pid.Length > 0) { PrintSeen.Invoke(pid); return; }
         }
 
         if (line.Contains("[VRC Camera] Took screenshot to:"))

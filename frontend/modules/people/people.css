@@ -12,6 +12,7 @@
 #peopleRecentArea,
 #peopleSearchArea,
 #peopleBlockedArea,
+#peopleInstanceArea,
 #peopleMutedArea {
     flex: 1;
     min-height: 0;
@@ -136,3 +137,92 @@
     width: 100%;
     justify-content: center;
 }
+
+/* People list view */
+#favFriendsGrid:has(.tl-list-wrap),
+#allFriendsGrid:has(.tl-list-wrap),
+#recentSeenGrid:has(.tl-list-wrap),
+#searchPeopleResults:has(.tl-list-wrap),
+#blockedList:has(.tl-list-wrap),
+#mutedList:has(.tl-list-wrap) { overflow-x: auto; position: relative; z-index: 2; }
+#favFriendsGrid .tl-list-wrap,
+#allFriendsGrid .tl-list-wrap,
+#recentSeenGrid .tl-list-wrap,
+#searchPeopleResults .tl-list-wrap,
+#blockedList .tl-list-wrap,
+#mutedList .tl-list-wrap { padding: 4px 0 0; }
+.pl-profile { width: 46px; }
+.pl-av {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bg-hover) center/cover no-repeat;
+    flex-shrink: 0;
+}
+.pl-av-letter {
+    font-size: calc(12px + var(--fs-off, 0px));
+    font-weight: 700;
+    color: var(--tx3);
+}
+.pl-name {
+    font-weight: 700;
+    color: var(--tx1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pl-status {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--tx2);
+}
+.pl-status-txt { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.pl-langs { white-space: nowrap; }
+.pl-lang { margin-right: 4px; font-size: calc(13px + var(--fs-off, 0px)); }
+.pl-bios { white-space: nowrap; }
+.pl-bio-link {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 5px;
+    cursor: pointer;
+    opacity: .75;
+    transition: opacity .12s;
+}
+.pl-bio-link:hover { opacity: 1; }
+.pl-bio-ico {
+    width: 14px;
+    height: 14px;
+    font-size: 14px !important;
+    fill: var(--tx2);
+    color: var(--tx2);
+}
+.pl-num { color: var(--tx2); }
+.pl-date { white-space: nowrap; color: var(--tx2); }
+
+#instancePlayersGrid {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+#instancePlayersGrid:has(.tl-list-wrap) { overflow-x: auto; position: relative; z-index: 2; }
+#instancePlayersGrid .tl-list-wrap { padding: 4px 0 0; }
+#instancePlayersGrid .tl-list-table { table-layout: fixed; }
+.ip-age { color: #3ba55d; border-color: #3ba55d30; background: #3ba55d18; }
+.ip-bar-cell { padding-right: 14px !important; }
+.ip-bar-cell .tl-player-bar-wrap { width: 100%; }
+
+/* Keep the horizontal scrollbar clear of the window resize edge */
+#instancePlayersGrid,
+#favFriendsGrid:has(.tl-list-wrap),
+#allFriendsGrid:has(.tl-list-wrap),
+#recentSeenGrid:has(.tl-list-wrap),
+#searchPeopleResults:has(.tl-list-wrap),
+#blockedList:has(.tl-list-wrap),
+#mutedList:has(.tl-list-wrap) { margin-bottom: 8px; }

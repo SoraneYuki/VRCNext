@@ -83,6 +83,7 @@ function refreshAvatars() {
         document.getElementById('avatarGrid').innerHTML = avatarEmptyMessage('avatars.empty.login_prompt', 'Login to VRChat to see your avatars');
         return;
     }
+    document.getElementById('avatarGrid').classList.add('avatar-grid');
     document.getElementById('avatarGrid').innerHTML = sk('avatar', 6);
     sendToCS({ action: 'vrcGetAvatars', filter: 'own' });
 }
@@ -112,6 +113,11 @@ function setAvatarFilter(filter) {
     if (recentArea) recentArea.style.display = filter === 'recent'    ? '' : 'none';
     if (roseArea)   roseArea.style.display   = filter === 'rose'      ? '' : 'none';
     if (searchArea) searchArea.style.display = filter === 'search'    ? '' : 'none';
+
+    const alBtn = document.getElementById('avatarViewList');
+    if (alBtn) alBtn.style.display = '';
+    setPaginator('avatarRecentPaginatorBar', '');
+    setPaginator('avatarRosePaginatorBar', '');
 
     const _dbDrop = document.getElementById('avatarSearchDbDrop');
     if (_dbDrop) {
@@ -145,21 +151,129 @@ function setAvatarFilter(filter) {
 }
 
 /* === Own Avatars === */
+let _avOwnPage = 0;
+let _avFavPage = 0;
+
+let _avRecentPage = 0;
+let _avRosePage = 0;
+
+function setAvatarsViewMode(mode) {
+    lvSetViewMode('avatars', mode);
+    _avOwnPage = 0; _avFavPage = 0; _avRecentPage = 0; _avRosePage = 0;
+    _avatarsSyncViewBtns();
+    renderAvatarsListView();
+}
+
+function _avatarsSyncViewBtns() {
+    const isList = lvViewMode('avatars') === 'list';
+    document.getElementById('avatarViewList')?.classList.toggle('active', isList);
+    if (isList) {
+        document.getElementById('avatarGridLarge')?.classList.remove('active');
+        document.getElementById('avatarGridSmall')?.classList.remove('active');
+    } else {
+        const compact = localStorage.getItem('vrcn_gridSize_avatars') === 'compact';
+        document.getElementById('avatarGridLarge')?.classList.toggle('active', !compact);
+        document.getElementById('avatarGridSmall')?.classList.toggle('active', compact);
+    }
+}
+
+function renderAvatarsListView() {
+    if (avatarFilter === 'favorites')   filterFavAvatars();
+    else if (avatarFilter === 'recent') filterRecentAvatars();
+    else if (avatarFilter === 'rose')   filterRoseDb();
+    else if (avatarFilter === 'search') { if (avatarSearchResults.length) renderSearchGrid(); }
+    else filterOwnAvatars();
+}
+
+function setAvatarsListPageSize(v) { lvSetPageSize('avatars', v, () => { _avOwnPage = 0; _avFavPage = 0; _avRecentPage = 0; _avRosePage = 0; renderAvatarsListView(); }); }
+function avOwnGoPage(p) { if (p < 0) return; _avOwnPage = p; filterOwnAvatars(); document.getElementById('avatarGrid')?.closest('.lv-tab-scroll')?.scrollTo(0, 0); }
+function avFavGoPage(p) { if (p < 0) return; _avFavPage = p; filterFavAvatars(); document.getElementById('favAvatarsGrid')?.closest('.lv-tab-scroll')?.scrollTo(0, 0); }
+function avRecentGoPage(p) { if (p < 0) return; _avRecentPage = p; filterRecentAvatars(); document.getElementById('avatarRecentGrid')?.closest('.lv-tab-scroll')?.scrollTo(0, 0); }
+function avRoseGoPage(p) { if (p < 0) return; _avRosePage = p; filterRoseDb(); document.getElementById('roseDbGrid')?.closest('.lv-tab-scroll')?.scrollTo(0, 0); }
+
+const _AV_PERF_ORDER = ['excellent', 'good', 'medium', 'poor', 'verypoor'];
+function _avPerfRank(v) {
+    const k = String(v || '').toLowerCase().replace(/[^a-z]/g, '');
+    const i = _AV_PERF_ORDER.indexOf(k);
+    return i < 0 ? 99 : i;
+}
+
+function _alValue(a, field) {
+    const p = _avPerfByPlatform(a);
+    switch (field) {
+        case 'name':    return (a.name || '').toLowerCase();
+        case 'creator': return (a.authorName || '').toLowerCase();
+        case 'status':  return (a.releaseStatus || '').toLowerCase();
+        case 'pc':      return _avPerfRank(p.pc);
+        case 'android': return _avPerfRank(p.quest);
+        case 'ios':     return _avPerfRank(p.ios);
+        default:        return (a.name || '').toLowerCase();
+    }
+}
+
+function buildAvatarsListHtml(avatars) {
+    let rows = '';
+    avatars.forEach(a => {
+        const aid = jsq(a.id || '');
+        const p = _avPerfByPlatform(a);
+        const isPub = (a.releaseStatus || '') === 'public';
+        const statusBadge = a.releaseStatus
+            ? `<span class="vrcn-badge ${isPub ? 'public' : 'private'}">${esc(isPub ? t('avatars.status.public', 'Public') : t('avatars.status.private', 'Private'))}</span>`
+            : '';
+        rows += tlTableRow('avatarsList', ` onclick="openAvatarDetail('${aid}')"`, {
+            icon:    `<td>${lvIcon(a.thumbnailImageUrl || a.imageUrl, a.name, true)}</td>`,
+            name:    `<td class="lv-name">${esc(a.name || '')}</td>`,
+            creator: `<td class="lv-sub">${esc(a.authorName || '')}</td>`,
+            status:  `<td>${statusBadge}</td>`,
+            pc:      `<td class="lv-perf">${avatarPerfIcon(p.pc, 20, 'PC')}</td>`,
+            android: `<td class="lv-perf">${avatarPerfIcon(p.quest, 20, 'Android')}</td>`,
+            ios:     `<td class="lv-perf">${avatarPerfIcon(p.ios, 20, 'iOS')}</td>`,
+        });
+    });
+    return `<div class="lv-scroll">${tlTableHtml('avatarsList', rows)}</div>`;
+}
+
+function _avatarsListPage(el, all, page, barId, pageFn, setPage) {
+    const sorted = lvSort(all, 'avatarsList', _alValue);
+    const size = lvPageSize('avatars');
+    const totalPages = Math.ceil(sorted.length / size) || 1;
+    let p = page;
+    if (p >= totalPages) p = totalPages - 1;
+    if (p < 0) p = 0;
+    setPage(p);
+    lvKeepScroll(el, () => {
+        el.classList.remove('avatar-grid');
+        el.innerHTML = buildAvatarsListHtml(sorted.slice(p * size, (p + 1) * size));
+    });
+    setPaginator(barId, lvPaginator('avatars', p, totalPages, pageFn, sorted.length, 'setAvatarsListPageSize'));
+}
+
 function filterOwnAvatars() {
     const q = (document.getElementById('ownAvatarSearchInput')?.value || '').toLowerCase();
     const el = document.getElementById('avatarGrid');
     if (!el) return;
     if (!currentVrcUser) {
         el.innerHTML = avatarEmptyMessage('avatars.empty.login_prompt', 'Login to VRChat to see your avatars');
+        setPaginator('avatarOwnPaginatorBar', '');
         return;
     }
     const filtered = (q
         ? avatarsData.filter(a => (a.name || '').toLowerCase().includes(q) || (a.authorName || '').toLowerCase().includes(q))
         : avatarsData).filter(_avPassesFilters);
     document.getElementById('avatarCount').textContent = filtered.length ? avatarCountText(filtered.length) : '';
-    el.innerHTML = filtered.length
-        ? filtered.map(a => renderAvatarCard(a, 'own')).join('')
-        : avatarEmptyMessage(q ? 'avatars.empty.no_match' : 'avatars.empty.none', q ? 'No avatars match your filter' : 'No avatars found');
+    if (!filtered.length) {
+        el.classList.add('avatar-grid');
+        el.innerHTML = avatarEmptyMessage(q ? 'avatars.empty.no_match' : 'avatars.empty.none', q ? 'No avatars match your filter' : 'No avatars found');
+        setPaginator('avatarOwnPaginatorBar', '');
+        return;
+    }
+    if (lvViewMode('avatars') === 'list' && lvReady() && !_avEditMode) {
+        _avatarsListPage(el, filtered, _avOwnPage, 'avatarOwnPaginatorBar', 'avOwnGoPage', p => { _avOwnPage = p; });
+        return;
+    }
+    setPaginator('avatarOwnPaginatorBar', '');
+    el.classList.add('avatar-grid');
+    el.innerHTML = filtered.map(a => renderAvatarCard(a, 'own')).join('');
 }
 
 function renderAvatarGrid() {
@@ -179,15 +293,27 @@ function renderSearchGrid() {
     const el = document.getElementById('avatarSearchGrid');
     if (!el) return;
     if (avatarSearchResults.length === 0) {
+        el.classList.add('avatar-grid');
         el.innerHTML = avatarEmptyMessage('avatars.search.no_results', 'No results found');
         return;
     }
     const results = avatarSearchResults.filter(_avPassesFilters);
     document.getElementById('avatarCount').textContent = avatarResultCountText(results.length);
     if (results.length === 0) {
+        el.classList.add('avatar-grid');
         el.innerHTML = avatarEmptyMessage('avatars.empty.no_match', 'No avatars match your filter');
         return;
     }
+    if (lvViewMode('avatars') === 'list' && lvReady()) {
+        el.classList.remove('avatar-grid');
+        const more = avatarSearchHasMore
+            ? `<div class="lv-more"><button class="vrcn-button" onclick="doAvatarSearch(true)">${esc(t('avatars.search.load_more', 'Load More'))}</button></div>`
+            : '';
+        el.innerHTML = buildAvatarsListHtml(results) + more;
+        _checkAvatarsExist(avatarSearchResults.map(a => a.id).filter(Boolean));
+        return;
+    }
+    el.classList.add('avatar-grid');
     let html = results.map(a => renderAvatarCard(a, 'search')).join('');
     if (avatarSearchHasMore) {
         html += `<div style="grid-column:1/-1;text-align:center;margin-top:6px;">
@@ -296,13 +422,32 @@ function avatarPerfIcon(perf, size = 16, label = '') {
     return `<img src="assets/Avatars/${key}.png" title="${esc(title)}" style="height:${size}px;width:auto;vertical-align:middle;">`;
 }
 
+function _avPerfValid(v) {
+    const k = String(v || '').toLowerCase().replace(/[^a-z]/g, '');
+    return ['excellent', 'good', 'medium', 'poor', 'verypoor'].includes(k) ? v : '';
+}
+
 function _avPerfByPlatform(a) {
-    if (a.performance && typeof a.performance === 'object') {
-        return { pc: a.performance.pc || '', quest: a.performance.quest || a.performance.android || '', ios: a.performance.ios || '' };
-    }
+    const perf = (a.performance && typeof a.performance === 'object') ? a.performance : null;
+    const fromObj = (...keys) => {
+        for (const k of keys) {
+            const v = _avPerfValid(perf?.[k]);
+            if (v) return v;
+        }
+        return '';
+    };
     const real = (a.unityPackages || []).filter(p => p.variant !== 'impostor');
-    const get = plat => real.find(p => p.platform === plat)?.performanceRating || '';
-    return { pc: get('standalonewindows'), quest: get('android'), ios: get('ios') };
+    const fromPkg = plat => real
+        .filter(p => p.platform === plat)
+        .map(p => _avPerfValid(p.performanceRating))
+        .filter(Boolean)
+        .sort((x, y) => _avPerfRank(x) - _avPerfRank(y))[0] || '';
+
+    return {
+        pc:    fromObj('pc', 'standalonewindows')  || fromPkg('standalonewindows'),
+        quest: fromObj('quest', 'android')         || fromPkg('android'),
+        ios:   fromObj('ios')                      || fromPkg('ios'),
+    };
 }
 
 function _avPerfBadges(a) {
@@ -404,12 +549,47 @@ function filterRecentAvatars() {
     const list = (q
         ? _recentAvatarsData.filter(a => (a.name || '').toLowerCase().includes(q) || (a.authorName || '').toLowerCase().includes(q))
         : _recentAvatarsData).filter(_avPassesFilters);
-    el.innerHTML = list.length
-        ? list.map(a => renderAvatarCard(a, 'recent')).join('')
-        : avatarEmptyMessage(q ? 'avatars.empty.no_match' : 'avatars.recent.empty', q ? 'No avatars match your filter' : 'No recently used avatars');
+    if (!list.length) {
+        el.classList.add('avatar-grid');
+        el.innerHTML = avatarEmptyMessage(q ? 'avatars.empty.no_match' : 'avatars.recent.empty', q ? 'No avatars match your filter' : 'No recently used avatars');
+        setPaginator('avatarRecentPaginatorBar', '');
+        return;
+    }
+    if (lvViewMode('avatars') === 'list' && lvReady()) {
+        _avatarsListPage(el, list, _avRecentPage, 'avatarRecentPaginatorBar', 'avRecentGoPage', p => { _avRecentPage = p; });
+        return;
+    }
+    setPaginator('avatarRecentPaginatorBar', '');
+    el.classList.add('avatar-grid');
+    el.innerHTML = list.map(a => renderAvatarCard(a, 'recent')).join('');
+}
+
+function avatarLookup(avatarId) {
+    const pools = [
+        typeof avatarsData !== 'undefined' ? avatarsData : null,
+        typeof favAvatarsData !== 'undefined' ? favAvatarsData : null,
+        typeof _recentAvatarsData !== 'undefined' ? _recentAvatarsData : null,
+        typeof avatarSearchResults !== 'undefined' ? avatarSearchResults : null,
+    ];
+    for (const p of pools) {
+        if (!Array.isArray(p)) continue;
+        const hit = p.find(a => a.id === avatarId);
+        if (hit) return hit;
+    }
+    if (typeof roseDbData !== 'undefined' && Array.isArray(roseDbData)) {
+        const r = roseDbData.find(a => a.avatar_id === avatarId);
+        if (r) return { id: r.avatar_id, name: r.avatar_name, authorName: r.author, thumbnailImageUrl: r._cachedThumb || r.avatar_image_url };
+    }
+    return null;
 }
 
 function selectAvatar(avatarId) {
+    if (!avatarId || avatarId === currentAvatarId) return;
+    const a = avatarLookup(avatarId) || {};
+    showAvatarWearModal(avatarId, a.name || '', a.thumbnailImageUrl || a.imageUrl || '', a.authorName || '');
+}
+
+function avatarWearNow(avatarId) {
     if (!avatarId || avatarId === currentAvatarId) return;
     document.querySelectorAll('.av-card').forEach(c => {
         c.style.pointerEvents = 'none';
@@ -495,6 +675,7 @@ function doAvatarSearch(loadMore) {
         _avIcuBuffer = [];
         _avIcuBufferCursor = 0;
         _avIcuFetchHasMore = false;
+        document.getElementById('avatarSearchGrid').classList.add('avatar-grid');
         document.getElementById('avatarSearchGrid').innerHTML = sk('avatar', 6);
     } else if (avatarSearchDb === 'avtricu' && _avIcuBufferCursor < _avIcuBuffer.length) {
         const slice = _avIcuBuffer.slice(_avIcuBufferCursor, _avIcuBufferCursor + 20);
@@ -684,13 +865,21 @@ function filterFavAvatars() {
     const el = document.getElementById('favAvatarsGrid');
     if (!el) return;
     if (!filtered.length) {
+        el.classList.add('avatar-grid');
         el.innerHTML = avatarEmptyMessage(
             q || favAvatarGroupFilter ? 'avatars.favorites.no_match' : 'avatars.favorites.empty',
             q || favAvatarGroupFilter ? 'No favorites match your filter' : 'No favorite avatars found'
         );
+        setPaginator('avatarFavPaginatorBar', '');
         if (_avEditMode) updateAvEditBar();
         return;
     }
+    if (lvViewMode('avatars') === 'list' && lvReady() && !_avEditMode) {
+        _avatarsListPage(el, filtered, _avFavPage, 'avatarFavPaginatorBar', 'avFavGoPage', p => { _avFavPage = p; });
+        return;
+    }
+    setPaginator('avatarFavPaginatorBar', '');
+    el.classList.add('avatar-grid');
     if (!favAvatarGroupFilter && favAvatarGroups.length > 1) {
         let html = '';
         let first = true;
@@ -1096,7 +1285,7 @@ function loadRoseDatabase(forceRefresh) {
     if (roseDbLoaded && !forceRefresh) { filterRoseDb(); return; }
     const grid = document.getElementById('roseDbGrid');
     const btn  = document.getElementById('roseRefreshBtn');
-    if (grid) grid.innerHTML = sk('avatar', 6);
+    if (grid) { grid.classList.add('avatar-grid'); grid.innerHTML = sk('avatar', 6); }
     if (btn)  { btn.disabled = true; btn.querySelector('.msi').textContent = 'hourglass_empty'; }
 
     fetch('https://gist.githubusercontent.com/TheZiver/bb99f9facb8d14fd607dbb79e9a99d83/raw')
@@ -1127,13 +1316,41 @@ function filterRoseDb() {
     document.getElementById('avatarCount').textContent = list.length ? avatarCountText(list.length) : '';
 }
 
+function _roseToAvatar(a) {
+    const d = a._detail || {};
+    const p = d.performance || null;
+    const compat = [];
+    if (p) {
+        if (p.pc)    compat.push('standalonewindows');
+        if (p.quest) compat.push('android');
+        if (p.ios)   compat.push('ios');
+    }
+    return {
+        id: a.avatar_id || '',
+        name: a.avatar_name || '',
+        authorName: a.author || d.authorName || '',
+        thumbnailImageUrl: a._cachedThumb || a.avatar_image_url || '',
+        releaseStatus: d.releaseStatus || 'public',
+        performance: p || undefined,
+        compatibility: compat.length ? compat : undefined,
+    };
+}
+
 function renderRoseGrid(list) {
     const grid = document.getElementById('roseDbGrid');
     if (!grid) return;
     if (!list || list.length === 0) {
+        grid.classList.add('avatar-grid');
         grid.innerHTML = avatarEmptyMessage('avatars.empty.none', 'No avatars found');
+        setPaginator('avatarRosePaginatorBar', '');
         return;
     }
+    if (lvViewMode('avatars') === 'list' && lvReady()) {
+        _avatarsListPage(grid, list.map(_roseToAvatar), _avRosePage, 'avatarRosePaginatorBar', 'avRoseGoPage', p => { _avRosePage = p; });
+        return;
+    }
+    setPaginator('avatarRosePaginatorBar', '');
+    grid.classList.add('avatar-grid');
     grid.innerHTML = list.map(a => renderRoseAvatarCard(a)).join('');
 }
 
@@ -1154,6 +1371,70 @@ function _roseTagBadge(rawTag) {
     if (!s) return `<span class="vrcn-badge" style="background:var(--bg2);color:var(--tx2);border:1px solid var(--brd-lt);">${esc(rawTag)}</span>`;
     const bg = s.bg.startsWith('linear') ? s.bg : s.bg;
     return `<span class="vrcn-badge" style="background:${bg};color:${s.color};border:${s.border};">${esc(s.label)}</span>`;
+}
+
+function _avApplyDetails(list, keyField, details) {
+    let changed = false;
+    (list || []).forEach(a => {
+        const d = details[a[keyField]];
+        if (!d) return;
+        if (d.authorName && !a.authorName) { a.authorName = d.authorName; changed = true; }
+        if (d.releaseStatus && !a.releaseStatus) { a.releaseStatus = d.releaseStatus; changed = true; }
+        const p = d.performance;
+        if (p && (p.pc || p.quest || p.ios)) {
+            const cur = a.performance || {};
+            if (cur.pc !== p.pc || cur.quest !== p.quest || cur.ios !== p.ios) {
+                a.performance = { pc: p.pc || cur.pc || '', quest: p.quest || cur.quest || '', ios: p.ios || cur.ios || '' };
+                changed = true;
+            }
+        }
+    });
+    return changed;
+}
+
+function _avApplyRoseDetails(details) {
+    if (typeof roseDbData === 'undefined' || !Array.isArray(roseDbData)) return false;
+    let changed = false;
+    roseDbData.forEach(a => {
+        const d = details[a.avatar_id];
+        if (!d) return;
+        const cur = a._detail || {};
+        if (JSON.stringify(cur) === JSON.stringify(d)) return;
+        a._detail = d;
+        changed = true;
+    });
+    return changed;
+}
+
+function onAvatarDetailsBatch(details) {
+    if (!details) return;
+    let changed = false;
+    if (typeof avatarSearchResults !== 'undefined') changed = _avApplyDetails(avatarSearchResults, 'id', details) || changed;
+    if (typeof _recentAvatarsData !== 'undefined')  changed = _avApplyDetails(_recentAvatarsData, 'id', details) || changed;
+    if (typeof favAvatarsData !== 'undefined')      changed = _avApplyDetails(favAvatarsData, 'id', details) || changed;
+    if (typeof avatarsData !== 'undefined')         changed = _avApplyDetails(avatarsData, 'id', details) || changed;
+    changed = _avApplyRoseDetails(details) || changed;
+    if (!changed) return;
+    const tab = document.getElementById('tab4');
+    if (!tab || !tab.classList.contains('active')) return;
+    const gridId = { search: 'avatarSearchGrid', recent: 'avatarRecentGrid', favorites: 'favAvatarsGrid', own: 'avatarGrid', rose: 'roseDbGrid' }[avatarFilter];
+    lvKeepScroll(document.getElementById(gridId), () => renderAvatarsListView());
+}
+
+function onAvatarDetailLive(a) {
+    if (!a || !a.id) return;
+    const perf = { pc: a.pcPerf || '', quest: a.questPerf || '', ios: a.iosPerf || '' };
+    if (!perf.pc && !perf.quest && !perf.ios && !a.authorName) return;
+    onAvatarDetailsBatch({
+        [a.id]: { authorName: a.authorName || '', releaseStatus: a.releaseStatus || '', performance: perf },
+    });
+}
+
+function onRoseDbBatchDetails(details) {
+    if (!details) return;
+    if (_avApplyRoseDetails(details) && avatarFilter === 'rose') {
+        lvKeepScroll(document.getElementById('roseDbGrid'), () => filterRoseDb());
+    }
 }
 
 function onRoseDbBatchCached(mapping) {
@@ -1178,10 +1459,14 @@ function renderRoseAvatarCard(a) {
     ];
     const tags = sorted.map(t => _roseTagBadge(t)).join('');
 
+    const av = _roseToAvatar(a);
+    const platIcons = _avPlatformIcons(av);
+
     return `<div class="vrcn-content-card av-card" onclick="selectAvatar('${aid}')">
         <div class="cc-bg" style="${thumbStyle}"></div>
         <div class="cc-scrim"></div>
-        <div class="cc-badges-top">${avatarStatusBadge(true)}</div>
+        <div class="cc-badges-top">${platIcons || avatarStatusBadge(true)}</div>${_avPerfBadges(av)}
+        ${platIcons ? `<div class="cc-badge-db">${avatarStatusBadge(true)}</div>` : ''}
         <div class="cc-content">
             <div class="cc-name">${esc(a.avatar_name || t('avatars.labels.unnamed', 'Unnamed'))}</div>
             <div class="cc-bottom-row">
@@ -1192,3 +1477,5 @@ function renderRoseAvatarCard(a) {
     </div>`;
 }
 
+
+_avatarsSyncViewBtns();

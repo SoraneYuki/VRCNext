@@ -171,6 +171,11 @@ window.external.receiveMessage(rawMsg => {
                     addLog(t('messages.relay.deleted_from_discord', 'Deleted from Discord'), 'ok');
                 } else addLog(t('messages.delete_failed', 'Delete failed'), 'err');
                 break;
+            case 'folderPicked': {
+                const el = document.getElementById(payload.target || '');
+                if (el && payload.path) el.value = payload.path;
+                break;
+            }
             case 'folderAdded':
                 if (!settings.folders) settings.folders = [];
                 settings.folders.push(payload);
@@ -294,6 +299,7 @@ window.external.receiveMessage(rawMsg => {
             }
             case 'vrcFriends':
                 vrcFriendsLoaded = true;
+                if (typeof friendFetchInit === 'function') friendFetchInit();
                 if (payload.friends) {
                     renderVrcFriends(payload.friends, payload.counts);
                     vrcFriendsData = payload.friends;
@@ -335,7 +341,16 @@ window.external.receiveMessage(rawMsg => {
                     document.getElementById('vrcQuickPass').value = payload.password || '';
                 }
                 break;
-            case 'vrcFriendDetail': renderFriendDetail(payload); break;
+            case 'vrcFriendDetail':
+                renderFriendDetail(payload);
+                if (typeof patchFriendProfileFacts === 'function') patchFriendProfileFacts(payload);
+                break;
+            case 'vrcFriendFetchProgress':
+                if (typeof onFriendFetchProgress === 'function') onFriendFetchProgress(payload);
+                break;
+            case 'vrcFriendFacts':
+                if (typeof applyFriendFacts === 'function') applyFriendFacts(payload);
+                break;
             case 'vrcFriendPreview': if (typeof handleFriendPreview === 'function') handleFriendPreview(payload); break;
             case 'vrcUserBasic':
                 if (typeof handleUserBasic === 'function') handleUserBasic(payload);
@@ -662,6 +677,12 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcAvatarBatchCached':
                 if (typeof onRoseDbBatchCached === 'function') onRoseDbBatchCached(payload);
                 break;
+            case 'vrcAvatarBatchDetails':
+                if (typeof onRoseDbBatchDetails === 'function') onRoseDbBatchDetails(payload);
+                break;
+            case 'vrcAvatarDetailsBatch':
+                if (typeof onAvatarDetailsBatch === 'function') onAvatarDetailsBatch(payload);
+                break;
             case 'vrcUserAvatars':
                 renderFdUserAvatars(payload);
                 if (typeof onMypUserAvatars === 'function') onMypUserAvatars(payload);
@@ -796,6 +817,7 @@ window.external.receiveMessage(rawMsg => {
                 break;
             case 'vrcAvatarDetail':
                 renderAvatarDetail(payload);
+                if (typeof onAvatarDetailLive === 'function') onAvatarDetailLive(payload);
                 break;
             case 'vrcAvatarGallery':
                 if (typeof onAvatarGallery === 'function') onAvatarGallery(payload);

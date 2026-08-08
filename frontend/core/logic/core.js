@@ -1578,7 +1578,10 @@ function showTab(i) {
     document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i));
     const contentEl = document.querySelector('.content');
     if (contentEl) {
+        contentEl.classList.toggle('tab1-active', i === 1);
+        contentEl.classList.toggle('tab2-active', i === 2);
         contentEl.classList.toggle('tab3-active', i === 3);
+        contentEl.classList.toggle('tab4-active', i === 4);
         contentEl.classList.toggle('tab7-active', i === 7);
         contentEl.classList.toggle('tab12-active', i === 12);
         contentEl.classList.toggle('tab16-active', i === 16);

@@ -265,7 +265,10 @@ html.text-tools-active * { user-select: text !important; }
     box-shadow: 0 0 0 2px var(--accent);
 }
 
+.content.tab1-active,
+.content.tab2-active,
 .content.tab3-active,
+.content.tab4-active,
 .content.tab7-active,
 .content.tab12-active,
 .content.tab16-active { overflow-y: hidden; padding-bottom: 0; }
@@ -1010,13 +1013,13 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     margin-bottom: 14px;
 }
 .iim-list {
-    --iim-grid-cols: 88px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr);
-    min-width: 812px;
+    --iim-grid-cols: 88px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
+    min-width: 928px;
     width: 100%;
 }
 .iim-list.has-timers {
-    --iim-grid-cols: 88px 76px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr);
-    min-width: 892px;
+    --iim-grid-cols: 88px 76px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
+    min-width: 1008px;
 }
 .iim-list-head,
 .iim-user-row {
@@ -1191,3 +1194,16 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     align-items: center;
     min-width: max-content;
 }
+
+.iim-head-grip {
+    font-size: calc(13px + var(--fs-off, 0px)) !important;
+    color: var(--tx3);
+    opacity: 0;
+    cursor: grab;
+    margin-left: 2px;
+    transition: opacity .12s;
+    touch-action: none;
+}
+.iim-head-cell:hover .iim-head-grip { opacity: .7; }
+.iim-head-grip:active { cursor: grabbing; }
+.iim-head-cell.iim-head-dragging { opacity: .45; }

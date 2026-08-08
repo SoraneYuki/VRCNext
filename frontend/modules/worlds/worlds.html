@@ -26,15 +26,18 @@
                     </div>
                     <div style="display:flex;gap:4px;align-items:center;">
                         <button id="worldEditModeBtn" class="vrcn-button" onclick="toggleWorldEditMode()" title="Edit favorites" data-i18n-title="worlds.edit.button"><span class="msi" style="font-size:16px;">edit</span> <span data-i18n="worlds.edit.button">Edit</span></button>
-                        <button class="vrcn-button sub-tab-btn active" id="worldGridLarge" onclick="setGridSize('worlds','default')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="worldGridSmall" onclick="setGridSize('worlds','compact')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
+                        <button class="vrcn-button sub-tab-btn active" id="worldGridLarge" onclick="setGridSize('worlds','default');setWorldsViewMode('grid')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="worldGridSmall" onclick="setGridSize('worlds','compact');setWorldsViewMode('grid')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="worldViewList" onclick="setWorldsViewMode('list')" title="List view" data-i18n-title="people.view.list"><span class="msi" style="font-size:14px;">format_list_bulleted</span></button>
                     </div>
                 </div>
                 <div id="worldMineArea" style="display:none;">
                     <div id="worldMineGrid" class="search-grid"><div class="empty-msg" data-i18n="worlds.mine.loading">Loading your worlds...</div></div>
+                    <div id="worldMinePaginatorBar" class="tl-paginator-bar"></div>
                 </div>
                 <div id="worldRecentArea" style="display:none;">
                     <div id="worldRecentGrid" class="search-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
+                    <div id="worldRecentPaginatorBar" class="tl-paginator-bar"></div>
                 </div>
                 <div id="worldSearchArea" style="display:none;">
                     <div class="tab-toolbar-body">
@@ -54,26 +57,10 @@
                 </div>
                 <div id="worldFavArea">
                     <div class="tab-toolbar-body">
-                    <!-- Category label + inline rename -->
-                    <div id="favWorldGroupHeader" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;min-height:24px;">
-                        <span id="favWorldGroupLabel" style="font-size:calc(13px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);" data-i18n="worlds.favorites.group.all">All Favorites</span>
+                    <div id="favWorldGroupHeader" style="display:none;align-items:center;gap:6px;margin-bottom:10px;">
                         <span id="favWorldGroupVrcPlusBadge" class="vrcn-supporter-badge" style="display:none;">VRC+</span>
                         <span id="favWorldGroupLocalBadge" class="vrcn-local-badge" style="display:none;" data-i18n="favorites.local_badge">Local</span>
-                        <button id="favWorldGroupEditBtn" class="myp-edit-btn" onclick="startEditWorldGroupName()" style="display:none;" title="Rename category" data-i18n-title="worlds.favorites.rename_category"><span class="msi" style="font-size:14px;">edit</span></button>
                         <button id="favWorldGroupDeleteBtn" class="myp-edit-btn" onclick="deleteCurrentLocalWorldGroup(this)" style="display:none;" title="Delete local group" data-i18n-title="favorites.delete_local_group"><span class="msi" style="font-size:14px;">delete</span></button>
-                        <span id="favWorldGroupVisLabel" style="display:none;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);font-weight:400;"></span>
-                        <div id="favWorldGroupVisDropWrap" style="display:none;">
-                            <select id="favWorldGroupVisDrop" class="vrcn-dropdown" onchange="saveFavGroupVisibility(this.value)" style="min-width:160px;">
-                                <option value="public" data-i18n="worlds.favorites.visibility.public">Visible for everyone</option>
-                                <option value="friends" data-i18n="worlds.favorites.visibility.friends">Visible for friends</option>
-                                <option value="private" data-i18n="worlds.favorites.visibility.private">Visible only to you</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="favWorldGroupRenameRow" style="display:none;align-items:center;gap:6px;margin-bottom:10px;">
-                        <input type="text" id="favWorldGroupNameInput" class="vrcn-edit-field" maxlength="64" style="flex:1;max-width:280px;">
-                        <button class="vrcn-button vrcn-btn-primary" onclick="saveWorldGroupName()" data-i18n="common.save">Save</button>
-                        <button class="vrcn-button" onclick="cancelEditWorldGroupName()" data-i18n="common.cancel">Cancel</button>
                     </div>
                     <!-- Dropdown + search -->
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
@@ -85,4 +72,5 @@
                     </div>
                     </div>
                     <div id="favWorldsGrid" class="search-grid"><div class="empty-msg" data-i18n="worlds.favorites.loading">Loading favorite worlds...</div></div>
+                    <div id="favWorldsPaginatorBar" class="tl-paginator-bar"></div>
                 </div>

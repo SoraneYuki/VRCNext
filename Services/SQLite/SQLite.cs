@@ -522,6 +522,14 @@ public class UnifiedTimeEngine : IDisposable
         }
     }
 
+    private static readonly string[] _perfNames = { "excellent", "good", "medium", "poor", "verypoor" };
+
+    private static string NormalizePerf(string value)
+    {
+        var key = new string((value ?? "").ToLowerInvariant().Where(char.IsLetter).ToArray());
+        return Array.IndexOf(_perfNames, key) >= 0 ? value : "";
+    }
+
     public AvatarDetailCache? GetAvatarDetail(string avatarId)
     {
         if (string.IsNullOrEmpty(avatarId)) return null;
@@ -548,10 +556,10 @@ public class UnifiedTimeEngine : IDisposable
                     HasPC             = r.GetInt32(11) != 0,
                     HasQuest          = r.GetInt32(12) != 0,
                     HasImpostor       = r.GetInt32(13) != 0,
-                    PcPerf            = r.GetString(14),
-                    QuestPerf         = r.GetString(15),
+                    PcPerf            = NormalizePerf(r.GetString(14)),
+                    QuestPerf         = NormalizePerf(r.GetString(15)),
                     HasIos            = r.GetInt32(17) != 0,
-                    IosPerf           = r.GetString(18),
+                    IosPerf           = NormalizePerf(r.GetString(18)),
                 };
             }
             catch { return null; }
@@ -853,11 +861,27 @@ public class UnifiedTimeEngine : IDisposable
         }
     }
 
+    private static string Pick(JObject o, params string[] keys)
+    {
+        foreach (var k in keys)
+        {
+            var v = o[k]?.ToString();
+            if (!string.IsNullOrEmpty(v)) return v;
+        }
+        return "";
+    }
+
     public void SaveUserProfileCache(string userId, string payloadJson)
     {
         if (string.IsNullOrEmpty(userId)) return;
         JObject p;
-        try { p = JObject.Parse(payloadJson); } catch { return; }
+        try
+        {
+            using var sr = new System.IO.StringReader(payloadJson);
+            using var jr = new JsonTextReader(sr) { DateParseHandling = DateParseHandling.None };
+            p = JObject.Load(jr);
+        }
+        catch { return; }
         var now = DateTime.UtcNow.ToString("o");
         lock (_lock)
         {
@@ -872,7 +896,9 @@ public class UnifiedTimeEngine : IDisposable
                     display_name=$dn, image=$img,
                     profile_status=$st, profile_status_desc=$sd, profile_bio=$bio, profile_location=$loc,
                     profile_is_friend=$fr, profile_avatar_img=$ai, profile_cached_at=$cat,
-                    profile_last_login=$ll, profile_last_activity=$la, profile_date_joined=$dj,
+                    profile_last_login    = CASE WHEN $ll  <> '' THEN $ll  ELSE profile_last_login    END,
+                    profile_last_activity = CASE WHEN $la  <> '' THEN $la  ELSE profile_last_activity END,
+                    profile_date_joined   = CASE WHEN $dj  <> '' THEN $dj  ELSE profile_date_joined   END,
                     profile_world_name=$wn, profile_world_thumb=$wt, profile_instance_type=$it,
                     profile_user_count=$uc, profile_world_capacity=$wc, profile_can_join=$cj,
                     profile_can_request_invite=$cri, profile_can_invite=$ci,
@@ -880,7 +906,9 @@ public class UnifiedTimeEngine : IDisposable
                     profile_banner_url=$bnu,
                     profile_tags=$tags, profile_note=$note, profile_friend_key=$fk, profile_traveling_to=$tt,
                     profile_state=$state, profile_last_platform=$lp, profile_platform=$pl, profile_user_note=$un,
-                    profile_in_same_instance=$isi, profile_pronouns=$pro, profile_age_verification=$av,
+                    profile_in_same_instance=$isi,
+                    profile_pronouns      = CASE WHEN $pro <> '' THEN $pro ELSE profile_pronouns      END,
+                    profile_age_verification=$av,
                     profile_age_verified=$avd, profile_bio_links=$bl, profile_is_favorited=$ifav,
                     profile_fav_friend_id=$ffid, profile_badges=$badges,
                     profile_represented_group=$rg,
@@ -898,9 +926,9 @@ public class UnifiedTimeEngine : IDisposable
                 cmd.Parameters.AddWithValue("$fr",    p["isFriend"]?.Value<bool>() == true ? 1 : 0);
                 cmd.Parameters.AddWithValue("$ai",    p["currentAvatarImageUrl"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$cat",   now);
-                cmd.Parameters.AddWithValue("$ll",    p["lastLogin"]?.ToString() ?? "");
-                cmd.Parameters.AddWithValue("$la",    p["lastActivity"]?.ToString() ?? "");
-                cmd.Parameters.AddWithValue("$dj",    p["dateJoined"]?.ToString() ?? "");
+                cmd.Parameters.AddWithValue("$ll",    Pick(p, "lastLogin", "last_login"));
+                cmd.Parameters.AddWithValue("$la",    Pick(p, "lastActivity", "last_activity"));
+                cmd.Parameters.AddWithValue("$dj",    Pick(p, "dateJoined", "date_joined"));
                 cmd.Parameters.AddWithValue("$wn",    p["worldName"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$wt",    p["worldThumb"]?.ToString() ?? "");
                 cmd.Parameters.AddWithValue("$it",    p["instanceType"]?.ToString() ?? "");

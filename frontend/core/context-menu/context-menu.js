@@ -478,15 +478,15 @@
     let _ctxEl = null;
 
     function _pinCardData() {
-        const card = _ctxEl?.closest?.('.vrcn-content-card, .av-card, .vrcn-user-item, .vrcn-mini-content, .vrcn-world-card-small, .dash-flocs-card');
+        const card = _ctxEl?.closest?.('.vrcn-content-card, .av-card, .vrcn-user-item, .vrcn-mini-content, .vrcn-world-card-small, .dash-flocs-card, .tl-list-row');
         if (!card) return {};
 
-        const name = (card.querySelector('.cc-name, .vrcn-user-item-name, .vrcn-mini-title, .flocs-world')?.textContent
+        const name = (card.querySelector('.cc-name, .vrcn-user-item-name, .vrcn-mini-title, .flocs-world, .lv-name, .pl-name')?.textContent
             || card.getAttribute('title') || '').trim();
 
         let image = card.querySelector('img')?.getAttribute('src') || '';
         if (!image) {
-            const holder = card.querySelector('.cc-bg, .vrcn-mini-thumb, .vrcn-user-item-avatar') || card;
+            const holder = card.querySelector('.cc-bg, .vrcn-mini-thumb, .vrcn-user-item-avatar, .lv-icon, .pl-av') || card;
             const bg = holder.style?.backgroundImage || '';
             image = bg.match(/url\(["']?([^"')]+)/)?.[1] || '';
         }
@@ -625,7 +625,7 @@
             if (loc) return buildInstanceLinkItems(loc);
         }
 
-        const groupCard = el.closest('#myGroupsGrid .vrcn-content-card, #dashGroupActivityGrid .dash-group-card, #searchGroupsResults .vrcn-content-card, .fd-group-card');
+        const groupCard = el.closest('#myGroupsGrid .vrcn-content-card, #dashGroupActivityGrid .dash-group-card, #searchGroupsResults .vrcn-content-card, .fd-group-card, .tl-list-table[data-tl-list="groupsList"] .tl-list-row');
         if (groupCard) {
             const id = extractGroupId(groupCard);
             if (id) return buildGroupItems(id);
@@ -652,7 +652,7 @@
             if (id) return buildWorldItems(id);
         }
 
-        const worldCard = el.closest('#favWorldsGrid .vrcn-content-card, #worldSearchArea .vrcn-content-card, #worldMineGrid .vrcn-content-card, #worldRecentGrid .vrcn-content-card, #fdContentWorlds .vrcn-content-card, #fdTabFavs .vrcn-world-card-small');
+        const worldCard = el.closest('#favWorldsGrid .vrcn-content-card, #worldSearchArea .vrcn-content-card, #worldMineGrid .vrcn-content-card, #worldRecentGrid .vrcn-content-card, #fdContentWorlds .vrcn-content-card, #fdTabFavs .vrcn-world-card-small, .tl-list-table[data-tl-list="worldsList"] .tl-list-row');
         if (worldCard) {
             const id = extractWorldId(worldCard);
             if (id) return buildWorldItems(id);
@@ -664,9 +664,12 @@
             if (id) return buildWorldItems(id);
         }
 
-        const avatarCard = el.closest('.av-card');
+        const avatarCard = el.closest('.av-card, .tl-list-table[data-tl-list="avatarsList"] .tl-list-row');
         if (avatarCard) {
-            const id = (avatarCard.getAttribute('onclick') || '').match(/selectAvatar\('([^']+)'\)/)?.[1] || avatarCard.dataset.avid;
+            const onclickAv = avatarCard.getAttribute('onclick') || '';
+            const id = onclickAv.match(/selectAvatar\('([^']+)'\)/)?.[1]
+                || onclickAv.match(/openAvatarDetail\('([^']+)'\)/)?.[1]
+                || avatarCard.dataset.avid;
             if (id) return buildAvatarItems(id);
         }
 
@@ -712,7 +715,7 @@
                 : buildFriendItems(id);
         }
 
-        const friendCard = el.closest('.vrc-friend-card, .vrcn-user-item, .inst-user-row, .iim-user-item, .dash-feed-card');
+        const friendCard = el.closest('.vrc-friend-card, .vrcn-user-item, .inst-user-row, .iim-user-item, .dash-feed-card, .tl-list-table[data-tl-list="friendsList"] .tl-list-row, .tl-list-table[data-tl-list="modList"] .tl-list-row, .tl-list-table[data-tl-list="instanceList"] .tl-list-row');
         if (friendCard) {
             const id = extractFriendId(friendCard);
             if (id) {
