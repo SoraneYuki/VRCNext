@@ -1,6 +1,7 @@
 **2026.41.5**
 
-**Avatar Search**
+**Friends Sidebar**
+* Favorite friends are in their sub groups now when the sidebar is expanded.
 
 **i18n**
 
@@ -34,6 +35,9 @@
 * Marks whether a line is partial or final. Gemini streams partial, Groq only sends final.
 * Text scales with the mode. Larger when only transcribing, smaller when translating as well.
 
+**Avatar Search**
+* improved avatar lookups and endpoint changes
+
 **Networking**
 
 * Switched networking to **HTTP/2**.
@@ -48,3 +52,4 @@
 * For a library of around 40,000 photos, estimated scan reads are reduced from roughly **168 GB to 1.3 GB**.
 * World IDs, author names and player lists remain unchanged. The new reader was verified against an existing photo library with no differences.
 * Some internal improvements and fixes.
+* Removed breadcrumbs when declining notifications only show errors.

@@ -1585,6 +1585,7 @@
   "notifications.types.text_adventure": "Aventura de texto",
   "notifications.types.vrcplus_gift": "Regalo VRC+",
   "notifications.types.group_default": "Grupo: {name}",
+  "notifications.toast.decline_failed": "No se pudo rechazar la notificacion",
   "context_menu.loading_groups": "Cargando grupos...",
   "context_menu.copy": "Copiar",
   "context_menu.copy_instance_link": "Copiar enlace de instancia",
