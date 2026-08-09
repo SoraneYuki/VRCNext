@@ -1504,8 +1504,6 @@ namespace VRCNext.Services
             _vrSystem.GetDeviceToAbsoluteTrackingPose(
                 ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, _poses);
 
-            UpdateToastFollow();
-
             if (!_poses[wristIdx].bPoseIsValid || !_poses[hmdIdx].bPoseIsValid) return;
 
             var wm = _poses[wristIdx].mDeviceToAbsoluteTracking;
@@ -1553,6 +1551,7 @@ namespace VRCNext.Services
                     }
 
                     UpdateDynamicVisibility();
+                    UpdateToastFollow();
 
                     // Proximity-based interaction: enable Mouse+Interactive when free
                     // hand is near the wrist, revert to None otherwise.
@@ -2617,6 +2616,7 @@ namespace VRCNext.Services
 
         private const float ToastFollowTau  = 0.20f;
         private const float ToastFollowDist = 0.45f;
+        private readonly TrackedDevicePose_t[] _toastPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private Vector3 _toastPos;
         private Vector3 _toastFwd = -Vector3.UnitZ;
         private bool    _toastPoseInit;
@@ -2626,11 +2626,14 @@ namespace VRCNext.Services
         {
             if (_toastHandle == 0 || OpenVR.Overlay == null || _vrSystem == null) return;
 
-            if (_activeToasts.Count == 0) { _toastPoseInit = false; return; }
+            lock (_activeToasts) { if (_activeToasts.Count == 0) { _toastPoseInit = false; return; } }
+
+            _vrSystem.GetDeviceToAbsoluteTrackingPose(
+                ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, _toastPoses);
 
             var hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
-            if (!_poses[hmdIdx].bPoseIsValid) return;
-            var m = _poses[hmdIdx].mDeviceToAbsoluteTracking;
+            if (!_toastPoses[hmdIdx].bPoseIsValid) return;
+            var m = _toastPoses[hmdIdx].mDeviceToAbsoluteTracking;
 
             var hmdPos = new Vector3(m.m3, m.m7, m.m11);
             var fwd    = new Vector3(-m.m2, -m.m6, -m.m10);
