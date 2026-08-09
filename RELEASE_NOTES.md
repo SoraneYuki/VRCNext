@@ -3,22 +3,26 @@
 **Avatar Search**
 
 **i18n**
+
 * Added **zh-TW** localization and a **zh-TW** language button.
   By @SoraneYuki
 
 **Linux Improvements**
-* Added an NVIDIA driver check in `./main/Program.cs`.
-* Added the `WEBKIT_DISABLE_DMABUF_RENDERER=1` environment variable when required, with an automatic restart to apply the change.
+
+* Added an NVIDIA driver check and automatically applies `WEBKIT_DISABLE_DMABUF_RENDERER=1` when required.
   By @SharkieWasHere
 
 **Networking**
-* Switched to http2
+
+* Switched networking to **HTTP/2**.
 
 **Fixed Bugs**
-* Fixed out of memory crashes caused by every message sent to the interface being copied an extra time in memory for log output. Logging is now turned off, which removes a full copy of every payload.
-* Removed an aggressive garbage collector setting that kept the heap small and could trigger out of memory errors during large operations such as database searches and imports. The scheduled memory trim that compacts the heap every 10 minutes is untouched and still runs.
-* Fixed the VRChat process state being requested twice every 5 seconds by two separate timers.
-* Fixed VRCNext refusing to start with "You must install or update .NET" on systems that only have a newer .NET version installed than the one VRCNext was built against.
-* Fixed the media library scan saturating the disk on startup. Reading the world and author information out of a photo used to jump through the file around 774 times per image, in two separate passes. It now reads the start and the end of the file once each and evaluates everything in memory.
-* Measured on a library of 758 photos: reads dropped from 3363 MB to 350 MB and disk operations from 828,316 to 51,307. For a library of 40,000 photos that is roughly 168 GB down to 1.3 GB per scan.
-* World IDs, author names and player lists are unchanged. The new reader was verified against every photo in a real library with zero differences, and the refresh button still performs a full rescan.
+
+* Fixed out-of-memory crashes caused by interface messages being duplicated in memory for logging. This unnecessary logging has been disabled.
+* Removed an aggressive garbage collection setting that could cause out-of-memory errors during large database searches and imports. The scheduled 10-minute memory cleanup remains unchanged.
+* Fixed the VRChat process state being checked twice every 5 seconds.
+* Fixed VRCNext refusing to start on systems with a newer .NET version than the version it was built against.
+* Significantly reduced disk usage during Media Library scans by improving how photo metadata is read.
+* In a test with 758 photos, disk reads dropped from **3.36 GB to 350 MB** and disk operations from **828,316 to 51,307**.
+* For a library of around 40,000 photos, estimated scan reads are reduced from roughly **168 GB to 1.3 GB**.
+* World IDs, author names and player lists remain unchanged. The new reader was verified against an existing photo library with no differences.
