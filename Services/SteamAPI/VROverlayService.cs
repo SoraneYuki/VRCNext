@@ -2690,7 +2690,7 @@ namespace VRCNext.Services
 
             var oldClip = g.Clip;
             using var avPath = RoundedRectPath(avX, avY, avSize, avSize, avR);
-            g.SetClip(avPath);
+            g.SetClip(avPath, System.Drawing.Drawing2D.CombineMode.Intersect);
             if (avatar != null)
             {
                 if (fade >= 0.99f)
@@ -2843,6 +2843,9 @@ namespace VRCNext.Services
                 var hdrState = g.Save();
                 g.TranslateTransform(0, HeaderH);
                 DrawTabBar(g);
+                var tabClip = g.Clip;
+                g.SetClip(new System.Drawing.Rectangle(0, TabBarBottom, W, H - TabBarBottom),
+                          System.Drawing.Drawing2D.CombineMode.Intersect);
                 if      (_activeTab == 1) DrawNotifications(g);
                 else if (_activeTab == 2) DrawLocations(g);
                 else if (_activeTab == 3) DrawMusicPlayer(g);
@@ -2850,6 +2853,8 @@ namespace VRCNext.Services
                 else if (_activeTab == 5) DrawFriends(g);
                 else if (_activeTab == TabKikitan) DrawKikitan(g);
                 else if (_activeTab == TabSize) DrawScaleTab(g);
+                g.SetClip(tabClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                tabClip.Dispose();
                 if (_waterAlarmActive) DrawDashboardAlarm(g);
                 g.Restore(hdrState);
 
@@ -2874,7 +2879,7 @@ namespace VRCNext.Services
                 // Clip drawing to rounded card shape
                 using var cardClip = RoundedRectPath(0, HeaderH, W, H, r);
                 using var oldClip = g.Clip;
-                g.SetClip(cardClip);
+                g.SetClip(cardClip, System.Drawing.Drawing2D.CombineMode.Intersect);
 
                 // Downscale → upscale = cheap blur
                 using var tiny = new Bitmap(64, 48);
@@ -3078,7 +3083,7 @@ namespace VRCNext.Services
             // Clip to overlay's rounded shape (r=24, same as DrawBackground)
             var oldClip = g.Clip;
             using var alarmClip = RoundedRectPath(0, 0, W, H, 24);
-            g.SetClip(alarmClip);
+            g.SetClip(alarmClip, System.Drawing.Drawing2D.CombineMode.Intersect);
 
             // Dark overlay — covers everything inside rounded rect
             using (var ovBr = new SolidBrush(Color.FromArgb(250, 6, 9, 20)))
@@ -3263,7 +3268,7 @@ namespace VRCNext.Services
             int colW = LocColW;
 
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, LocContentY, W, ScrollContentH));
+            g.SetClip(new System.Drawing.Rectangle(0, LocContentY, W, ScrollContentH), System.Drawing.Drawing2D.CombineMode.Intersect);
 
             for (int i = 0; i < groups.Count; i++)
             {
@@ -3416,7 +3421,7 @@ namespace VRCNext.Services
             int scrollY = (int)_locationScrollY;
 
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, listTop, W, listH));
+            g.SetClip(new System.Drawing.Rectangle(0, listTop, W, listH), System.Drawing.Drawing2D.CombineMode.Intersect);
 
             int cy2 = listTop - scrollY;
             foreach (var inst in wg.Instances)
@@ -3585,7 +3590,7 @@ namespace VRCNext.Services
             int scrollY = (int)_friendsScrollY;
 
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, FrdContentY, W, ScrollContentH));
+            g.SetClip(new System.Drawing.Rectangle(0, FrdContentY, W, ScrollContentH), System.Drawing.Drawing2D.CombineMode.Intersect);
 
             for (int i = 0; i < snap.Count; i++)
             {
@@ -3782,7 +3787,7 @@ namespace VRCNext.Services
             _toolsScrollY = Math.Clamp(_toolsScrollY, 0f, maxScroll);
             int scrollY = (int)_toolsScrollY;
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, ToolsStartY, W, ToolsViewportH));
+            g.SetClip(new System.Drawing.Rectangle(0, ToolsStartY, W, ToolsViewportH), System.Drawing.Drawing2D.CombineMode.Intersect);
 
             // Layout: 2 cols × 3 rows
             // Icons: Material Symbols Rounded codepoints — 1:1 same as sidebar
@@ -4095,7 +4100,7 @@ namespace VRCNext.Services
             int scrollY = (int)_notifScrollY;
 
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, NotifContentY, W, NotifViewportH));
+            g.SetClip(new System.Drawing.Rectangle(0, NotifContentY, W, NotifViewportH), System.Drawing.Drawing2D.CombineMode.Intersect);
 
             for (int i = 0; i < snap.Count; i++)
             {
@@ -4147,7 +4152,7 @@ namespace VRCNext.Services
             var oldClip = g.Clip;
             using (var avPath = RoundedRectPath(avX, avY, avSize, avSize, avR))
             {
-                g.SetClip(avPath);
+                g.SetClip(avPath, System.Drawing.Drawing2D.CombineMode.Intersect);
                 if (avatar != null)
                 {
                     DrawImageCover(g, avatar, new Rectangle(avX, avY, avSize, avSize));
@@ -4349,7 +4354,7 @@ namespace VRCNext.Services
                 var artRect = new Rectangle(artX, artY, artSize, artSize);
                 using var artPath = RoundedRectPath(artX, artY, artSize, artSize, 14);
                 var oldClip = g.Clip;
-                g.SetClip(artPath);
+                g.SetClip(artPath, System.Drawing.Drawing2D.CombineMode.Intersect);
                 g.DrawImage(_albumArt, artRect);
                 g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
             }
