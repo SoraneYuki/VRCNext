@@ -25,6 +25,7 @@
 * Fixed the world location text being too dark in the friends tab.
 * Fixed the world tab dropping frames. Grouping ran up to five times per frame, it is cached now.
 * All Join, Invite and Accept buttons share one size.
+* notifications follow the head smoothly instead of fixed.
 
 **Kikitan XD**
 
