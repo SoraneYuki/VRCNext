@@ -1317,8 +1317,6 @@ function afTick() {
        back below the soft limit on its own as old timestamps expire. */
     afUpdateActionCounter();
     afApplyActionLockState();
-    /* Poll backend for VRChat process state — drives af_is_game_running. */
-    if (typeof sendToCS === 'function') sendToCS({ action: 'afGetGameRunning' });
 }
 
 function afObservedInstanceUserIds() {

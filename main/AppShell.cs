@@ -431,6 +431,7 @@ public partial class AppShell
 
         var windowBuilder = new PhotinoWindow()
             .SetTitle("VRCNext")
+            .SetLogVerbosity(0)
             .SetUseOsDefaultSize(false)
             .SetSize(startW, startH)
             .SetMinSize(900, 540)
