@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace VRCNext.Services;
@@ -21,8 +21,8 @@ public sealed class AvtrdbResolver
     private readonly Action<string>? _log;
 
     private Task? _worker;
+    private static readonly HttpMethod QueryMethod = new("QUERY");
     private DateTime _lastRequestUtc = DateTime.MinValue;
-    private bool _useQuery = true;
 
     public AvtrdbResolver(Action<string>? log = null) => _log = log;
 
@@ -113,13 +113,7 @@ public sealed class AvtrdbResolver
         client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", $"https://{AppInfo.Website}");
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 
-        var body = await SendAsync(client, payload, _useQuery);
-        if (body == null && _useQuery)
-        {
-            _useQuery = false;
-            _log?.Invoke("avtrdb: QUERY rejected, falling back to POST");
-            body = await SendAsync(client, payload, false);
-        }
+        var body = await SendAsync(client, payload);
         if (string.IsNullOrWhiteSpace(body)) return new Dictionary<string, JObject?>();
 
         var map = new Dictionary<string, JObject?>();
@@ -132,23 +126,20 @@ public sealed class AvtrdbResolver
         return map;
     }
 
-    private async Task<string?> SendAsync(HttpClient client, string payload, bool useQuery)
+    private async Task<string> SendAsync(HttpClient client, string payload)
     {
-        using var req = new HttpRequestMessage(useQuery ? new HttpMethod("QUERY") : HttpMethod.Post, Endpoint)
+        using var req = new HttpRequestMessage(QueryMethod, Endpoint)
         {
             Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
         };
         var resp = await client.SendAsync(req);
         var text = await resp.Content.ReadAsStringAsync();
-        int code = (int)resp.StatusCode;
 
-        if (code is 405 or 501) return null;
         if (!resp.IsSuccessStatusCode)
         {
-            _log?.Invoke($"avtrdb resolve [{code}]: {text[..Math.Min(160, text.Length)]}");
+            _log?.Invoke($"avtrdb resolve [{(int)resp.StatusCode}]: {text[..Math.Min(160, text.Length)]}");
             return "";
         }
-        if (text.TrimStart().StartsWith("<")) return "";
-        return text;
+        return text.TrimStart().StartsWith("<") ? "" : text;
     }
 }

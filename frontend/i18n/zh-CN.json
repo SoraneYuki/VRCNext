@@ -610,6 +610,7 @@
   "common.size": "大小",
   "common.time": "时间",
   "sidebar.play_vrchat": "启动 VRChat",
+  "sidebar.favorites.other": "其他",
   "sidebar.play_with": "以 {name} 启动",
   "sidebar.currently_playing": "正在游玩…",
   "topbar.chatbox": "聊天框",

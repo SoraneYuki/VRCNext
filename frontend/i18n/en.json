@@ -622,6 +622,7 @@
   "common.size": "SIZE",
   "common.time": "TIME",
   "sidebar.play_vrchat": "Play VRChat",
+  "sidebar.favorites.other": "Other",
   "sidebar.play_with": "Start with {name}",
   "sidebar.currently_playing": "Currently playing…",
   "topbar.chatbox": "Chatbox",
