@@ -115,7 +115,7 @@ public partial class AppShell
             node[parts[^1]] = JToken.FromObject(value);
             _cache.Save(CacheHandler.KeyInventory, root);
         }
-        catch { }
+        catch (Exception ex) { CrashHandler.WriteEntry("InvCacheSaveSection", ex); }
     }
 
     // Permini loader
@@ -363,7 +363,7 @@ public partial class AppShell
         {
             if (!_settings.VrcndbSubmitAvatars) return;
             try { VRCNext.Services.Helpers.VrcCacheScanner.Scan(_vrcCacheScanned, id => QueueVrcndbSubmit(id)); }
-            catch { }
+            catch (Exception ex) { CrashHandler.WriteEntry("VrcCacheScanner.Scan", ex); }
         }, null, 15_000, 120_000);
 
         StartAmplitudePolling();
@@ -600,7 +600,7 @@ public partial class AppShell
                 _settings.LastDbAutoBackup = DateTime.Now;
                 _settings.Save();
             }
-            catch { }
+            catch (Exception ex) { CrashHandler.WriteEntry("RunAutoBackupsAsync.Db", ex); }
         }
 
         if (_settings.RegBackupEnabled &&
@@ -612,7 +612,7 @@ public partial class AppShell
                 _settings.LastRegBackup = DateTime.Now;
                 _settings.Save();
             }
-            catch { }
+            catch (Exception ex) { CrashHandler.WriteEntry("RunAutoBackupsAsync.Registry", ex); }
         }
     }
 
@@ -841,7 +841,7 @@ public partial class AppShell
     {
         await foreach (var msg in _jsQueue.Reader.ReadAllAsync())
         {
-            try { _window.Invoke(() => _window.SendWebMessage(msg)); } catch { }
+            try { _window.Invoke(() => _window.SendWebMessage(msg)); } catch (Exception ex) { CrashHandler.WriteEntry("RunJsDispatcherAsync", ex); }
         }
     }
 
