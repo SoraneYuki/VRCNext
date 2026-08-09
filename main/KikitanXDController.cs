@@ -220,6 +220,7 @@ public class KikitanXDController : IDisposable
 
     private void PushKikitanToOverlay()
     {
+#if WINDOWS
         try
         {
             _core.VrOverlay?.SetKikitanState(
@@ -232,6 +233,7 @@ public class KikitanXDController : IDisposable
                 _settings.TranslateEnabled);
         }
         catch { }
+#endif
     }
 
     public void Dispose()
