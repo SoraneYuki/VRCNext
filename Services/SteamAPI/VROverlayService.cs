@@ -1504,6 +1504,8 @@ namespace VRCNext.Services
             _vrSystem.GetDeviceToAbsoluteTrackingPose(
                 ETrackingUniverseOrigin.TrackingUniverseStanding, 0f, _poses);
 
+            UpdateToastFollow();
+
             if (!_poses[wristIdx].bPoseIsValid || !_poses[hmdIdx].bPoseIsValid) return;
 
             var wm = _poses[wristIdx].mDeviceToAbsoluteTracking;
@@ -2613,6 +2615,72 @@ namespace VRCNext.Services
             }
         }
 
+        private const float ToastFollowTau  = 0.20f;
+        private const float ToastFollowDist = 0.45f;
+        private Vector3 _toastPos;
+        private Vector3 _toastFwd = -Vector3.UnitZ;
+        private bool    _toastPoseInit;
+        private DateTime _toastPoseLast = DateTime.UtcNow;
+
+        private void UpdateToastFollow()
+        {
+            if (_toastHandle == 0 || OpenVR.Overlay == null || _vrSystem == null) return;
+
+            if (_activeToasts.Count == 0) { _toastPoseInit = false; return; }
+
+            var hmdIdx = OpenVR.k_unTrackedDeviceIndex_Hmd;
+            if (!_poses[hmdIdx].bPoseIsValid) return;
+            var m = _poses[hmdIdx].mDeviceToAbsoluteTracking;
+
+            var hmdPos = new Vector3(m.m3, m.m7, m.m11);
+            var fwd    = new Vector3(-m.m2, -m.m6, -m.m10);
+            if (fwd.LengthSquared() < 1e-6f) return;
+            fwd = Vector3.Normalize(fwd);
+
+            var right = Vector3.Cross(fwd, Vector3.UnitY);
+            if (right.LengthSquared() < 1e-6f) right = new Vector3(m.m0, m.m4, m.m8);
+            right = Vector3.Normalize(right);
+            var up = Vector3.Normalize(Vector3.Cross(right, fwd));
+
+            float widthMeters = 0.10f + _toastSize * 0.002f;
+            float yComp = (widthMeters * TH_FULL / TW - widthMeters * TH / TW) / 2f;
+            var target = hmdPos + fwd * ToastFollowDist
+                       + right * _toastOffsetX
+                       + up * (_toastOffsetY + yComp);
+
+            var now = DateTime.UtcNow;
+            float dt = Math.Clamp((float)(now - _toastPoseLast).TotalSeconds, 0.001f, 0.1f);
+            _toastPoseLast = now;
+
+            if (!_toastPoseInit)
+            {
+                _toastPos = target;
+                _toastFwd = fwd;
+                _toastPoseInit = true;
+            }
+            else
+            {
+                float a = 1f - MathF.Exp(-dt / ToastFollowTau);
+                _toastPos = Vector3.Lerp(_toastPos, target, a);
+                var blended = Vector3.Lerp(_toastFwd, fwd, a);
+                if (blended.LengthSquared() > 1e-6f) _toastFwd = Vector3.Normalize(blended);
+            }
+
+            var r2 = Vector3.Cross(_toastFwd, Vector3.UnitY);
+            if (r2.LengthSquared() < 1e-6f) r2 = right;
+            r2 = Vector3.Normalize(r2);
+            var u2 = Vector3.Normalize(Vector3.Cross(r2, _toastFwd));
+
+            var t = new HmdMatrix34_t
+            {
+                m0 = r2.X, m1 = u2.X, m2  = -_toastFwd.X, m3  = _toastPos.X,
+                m4 = r2.Y, m5 = u2.Y, m6  = -_toastFwd.Y, m7  = _toastPos.Y,
+                m8 = r2.Z, m9 = u2.Z, m10 = -_toastFwd.Z, m11 = _toastPos.Z
+            };
+            OpenVR.Overlay.SetOverlayTransformAbsolute(_toastHandle,
+                ETrackingUniverseOrigin.TrackingUniverseStanding, ref t);
+        }
+
         private void ApplyToastTransform()
         {
             if (_toastHandle == 0 || OpenVR.Overlay == null) return;
@@ -2623,9 +2691,9 @@ namespace VRCNext.Services
             float fullHeightM = widthMeters * TH_FULL / TW;
             float singleHeightM = widthMeters * TH / TW;
             float yCompensation = (fullHeightM - singleHeightM) / 2f;
-            var transform = BuildTransform(_toastOffsetX, _toastOffsetY + yCompensation, -0.45f, 0f, 0f, 0f);
-            OpenVR.Overlay.SetOverlayTransformTrackedDeviceRelative(_toastHandle,
-                OpenVR.k_unTrackedDeviceIndex_Hmd, ref transform);
+            _toastPoseInit = false;
+            _toastPoseLast = DateTime.UtcNow;
+            UpdateToastFollow();
         }
 
         private float ComputeToastAlpha(double elapsedMs)
