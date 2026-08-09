@@ -1,4 +1,4 @@
-using Photino.NET;
+﻿using Photino.NET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
@@ -913,7 +913,7 @@ public partial class AppShell
                 try
                 {
                     bool isFav = !string.IsNullOrEmpty(friendId) && _friends.IsFavorited(friendId);
-                    _core.VrOverlay.EnqueueToast(evType, name, evText, time, friendImage, isFav);
+                    _core.VrOverlay.EnqueueToast(evType, name, evText, time, friendImage, isFav, friendId);
                     _vroCtrl.SpeakToast(evType, name, evText);
                 }
                 catch { }
