@@ -27,6 +27,8 @@ static class VRSubprocess
         var authCookie = init["authCookie"]?.Value<string>();
         var tfaCookie  = init["tfaCookie"]?.Value<string>();
 
+        VrInputActions.SetRequested((init["inputMode"]?.Value<int>() ?? 0) == 1);
+
         var cookieJar = new CookieContainer();
         var vrchatUri = new Uri("https://api.vrchat.cloud");
         if (!string.IsNullOrEmpty(authCookie))
@@ -275,6 +277,15 @@ static class VRSubprocess
                 vro.UpdateMediaInfo(S(cmd, "title"), S(cmd, "artist"),
                     D(cmd, "position"), D(cmd, "duration"), B(cmd, "playing"));
                 break;
+
+            case "vr_input_mode":
+            {
+                bool wantIdx = I(cmd, "mode") == 1;
+                VrInputActions.SetRequested(wantIdx);
+                if (wantIdx && Valve.VR.OpenVR.System != null)
+                    VrInputActions.Initialize(s => SendLine(new JObject { ["t"] = "log", ["text"] = s }));
+                break;
+            }
 
             case "vro_record_keybind":   vro.StartKeybindRecording(); break;
             case "vro_cancel_recording": vro.StopKeybindRecording();  break;

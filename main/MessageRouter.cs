@@ -223,7 +223,7 @@ public partial class AppShell
         {
             using var client = new HttpClient();
             client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
-            client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
+            client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionExact;
             client.Timeout = TimeSpan.FromSeconds(15);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
             var userId = _vrcApi.CurrentUserId;

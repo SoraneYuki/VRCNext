@@ -307,6 +307,8 @@ namespace VRCNext.Services
                 OpenVRSession.Acquire();
                 _ownedInit = true;
 
+                if (VrInputActions.Requested) VrInputActions.Initialize(_log);
+
                 if (OpenVR.Overlay == null)
                 {
                     LastError = "IVROverlay not available";
@@ -1357,7 +1359,15 @@ namespace VRCNext.Services
 
         private bool IsButtonHeld(uint deviceIdx, uint buttonId)
         {
-            if (_vrSystem == null || deviceIdx == OpenVR.k_unTrackedDeviceIndexInvalid) return false;
+            if (deviceIdx == OpenVR.k_unTrackedDeviceIndexInvalid) return false;
+
+            if (VrInputActions.Active)
+            {
+                int side = deviceIdx == _leftIdx ? 1 : deviceIdx == _rightIdx ? 2 : 0;
+                return (VrInputActions.GetButtons(side) & (1UL << (int)buttonId)) != 0;
+            }
+
+            if (_vrSystem == null) return false;
             var s = new VRControllerState_t();
             if (!_vrSystem.GetControllerState(deviceIdx, ref s, (uint)Marshal.SizeOf<VRControllerState_t>()))
                 return false;
