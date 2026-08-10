@@ -186,7 +186,8 @@ function renderMyProfileContent() {
     const platBadge = getPlatformBadgeHtml(u.platform || u.lastPlatform || '');
     let badgesRowHtml = '<div class="fd-badges-row">';
     if (platBadge) badgesRowHtml += platBadge;
-    if (u.ageVerified) badgesRowHtml += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>18+</span>`;
+    if (u.ageVerified) badgesRowHtml += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>${t('profiles.meta.age_verified', 'Age Verified')}</span>`;
+    if (u.ageVerificationStatus === '18+') badgesRowHtml += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>18+</span>`;
     if (rank) badgesRowHtml += `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>`;
     if (u.id) badgesRowHtml += idBadge(u.id);
     if (!useCompact) badgesRowHtml += `<span class="vrcn-keybind" style="margin-left:auto;border-radius:5px;">CTRL P</span>`;

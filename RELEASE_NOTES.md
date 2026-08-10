@@ -7,3 +7,9 @@
 * Keybinds are stored separately per mode. Switching back to Legacy restores your old binds, nothing is overwritten.
 * Added an Index controller image. Keybinds can be clicked directly on the controller in both modes.
 * Clicking a spot on the controller opens its inputs. Green is the button, blue is touch or force.
+
+**Improvements**
+* Profiles show now both "Age Verified" and a "18+" Badge.
+
+**Fixed Bugs**
+* The 18+ Badge was shown on profiles when they were age verified. However this doesnt mean they're 18+. this has been fixed.

@@ -1342,6 +1342,7 @@ public class AuthController
             lastPlatform      = user["last_platform"]?.ToString() ?? "",
             platform          = user["platform"]?.ToString() ?? "",
             ageVerified       = user["ageVerified"]?.Value<bool>() ?? false,
+            ageVerificationStatus = user["ageVerificationStatus"]?.ToString() ?? "",
             allowAvatarCopying = user["allowAvatarCopying"]?.Value<bool>() ?? false,
             isBoopingEnabled  = user["isBoopingEnabled"]?.Value<bool>() ?? false,
             rawJson = user,
