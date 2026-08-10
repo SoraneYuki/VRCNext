@@ -10,6 +10,7 @@
 
 **Improvements**
 * Profiles show now both "Age Verified" and a "18+" Badge.
+* The own status shows now a circle when VRChat is currently not running.
 
 **Fixed Bugs**
 * The 18+ Badge was shown on profiles when they were age verified. However this doesnt mean they're 18+. this has been fixed.

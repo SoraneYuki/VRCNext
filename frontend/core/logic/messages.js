@@ -237,6 +237,9 @@ window.external.receiveMessage(rawMsg => {
                         && typeof renderMyProfileContent === 'function') renderMyProfileContent();
                 }
                 break;
+            case 'vrcRunningChanged':
+                if (typeof onVrcRunningChanged === 'function') onVrcRunningChanged(payload);
+                break;
             case 'vrcUser':
                 renderVrcProfile(payload);
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);

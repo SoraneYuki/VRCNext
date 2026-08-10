@@ -1343,6 +1343,7 @@ public class AuthController
             platform          = user["platform"]?.ToString() ?? "",
             ageVerified       = user["ageVerified"]?.Value<bool>() ?? false,
             ageVerificationStatus = user["ageVerificationStatus"]?.ToString() ?? "",
+            vrcRunning        = _core.IsVrcRunning?.Invoke() ?? false,
             allowAvatarCopying = user["allowAvatarCopying"]?.Value<bool>() ?? false,
             isBoopingEnabled  = user["isBoopingEnabled"]?.Value<bool>() ?? false,
             rawJson = user,

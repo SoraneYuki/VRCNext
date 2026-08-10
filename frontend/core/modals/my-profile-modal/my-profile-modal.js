@@ -330,7 +330,7 @@ function renderMyProfileContent() {
 
     const statusRowHtml = `<div class="fd-status-row">
         <div class="myp-status-row" onclick="openStatusModal()">
-            <span class="vrc-status-dot ${statusDotClass(u.status)}" style="width:7px;height:7px;flex-shrink:0;"></span>
+            <span class="${u.vrcRunning ? 'vrc-status-dot' : 'vrc-status-ring'} ${statusDotClass(u.status)}" style="width:7px;height:7px;flex-shrink:0;"></span>
             <span>${getStatusText(u.status, u.statusDescription)}</span>
             <span class="msi" style="font-size:13px;opacity:.45;">edit</span>
         </div>
@@ -460,7 +460,7 @@ function renderMyProfileContent() {
         <div id="mypTabJson" style="display:none;"><div class="json-viewer">${jsonHighlight(_mypRawJson || {})}</div></div>`;
 
     if (useCompact) {
-        const _dotHtml = `<span class="vrc-status-dot ${statusDotClass(u.status)} fd-left-status-dot"></span>`;
+        const _dotHtml = `<span class="${u.vrcRunning ? 'vrc-status-dot' : 'vrc-status-ring'} ${statusDotClass(u.status)} fd-left-status-dot"></span>`;
         c.innerHTML = `${mypHeaderActions}<div class="fd-layout">
             <div class="fd-left">
                 ${bannerCompactHtml}
