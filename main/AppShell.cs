@@ -153,6 +153,8 @@ public partial class AppShell
         if (_settings.MemoryTrimEnabled) _memTrim.SetEnabled(true);
         WindowsFixes.Log = s => SendToJS("log", new { msg = s, color = "sec" });
         WindowsFixes.SetEnabled(_settings.MediaFixEnabled);
+        VRCNext.Services.Helpers.TtsService.Log     = s => SendToJS("log", new { msg = s, color = "sec" });
+        VRCNext.Services.Helpers.EdgeTtsService.Log = s => SendToJS("log", new { msg = s, color = "sec" });
 
         // Ensure at least one primary account exists for fresh installs or corrupted settings.
         if (_settings.Accounts.Count == 0) _settings.EnsurePrimaryAccount();
