@@ -14,6 +14,10 @@
     let callbacks = [];
     let confirmState = null; // { idx, timer }
     let submenuTimer = null;
+    let submenuOwner = null;
+
+    function st() { return window.safeTriangle; }
+    function guarded() { return !!(st() && st().isProtected()); }
 
     function cm(key, fallback = '') {
         return typeof t === 'function' ? t(`context_menu.${key}`, fallback) : fallback;
@@ -152,7 +156,9 @@
 
         menu.querySelectorAll('.vn-ctx-item[data-idx]:not(.has-sub)').forEach(btn => {
             btn.addEventListener('mouseenter', () => {
-                submenuTimer = setTimeout(hideSubmenu, 100);
+                if (guarded()) return;
+                clearTimeout(submenuTimer);
+                submenuTimer = setTimeout(hideSubmenu, st() ? st().cfg.closeDelay : 200);
             });
             btn.addEventListener('click', e => {
                 e.stopPropagation();
@@ -169,16 +175,22 @@
         menu.querySelectorAll('.vn-ctx-item.has-sub').forEach(btn => {
             const open = () => {
                 clearTimeout(submenuTimer);
+                if (submenuOwner === btn && submenu.style.display !== 'none') return;
                 hideSubmenu();
+                submenuOwner = btn;
                 callbacks[+btn.dataset.idx]?.submenuFn?.(btn);
+                if (st()) st().register(submenu, menu);
             };
-            btn.addEventListener('mouseenter', open);
+            btn.addEventListener('mouseenter', () => {
+                if (guarded()) return;
+                const d = st() ? st().cfg.openDelay : 0;
+                clearTimeout(submenuTimer);
+                if (d > 0) submenuTimer = setTimeout(open, d);
+                else open();
+            });
             btn.addEventListener('click', e => {
                 e.stopPropagation();
                 open();
-            });
-            btn.addEventListener('mouseleave', () => {
-                submenuTimer = setTimeout(hideSubmenu, 150);
             });
         });
     }
@@ -196,6 +208,8 @@
 
     function hideSubmenu() {
         clearTimeout(submenuTimer);
+        submenuOwner = null;
+        if (window.safeTriangle) window.safeTriangle.reset();
         submenu.style.display = 'none';
         submenu.innerHTML = '';
     }

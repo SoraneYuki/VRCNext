@@ -10,36 +10,39 @@
 * Added **Friend Condition**. Change your status when a specific friend is present in your instance.
 * Added **Player Count Condition**. Change your status based on the current player count from 0 to 80.
 
-**Saving/Store**
-* Migrating photo store from json to SQLite.
-* Migrating new rating system to SQLite and merge with photo store.
-* Database now stores metadata for photos such as Player, Size, Tags, Rating, Favorited State, Players in instance.
-It will still run background scans but we show the sql cache first for faster response.
+**Saving / Storage**
+* Migrated the photo store from JSON to SQLite.
+* Migrated the new rating system to SQLite and merged it with the photo store.
+* The database now stores photo metadata such as players, file size, tags, rating, favorite state, and players present in the instance.
+* Background scans will still run, but cached SQLite data is shown first for a much faster response.
 
 **VR Overlay**
 * Added **SteamVR Input** support for Valve Index controllers.
-* New dropdown next to the controller view switch: **Legacy (Default)** or **SteamVR (Index)**.
-* Keybinds are stored separately per mode. Switching back to Legacy restores your old binds, nothing is overwritten.
-* Added an Index controller image. Keybinds can be clicked directly on the controller in both modes.
-* Clicking a spot on the controller opens its inputs. Green is the button, blue is touch or force.
+* Added a new dropdown next to the controller view switch with **Legacy (Default)** and **SteamVR (Index)** modes.
+* Keybinds are stored separately for each mode. Switching back to Legacy restores your previous binds without overwriting anything.
+* Added a Valve Index controller image. Keybinds can now be selected directly from the controller in both modes.
+* Clicking an area on the controller opens its available inputs. Green represents button presses, while blue represents touch or force inputs.
 
 **Media Library**
-* Added Photo rating that uses and ready windows propertie files. You can assign a  rating when opening the photo.
-* Added a Rating filter that shows your images based on rating.
-* Show count badge on sidebar.
+* Added photo ratings using Windows file properties. You can assign a rating when opening a photo.
+* Added a **Rating** filter to show images based on their assigned rating.
+* Added an image count badge to the sidebar.
 
-Rated images aren't favorited images. both are seperated things keep that in mind.
+Rated images and favorited images are separate. Rating an image does not automatically favorite it.
 
 **Context Menu**
-* Added "Rating" sub menu for media library to quick rate images.
-* Move the Upload/Set as/Banner/Profile Icon to a sub dropdown inside the media gallery to make some space.
+* Added a **Rating** submenu to the Media Library context menu for quickly rating images.
+* Moved **Upload**, **Set As**, **Banner**, and **Profile Icon** into a submenu inside the Media Library to free up space.
+* Use Safety triangle for sub dropdowns to prevent missclicks.
 
 **Improvements**
-* Profiles show now both "Age Verified" and a "18+" Badge.
-* The own status shows now a circle when VRChat is currently not running.
+* Profiles now show both the **Age Verified** and **18+** badges when applicable.
+* Your own status now shows a circle when VRChat is currently not running.
 
 **Fixed Bugs**
-* The 18+ Badge was shown on profiles when they were age verified. However this doesnt mean they're 18+. this has been fixed.
-* TTS (Test button and notifications) could silently stop working completely after a network hiccup on the Edge voice engine, requiring a restart to fix. This has been fixed.
-* Fixed friend picker design to have v2 design.
-* Fixed an bug that made the media library use alot of system source on initial load.
+* Fixed the **18+** badge being shown on profiles that were only age verified. Being age verified does not automatically mean the user is 18+.
+* Fixed TTS test playback and notifications sometimes silently stopping after a network issue with the Edge voice engine and requiring an app restart.
+* Updated the friend picker to use the V2 design.
+* Fixed an issue causing the Media Library to use a large amount of system resources during initial loading.
+* Fixed context menu submenus flickering or failing to open while hovering over them.
+* Fixed taskbar and modal dropdown submenus flickering or failing to open while hovering over them.
