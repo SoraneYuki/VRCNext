@@ -40,3 +40,4 @@ Rated images aren't favorited images. both are seperated things keep that in min
 **Fixed Bugs**
 * The 18+ Badge was shown on profiles when they were age verified. However this doesnt mean they're 18+. this has been fixed.
 * TTS (Test button and notifications) could silently stop working completely after a network hiccup on the Edge voice engine, requiring a restart to fix. This has been fixed.
+* Fixed friend picker design to have v2 design.
