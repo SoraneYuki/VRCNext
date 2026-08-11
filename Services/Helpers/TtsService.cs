@@ -20,20 +20,7 @@ public static class TtsService
     private static CancellationTokenSource? _previewCts;
     private static IDisposable? _previewOut;
 
-    public static string[] GetOutputDevices()
-    {
-#if WINDOWS
-        try
-        {
-            var names = new List<string>();
-            for (int i = 0; i < NAudio.Wave.WaveOut.DeviceCount; i++)
-                names.Add(NAudio.Wave.WaveOut.GetCapabilities(i).ProductName ?? "");
-            return names.ToArray();
-        }
-        catch { }
-#endif
-        return Array.Empty<string>();
-    }
+    public static string[] GetOutputDevices() => AudioDeviceHelper.GetOutputNames();
 
     public static string[] GetSapiVoices()
     {
@@ -195,21 +182,9 @@ public static class TtsService
         Play(reader, deviceIndex, ct, isPreview);
     }
 
-    private static int ResolveDeviceIndex(int deviceIndex)
-    {
-        if (deviceIndex < 0) return -1;
-        try
-        {
-            if (deviceIndex < NAudio.Wave.WaveOut.DeviceCount) return deviceIndex;
-            Log?.Invoke($"[TTS] Output device {deviceIndex} is gone, using system default.");
-        }
-        catch (Exception ex) { Log?.Invoke($"[TTS] Device lookup failed: {ex.Message}"); }
-        return -1;
-    }
-
     private static void Play(NAudio.Wave.WaveStream reader, int deviceIndex, CancellationToken ct, bool isPreview)
     {
-        var waveOut = new NAudio.Wave.WaveOutEvent { DeviceNumber = ResolveDeviceIndex(deviceIndex) };
+        var waveOut = new NAudio.Wave.WaveOutEvent { DeviceNumber = AudioDeviceHelper.ResolveOutput(deviceIndex, null) };
         using var done = new ManualResetEventSlim(false);
         waveOut.PlaybackStopped += (_, __) => done.Set();
         waveOut.Init(reader);

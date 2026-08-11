@@ -101,11 +101,7 @@ public sealed class VoiceFightService : IDisposable
 
     public static string[] GetInputDevices()
     {
-        int count = WaveInEvent.DeviceCount;
-        var names = new string[count];
-        for (int i = 0; i < count; i++)
-            names[i] = WaveInEvent.GetCapabilities(i).ProductName;
-        return names;
+        return VRCNext.Services.Helpers.AudioDeviceHelper.GetInputNames();
     }
 
     public static string[] GetOutputDevices()

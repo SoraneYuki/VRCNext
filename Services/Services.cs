@@ -538,6 +538,7 @@ public class AppSettings
     public bool       VroToastTtsGroupInv   { get; set; } = false;
     public bool       VroToastTtsJoined     { get; set; } = false;
     public int        VroTtsDevice         { get; set; } = -1;
+    public string     VroTtsDeviceName     { get; set; } = "";
     public string     VroTtsVoice          { get; set; } = "";
     public string     VroTtsEngine         { get; set; } = "sapi";
     public string     VroTtsLang           { get; set; } = "";
@@ -793,7 +794,9 @@ public class AppSettings
 public class VoiceFightSettings
 {
     public int InputDeviceIndex { get; set; }
+    public string InputDeviceName { get; set; } = "";
     public int OutputDeviceIndex { get; set; } = -1;
+    public string OutputDeviceName { get; set; } = "";
     public string StopWord { get; set; } = "";
     public List<VfSoundItem> Items { get; set; } = new();
 

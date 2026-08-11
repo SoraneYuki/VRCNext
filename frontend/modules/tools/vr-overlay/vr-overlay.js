@@ -450,7 +450,7 @@ function vroTtsPreviewVoice(voice) {
         text: t('tts.preview_line', 'This is how this voice sounds.'),
         engine: document.getElementById('vroTtsEngine')?.value || 'sapi',
         voice,
-        device: parseInt(document.getElementById('vroTtsDevice')?.value ?? '-1', 10),
+        device: audioDeviceIndex('vroTtsDevice'),
         rate: 0,
     });
 }
@@ -461,7 +461,7 @@ function vroTtsTest() {
         text: t('vro.notifications.tts_test_line', 'VRCNext text to speech is working.'),
         engine: document.getElementById('vroTtsEngine')?.value || 'sapi',
         voice: document.getElementById('vroTtsVoice')?.value || '',
-        device: parseInt(document.getElementById('vroTtsDevice')?.value ?? '-1', 10),
+        device: audioDeviceIndex('vroTtsDevice'),
         rate: 0,
         volume: 100,
     });
@@ -554,7 +554,7 @@ function vroToastSendConfig() {
         ttsFriendReq: !!document.getElementById('vroToastFriendReqTts')?.checked,
         ttsInvite: !!document.getElementById('vroToastInviteTts')?.checked,
         ttsGroupInv: !!document.getElementById('vroToastGroupInvTts')?.checked,
-        ttsDevice:   parseInt(document.getElementById('vroTtsDevice')?.value ?? '-1', 10),
+        ttsDevice:   audioDeviceIndex('vroTtsDevice'),
         ttsVoice:    document.getElementById('vroTtsVoice')?.value || '',
         ttsEngine:   document.getElementById('vroTtsEngine')?.value || 'sapi',
     });

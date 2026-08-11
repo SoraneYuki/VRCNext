@@ -1969,7 +1969,8 @@ public class AuthController
             _core.Settings.VroToastTtsGroupInv = data["vroToastTtsGroupInv"]?.Value<bool>() ?? false;
             _core.Settings.VroToastTtsJoined = data["vroToastTtsJoined"]?.Value<bool>() ?? false;
             _core.Settings.VroToastJoined = data["vroToastJoined"]?.Value<bool>() ?? true;
-            _core.Settings.VroTtsDevice = data["vroTtsDevice"]?.Value<int>() ?? -1;
+            _core.Settings.VroTtsDevice = data["vroTtsDevice"]?.Value<int?>() ?? -1;
+            _core.Settings.VroTtsDeviceName = VRCNext.Services.Helpers.AudioDeviceHelper.OutputNameAt(_core.Settings.VroTtsDevice);
             _core.Settings.VroTtsVoice  = data["vroTtsVoice"]?.ToString() ?? "";
             _core.Settings.VroTtsEngine = data["vroTtsEngine"]?.ToString() ?? "sapi";
             _core.Settings.VroTtsLang   = data["vroTtsLang"]?.ToString() ?? "";

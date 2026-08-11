@@ -1963,6 +1963,11 @@ function execConsoleCommand(cmd) {
     sendToCS({ action: 'consoleCommand', cmd });
 }
 
+function audioDeviceIndex(id) {
+    const n = parseInt(document.getElementById(id)?.value, 10);
+    return Number.isNaN(n) ? -1 : n;
+}
+
 const _escMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 function esc(s) {
     return String(s || '').replace(/[&<>"']/g, ch => _escMap[ch]);
