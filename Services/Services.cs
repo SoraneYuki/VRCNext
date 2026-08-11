@@ -428,6 +428,12 @@ public class AppSettings
     public uint  SfLeftGravityButton  { get; set; } = 0;
     public uint  SfRightGravityButton { get; set; } = 0;
     public float SfGravity { get; set; } = 9.8f;
+    public uint  SfIdxLeftResetButton    { get; set; } = 0;
+    public uint  SfIdxRightResetButton   { get; set; } = 0;
+    public uint  SfIdxLeftDragButton     { get; set; } = 0;
+    public uint  SfIdxRightDragButton    { get; set; } = 0;
+    public uint  SfIdxLeftGravityButton  { get; set; } = 0;
+    public uint  SfIdxRightGravityButton { get; set; } = 0;
 
     // FrameShot settings
     public uint   FsLeftButton       { get; set; } = 2;  // EVRButtonId.k_EButton_Grip
@@ -447,6 +453,12 @@ public class AppSettings
     public int    FsVideoFps          { get; set; } = 30;
     public string FsVideoQuality      { get; set; } = "1080p";
     public string FsVideoBitrateQuality { get; set; } = "medium";
+    public uint   FsIdxLeftButton        { get; set; } = 0;
+    public uint   FsIdxRightButton       { get; set; } = 0;
+    public uint   FsIdxLeftRecordButton  { get; set; } = 0;
+    public uint   FsIdxRightRecordButton { get; set; } = 0;
+    public uint   FsIdxLeftVideoButton   { get; set; } = 0;
+    public uint   FsIdxRightVideoButton  { get; set; } = 0;
     public int    FsAudioKbps         { get; set; } = 256;
 
     // Auto-start flags (legacy — kept for JSON compat, no longer acted on)
@@ -487,6 +499,13 @@ public class AppSettings
     public int        VroControlRadius { get; set; } = 16; // cm, 3–28; 16 = default
     public bool       VroDynVis        { get; set; } = false;
     public int        VroFocusRadius   { get; set; } = 35; // cm, 20–60; 35 = default
+    public List<uint> VroIdxKeybind       { get; set; } = new();
+    public int        VroIdxKeybindHand   { get; set; } = 0;
+    public List<uint> VroIdxKeybindDt     { get; set; } = new();
+    public int        VroIdxKeybindDtHand { get; set; } = 0;
+
+    // 0 = legacy OpenVR input, 1 = SteamVR Input (Valve Index)
+    public int        VrInputMode      { get; set; } = 0;
 
     // VR Toast Notifications (HMD-attached)
     public bool       VroToastEnabled      { get; set; } = true;
@@ -519,6 +538,7 @@ public class AppSettings
     public bool       VroToastTtsGroupInv   { get; set; } = false;
     public bool       VroToastTtsJoined     { get; set; } = false;
     public int        VroTtsDevice         { get; set; } = -1;
+    public string     VroTtsDeviceName     { get; set; } = "";
     public string     VroTtsVoice          { get; set; } = "";
     public string     VroTtsEngine         { get; set; } = "sapi";
     public string     VroTtsLang           { get; set; } = "";
@@ -652,6 +672,8 @@ public class AppSettings
     public bool        VroScaleRightThumb   { get; set; } = true;
     public List<uint>  VroScaleKeybind           { get; set; } = new();
     public int         VroScaleKeybindHand       { get; set; } = 0;
+    public List<uint>  VroIdxScaleKeybind        { get; set; } = new();
+    public int         VroIdxScaleKeybindHand    { get; set; } = 0;
     public int         VroScaleScrollSensitivity { get; set; } = 25;
 
     // Dashboard layout customization
@@ -772,7 +794,9 @@ public class AppSettings
 public class VoiceFightSettings
 {
     public int InputDeviceIndex { get; set; }
+    public string InputDeviceName { get; set; } = "";
     public int OutputDeviceIndex { get; set; } = -1;
+    public string OutputDeviceName { get; set; } = "";
     public string StopWord { get; set; } = "";
     public List<VfSoundItem> Items { get; set; } = new();
 

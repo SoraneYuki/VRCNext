@@ -131,10 +131,17 @@ public partial class AppShell
                 {
                     var uid = item["userId"]?.ToString();
                     if (!string.IsNullOrEmpty(uid))
-                        _core.PerminiList[uid] = (
-                            item["allowActive"]?.Value<bool>() ?? false,
-                            item["allowAskMe"]?.Value<bool>()  ?? false,
-                            item["allowDnD"]?.Value<bool>()    ?? false);
+                        _core.PerminiList[uid] = new CoreLibrary.PerminiEntry
+                        {
+                            AllowActive     = item["allowActive"]?.Value<bool>() ?? false,
+                            AllowAskMe      = item["allowAskMe"]?.Value<bool>()  ?? false,
+                            AllowDnD        = item["allowDnD"]?.Value<bool>()    ?? false,
+                            ScheduleEnabled = item["scheduleEnabled"]?.Value<bool>() ?? false,
+                            Start           = item["start"]?.ToString() ?? "09:00",
+                            End             = item["end"]?.ToString()   ?? "17:00",
+                            Days            = (item["days"] as Newtonsoft.Json.Linq.JArray)?
+                                                  .Select(d => d.Value<int>()).ToList() ?? new(),
+                        };
                 }
             }
         }
@@ -153,6 +160,9 @@ public partial class AppShell
         if (_settings.MemoryTrimEnabled) _memTrim.SetEnabled(true);
         WindowsFixes.Log = s => SendToJS("log", new { msg = s, color = "sec" });
         WindowsFixes.SetEnabled(_settings.MediaFixEnabled);
+        VRCNext.Services.Helpers.TtsService.Log         = s => SendToJS("log", new { msg = s, color = "sec" });
+        VRCNext.Services.Helpers.EdgeTtsService.Log     = s => SendToJS("log", new { msg = s, color = "sec" });
+        VRCNext.Services.Helpers.AudioDeviceHelper.Log  = s => SendToJS("log", new { msg = s, color = "sec" });
 
         // Ensure at least one primary account exists for fresh installs or corrupted settings.
         if (_settings.Accounts.Count == 0) _settings.EnsurePrimaryAccount();

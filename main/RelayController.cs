@@ -634,6 +634,7 @@ public class RelayController : IDisposable
         _vrcWasRunning = running;
 
         LogVrcLaunchState(running);
+        Invoke(() => _core.SendToJS("vrcRunningChanged", new { running }));
 
         if (running)
         {
