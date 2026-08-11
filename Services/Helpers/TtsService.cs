@@ -142,7 +142,14 @@ public static class TtsService
     {
         if (string.Equals(engine, EngineEdge, StringComparison.OrdinalIgnoreCase))
         {
-            var mp3 = await EdgeTtsService.SynthesizeAsync(text, voice, rate, ct);
+            byte[] mp3;
+            try { mp3 = await EdgeTtsService.SynthesizeAsync(text, voice, rate, ct); }
+            catch (Exception ex)
+            {
+                Log?.Invoke($"[TTS] Edge synthesis failed ({ex.Message}), falling back to SAPI.");
+                SpeakSapi(text, "", deviceIndex, volume, rate, ct, isPreview);
+                return;
+            }
             if (mp3.Length == 0)
             {
                 Log?.Invoke("[TTS] Edge returned no audio, falling back to SAPI.");
