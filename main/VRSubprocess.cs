@@ -464,18 +464,7 @@ static class VRSubprocess
     private static string? SN(JToken t, string k) => t[k]?.Type == JTokenType.Null ? null : t[k]?.Value<string>();
 
     private static int FsFindDeviceIndex(string name)
-    {
-        if (string.IsNullOrEmpty(name)) return -1;
-        var devs = FrameShotService.GetOutputDevices();
-        for (int i = 0; i < devs.Length; i++)
-        {
-            // WinMM truncates device names to 31 chars — match by startswith so a
-            // saved long name still resolves after enumeration.
-            if (devs[i] == name || name.StartsWith(devs[i], StringComparison.Ordinal))
-                return i;
-        }
-        return -1;
-    }
+        => VRCNext.Services.Helpers.AudioDeviceHelper.ResolveOutput(-1, name);
 
     private static List<uint> UList(JToken t, string k)
     {

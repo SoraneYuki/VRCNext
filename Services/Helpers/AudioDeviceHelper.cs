@@ -39,6 +39,43 @@ public static class AudioDeviceHelper
         return Array.Empty<string>();
     }
 
+    // WASAPI endpoints, used where a stable device id is needed.
+    public static (string Id, string Label)[] GetWasapiEndpoints()
+    {
+#if WINDOWS
+        try
+        {
+            var list = new List<(string, string)>();
+            var en = new NAudio.CoreAudioApi.MMDeviceEnumerator();
+            foreach (var d in en.EnumerateAudioEndPoints(
+                         NAudio.CoreAudioApi.DataFlow.Capture, NAudio.CoreAudioApi.DeviceState.Active))
+                list.Add((d.ID, d.FriendlyName));
+            foreach (var d in en.EnumerateAudioEndPoints(
+                         NAudio.CoreAudioApi.DataFlow.Render, NAudio.CoreAudioApi.DeviceState.Active))
+                list.Add(($"loopback:{d.ID}", $"{d.FriendlyName} (System Audio)"));
+            return list.ToArray();
+        }
+        catch (Exception ex) { Log?.Invoke($"[Audio] WASAPI endpoint list failed: {ex.Message}"); }
+#endif
+        return Array.Empty<(string, string)>();
+    }
+
+#if WINDOWS
+    // Resolves a stored WASAPI id (optionally "loopback:"-prefixed) to its endpoint.
+    public static NAudio.CoreAudioApi.MMDevice? GetWasapiDevice(string deviceId, out bool isLoopback)
+    {
+        isLoopback = deviceId.StartsWith("loopback:", StringComparison.Ordinal);
+        var id = isLoopback ? deviceId["loopback:".Length..] : deviceId;
+        if (string.IsNullOrEmpty(id)) return null;
+        try { return new NAudio.CoreAudioApi.MMDeviceEnumerator().GetDevice(id); }
+        catch (Exception ex)
+        {
+            Log?.Invoke($"[Audio] WASAPI device '{id}' unavailable: {ex.Message}");
+            return null;
+        }
+    }
+#endif
+
     public static string OutputNameAt(int index) => NameAt(GetOutputNames(), index);
     public static string InputNameAt(int index)  => NameAt(GetInputNames(), index);
 
