@@ -20,6 +20,11 @@ public class StatusScheduleSettings
 
         public bool OnlyWhileInGame      { get; set; } = false;
         public bool OnlyWhileOutsideGame { get; set; } = false;
+
+        public List<string> InstanceTypes { get; set; } = new();
+        public int          MinPlayers    { get; set; } = 0;
+        public List<string> FriendIds     { get; set; } = new();
+        public bool         FriendsRequireAll { get; set; } = false;
         public bool RestorePreviousStatus { get; set; } = true;
         public string Status            { get; set; } = "active";
         public bool   SetStatusMessage  { get; set; } = false;

@@ -1,0 +1,10 @@
+        <div class="modal-box inv-box">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 32px 0;">
+                <div style="font-size:calc(13px + var(--fs-off, 0px));font-weight:700;" id="fpTitle"></div>
+                <button class="vrcn-button" onclick="closeFriendPicker()" style="padding:2px 8px;"><span class="msi" style="font-size:14px;">close</span></button>
+            </div>
+            <div class="inv-search-wrap">
+                <input class="inv-search-input" type="text" id="fpSearchInput" data-i18n-placeholder="permini.picker.search" oninput="filterFriendPicker(this.value)">
+            </div>
+            <div class="inv-list vrcn-scrollbar" id="fpList"></div>
+        </div>

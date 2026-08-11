@@ -131,10 +131,17 @@ public partial class AppShell
                 {
                     var uid = item["userId"]?.ToString();
                     if (!string.IsNullOrEmpty(uid))
-                        _core.PerminiList[uid] = (
-                            item["allowActive"]?.Value<bool>() ?? false,
-                            item["allowAskMe"]?.Value<bool>()  ?? false,
-                            item["allowDnD"]?.Value<bool>()    ?? false);
+                        _core.PerminiList[uid] = new CoreLibrary.PerminiEntry
+                        {
+                            AllowActive     = item["allowActive"]?.Value<bool>() ?? false,
+                            AllowAskMe      = item["allowAskMe"]?.Value<bool>()  ?? false,
+                            AllowDnD        = item["allowDnD"]?.Value<bool>()    ?? false,
+                            ScheduleEnabled = item["scheduleEnabled"]?.Value<bool>() ?? false,
+                            Start           = item["start"]?.ToString() ?? "09:00",
+                            End             = item["end"]?.ToString()   ?? "17:00",
+                            Days            = (item["days"] as Newtonsoft.Json.Linq.JArray)?
+                                                  .Select(d => d.Value<int>()).ToList() ?? new(),
+                        };
                 }
             }
         }

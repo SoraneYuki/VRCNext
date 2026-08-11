@@ -1,5 +1,17 @@
 **2026.41.6**
 
+**Permini**
+
+* Added advanced settings to every user item.
+* You can now choose which days a rule is active and set a specific time range.
+* For example, you can make a rule active on Monday and Friday between 07:00 and 12:00.
+
+**Status Schedule**
+
+* Added **Instance Condition**. Change your status based on the instance you are currently in.
+* Added **Friend Condition**. Change your status when a specific friend is present in your instance.
+* Added **Player Count Condition**. Change your status based on the current player count from 0 to 80.
+
 **Saving/Store**
 * Migrating photo store from json to SQLite.
 * Migrating new rating system to SQLite and merge with photo store.
