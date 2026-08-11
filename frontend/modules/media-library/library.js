@@ -1341,9 +1341,12 @@ function _photoBuildRatingCard(x) {
 
 function setPhotoRatingClick(path, n) {
     const current = photoRatings.get(path) || 0;
-    const next = current === n ? 0 : n;
-    photoRatings.set(path, next);
-    sendToCS({ action: 'setPhotoRating', path, stars: next });
+    setPhotoRatingValue(path, current === n ? 0 : n);
+}
+
+function setPhotoRatingValue(path, stars) {
+    photoRatings.set(path, stars);
+    sendToCS({ action: 'setPhotoRating', path, stars });
     _photoRefreshInfoPaneIfShowing(path);
     _renderLibRatingSelect();
     if (_libRatingFilter !== '__all__') filterLibrary(true);
