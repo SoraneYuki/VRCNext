@@ -2,8 +2,7 @@ using Newtonsoft.Json;
 
 namespace VRCNext.Services;
 
-// Status Schedule persistence - stored separately from main settings.
-// Holds time-window rules that switch the VRChat status automatically.
+// Status Schedule persistence
 public class StatusScheduleSettings
 {
     public bool Enabled { get; set; } = true;

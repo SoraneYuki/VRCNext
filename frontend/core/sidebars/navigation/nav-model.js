@@ -7,7 +7,7 @@ const NAV_ITEMS_DEF = {
     'avatars':          { icon: 'checkroom',       tab: 4,  i18n: 'nav.avatars',            label: 'Avatars',          badge: 'avatars'  },
     'inventory':        { icon: 'inventory_2',     tab: 13, i18n: 'nav.inventory',          label: 'Inventory'        },
     'timeline':         { icon: 'timeline',        tab: 12, i18n: 'nav.timeline',           label: 'Timeline'         },
-    'media-library':    { icon: 'photo_library',   tab: 7,  i18n: 'nav.media_library',      label: 'Media Library'    },
+    'media-library':    { icon: 'photo_library',   tab: 7,  i18n: 'nav.media_library',      label: 'Media Library',    badge: 'library'  },
     'settings':         { icon: 'settings',        tab: 9,  i18n: 'nav.settings',           label: 'Settings'         },
     'chatbox':          { icon: 'chat',            tab: 5,  i18n: 'nav.custom_chatbox',     label: 'Custom Chatbox',   windowsOnly: true },
     'media-relay':      { icon: 'cell_tower',      tab: 6,  i18n: 'nav.media_relay',        label: 'Media Relay',      windowsOnly: true },

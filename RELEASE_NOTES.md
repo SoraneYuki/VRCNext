@@ -17,6 +17,7 @@ It will still run background scans but we show the sql cache first for faster re
 **Media Library**
 * Added Photo rating that uses and ready windows propertie files. You can assign a  rating when opening the photo.
 * Added a Rating filter that shows your images based on rating.
+* Show count badge on sidebar.
 
 Rated images aren't favorited images. both are seperated things keep that in mind.
 

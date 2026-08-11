@@ -103,6 +103,7 @@ function renderLibrary(data) {
     _resolveWorldIds(files);
     filterLibrary();
     _renderLibIconSelects();
+    if (typeof navUpdateBadges === 'function') navUpdateBadges();
     _fetchNextMetaPage();
 }
 
@@ -198,6 +199,7 @@ function addNewLibraryFile(item) {
     libraryFiles.unshift(item); // prepend — newest first
     _resolveWorldIds([item]);
     filterLibrary(true); // re-filter current page so new file appears at top of page 0
+    if (typeof navUpdateBadges === 'function') navUpdateBadges();
 }
 
 function _resolveWorldIds(files) {
@@ -1484,6 +1486,7 @@ function onLibraryFileDeleted(path) {
 
     libraryFiles = libraryFiles.filter(f => f.path !== path);
     filterLibrary(true); // stay on current page after delete
+    if (typeof navUpdateBadges === 'function') navUpdateBadges();
 
     if (typeof _wdOnFileDeleted === 'function') _wdOnFileDeleted(path);
 
