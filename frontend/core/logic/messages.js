@@ -187,6 +187,11 @@ window.external.receiveMessage(rawMsg => {
             case 'libraryPageData': appendLibraryPage(payload); break;
             case 'libraryWorldIds': applyLibraryWorldIds(payload); break;
             case 'libraryAuthors': applyLibraryAuthors(payload); break;
+            case 'libraryRatings': if (typeof onLibraryRatings === 'function') onLibraryRatings(payload); break;
+            case 'photoRating':
+            case 'photoRatingSet':
+                if (typeof onPhotoRating === 'function') onPhotoRating(payload);
+                break;
             case 'libraryNewFile': addNewLibraryFile(payload); renderDashRecentPhotos(); break;
             case 'libraryFileDeleted':
                 onLibraryFileDeleted(payload.path);

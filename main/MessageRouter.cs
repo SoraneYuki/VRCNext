@@ -579,6 +579,9 @@ public partial class AppShell
                 case "addFavorite":
                 case "removeFavorite":
                 case "setDesktopBackground":
+                case "getPhotoRating":
+                case "setPhotoRating":
+                case "scanLibraryRatings":
                     await _photos.HandleMessage(action, msg);
                     break;
 

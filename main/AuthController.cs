@@ -627,6 +627,9 @@ public class AuthController
             is24Hour = VRCNext.Services.Helpers.DateTimeHelper.Is24Hour,
         });
         _core.SendToJS("favoritesLoaded", _photos.Favorites);
+#if WINDOWS
+        _core.SendToJS("libraryRatings", _photos.Ratings);
+#endif
         var customColors = _core.Cache.LoadRaw(CacheHandler.KeyCustomColors);
         if (customColors != null) _core.SendToJS("customColors", customColors);
 #if WINDOWS

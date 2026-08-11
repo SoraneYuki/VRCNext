@@ -68,6 +68,7 @@ function fmtTimeSeconds(d) {
 
 let relayOn = false, settings = { webhooks: [{}, {}, {}, {}], folders: [], extraExe: [] }, postedFiles = [], selectedFolderIdx = -1;
 let favorites = new Set(), showFavOnly = false, libraryFiles = [];
+let photoRatings = new Map();
 let _prevTab = 0;
 let _lazyUnloadDelay = 0; // Lazy Unload Timer. not tested yet
 let _lazyUnloadTimer = null;
