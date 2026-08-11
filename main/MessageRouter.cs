@@ -229,6 +229,7 @@ public partial class AppShell
             var userId = _vrcApi.CurrentUserId;
             var payload = new { avatar_ids = avatarIds, attribution = string.IsNullOrEmpty(userId) ? null : userId };
             var json = JsonConvert.SerializeObject(payload);
+            SendToJS("log", new { msg = $"[AVTRDB] SUB {reportType} x{avatarIds.Count}", color = "sec" });
             var resp = await client.PostAsync("https://api.avtrdb.com/v3/avatar/ingest",
                 new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
             var body = await resp.Content.ReadAsStringAsync();

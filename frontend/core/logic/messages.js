@@ -147,8 +147,8 @@ window.external.receiveMessage(rawMsg => {
             case 'wsStatus': {
                 const badge = document.getElementById('wsBadge');
                 if (badge) {
-                    badge.className = 'mini-badge ' + (payload.connected ? 'online' : 'offline');
-                    badge.querySelector('.mini-badge-icon').textContent = payload.connected ? 'wifi' : 'wifi_off';
+                    badge.className = 'log-ws ' + (payload.connected ? 'online' : 'offline');
+                    badge.querySelector('.log-ws-icon').textContent = payload.connected ? 'wifi' : 'wifi_off';
                 }
                 break;
             }

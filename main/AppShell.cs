@@ -159,6 +159,9 @@ public partial class AppShell
         MigrationHelper.MigrateAutoStartShortcuts(_settings);
         if (_settings.MemoryTrimEnabled) _memTrim.SetEnabled(true);
         WindowsFixes.Log = s => SendToJS("log", new { msg = s, color = "sec" });
+        VRCNext.Services.AvtrdbResolver.Log = s => SendToJS("log", new { msg = s, color = "sec" });
+        VRCNext.Services.Helpers.AvtrdbSpamGuard.Log = s => SendToJS("log", new { msg = s, color = "warn" });
+        VRCNext.Services.Helpers.AvtrdbSpamGuard.WebhookUrl = DecryptWebhook;
         WindowsFixes.SetEnabled(_settings.MediaFixEnabled);
         VRCNext.Services.Helpers.TtsService.Log         = s => SendToJS("log", new { msg = s, color = "sec" });
         VRCNext.Services.Helpers.EdgeTtsService.Log     = s => SendToJS("log", new { msg = s, color = "sec" });

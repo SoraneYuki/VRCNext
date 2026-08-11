@@ -1679,22 +1679,33 @@ function setRelayState(r, s) {
 }
 
 const _httpCounts = { 200: 0, 429: 0, 404: 0, 403: 0, 400: 0 };
-const _httpBadgeIds = { 200: 'httpBadge200', 429: 'httpBadge429', 404: 'httpBadge404', 403: 'httpBadge403', 400: 'httpBadge400' };
+const _httpStatIds = { 200: 'statHttp200', 429: 'statHttp429', 404: 'statHttp404', 403: 'statHttp403', 400: 'statHttp400' };
+
+function _setLogStat(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const v = el.querySelector('.log-stat-v');
+    if (!v) return;
+    v.textContent = value;
+    v.classList.toggle('zero', !value);
+}
 
 function _updateHttpBadge(code) {
-    const el = document.getElementById(_httpBadgeIds[code]);
-    if (!el) return;
-    const lbl = el.querySelector('.mini-badge-label');
-    if (lbl) lbl.textContent = `${code}: ${_httpCounts[code]}`;
-    el.style.display = '';
+    _setLogStat(_httpStatIds[code], _httpCounts[code]);
 }
 
 let _cdnCount = 0;
 function _updateCdnBadge() {
-    const el = document.getElementById('cdnBadge');
-    if (!el) return;
-    el.querySelector('.mini-badge-label').textContent = `CDN: ${_cdnCount}`;
-    el.style.display = '';
+    _setLogStat('statCdn', _cdnCount);
+}
+
+let _avtrdbGetCount = 0;
+let _avtrdbQryCount = 0;
+let _avtrdbSubCount = 0;
+function _updateAvtrdbStats() {
+    _setLogStat('statAvtrdbGet', _avtrdbGetCount);
+    _setLogStat('statAvtrdbQry', _avtrdbQryCount);
+    _setLogStat('statAvtrdbSub', _avtrdbSubCount);
 }
 
 const _sessionStart = Date.now();
@@ -1702,12 +1713,8 @@ let _totalGetCount = 0;
 
 function _updateAvgBadges() {
     const hours = Math.max((Date.now() - _sessionStart) / 3_600_000, 1 / 3600);
-    const aget = Math.round(_totalGetCount / hours);
-    const acdn = Math.round(_cdnCount / hours);
-    const agetEl = document.getElementById('agetBadge');
-    const acdnEl = document.getElementById('acdnBadge');
-    if (agetEl) { agetEl.querySelector('.mini-badge-label').textContent = `AGET/H: ${aget}`; agetEl.style.display = ''; }
-    if (acdnEl) { acdnEl.querySelector('.mini-badge-label').textContent = `ACDN/H: ${acdn}`; acdnEl.style.display = ''; }
+    _setLogStat('statAget', Math.round(_totalGetCount / hours));
+    _setLogStat('statAcdn', Math.round(_cdnCount / hours));
 }
 
 let _logShowFull = false;
@@ -1756,6 +1763,11 @@ function addLog(m, c) {
 
     // Suppress pending REST requests — only show the response line (with → NNN)
     if (/\[REST\] (GET|POST|PUT|DELETE|PATCH) /.test(m) && !/→/.test(m)) return;
+
+    // Track avtrdb requests
+    if (m.startsWith('[AVTRDB] GET')) { _avtrdbGetCount++; _updateAvtrdbStats(); }
+    else if (m.startsWith('[AVTRDB] QRY')) { _avtrdbQryCount++; _updateAvtrdbStats(); }
+    else if (m.startsWith('[AVTRDB] SUB')) { _avtrdbSubCount++; _updateAvtrdbStats(); }
 
     // Track CDN image downloads
     if (m.startsWith('CDN ') || m.startsWith('CDN -')) {
