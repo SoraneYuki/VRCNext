@@ -8,15 +8,21 @@ function openFriendPicker(opts) {
     _fpOnPick    = typeof o.onPick === 'function' ? o.onPick : null;
     _fpEmptyText = o.emptyText || t('permini.picker.empty', 'No friends available.');
 
-    const title = document.getElementById('fpTitle');
-    if (title) title.textContent = o.title || t('permini.picker.title', 'Add Friend');
+    const box = document.getElementById('fpBox');
+    if (box) {
+        box.innerHTML = `
+            ${renderModalBar(o.title || t('permini.picker.title', 'Add Friend'),
+                             [modalCloseAction('closeFriendPicker()')], { flush: true })}
+            <div class="inv-search-wrap">
+                <input class="inv-search-input" type="text" id="fpSearchInput" placeholder="${esc(t('common.search', 'Search...'))}" oninput="filterFriendPicker(this.value)">
+            </div>
+            <div class="inv-list vrcn-scrollbar" id="fpList"></div>`;
+    }
 
-    const inp = document.getElementById('fpSearchInput');
-    if (inp) inp.value = '';
     renderFriendPicker('');
     const modal = document.getElementById('modalFriendPicker');
     if (modal) modal.style.display = 'flex';
-    if (inp) setTimeout(() => inp.focus(), 80);
+    setTimeout(() => document.getElementById('fpSearchInput')?.focus(), 80);
 }
 
 function closeFriendPicker() {
