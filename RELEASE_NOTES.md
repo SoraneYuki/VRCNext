@@ -1,5 +1,8 @@
 **2026.41.10**
 
+**Taskbar**
+* Added "Edit Taskbar" and "Edit Dashboard" to the "View" section.
+
 **Timeline**
 * Instance entries under **Personal > Instances** now show the server region and instance type as badges.
 * Location entries under **Friends > Location** now show the same badges.
