@@ -335,7 +335,7 @@
         <div class="notif-panel upd-panel" id="updatePanel" style="display:none;">
             <div class="notif-panel-header">
                 <span style="font-weight:700;font-size:calc(13px + var(--fs-off, 0px));" data-i18n="update.available">Update Available</span>
-                <button class="vrcn-button" onclick="toggleUpdatePanel()" style="padding:2px 8px;font-size:calc(10px + var(--fs-off, 0px));" data-i18n-title="common.close"><span class="msi" style="font-size:14px;">close</span></button>
+                <button class="vrcn-icon-button" onclick="toggleUpdatePanel()" title="Close" data-i18n-title="common.close"><span class="msi" style="font-size:18px;">close</span></button>
             </div>
             <div style="padding:14px 16px;">
                 <div id="updMessage" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:12px;"><span data-i18n="update.version_label">Version</span> <strong id="updVersion" style="color:var(--tx0);"></strong> <span data-i18n="update.ready_suffix">is ready to install.</span></div>
@@ -364,7 +364,7 @@
         <div class="notif-panel help-panel" id="helpPanel" style="display:none;">
             <div class="notif-panel-header">
                 <span id="helpPanelTitle" style="font-weight:700;font-size:calc(13px + var(--fs-off, 0px));"></span>
-                <button class="vrcn-button" onclick="toggleHelpPanel()" style="padding:2px 8px;font-size:calc(10px + var(--fs-off, 0px));"><span class="msi" style="font-size:14px;">close</span></button>
+                <button class="vrcn-icon-button" onclick="toggleHelpPanel()" title="Close" data-i18n-title="common.close"><span class="msi" style="font-size:18px;">close</span></button>
             </div>
             <div style="padding:14px 16px;overflow-y:auto;flex:1;">
                 <p id="helpPanelText" style="font-size:calc(13px + var(--fs-off, 0px));line-height:1.65;color:var(--tx2);margin:0;white-space:pre-wrap;"></p>

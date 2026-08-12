@@ -388,7 +388,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 .nav-folder-popout {
     position: fixed;
     z-index: 4000;
-    width: 264px;
+    width: 436px;
     max-width: calc(100vw - 16px);
     background: var(--bg-card);
     border: 1px solid var(--brd-lt);
@@ -413,7 +413,7 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
 }
 .nav-folder-popout-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 6px;
     max-height: 240px;
     overflow-y: auto;

@@ -1,7 +1,12 @@
 **2026.41.10**
 
-**Calendar**
+**Sidebar Navigation**
+* Changed foilder size from 3x3 system to 5x3 system.
 
+**Modals**
+* Changed the "X" close button of some modals to the new v2 design.
+
+**Calendar**
 * Calendar is now using the VRCN v2 design.
 * Calendar now shows a maximum of 2 events per day, with an additional **"X more events"** indicator to keep day cards from becoming too large.
 * Added a **Week View** to easily see what's happening throughout the week.
@@ -9,7 +14,6 @@
 * Added "Help Sort" button to Calendar which gives every group a fixed color to help seperate events.
 
 **Performance**
-
 * Fixed a memory leak in the VR Overlay where friend avatar images from notifications could stay in RAM permanently. They are now cleaned up automatically.
 * Fixed a memory leak where worlds visited by friends could stay in RAM permanently. The world cache is now limited and reuses memory.
 * Fixed memory buildup with very large friend lists where repeated updates could pile up large messages in RAM. Updates are now merged so only the latest state is delivered.

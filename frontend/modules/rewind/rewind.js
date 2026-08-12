@@ -212,7 +212,7 @@ function openRewindModal(d) {
         <div class="rw-head">
             <span class="rw-brand">VRCN</span>
             <div class="rw-dots" id="rwDots"></div>
-            <button class="vrcn-button-round" onclick="closeRewind()" title="${esc(t('common.close', 'Close'))}"><span class="msi">close</span></button>
+            <button class="vrcn-icon-button" onclick="closeRewind()" title="${esc(t('common.close', 'Close'))}"><span class="msi" style="font-size:18px;">close</span></button>
         </div>
         <div class="rw-body" id="rwBody"></div>
         <div class="rw-foot">
