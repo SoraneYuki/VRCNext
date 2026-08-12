@@ -1,7 +1,3 @@
-fix changelog also simpelfie es ein wenig in action flow/new blocks scetions
-
-
-
 **2026.41.8**
 
 **VR Overlay**
