@@ -1093,7 +1093,24 @@ function renderTlJoinBody(ev) {
     const bottom = cnt > 0
         ? `<div class="tl-player-row">${avs}${more}<span class="tl-player-label">${esc(tlPlayersLabel(cnt))}</span></div>`
         : `<div class="tl-no-players">${esc(t('timeline.no_player_data', 'No player data yet'))}</div>`;
-    return `<div class="tl-card-body">${thumb}<div class="tl-card-info"><div class="tl-main-label">${esc(name)}</div>${bottom}</div></div>`;
+    return `<div class="tl-card-body">${thumb}<div class="tl-card-info">${tlInstanceBadgeRow(ev.location)}<div class="tl-main-label">${esc(name)}</div>${bottom}</div></div>`;
+}
+
+function tlInstanceBadges(loc) {
+    if (!loc) return '';
+    const { instanceType } = parseFriendLocation(loc);
+    const { cls, label } = getInstanceBadge(instanceType);
+    return `${regionBadgeHtml(loc)}<span class="vrcn-badge ${cls}">${esc(label)}</span>`;
+}
+
+function tlInstanceBadgeRow(loc) {
+    const badges = tlInstanceBadges(loc);
+    return badges ? `<div class="tl-badge-row">${badges}</div>` : '';
+}
+
+function tlInstanceListDetail(loc, name) {
+    const badges = tlInstanceBadges(loc);
+    return badges ? `<span class="tl-list-badges">${badges}</span>${esc(name)}` : esc(name);
 }
 
 function renderTlPhotoBody(ev) {
@@ -1643,6 +1660,7 @@ function renderFtGpsBody(ev) {
     const wname = ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World');
     const av    = ftFriendAv(ev, 'tl-player-av');
     return `<div class="tl-card-body">${thumb}<div class="tl-card-info">
+        ${tlInstanceBadgeRow(ev.location)}
         <div class="tl-main-label">${esc(wname)}</div>
         <div class="tl-player-row">${av}<span class="tl-player-label">${esc(ev.friendName || t('timeline.unknown', 'Unknown'))}</span></div>
     </div></div>`;

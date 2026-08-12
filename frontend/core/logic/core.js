@@ -2148,6 +2148,30 @@ function getInstanceBadge(instanceType) {
     return { cls, label };
 }
 
+function parseInstanceRegion(loc) {
+    const m = String(loc || '').match(/~region\(([^)]+)\)/);
+    return m ? m[1].toLowerCase() : '';
+}
+
+function getRegionShortLabel(code) {
+    const key = String(code || '').toLowerCase();
+    const labels = {
+        eu:  t('regions.short.eu',  'EU'),
+        us:  t('regions.short.us',  'USW'),
+        usw: t('regions.short.usw', 'USW'),
+        use: t('regions.short.use', 'USE'),
+        jp:  t('regions.short.jp',  'JP'),
+        au:  t('regions.short.au',  'AU'),
+    };
+    return labels[key] || key.toUpperCase();
+}
+
+function regionBadgeHtml(loc) {
+    const code = parseInstanceRegion(loc);
+    if (!code) return '';
+    return `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">language</span>${esc(getRegionShortLabel(code))}</span>`;
+}
+
 // Custom Dropdown
 function initVnSelect(el) {
     if (!el || el._vnSelect) return;

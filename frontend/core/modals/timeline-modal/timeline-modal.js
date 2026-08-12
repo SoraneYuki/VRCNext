@@ -244,6 +244,7 @@ function renderTlDetailJoin(ev, el) {
     const loc = ev.location || '';
     const { instanceType } = parseFriendLocation(loc);
     const { cls: instCls, label: instLabel } = getInstanceBadge(instanceType);
+    const regionCode  = parseInstanceRegion(loc);
     const instIdMatch = loc.match(/:(\d+)/);
     const instanceId  = instIdMatch ? instIdMatch[1] : '';
 
@@ -254,6 +255,7 @@ function renderTlDetailJoin(ev, el) {
         (ev.tracked && ev.leftAt && ev.timestamp) ? _tlMr(esc(t('nav.time_spent', 'Time Spent')), esc(formatDuration(Math.floor((new Date(ev.leftAt) - new Date(ev.timestamp)) / 1000)))) : '',
         ev.worldId ? `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));"${worldRowClick}><span style="color:var(--tx3);">${esc(t('timeline.detail.world', 'World'))}</span><span style="color:var(--accent-lt);text-align:right;">${esc(ev.worldName || ev.worldId)}</span></div>` : '',
         _tlMr(esc(t('timeline.detail.instance_type', 'Instance Type')), `<span class="vrcn-badge ${instCls}">${instLabel}</span>`),
+        regionCode ? _tlMr(esc(t('timeline.detail.server', 'Server')), `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">language</span>${esc(getRegionShortLabel(regionCode))}</span>`) : '',
         instanceId ? _tlMr(esc(t('timeline.detail.instance_id', 'Instance ID')), `<span style="font-family:monospace;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">#${esc(instanceId)}</span>`) : '',
     ].filter(Boolean).join('');
 
@@ -533,6 +535,7 @@ function renderFtGpsDetailModal(ev) {
     const loc = ev.location || '';
     const { instanceType } = parseFriendLocation(loc);
     const { cls: instCls, label: instLabel } = getInstanceBadge(instanceType);
+    const regionCode = parseInstanceRegion(loc);
 
     const instIdMatch = loc.match(/:(\d+)/);
     const instanceId = instIdMatch ? instIdMatch[1] : '';
@@ -551,6 +554,7 @@ function renderFtGpsDetailModal(ev) {
         (fromStr && ev.tracked) ? _tlMr(esc(t('timeline.detail.to', 'To')), toStr ? esc(toStr) : `<span style="color:var(--ok);">&#9679;&nbsp;${esc(t('timeline.detail.ongoing', 'Ongoing'))}</span>`) : '',
         (ev.tracked && ev.leftAt && ev.timestamp) ? _tlMr(esc(t('nav.time_spent', 'Time Spent')), esc(formatDuration(Math.floor((new Date(ev.leftAt) - new Date(ev.timestamp)) / 1000)))) : '',
         _tlMr(esc(t('timeline.detail.instance_type', 'Instance Type')), `<span class="vrcn-badge ${instCls}">${instLabel}</span>`),
+        regionCode ? _tlMr(esc(t('timeline.detail.server', 'Server')), `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">language</span>${esc(getRegionShortLabel(regionCode))}</span>`) : '',
         instanceId ? _tlMr(esc(t('timeline.detail.instance_id', 'Instance ID')), `<span style="font-family:monospace;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">#${esc(instanceId)}</span>`) : '',
         _tlMr(esc(t('timeline.detail.event', 'Event')), `<span style="color:var(--tx2);">${esc(tf('timeline.detail.friend_joined_world', { name: ev.friendName || t('timeline.unknown', 'Unknown') }, `${ev.friendName || 'Unknown'} joined this world`))}</span>`),
     ].filter(Boolean).join(''));
@@ -908,7 +912,7 @@ function _tlListPlayerAvatars(players, max) {
 function _tlListData(ev) {
     switch (ev.type) {
         case 'instance_join':
-            return { userHtml: esc(currentVrcUser?.displayName || t('timeline.unknown', 'Unknown')), detail: esc(ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World')) };
+            return { userHtml: esc(currentVrcUser?.displayName || t('timeline.unknown', 'Unknown')), detail: tlInstanceListDetail(ev.location, ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World')) };
         case 'photo':
             return { userHtml: _tlListPlayerAvatars(ev.players, 3), detail: esc(ev.photoPath ? ev.photoPath.split(/[\\/]/).pop() : t('timeline.photo', 'Photo')) };
         case 'first_meet':
@@ -1000,7 +1004,7 @@ function _ftListDetail(ev) {
     switch (ev.type) {
         case 'friend_online':      return `<span style="color:var(--ok)">${esc(t('timeline.friend.came_online', 'Came Online'))}</span>`;
         case 'friend_offline':     return `<span style="color:var(--tx3)">${esc(t('timeline.friend.went_offline', 'Went Offline'))}</span>`;
-        case 'friend_gps':        return esc(ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World'));
+        case 'friend_gps':        return tlInstanceListDetail(ev.location, ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World'));
         case 'friend_status': {
             const oldCls = statusCssClass(ev.oldValue);
             const newCls = statusCssClass(ev.newValue);

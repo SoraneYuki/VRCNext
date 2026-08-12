@@ -1,5 +1,10 @@
 **2026.41.10**
 
+**Timeline**
+* Instance entries under **Personal > Instances** now show the server region and instance type as badges.
+* Location entries under **Friends > Location** now show the same badges.
+* Both detail modals now show a **Server** row with the region the instance ran on.
+
 **Improvements**
 * Improved Light Mode on the Dashboard.
 * Sidebar folders now use a larger 5x3 layout instead of 3x3.
