@@ -6,7 +6,7 @@
     height: 68vh;
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--bg-input);
+    background: var(--tab-card-bg, var(--bg-input));
     border: 1px solid var(--brd);
     border-radius: 12px;
     padding: 0 10px 10px;
@@ -19,7 +19,7 @@
     display: grid;
     grid-template-columns: repeat(7, minmax(0,1fr));
     column-gap: 5px;
-    background: var(--bg-input);
+    background: var(--tab-card-bg, var(--bg-input));
     padding: 8px 0 4px;
     margin-bottom: 5px;
     border-bottom: 1px solid var(--brd);
@@ -121,7 +121,7 @@
     height: 68vh;
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--bg-input);
+    background: var(--tab-card-bg, var(--bg-input));
     border: 1px solid var(--brd);
     border-radius: 12px;
     padding: 0 10px 10px;
@@ -134,7 +134,7 @@
     display: grid;
     grid-template-columns: 56px repeat(7, minmax(0,1fr));
     column-gap: 4px;
-    background: var(--bg-input);
+    background: var(--tab-card-bg, var(--bg-input));
     padding: 8px 0 6px;
     border-bottom: 1px solid var(--brd);
 }

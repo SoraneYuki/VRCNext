@@ -1,5 +1,9 @@
 **2026.41.10**
 
+**UI Recator**
+* Added Card design to major tabs.
+* Changed some colors and ui schemes.
+
 **Taskbar**
 * Added "Edit Taskbar" and "Edit Dashboard" to the "View" section.
 
