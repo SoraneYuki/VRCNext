@@ -223,7 +223,7 @@ const STATUS_LIST = [
         key: 'join me',
         labelKey: 'status.join_me',
         label: 'Join Me',
-        color: '#42A5F5',
+        color: '#3783FF',
         descKey: 'profiles.status.option.join_me_desc',
         desc: 'Others can easily join you'
     },
@@ -231,7 +231,7 @@ const STATUS_LIST = [
         key: 'ask me',
         labelKey: 'status.ask_me',
         label: 'Ask Me',
-        color: '#FFA726',
+        color: '#FF8D26',
         descKey: 'profiles.status.option.ask_me_desc',
         desc: 'Others should ask before joining'
     },
@@ -239,7 +239,7 @@ const STATUS_LIST = [
         key: 'busy',
         labelKey: 'status.do_not_disturb',
         label: 'Do Not Disturb',
-        color: '#EF5350',
+        color: '#FF2D2D',
         descKey: 'profiles.status.option.busy_desc',
         desc: 'You appear busy'
     }

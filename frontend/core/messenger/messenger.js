@@ -344,7 +344,7 @@ function _msgrStatusColor(status) {
     if (!status) return 'var(--tx3)';
     const s = (typeof STATUS_LIST !== 'undefined') && STATUS_LIST.find(x => x.key === status);
     if (s) return s.color;
-    const fallback = { active: '#2DD48C', 'join me': '#42A5F5', 'ask me': '#FFA726', busy: '#EF5350' };
+    const fallback = { active: '#2DD48C', 'join me': '#3783FF', 'ask me': '#FF8D26', busy: '#FF2D2D' };
     return fallback[status] || 'var(--tx3)';
 }
 

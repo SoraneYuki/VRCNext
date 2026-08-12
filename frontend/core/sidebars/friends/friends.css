@@ -52,12 +52,12 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--ok);
+    background: #78F1AE;
     box-shadow: 0 0 0 2px var(--bg-side);
 }
-.rsidebar.collapsed .inst-card[data-inst-type="friends"] .inst-header::after { background: #42A5F5; }
-.rsidebar.collapsed .inst-card[data-inst-type="private"] .inst-header::after { background: #EF5350; }
-.rsidebar.collapsed .inst-card[data-inst-type="group"]   .inst-header::after { background: #FFA726; }
+.rsidebar.collapsed .inst-card[data-inst-type="friends"] .inst-header::after { background: #8177F4; }
+.rsidebar.collapsed .inst-card[data-inst-type="private"] .inst-header::after { background: #F37878; }
+.rsidebar.collapsed .inst-card[data-inst-type="group"]   .inst-header::after { background: #FF926C; }
 .rsidebar.collapsed .inst-card[data-inst-type="hidden"]  .inst-header::after { background: var(--tx2); }
 
 .rsidebar.collapsed .vrc-profile,

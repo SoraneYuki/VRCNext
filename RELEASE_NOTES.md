@@ -1,13 +1,11 @@
 **2026.41.10**
 
 **Improvements**
-
 * Improved Light Mode on the Dashboard.
 * Sidebar folders now use a larger 5x3 layout instead of 3x3.
 * Updated the **X** close button on several modals to the new VRCN v2 design.
 
 **Calendar**
-
 * Updated Calendar to the VRCN v2 design.
 * Calendar now shows up to 2 events per day, with **"X more events"** for additional events.
 * Added a new **Week View** for a better overview of upcoming events.
@@ -16,7 +14,6 @@
 * Fixed Calendar cells not resizing correctly with the window.
 
 **Performance**
-
 * Fixed several memory leaks that could increase RAM usage during long sessions.
 * Improved memory cleanup for VR Overlay notifications, visited worlds, player profiles, Voice Fight, and Kikitan XD.
 * Improved performance for users with very large friend lists.
@@ -30,5 +27,6 @@
 * Image memory settings apply immediately without restarting VRCNext.
 
 **Changes**
-
 * The Notification Modal now uses the new refresh button design.
+* Changed the colors ofr instance types.
+* Changed the status colors slightly to be more saturated.

@@ -26,10 +26,10 @@
     --rsidebar-c: 60px;
     --rsidebar-w: 260px;
     --status-online: #2DD48C;
-    --status-join:   #42A5F5;
-    --status-ask:    #FFA726;
-    --status-busy:   #EF5350;
-    --status-offline:#747F8D;
+    --status-join:   #3783FF;
+    --status-ask:    #FF8D26;
+    --status-busy:   #FF2D2D;
+    --status-offline:#6D7694;
     --sep-color: var(--brd);
     --fs-off: 0px;
     --font-app: 'Google Sans', sans-serif;
