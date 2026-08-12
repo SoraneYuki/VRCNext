@@ -524,7 +524,7 @@ function _buildWdPhotoCard(x) {
                 const fr    = isOwn ? currentVrcUser : vrcFriendsData.find(f => f.id === p.userId);
                 const img   = fr?.image || p.image || '';
                 return img
-                    ? `<div class="lib-player-av" style="background-image:url('${cssUrl(img)}')" title="${esc(p.displayName)}"></div>`
+                    ? `<div class="lib-player-av" style="background-image:url('${cssUrl(imgThumb(img, 64))}')" title="${esc(p.displayName)}"></div>`
                     : `<div class="lib-player-av lib-player-av-letter" title="${esc(p.displayName)}">${esc((p.displayName || '?')[0])}</div>`;
             }).join('') +
             (remaining > 0 ? `<div class="lib-player-av lib-player-av-more">+${remaining}</div>` : '') +

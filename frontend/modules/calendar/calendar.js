@@ -764,7 +764,7 @@ function _buildDayPanel(events, key) {
                 return `<span class="vrcn-badge${featured ? ' warn' : ''}">${esc(tag)}</span>`;
             }).join('');
             const imgHtml = evt.imageUrl
-                ? `<img class="cal-evlist-thumb" src="${evt.imageUrl}" onerror="this.style.display='none'">`
+                ? `<img class="cal-evlist-thumb" src="${imgThumb(evt.imageUrl, 128)}" onerror="this.style.display='none'">`
                 : `<div class="cal-evlist-thumb"><span class="msi" style="font-size:22px;color:var(--tx3);">event</span></div>`;
 
             return `<div class="cal-evlist-card" data-pin-event-id="${esc(evt.id || '')}" data-pin-event-owner="${esc(evt.ownerId || '')}" data-pin-event-name="${esc(evt.title || '')}" data-pin-event-image="${esc(evt.imageUrl || '')}" onclick="openEventDetail('${esc(evt.ownerId || '')}','${esc(evt.id || '')}')">

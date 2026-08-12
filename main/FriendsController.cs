@@ -3025,8 +3025,21 @@ public class FriendsController
     public object BuildFriendTimelinePayload(TimelineService.FriendTimelineEvent ev)
     {
         var isRecent = DateTime.TryParse(ev.Timestamp, out var evTs) && evTs >= DateTime.UtcNow - TimeSpan.FromDays(7);
+        var isAvatarRef = (ev.WorldId ?? "").StartsWith("avtr_");
         string wThumb;
-        if (isRecent)
+        if (isAvatarRef)
+        {
+            if (isRecent)
+            {
+                wThumb = ImageCacheHelper.GetAvatarUrl(ev.WorldId, ev.WorldThumb);
+            }
+            else
+            {
+                var disk = ImageCacheHelper.GetAvatarCached(ev.WorldId);
+                wThumb = disk != null ? ImageCacheHelper.ToLocalUrl(disk) : ImageCacheHelper.NormalizeTo512(ev.WorldThumb ?? "");
+            }
+        }
+        else if (isRecent)
         {
             wThumb = ImageCacheHelper.GetWorldUrl(ev.WorldId, ev.WorldThumb);
         }

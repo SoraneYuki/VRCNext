@@ -525,7 +525,7 @@ function renderAvatarCard(a, context) {
     const isPublic = context === 'search' || a.releaseStatus === 'public';
     const statusBadge = avatarStatusBadge(isPublic);
     const aid = jsq(a.id || '');
-    const thumbStyle = thumb ? `background-image:url('${cssUrl(thumb)}')` : '';
+    const thumbStyle = thumb ? `background-image:url('${cssUrl(imgThumb(thumb, 256))}')` : '';
     return `<div class="vrcn-content-card av-card${isActive ? ' av-active' : ''}" onclick="selectAvatar('${aid}')">
         <div class="cc-bg" style="${thumbStyle}"></div>
         <div class="cc-scrim"></div>
@@ -824,7 +824,7 @@ function avCancelGroupName(btn) {
 
 function _renderFavAvCard(a) {
     const thumb = a.thumbnailImageUrl || a.imageUrl || '';
-    const thumbStyle = thumb ? `background-image:url('${cssUrl(thumb)}')` : '';
+    const thumbStyle = thumb ? `background-image:url('${cssUrl(imgThumb(thumb, 256))}')` : '';
     const isActive = a.id === currentAvatarId;
     const aid = jsq(a.id || '');
     const isPublic = a.releaseStatus === 'public';
@@ -1452,7 +1452,7 @@ function renderRoseAvatarCard(a) {
     const thumb  = a._cachedThumb || a.avatar_image_url || '';
     const aid    = jsq(a.avatar_id || '');
     const isFav  = favAvatarsData.some(f => f.id === a.avatar_id);
-    const thumbStyle = thumb ? `background-image:url('${cssUrl(thumb)}')` : '';
+    const thumbStyle = thumb ? `background-image:url('${cssUrl(imgThumb(thumb, 256))}')` : '';
 
     // Sort tags in defined order, unknown tags appended at end
     const rawTags  = (a.tags || []);

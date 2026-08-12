@@ -2170,6 +2170,7 @@ public class AuthController
             // Image cache
             _core.Settings.ImgCacheLimitGb         = Math.Clamp(data["imgCacheLimitGb"]?.Value<int>() ?? 5, 5, 30);
             _core.Settings.ImgCacheOptimizeEnabled = data["imgCacheOptimizeEnabled"]?.Value<bool>() ?? true;
+            _core.Settings.ImgMemoryOptimizeEnabled = data["imgMemoryOptimizeEnabled"]?.Value<bool>() ?? true;
             ImageCacheHelper.LimitGb         = _core.Settings.ImgCacheLimitGb;
             ImageCacheHelper.OptimizeEnabled = _core.Settings.ImgCacheOptimizeEnabled;
 

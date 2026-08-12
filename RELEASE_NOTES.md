@@ -1,28 +1,34 @@
 **2026.41.10**
 
-**IUmprovements**
-* Improved light mode on dashboard.
-* Changed sidebar folder size from 3x3 system to 5x3 system.
-* Changed the "X" close button of some modals to the new v2 design.
+**Improvements**
+
+* Improved Light Mode on the Dashboard.
+* Sidebar folders now use a larger 5x3 layout instead of 3x3.
+* Updated the **X** close button on several modals to the new VRCN v2 design.
 
 **Calendar**
-* Calendar is now using the VRCN v2 design.
-* Calendar now shows a maximum of 2 events per day, with an additional **"X more events"** indicator to keep day cards from becoming too large.
-* Added a **Week View** to easily see what's happening throughout the week.
+
+* Updated Calendar to the VRCN v2 design.
+* Calendar now shows up to 2 events per day, with **"X more events"** for additional events.
+* Added a new **Week View** for a better overview of upcoming events.
 * Calendar now uses the same date picker as Timeline.
-* Added "Help Sort" button to Calendar which gives every group a fixed color to help seperate events.
+* Added **Help Sort**, which gives each group a fixed color to make events easier to tell apart.
+* Fixed Calendar cells not resizing correctly with the window.
 
 **Performance**
-* Fixed a memory leak in the VR Overlay where friend avatar images from notifications could stay in RAM permanently. They are now cleaned up automatically.
-* Fixed a memory leak where worlds visited by friends could stay in RAM permanently. The world cache is now limited and reuses memory.
-* Fixed memory buildup with very large friend lists where repeated updates could pile up large messages in RAM. Updates are now merged so only the latest state is delivered.
-* Fixed a memory buildup where profiles of players you previously met could stay in RAM. The profile cache now cleans itself up while players in your current instance remain unaffected.
-* Friend list updates now use a single database query instead of one query per friend, reducing CPU and memory usage for large friend lists.
-* Fixed a rare memory leak in Voice Fight and Kikitan XD where microphone audio could pile up in RAM if speech recognition crashed in the background.
-* VRCNext now regularly compacts its memory to reduce memory growth during long sessions.
+
+* Fixed several memory leaks that could increase RAM usage during long sessions.
+* Improved memory cleanup for VR Overlay notifications, visited worlds, player profiles, Voice Fight, and Kikitan XD.
+* Improved performance for users with very large friend lists.
+* Friend updates now only refresh the parts of the UI that actually changed instead of rebuilding the entire Friends Sidebar and Dashboard.
+* Status, location, and avatar changes now only update that specific friend's card.
+* Reduced CPU and memory usage when updating large friend lists.
+* VRCNext now regularly cleans up unused memory during long sessions.
+* Added **Settings > Performance > Image Cache > Optimize Memory Usage**, enabled by default.
+* Smaller avatars and icons now use lightweight thumbnails, while larger cards use 256px images instead of 800px. This can greatly reduce RAM and GPU memory usage.
+* Full-quality images are still shown when opening or inspecting them.
+* Image memory settings apply immediately without restarting VRCNext.
 
 **Changes**
-* Notification modal shows now new refresh button instead of old vrcn v1 button.
 
-**Fixed Bugs**
-* Fixed an issue where the calendar cells werent resizing base don window size.
+* The Notification Modal now uses the new refresh button design.

@@ -1563,7 +1563,8 @@ function _unloadTabImages(tabEl) {
     });
     if (count > 0) {
         const tabIdx = Array.from(document.querySelectorAll('.tab')).indexOf(tabEl);
-        addLog(`[Unload] Unloaded ${count} image${count !== 1 ? 's' : ''} from Tab ${tabIdx} from memory.`, 'info');
+        const label = tabIdx >= 0 ? `Tab ${tabIdx}` : (tabEl.id || 'modal');
+        addLog(`[Unload] Unloaded ${count} image${count !== 1 ? 's' : ''} from ${label} from memory.`, 'info');
     }
 }
 
@@ -1575,6 +1576,27 @@ function _reloadTabImages(tabEl) {
     tabEl.querySelectorAll('[data-lazy-bg]').forEach(el => {
         el.style.backgroundImage = el.dataset.lazyBg;
         delete el.dataset.lazyBg;
+    });
+}
+
+const _modalImgObserver = new MutationObserver(muts => {
+    for (const m of muts) {
+        const el = m.target;
+        if (!(el instanceof HTMLElement)) continue;
+        const visible = el.style.display !== 'none';
+        if (el.__imgVis === visible) continue;
+        el.__imgVis = visible;
+        if (visible) _reloadTabImages(el);
+        else _unloadTabImages(el);
+    }
+});
+
+function _watchModalImages() {
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        if (el.__imgWatched) return;
+        el.__imgWatched = true;
+        el.__imgVis = el.style.display !== 'none';
+        _modalImgObserver.observe(el, { attributes: true, attributeFilter: ['style'] });
     });
 }
 
@@ -1632,6 +1654,7 @@ function showTab(i) {
         renderThemeChips();
         if (currentTheme === 'custom') renderColorInputs();
     }
+    if (i === 8) flushActivityLog();
     if (i === 12) refreshTimeline();
     if (i === 13) switchInvTab(activeInvTab);
     if (i === 14) sendToCS({ action: 'vcCheck' });
@@ -1733,15 +1756,35 @@ function _updateAvgBadges() {
 let _logShowFull = false;
 let _logSearch   = '';
 
+let _logLines = [];
+let _logDomDirty = false;
+
 function _applyLogFilter() {
     const a = document.getElementById('logArea');
     if (!a) return;
     const q = _logSearch.toLowerCase();
+    if (!q) {
+        for (const el of a.children) el.style.display = '';
+        a.classList.toggle('log-tail', !_logShowFull);
+        return;
+    }
+    a.classList.remove('log-tail');
     const all = Array.from(a.querySelectorAll('.li-f'));
-    const matched = q ? all.filter(el => el.textContent.toLowerCase().includes(q)) : all;
+    const matched = all.filter(el => el.textContent.toLowerCase().includes(q));
     const showFrom = _logShowFull ? 0 : Math.max(0, matched.length - 100);
     for (const el of all) el.style.display = 'none';
     for (let i = showFrom; i < matched.length; i++) matched[i].style.display = '';
+}
+
+function flushActivityLog() {
+    const a = document.getElementById('logArea');
+    if (!a) return;
+    if (_logDomDirty) {
+        _logDomDirty = false;
+        a.innerHTML = _logLines.join('');
+        _applyLogFilter();
+        a.scrollTop = a.scrollHeight;
+    }
 }
 
 function toggleLogShowFull() {
@@ -1826,13 +1869,18 @@ function addLog(m, c) {
     if (httpLevel) levelCls = httpLevel;
     if (statusCode) msgBody = msgBody.replace(/ → \d{3}.*$/, '');
 
-    const l = document.createElement('div');
-    l.className = 'li-f';
-    l.innerHTML = `<span class="li-ts">${ts}</span><span class="li-level ${levelCls}">${esc(level)}</span><span class="li-msg">${esc(msgBody)}</span>${statusCode ? `<span class="li-status ${levelCls}">${statusCode}</span>` : ''}`;
+    const rowHtml = `<div class="li-f"><span class="li-ts">${ts}</span><span class="li-level ${levelCls}">${esc(level)}</span><span class="li-msg">${esc(msgBody)}</span>${statusCode ? `<span class="li-status ${levelCls}">${statusCode}</span>` : ''}</div>`;
+    _logLines.push(rowHtml);
+    if (_logLines.length > 500) _logLines.shift();
+
+    const tab8 = document.getElementById('tab8');
+    if (!tab8 || !tab8.classList.contains('active')) { _logDomDirty = true; return; }
+
     const atBottom = a.scrollHeight - a.scrollTop - a.clientHeight < 40;
-    a.appendChild(l);
+    a.insertAdjacentHTML('beforeend', rowHtml);
     while (a.childElementCount > 500) a.removeChild(a.firstChild);
-    _applyLogFilter();
+    if (_logSearch) _applyLogFilter();
+    else a.classList.toggle('log-tail', !_logShowFull);
     if (atBottom) a.scrollTop = a.scrollHeight;
 }
 
@@ -1923,6 +1971,8 @@ function clearLog() {
     }
     const a = document.getElementById('logArea');
     if (a) a.innerHTML = '';
+    _logLines = [];
+    _logDomDirty = false;
 }
 
 function copyLog() {
@@ -2004,6 +2054,27 @@ function jsq(s) {
 
 function cssUrl(s) {
     return (s || '').replace(/'/g, '%27').replace(/\)/g, '%29');
+}
+
+let imgThumbsEnabled = true;
+
+function imgThumb(url, size = 64) {
+    if (!imgThumbsEnabled) return url;
+    if (!url || url.indexOf('/imgcache/') === -1 || url.indexOf('thumb=') !== -1) return url;
+    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'thumb=' + size;
+}
+
+function imgOriginal(url) {
+    if (!url || url.indexOf('thumb=') === -1) return url;
+    return url.replace(/([?&])thumb=\d+(&|$)/, (m, p1, p2) => p2 === '&' ? p1 : '').replace(/[?&]$/, '');
+}
+
+function setHtmlIfChanged(el, h) {
+    if (!el) return false;
+    if (el.__lastHtml === h) return false;
+    el.__lastHtml = h;
+    el.innerHTML = h;
+    return true;
 }
 
 function isLocalFavGroup(g) {

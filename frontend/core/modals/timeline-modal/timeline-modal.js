@@ -113,7 +113,7 @@ function _tlInsertBanner(el, key, src) {
 }
 function _tlAvRow(image, name, label, labelColor) {
     const av = image
-        ? `<div class="tl-detail-av" style="background-image:url('${cssUrl(image)}')"></div>`
+        ? `<div class="tl-detail-av" style="background-image:url('${cssUrl(imgThumb(image, 128))}')"></div>`
         : `<div class="tl-detail-av tl-detail-av-letter">${esc((name || '?')[0].toUpperCase())}</div>`;
     return `<div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">${av}<div>
         <h2 style="margin:0 0 4px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(name || t('timeline.unknown', 'Unknown'))}</h2>
@@ -135,7 +135,7 @@ function _tlPlayerCard(p, instanceStart, instanceEnd) {
     const live   = p.userId ? vrcFriendsData.find(f => f.id === p.userId) : null;
     const image  = live?.image || p.image || '';
     const av     = image
-        ? `<div class="tl-player-card-av" style="background-image:url('${cssUrl(image)}')"></div>`
+        ? `<div class="tl-player-card-av" style="background-image:url('${cssUrl(imgThumb(image, 64))}')"></div>`
         : `<div class="tl-player-card-av">${esc(name[0].toUpperCase())}</div>`;
     const badge  = live ? `<span class="vrcn-badge bdg-friend"><span class="msi" style="font-size:10px;">check_circle</span>${t('profiles.badges.friend', 'Friend')}</span>` : '';
     const onclick = p.userId ? `onclick="navOpenModal('friend','${jsq(p.userId)}','${jsq(name)}')"` : '';
@@ -491,7 +491,7 @@ function renderTlDetailProfile(ev, el) {
     el.innerHTML = `${_tlBar(meta.label)}<div class="fd-content" style="padding:20px 0;">
         <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
             ${ev.userImage
-                ? `<div class="tl-detail-av" style="background-image:url('${cssUrl(ev.userImage)}')"></div>`
+                ? `<div class="tl-detail-av" style="background-image:url('${cssUrl(imgThumb(ev.userImage, 128))}')"></div>`
                 : `<div style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:12px;background:var(--bg2);"><span class="msi" style="font-size:30px;color:${meta.color};">${meta.icon}</span></div>`}
             <div>
                 <h2 style="margin:0 0 4px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(meta.label)}</h2>
@@ -680,7 +680,7 @@ function ftDetailDatetime(ev) {
 
 function ftDetailAvRow(ev) {
     const av = ev.friendImage
-        ? `<div class="tl-detail-av" style="background-image:url('${cssUrl(ev.friendImage)}')"></div>`
+        ? `<div class="tl-detail-av" style="background-image:url('${cssUrl(imgThumb(ev.friendImage, 128))}')"></div>`
         : `<div class="tl-detail-av tl-detail-av-letter">${esc((ev.friendName || '?')[0].toUpperCase())}</div>`;
     return `<div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;">${av}
         <div><h2 style="margin:0 0 4px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(ev.friendName || t('timeline.unknown', 'Unknown'))}</h2>
@@ -847,7 +847,7 @@ function renderFtDetailFriendAvatar(ev, el) {
 // ═══════════════════════════════════════════════════════════════════
 
 function _tlListProfHtml(img, name) {
-    if (img) return `<div class="tl-av" style="width:26px;height:26px;background-image:url('${cssUrl(img)}')"></div>`;
+    if (img) return `<div class="tl-av" style="width:26px;height:26px;background-image:url('${cssUrl(imgThumb(img, 64))}')"></div>`;
     if (name) return `<div class="tl-av tl-av-letter" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:calc(10px + var(--fs-off, 0px));">${esc(name[0].toUpperCase())}</div>`;
     return '';
 }
@@ -897,7 +897,7 @@ function _tlListPlayerAvatars(players, max) {
     let html = '<span class="tl-list-avs">';
     shown.forEach(p => {
         html += p.image
-            ? `<span class="tl-list-av" style="background-image:url('${cssUrl(p.image)}')" title="${esc(p.displayName || '')}"></span>`
+            ? `<span class="tl-list-av" style="background-image:url('${cssUrl(imgThumb(p.image, 64))}')" title="${esc(p.displayName || '')}"></span>`
             : `<span class="tl-list-av tl-list-av-letter" title="${esc(p.displayName || '')}">${esc((p.displayName || '?')[0].toUpperCase())}</span>`;
     });
     if (rest > 0) html += `<span class="tl-list-av tl-list-av-more">+${rest}</span>`;

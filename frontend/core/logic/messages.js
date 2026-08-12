@@ -296,9 +296,11 @@ window.external.receiveMessage(rawMsg => {
                 break;
             case 'vrcFriendUpdate': {
                 const idx = vrcFriendsData.findIndex(f => f.id === payload.id);
+                const prevFriend = idx >= 0 ? vrcFriendsData[idx] : null;
                 if (idx >= 0) vrcFriendsData[idx] = payload;
                 else vrcFriendsData.push(payload);
-                scheduleRenderVrcFriends();
+                if (!(typeof tryPatchVrcFriendCard === 'function' && tryPatchVrcFriendCard(prevFriend, payload)))
+                    scheduleRenderVrcFriends();
                 if (favFriendsData.length > 0) filterFavFriendsIfVisible();
                 if (typeof filterAllFriendsIfLive === 'function') filterAllFriendsIfLive();
                 if (typeof updateUserItemWorld === 'function') updateUserItemWorld(payload);
@@ -309,13 +311,14 @@ window.external.receiveMessage(rawMsg => {
                 vrcFriendsLoaded = true;
                 if (typeof friendFetchInit === 'function') friendFetchInit();
                 if (payload.friends) {
-                    renderVrcFriends(payload.friends, payload.counts);
                     vrcFriendsData = payload.friends;
+                    _rvfPendingCounts = payload.counts || null;
                 } else {
-                    renderVrcFriends(payload);
                     vrcFriendsData = payload;
+                    _rvfPendingCounts = null;
                 }
-                requestWorldResolution(); renderDashboard(); requestInstanceInfo();
+                scheduleRenderVrcFriends();
+                requestWorldResolution(); renderDashboardFriendSections(); requestInstanceInfo();
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);
                 if (favFriendsData.length > 0) filterFavFriendsIfVisible();
                 if (typeof filterAllFriendsIfLive === 'function') filterAllFriendsIfLive();
@@ -338,7 +341,7 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcLoggedOut':
                 vrcFriendsLoaded = false;
                 renderVrcProfile(null);
-                document.getElementById('vrcFriendsList').innerHTML = '';
+                { const _fl = document.getElementById('vrcFriendsList'); _fl.innerHTML = ''; _fl.__lastHtml = null; }
                 document.getElementById('vrcLoginPrompt') && (document.getElementById('vrcLoginPrompt').style.display = '');
                 { const vp = document.getElementById('badgeVrcPlus'); if (vp) vp.style.display = 'none'; }
                 if (typeof updateTbAppUserHeader === 'function') updateTbAppUserHeader();

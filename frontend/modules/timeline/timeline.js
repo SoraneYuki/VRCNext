@@ -1084,7 +1084,7 @@ function renderTlCard(ev) {
 
 function renderTlJoinBody(ev) {
     const thumb = ev.worldThumb
-        ? `<div class="tl-thumb" style="background-image:url('${cssUrl(ev.worldThumb)}')"></div>`
+        ? `<div class="tl-thumb" style="background-image:url('${cssUrl(imgThumb(ev.worldThumb, 128))}')"></div>`
         : `<div class="tl-thumb tl-thumb-empty"><span class="msi" style="font-size:18px;color:var(--tx3);">travel_explore</span></div>`;
     const name  = ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World');
     const cnt   = (ev.players || []).length;
@@ -1113,7 +1113,7 @@ function renderTlPhotoBody(ev) {
 
 function renderTlMeetBody(ev) {
     const av   = ev.userImage
-        ? `<div class="tl-av" style="background-image:url('${cssUrl(ev.userImage)}')"></div>`
+        ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.userImage, 96))}')"></div>`
         : `<div class="tl-av tl-av-letter">${esc((ev.userName || '?')[0].toUpperCase())}</div>`;
     const sub  = ev.worldName ? `<div class="tl-sub-label">${esc(ev.worldName)}</div>` : '';
     return `<div class="tl-card-body">${av}<div class="tl-card-info"><div class="tl-main-label">${esc(ev.userName || t('timeline.unknown', 'Unknown'))}</div>${sub}</div></div>`;
@@ -1121,7 +1121,7 @@ function renderTlMeetBody(ev) {
 
 function renderTlMeetAgainBody(ev) {
     const av  = ev.userImage
-        ? `<div class="tl-av" style="background-image:url('${cssUrl(ev.userImage)}')"></div>`
+        ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.userImage, 96))}')"></div>`
         : `<div class="tl-av tl-av-letter">${esc((ev.userName || '?')[0].toUpperCase())}</div>`;
     const sub = ev.worldName ? `<div class="tl-sub-label">${esc(ev.worldName)}</div>` : '';
     return `<div class="tl-card-body">${av}<div class="tl-card-info"><div class="tl-main-label">${esc(ev.userName || t('timeline.unknown', 'Unknown'))}</div>${sub}</div></div>`;
@@ -1130,7 +1130,7 @@ function renderTlMeetAgainBody(ev) {
 function renderTlNotifBody(ev) {
     const typeLabel = tlNotifTypeLabel(ev.notifType);
     const av  = ev.senderImage
-        ? `<div class="tl-av" style="background-image:url('${cssUrl(ev.senderImage)}')"></div>`
+        ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.senderImage, 96))}')"></div>`
         : `<div class="tl-av tl-av-letter">${esc((ev.senderName || '?')[0].toUpperCase())}</div>`;
     const titleCtx = ev.notifTitle ? `<div class="tl-sub-label" style="color:var(--tx2);">${esc(ev.notifTitle.slice(0, 60))}${ev.notifTitle.length > 60 ? '…' : ''}</div>` : '';
     const sub = ev.message ? `<div class="tl-sub-label">${esc(ev.message.slice(0, 60))}${ev.message.length > 60 ? '…' : ''}</div>` : '';
@@ -1171,7 +1171,7 @@ function renderTlUrlBody(ev) {
 
 function renderTlAvatarBody(ev) {
     const thumb = ev.userImage
-        ? `<div class="tl-av" style="background-image:url('${cssUrl(ev.userImage)}')"></div>`
+        ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.userImage, 96))}')"></div>`
         : `<div class="tl-av tl-av-letter"><span class="msi" style="font-size:18px;">checkroom</span></div>`;
     return `<div class="tl-card-body">${thumb}<div class="tl-card-info"><div class="tl-main-label">${esc(ev.userName || t('timeline.unknown_avatar', 'Unknown Avatar'))}</div></div></div>`;
 }
@@ -1179,7 +1179,7 @@ function renderTlAvatarBody(ev) {
 function renderTlModerationBody(ev) {
     const active = tlModIsActive(ev);
     const av  = ev.userImage
-        ? `<div class="tl-av" style="background-image:url('${cssUrl(ev.userImage)}')"></div>`
+        ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.userImage, 96))}')"></div>`
         : `<div class="tl-av tl-av-letter">${esc((ev.userName || '?')[0].toUpperCase())}</div>`;
     const label = tlModTypeLabel(ev.notifType, active);
     return `<div class="tl-card-body">${av}<div class="tl-card-info"><div class="tl-main-label">${esc(ev.userName || t('timeline.unknown', 'Unknown'))}</div><div class="tl-type-chip" style="color:${active ? 'var(--err)' : 'var(--ok)'}">${esc(label)}</div></div></div>`;
@@ -1205,7 +1205,7 @@ function tlProfileMeta(ev) {
 function renderTlProfileBody(ev) {
     const meta = tlProfileMeta(ev);
     const av = ev.userImage
-        ? `<div class="tl-av" style="background-image:url('${cssUrl(ev.userImage)}')"></div>`
+        ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.userImage, 96))}')"></div>`
         : `<div class="tl-av" style="display:flex;align-items:center;justify-content:center;background:var(--bg2);"><span class="msi" style="font-size:20px;color:${meta.color};">${meta.icon}</span></div>`;
     let sub = '';
     if (ev.notifType === 'status') {
@@ -1225,7 +1225,7 @@ function renderTlProfileBody(ev) {
 function tlPlayerAvatars(players, max) {
     return (players || []).slice(0, max).map(p => {
         return p.image
-            ? `<div class="tl-player-av" style="background-image:url('${cssUrl(p.image)}')" title="${esc(p.displayName)}"></div>`
+            ? `<div class="tl-player-av" style="background-image:url('${cssUrl(imgThumb(p.image, 64))}')" title="${esc(p.displayName)}"></div>`
             : `<div class="tl-player-av tl-player-av-letter" title="${esc(p.displayName)}">${esc((p.displayName || '?')[0].toUpperCase())}</div>`;
     }).join('');
 }
@@ -1632,13 +1632,13 @@ function renderFtCard(ev) {
 
 function ftFriendAv(ev, cssClass) {
     return ev.friendImage
-        ? `<div class="${cssClass}" style="background-image:url('${cssUrl(ev.friendImage)}')"></div>`
+        ? `<div class="${cssClass}" style="background-image:url('${cssUrl(imgThumb(ev.friendImage, 96))}')"></div>`
         : `<div class="${cssClass} tl-av-letter">${esc((ev.friendName || '?')[0].toUpperCase())}</div>`;
 }
 
 function renderFtGpsBody(ev) {
     const thumb = ev.worldThumb
-        ? `<div class="tl-thumb" style="background-image:url('${cssUrl(ev.worldThumb)}')"></div>`
+        ? `<div class="tl-thumb" style="background-image:url('${cssUrl(imgThumb(ev.worldThumb, 128))}')"></div>`
         : `<div class="tl-thumb tl-thumb-empty"><span class="msi" style="font-size:18px;color:var(--tx3);">travel_explore</span></div>`;
     const wname = ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World');
     const av    = ftFriendAv(ev, 'tl-player-av');
@@ -1717,7 +1717,7 @@ function renderFtBioBody(ev) {
 function renderFtAvatarBody(ev) {
     const av      = ftFriendAv(ev, 'tl-av');
     const avThumb = ev.worldThumb
-        ? `<div class="tl-av" style="background-image:url('${cssUrl(ev.worldThumb)}');border-radius:8px;flex-shrink:0;"></div>`
+        ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.worldThumb, 96))}');border-radius:8px;flex-shrink:0;"></div>`
         : '';
     return `<div class="tl-card-body">${av}<div class="tl-card-info">
         <div class="tl-main-label">${esc(ev.friendName || t('timeline.unknown', 'Unknown'))}</div>

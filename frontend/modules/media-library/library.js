@@ -166,7 +166,7 @@ function applyLibraryWorldIds(dict) {
         const wInfo = worldInfoCache[worldId];
         const wName  = wInfo ? esc(wInfo.name) : t('library.view_world', 'View World');
         const wThumb = wInfo?.thumbnailImageUrl || '';
-        const badgeHtml = `<button class="lib-world-badge" data-wid="${esc(worldId)}" onclick="event.stopPropagation();openWorldSearchDetail('${esc(worldId)}')" title="${wName}"><span class="lib-world-badge-thumb" style="${wThumb ? `background-image:url('${cssUrl(wThumb)}')` : ''}"></span><span class="lib-world-badge-text">${wName}</span></button>`;
+        const badgeHtml = `<button class="lib-world-badge" data-wid="${esc(worldId)}" onclick="event.stopPropagation();openWorldSearchDetail('${esc(worldId)}')" title="${wName}"><span class="lib-world-badge-thumb" style="${wThumb ? `background-image:url('${cssUrl(imgThumb(wThumb, 64))}')` : ''}"></span><span class="lib-world-badge-text">${wName}</span></button>`;
         const existingBadge = wrap.querySelector('.lib-world-badge');
         if (existingBadge) existingBadge.outerHTML = badgeHtml;
         else wrap.insertAdjacentHTML('beforeend', badgeHtml);
@@ -471,7 +471,7 @@ function _renderLibIconSelect(wrapperId, items, currentVal, allLabel, allIcon, r
     function thumbHtml(thumb, icon, isRound) {
         const rc = isRound ? ' lib-is-thumb-round' : '';
         return thumb
-            ? `<span class="lib-is-thumb${rc}" style="background-image:url('${cssUrl(thumb)}')"></span>`
+            ? `<span class="lib-is-thumb${rc}" style="background-image:url('${cssUrl(imgThumb(thumb, 64))}')"></span>`
             : `<span class="lib-is-thumb lib-is-thumb-icon${rc}"><span class="msi">${esc(icon)}</span></span>`;
     }
 
@@ -689,7 +689,7 @@ function _buildLibCard(x) {
         const wInfo  = worldInfoCache[x.worldId];
         const wName  = wInfo ? esc(wInfo.name) : t('library.view_world', 'View World');
         const wThumb = wInfo?.thumbnailImageUrl || '';
-        worldBadge   = `<button class="lib-world-badge" data-wid="${esc(x.worldId)}" onclick="event.stopPropagation();openWorldSearchDetail('${esc(x.worldId)}')" title="${wName}"><span class="lib-world-badge-thumb" style="${wThumb ? `background-image:url('${cssUrl(wThumb)}')` : ''}"></span><span class="lib-world-badge-text">${wName}</span></button>`;
+        worldBadge   = `<button class="lib-world-badge" data-wid="${esc(x.worldId)}" onclick="event.stopPropagation();openWorldSearchDetail('${esc(x.worldId)}')" title="${wName}"><span class="lib-world-badge-thumb" style="${wThumb ? `background-image:url('${cssUrl(imgThumb(wThumb, 64))}')` : ''}"></span><span class="lib-world-badge-text">${wName}</span></button>`;
     }
     let playersOverlay = '';
     const players = x.players || [];
@@ -702,7 +702,7 @@ function _buildLibCard(x) {
                 const fr  = isOwn ? currentVrcUser : vrcFriendsData.find(f => f.id === p.userId);
                 const img = fr?.image || p.image || '';
                 return img
-                    ? `<div class="lib-player-av" style="background-image:url('${cssUrl(img)}')" title="${esc(p.displayName)}"></div>`
+                    ? `<div class="lib-player-av" style="background-image:url('${cssUrl(imgThumb(img, 64))}')" title="${esc(p.displayName)}"></div>`
                     : `<div class="lib-player-av lib-player-av-letter" title="${esc(p.displayName)}">${esc((p.displayName||'?')[0])}</div>`;
             }).join('') +
             (remaining > 0 ? `<div class="lib-player-av lib-player-av-more">+${remaining}</div>` : '') +
@@ -1306,7 +1306,7 @@ function _photoBuildInfoPaneContent(x) {
             const live    = isOwn ? currentVrcUser : (p.userId ? vrcFriendsData.find(f => f.id === p.userId) : null);
             const image   = live?.image || p.image || '';
             const av      = image
-                ? `<div class="tl-player-card-av" style="background-image:url('${cssUrl(image)}')"></div>`
+                ? `<div class="tl-player-card-av" style="background-image:url('${cssUrl(imgThumb(image, 64))}')"></div>`
                 : `<div class="tl-player-card-av">${esc(name[0].toUpperCase())}</div>`;
             const badge   = live ? `<span class="vrcn-badge bdg-friend"><span class="msi" style="font-size:10px;">check_circle</span>${t('profiles.badges.friend', 'Friend')}</span>` : '';
             const onclick = p.userId ? `onclick="navOpenModal('friend','${jsq(p.userId)}','${jsq(name)}')"` : '';

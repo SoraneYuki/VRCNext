@@ -1200,6 +1200,8 @@
   "settings.image_cache.clear": "Bild-Cache leeren",
   "settings.image_cache.optimize.label": "Caching optimieren",
   "settings.image_cache.optimize.desc": "PNG-Bilder > 1,5 MB werden automatisch als JPEG komprimiert",
+  "settings.image_cache.mem_optimize.label": "Speichernutzung optimieren",
+  "settings.image_cache.mem_optimize.desc": "Kleinere Vorschaubilder verwenden, um den Speicherverbrauch zu senken",
   "settings.image_cache.force_optimize": "Optimierung erzwingen",
   "settings.ffc.title": "Fast Fetch Cache",
   "settings.ffc.desc": "Der Fast Fetch Cache speichert Benutzerprofile, Welten, Gruppen und Avatare lokal, um Ladezeiten zu verbessern. Wenn aktiviert, zeigt VRCNext gecachte Inhalte sofort an und aktualisiert sie still im Hintergrund. Wenn deaktiviert, wird bei jeder Anfrage alles frisch geladen und kein Cache benutzt.",

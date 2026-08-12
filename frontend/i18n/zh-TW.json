@@ -1213,6 +1213,8 @@
   "settings.image_cache.clear": "清除圖片快取",
   "settings.image_cache.optimize.label": "最佳化快取",
   "settings.image_cache.optimize.desc": "超過 1.5 MB 的 PNG 圖片將自動壓縮為 JPEG",
+  "settings.image_cache.mem_optimize.label": "優化記憶體使用",
+  "settings.image_cache.mem_optimize.desc": "使用低解析度縮圖以減少記憶體使用量",
   "settings.image_cache.force_optimize": "強制最佳化",
   "settings.ffc.title": "快速獲取快取",
   "settings.ffc.desc": "快速獲取快取在本地儲存個人檔案、世界、群組和角色以提高載入速度。啟用後，VRCNext 會立即顯示快取內容（描述、文字、圖片），同時在後臺靜默重新整理。停用後，每次請求都會重新下載所有數據，不會儲存或使用快取。",

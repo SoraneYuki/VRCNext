@@ -1160,10 +1160,20 @@ public partial class AppShell
             else if (path.StartsWith("/imgcache/"))
             {
                 var rel  = Uri.UnescapeDataString(path["/imgcache/".Length..]).Replace('/', Path.DirectorySeparatorChar);
-                var file = Path.Combine(
+                var imgBase = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "VRCNext", "Caches", "ImageCache", rel);
-                await ServeFileAsync(ctx, file);
+                    "VRCNext", "Caches", "ImageCache");
+                var file = Path.GetFullPath(Path.Combine(imgBase, rel));
+                if (!file.StartsWith(imgBase + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                {
+                    ctx.Response.StatusCode = 403;
+                }
+                else
+                {
+                    var imgThumbSize = ParseImgThumbSize(ctx.Request.Url?.Query);
+                    if (imgThumbSize > 0) await ServeImgCacheThumbAsync(ctx, file, imgThumbSize);
+                    else await ServeFileAsync(ctx, file);
+                }
             }
             else if (path.StartsWith("/vrcphotos/"))
             {
@@ -1355,6 +1365,105 @@ public partial class AppShell
 
     private static readonly SemaphoreSlim _thumbSem = new(2, 2);
     private static int _thumbGenCount = 0;
+
+    private static int ParseImgThumbSize(string? query)
+    {
+        if (string.IsNullOrEmpty(query)) return 0;
+        var m = System.Text.RegularExpressions.Regex.Match(query, @"[?&]thumb=(\d+)");
+        if (!m.Success) return 0;
+        return int.TryParse(m.Groups[1].Value, out var s) && (s == 64 || s == 96 || s == 128 || s == 256) ? s : 64;
+    }
+
+    private static async Task ServeImgCacheThumbAsync(System.Net.HttpListenerContext ctx, string file, int maxSize)
+    {
+        if (!File.Exists(file)) { ctx.Response.StatusCode = 404; return; }
+        var ext = Path.GetExtension(file).ToLowerInvariant();
+        if (ext is not (".jpg" or ".jpeg" or ".png"))
+        {
+            await ServeFileAsync(ctx, file);
+            return;
+        }
+        var keepAlpha = ext == ".png";
+        var thumbPath = Path.Combine(
+            Path.GetDirectoryName(file)!, "Thumbs",
+            Path.GetFileNameWithoutExtension(file) + "_" + maxSize + (keepAlpha ? ".png" : ".jpg"));
+
+        if (!File.Exists(thumbPath) || File.GetLastWriteTimeUtc(thumbPath) < File.GetLastWriteTimeUtc(file))
+        {
+            await _thumbSem.WaitAsync();
+            try
+            {
+                if (!File.Exists(thumbPath) || File.GetLastWriteTimeUtc(thumbPath) < File.GetLastWriteTimeUtc(file))
+                {
+                    var ok = await Task.Run(() => TryGenerateImgThumb(file, thumbPath, maxSize, keepAlpha));
+                    if (!ok) { await ServeFileAsync(ctx, file); return; }
+                }
+            }
+            finally { _thumbSem.Release(); }
+        }
+        await ServeFileAsync(ctx, thumbPath);
+    }
+
+    private static bool TryGenerateImgThumb(string srcFile, string thumbPath, int maxSize, bool keepAlpha)
+    {
+        var tmpPath = thumbPath + ".tmp";
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(thumbPath)!);
+#if WINDOWS
+            var rawBytes = File.ReadAllBytes(srcFile);
+            using var ms  = new MemoryStream(rawBytes);
+            using var src = System.Drawing.Image.FromStream(ms, false, false);
+            var scale = Math.Min(1.0, Math.Min(maxSize / (double)src.Width, maxSize / (double)src.Height));
+            var w = Math.Max(1, (int)Math.Round(src.Width  * scale));
+            var h = Math.Max(1, (int)Math.Round(src.Height * scale));
+            using var bmp = new System.Drawing.Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using (var g = System.Drawing.Graphics.FromImage(bmp))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.CompositingMode   = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+                g.DrawImage(src, 0, 0, w, h);
+            }
+            if (keepAlpha)
+            {
+                bmp.Save(tmpPath, System.Drawing.Imaging.ImageFormat.Png);
+            }
+            else
+            {
+                var jpegCodec = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders()
+                    .First(c => c.FormatID == System.Drawing.Imaging.ImageFormat.Jpeg.Guid);
+                var encParams = new System.Drawing.Imaging.EncoderParameters(1);
+                encParams.Param[0] = new System.Drawing.Imaging.EncoderParameter(
+                    System.Drawing.Imaging.Encoder.Quality, 88L);
+                bmp.Save(tmpPath, jpegCodec, encParams);
+            }
+#else
+            var rawBytes = File.ReadAllBytes(srcFile);
+            using var codec = SkiaSharp.SKCodec.Create(new MemoryStream(rawBytes));
+            if (codec == null) return false;
+            var info = codec.Info;
+            var scale = Math.Min(1.0, Math.Min(maxSize / (double)info.Width, maxSize / (double)info.Height));
+            var w = Math.Max(1, (int)Math.Round(info.Width  * scale));
+            var h = Math.Max(1, (int)Math.Round(info.Height * scale));
+            using var src = SkiaSharp.SKBitmap.Decode(codec);
+            if (src == null) return false;
+            using var dst = new SkiaSharp.SKBitmap(w, h, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul);
+            src.ScalePixels(dst, SkiaSharp.SKFilterQuality.High);
+            using var img  = SkiaSharp.SKImage.FromBitmap(dst);
+            using var data = img.Encode(keepAlpha ? SkiaSharp.SKEncodedImageFormat.Png : SkiaSharp.SKEncodedImageFormat.Jpeg, 88);
+            if (data == null) return false;
+            using (var fsOut = File.Create(tmpPath))
+                data.SaveTo(fsOut);
+#endif
+            File.Move(tmpPath, thumbPath, overwrite: true);
+            return true;
+        }
+        catch
+        {
+            try { if (File.Exists(tmpPath)) File.Delete(tmpPath); } catch { }
+            return false;
+        }
+    }
 
     private static string? _cachedFfmpegPath;
     private static string? FindFfmpegPath()

@@ -284,6 +284,7 @@ function saveSettings() {
             searchDebounceMs:        parseInt(document.getElementById('setSearchDebounceMs')?.value) || 500,
             imgCacheLimitGb:         parseInt(document.getElementById('setImgCacheLimit').value) || 5,
             imgCacheOptimizeEnabled: document.getElementById('setImgCacheOptimizeEnabled').checked,
+            imgMemoryOptimizeEnabled: document.getElementById('setImgMemoryOptimizeEnabled')?.checked ?? true,
             ffcEnabled: document.getElementById('setFfcEnabled').checked,
             memoryTrimEnabled: document.getElementById('setMemoryTrimEnabled').checked,
             mediaFixEnabled: document.getElementById('setMediaFixEnabled')?.checked ?? true,
@@ -362,7 +363,7 @@ function initAutoSave() {
         'setYtAutoStartVR','setYtAutoStartDesktop',
         'setVfAutoStartVR','setVfAutoStartDesktop',
         'setDpAutoStartVR','setDpAutoStartDesktop',
-        'setImgCacheEnabled','setImgCacheLimit','setImgCacheOptimizeEnabled','setMemoryTrimEnabled','setSendCrashData','setRestartAfterCrash',
+        'setImgCacheEnabled','setImgCacheLimit','setImgCacheOptimizeEnabled','setImgMemoryOptimizeEnabled','setMemoryTrimEnabled','setSendCrashData','setRestartAfterCrash',
         'setPerfGpuAccel','setPerfShaderCache','setPerfV8Heap','setPerfRenderProc',
         'setPerfAnimations','setPerfBlur'];
     ids.forEach(id => {
@@ -806,6 +807,10 @@ function loadSettingsToUI(s) {
     // Image cache settings
     const imgCacheLimitGb         = Math.max(5, Math.min(30, s.ImgCacheLimitGb ?? s.imgCacheLimitGb ?? 5));
     const imgCacheOptimizeEnabled = s.ImgCacheOptimizeEnabled ?? s.imgCacheOptimizeEnabled ?? true;
+    const imgMemoryOptimizeEnabled = s.ImgMemoryOptimizeEnabled ?? s.imgMemoryOptimizeEnabled ?? true;
+    imgThumbsEnabled = imgMemoryOptimizeEnabled === true;
+    const memOptEl = document.getElementById('setImgMemoryOptimizeEnabled');
+    if (memOptEl) memOptEl.checked = imgThumbsEnabled;
     document.getElementById('setImgCacheLimit').value = imgCacheLimitGb;
     document.getElementById('imgCacheLimitVal').textContent = imgCacheLimitGb + ' GB';
     document.getElementById('setImgCacheOptimizeEnabled').checked = imgCacheOptimizeEnabled;
@@ -919,6 +924,19 @@ function startForceOptimize() {
     const btn = document.getElementById('btnForceOptimize');
     if (btn) btn.disabled = true;
     sendToCS({ action: 'optimizeImgCache' });
+}
+
+function onImgMemoryOptimizeToggle() {
+    imgThumbsEnabled = document.getElementById('setImgMemoryOptimizeEnabled')?.checked === true;
+    autoSave();
+    const fl = document.getElementById('vrcFriendsList');
+    if (fl) fl.__lastHtml = null;
+    ['dashFavWorlds', 'dashFriendsFeed', 'dashFriendLocSmallShelf', 'dashGroupActivityGrid', 'dashGroupActivityCards', 'dashGroupActivityShelf'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.__lastHtml = null;
+    });
+    if (typeof renderVrcFriends === 'function' && typeof vrcFriendsData !== 'undefined' && vrcFriendsData.length) renderVrcFriends(vrcFriendsData);
+    if (typeof renderDashboard === 'function') renderDashboard();
 }
 
 function handleImgCacheOptimizeProgress(data) {

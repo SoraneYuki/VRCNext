@@ -1191,6 +1191,8 @@
   "settings.image_cache.clear": "Очистить кэш",
   "settings.image_cache.optimize.label": "Оптимизация",
   "settings.image_cache.optimize.desc": "Оптимизировать кэш",
+  "settings.image_cache.mem_optimize.label": "Оптимизация памяти",
+  "settings.image_cache.mem_optimize.desc": "Использовать миниатюры низкого разрешения для экономии памяти",
   "settings.image_cache.force_optimize": "Принудительная оптимизация",
   "settings.ffc.title": "FFC (Fast Friend Cache)",
   "settings.ffc.desc": "Быстрое кэширование друзей",

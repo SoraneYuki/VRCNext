@@ -631,7 +631,7 @@ function buildPeopleListHtml(friends) {
         const uid = jsq(f.id || '');
         const img = f.image || '';
         const av = img
-            ? `<span class="pl-av" style="background-image:url('${cssUrl(img)}')"></span>`
+            ? `<span class="pl-av" style="background-image:url('${cssUrl(imgThumb(img, 64))}')"></span>`
             : `<span class="pl-av pl-av-letter">${esc((f.displayName || '?')[0].toUpperCase())}</span>`;
         const rank = getTrustRank(f.tags || []);
         const st = _peopleStatsMap[f.id];
@@ -789,7 +789,7 @@ function buildModListHtml(entries, actionType) {
         const friend = vrcFriendsData.find(f => f.id === entry.targetUserId);
         const img = entry.image || (friend && friend.image) || '';
         const av = img
-            ? `<span class="pl-av" style="background-image:url('${cssUrl(img)}')"></span>`
+            ? `<span class="pl-av" style="background-image:url('${cssUrl(imgThumb(img, 64))}')"></span>`
             : `<span class="pl-av pl-av-letter">${esc(displayName[0].toUpperCase())}</span>`;
         rows += tlTableRow('modList', ` onclick="openFriendDetail('${uid}')"`, {
             profile: `<td class="pl-profile">${av}</td>`,
