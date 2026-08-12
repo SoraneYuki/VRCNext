@@ -30,3 +30,5 @@
 * The Notification Modal now uses the new refresh button design.
 * Changed the colors ofr instance types.
 * Changed the status colors slightly to be more saturated.
+* Updated People tab to new edit mode. should have the same behavior as world tab now.
+* Updated Avatars tab to new edit mode. should have the same behavior as world tab now.
