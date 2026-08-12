@@ -372,8 +372,7 @@ public class AppSettings
                 System.Text.Encoding.UTF8.GetBytes(plain), null, DataProtectionScope.CurrentUser);
             return Convert.ToBase64String(enc);
 #else
-            // Linux: no DPAPI — store as Base64 (file is protected by OS file permissions)
-            return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(plain));
+            return VRCNext.Services.Helpers.SecretProtector.Protect(plain);
 #endif
         }
         catch { return ""; }
@@ -389,7 +388,7 @@ public class AppSettings
                 Convert.FromBase64String(cipher), null, DataProtectionScope.CurrentUser);
             return System.Text.Encoding.UTF8.GetString(dec);
 #else
-            return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(cipher));
+            return VRCNext.Services.Helpers.SecretProtector.Unprotect(cipher);
 #endif
         }
         catch { return ""; }
@@ -784,6 +783,7 @@ public class AppSettings
             var dir = Path.GetDirectoryName(FilePath)!;
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             File.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            VRCNext.Services.Helpers.SecretProtector.RestrictToOwner(FilePath);
             LastSaveError = null;
         }
         catch (Exception ex) { LastSaveError = ex.Message; }
