@@ -4,6 +4,7 @@
     --bg-card: #0D0D0E;
     --bg-hover: #1C1C1F;
     --bg-input: #101011;
+    --tab-card-bg: #0B0B0C;
     --bg-btn: #0D0D0E;
     --bg-btn-h: #1C1C1F;
     --ui-input-bg: var(--bg-card);
@@ -26,10 +27,10 @@
     --rsidebar-c: 60px;
     --rsidebar-w: 260px;
     --status-online: #2DD48C;
-    --status-join:   #42A5F5;
-    --status-ask:    #FFA726;
-    --status-busy:   #EF5350;
-    --status-offline:#747F8D;
+    --status-join:   #3783FF;
+    --status-ask:    #FF8D26;
+    --status-busy:   #FF2D2D;
+    --status-offline:#6D7694;
     --sep-color: var(--brd);
     --fs-off: 0px;
     --font-app: 'Google Sans', sans-serif;
@@ -158,7 +159,7 @@
 html.design-flat { --sep-color: transparent; }
 
 .tab-toolbar {
-    background: var(--bg-input);
+    background: var(--tab-card-bg, var(--bg-input));
     border: 1px solid var(--brd);
     border-radius: 12px;
     padding: 10px 12px;
@@ -171,7 +172,7 @@ html.design-flat { --sep-color: transparent; }
     margin-bottom: 0;
 }
 .tab-toolbar-body {
-    background: var(--bg-input);
+    background: var(--tab-card-bg, var(--bg-input));
     border: 1px solid var(--brd);
     border-top: none;
     border-radius: 0 0 12px 12px;

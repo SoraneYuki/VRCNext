@@ -894,6 +894,13 @@
                             </div>
                             <label class="toggle"><input type="checkbox" id="setImgCacheOptimizeEnabled" checked onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
+                        <div class="sf-toggle-row" style="margin-top:10px;">
+                            <div>
+                                <span data-i18n="settings.image_cache.mem_optimize.label">Optimize Memory Usage</span>
+                                <div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);margin-top:2px;" data-i18n="settings.image_cache.mem_optimize.desc">Use lower resolution thumb images to save up memory usage</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" id="setImgMemoryOptimizeEnabled" checked onchange="onImgMemoryOptimizeToggle()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                        </div>
                         <div id="imgCacheLimitRow" style="margin-top:12px;">
                             <div class="sf-row">
                                 <label style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);flex-shrink:0;margin-right:10px;" data-i18n="settings.image_cache.max_size">Max Cache Size</label>

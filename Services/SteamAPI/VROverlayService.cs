@@ -910,6 +910,8 @@ namespace VRCNext.Services
             {
                 foreach (var bmp in _notifImgCache.Values) bmp?.Dispose();
                 _notifImgCache.Clear();
+                foreach (var (bmp, _) in _notifImgGraveyard) { try { bmp.Dispose(); } catch { } }
+                _notifImgGraveyard.Clear();
             }
             lock (_locationImgCache)
             {
@@ -1068,6 +1070,7 @@ namespace VRCNext.Services
                 _notifications.Insert(0, entry);
                 while (_notifications.Count > MaxNotifications) _notifications.RemoveAt(_notifications.Count - 1);
             }
+            PruneNotifImageCache();
             if (!string.IsNullOrEmpty(imageUrl))
             {
                 var fid = friendId;
@@ -1101,8 +1104,49 @@ namespace VRCNext.Services
                 var fid = notifFriendId ?? "";
                 _ = Task.Run(() => EnsureNotifImageAsync(newImageUrl!, fid));
             }
+            PruneNotifImageCache();
             _dirty = true;
         }
+
+        private void PruneNotifImageCache()
+        {
+            var active = new HashSet<string>();
+            lock (_notifications)
+            {
+                foreach (var n in _notifications)
+                    if (!string.IsNullOrEmpty(n.ImageUrl)) active.Add(n.ImageUrl);
+            }
+            lock (_toastQueue)
+            {
+                foreach (var t in _toastQueue)
+                    if (!string.IsNullOrEmpty(t.ImageUrl)) active.Add(t.ImageUrl);
+            }
+            lock (_activeToasts)
+            {
+                foreach (var t in _activeToasts)
+                    if (!string.IsNullOrEmpty(t.Item.ImageUrl)) active.Add(t.Item.ImageUrl);
+            }
+            lock (_notifImgCache)
+            {
+                var now = DateTime.UtcNow;
+                for (int i = _notifImgGraveyard.Count - 1; i >= 0; i--)
+                {
+                    if ((now - _notifImgGraveyard[i].at).TotalSeconds < 5) continue;
+                    try { _notifImgGraveyard[i].bmp.Dispose(); } catch { }
+                    _notifImgGraveyard.RemoveAt(i);
+                }
+                if (_notifImgCache.Count == 0) return;
+                var stale = _notifImgCache.Keys.Where(k => !active.Contains(k)).ToList();
+                foreach (var k in stale)
+                {
+                    var bmp = _notifImgCache[k];
+                    if (bmp != null) _notifImgGraveyard.Add((bmp, now));
+                    _notifImgCache.Remove(k);
+                }
+            }
+        }
+
+        private readonly List<(Bitmap bmp, DateTime at)> _notifImgGraveyard = new();
 
         private async Task EnsureNotifImageAsync(string url, string friendId)
         {

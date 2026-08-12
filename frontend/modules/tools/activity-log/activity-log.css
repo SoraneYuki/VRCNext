@@ -59,6 +59,9 @@
 
 .li-f:hover { background: rgba(255,255,255,.02); }
 
+#logArea.log-tail .li-f { display: none; }
+#logArea.log-tail .li-f:nth-last-child(-n+100) { display: flex; }
+
 .li-f .li-ts {
     color: var(--tx3);
     flex-shrink: 0;

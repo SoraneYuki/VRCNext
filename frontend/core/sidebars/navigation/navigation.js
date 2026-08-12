@@ -225,7 +225,7 @@ function openNavFolderPopout(groupId, anchorEl) {
 
     const grid = document.createElement('div');
     grid.className = 'nav-folder-popout-grid';
-    if (visItems.length > 9) grid.classList.add('has-scroll');
+    if (visItems.length > 15) grid.classList.add('has-scroll');
     for (const key of visItems) {
         const def = NAV_ITEMS_DEF[key];
         if (!def) continue;

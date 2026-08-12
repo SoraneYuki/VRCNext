@@ -228,7 +228,7 @@ function renderChatPanel() {
         .sort((a, b) => b.time - a.time)
         .map(entry => {
             const avatarStyle = entry.image
-                ? `background-image:url('${cssUrl(entry.image)}');background-size:cover;background-position:center;`
+                ? `background-image:url('${cssUrl(imgThumb(entry.image, 96))}');background-size:cover;background-position:center;`
                 : '';
             const time = entry.time ? msgrFormatTime(entry.time) : '';
             return `<div class="chat-inbox-item" onclick="chatPanelOpen('${esc(entry.userId)}')">
@@ -272,7 +272,7 @@ function openMessenger(userId, displayName, image, status, statusDesc) {
     const statusColor = _msgrStatusColor(status);
     const statusText = msgrStatusText(status, statusDesc);
     const avatarStyle = image
-        ? `background-image:url('${cssUrl(image)}');background-size:cover;background-position:center;`
+        ? `background-image:url('${cssUrl(imgThumb(image, 96))}');background-size:cover;background-position:center;`
         : '';
 
     const el = document.createElement('div');
@@ -344,7 +344,7 @@ function _msgrStatusColor(status) {
     if (!status) return 'var(--tx3)';
     const s = (typeof STATUS_LIST !== 'undefined') && STATUS_LIST.find(x => x.key === status);
     if (s) return s.color;
-    const fallback = { active: '#2DD48C', 'join me': '#42A5F5', 'ask me': '#FFA726', busy: '#EF5350' };
+    const fallback = { active: '#2DD48C', 'join me': '#3783FF', 'ask me': '#FF8D26', busy: '#FF2D2D' };
     return fallback[status] || 'var(--tx3)';
 }
 
