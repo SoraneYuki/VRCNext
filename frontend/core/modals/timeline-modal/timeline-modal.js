@@ -333,7 +333,7 @@ function renderTlDetailMeetAgain(ev, el) {
         ev.worldId ? `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));"${worldRowClick}><span style="color:var(--tx3);">${esc(t('timeline.detail.world', 'World'))}</span><span style="color:var(--accent-lt);text-align:right;">${esc(ev.worldName || ev.worldId)}</span></div>` : '',
     ].filter(Boolean).join('');
     el.innerHTML = `${_tlBar(ev.userName || t('timeline.unknown', 'Unknown'))}<div class="fd-content" style="padding:20px 0;">
-        ${_tlAvRow(ev.userImage, ev.userName, t('timeline.detail.met_again', 'MET AGAIN'), '#AB47BC')}
+        ${_tlAvRow(ev.userImage, ev.userName, t('timeline.detail.met_again', 'MET AGAIN'), '#6554FF')}
         ${_tlInfoCard(esc(t('timeline.detail.info', 'Info')), infoRows)}
         ${ev.userId ? `<div style="margin-top:14px;display:flex;gap:8px;">
             <button class="vrcn-button-round vrcn-btn-join" onclick="navOpenModal('friend','${jsq(ev.userId)}','${jsq(ev.userName || '')}')">${esc(t('timeline.actions.view_profile', 'View Profile'))}</button>
@@ -475,7 +475,7 @@ function renderTlDetailProfile(ev, el) {
     if (ev.notifType === 'status') {
         const oldCls = statusCssClass(ev.notifTitle);
         const newCls = statusCssClass(ev.message);
-        infoRows.push(_tlMr(esc(t('timeline.detail.change', 'Change')), `<span style="display:flex;align-items:center;gap:6px;justify-content:flex-end;"><span class="ft-status-chip ${oldCls}">${esc(statusLabel(ev.notifTitle) || '?')}</span><span class="msi" style="font-size:12px;color:var(--tx3);">arrow_forward</span><span class="ft-status-chip ${newCls}">${esc(statusLabel(ev.message) || '?')}</span></span>`));
+        infoRows.push(_tlMr(esc(t('timeline.detail.change', 'Change')), `<span style="display:flex;align-items:center;gap:6px;justify-content:flex-end;"><span class="ft-status-chip ${oldCls}" title="${esc(statusLabel(ev.notifTitle) || '?')}">${esc(statusLabel(ev.notifTitle) || '?')}</span><span class="msi" style="font-size:12px;color:var(--tx3);">arrow_forward</span><span class="ft-status-chip ${newCls}" title="${esc(statusLabel(ev.message) || '?')}">${esc(statusLabel(ev.message) || '?')}</span></span>`));
     } else if (ev.notifType === 'launch') {
         infoRows.push(_tlMr(esc(t('timeline.detail.event', 'Event')), `<span style="color:${meta.color};font-weight:600;">${esc(meta.label)}</span>`));
     }
@@ -730,7 +730,7 @@ function renderFtDetailStatus(ev, el) {
     const infoRows = [
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
-        _tlMr(esc(t('timeline.detail.change', 'Change')), `<span style="display:flex;align-items:center;gap:6px;"><span class="ft-status-chip ${oldCls}">${esc(statusLabel(ev.oldValue) || '?')}</span><span class="msi" style="font-size:12px;color:var(--tx3);">arrow_forward</span><span class="ft-status-chip ${newCls}">${esc(statusLabel(ev.newValue) || '?')}</span></span>`),
+        _tlMr(esc(t('timeline.detail.change', 'Change')), `<span style="display:flex;align-items:center;gap:6px;"><span class="ft-status-chip ${oldCls}" title="${esc(statusLabel(ev.oldValue) || '?')}">${esc(statusLabel(ev.oldValue) || '?')}</span><span class="msi" style="font-size:12px;color:var(--tx3);">arrow_forward</span><span class="ft-status-chip ${newCls}" title="${esc(statusLabel(ev.newValue) || '?')}">${esc(statusLabel(ev.newValue) || '?')}</span></span>`),
     ].join('');
     el.innerHTML = `${ftDetailBar(ev)}<div class="fd-content" style="padding:20px 0;">
         ${ftDetailAvRow(ev)}
@@ -953,9 +953,9 @@ function _tlListData(ev) {
             if (ev.notifType === 'status') {
                 const oldCls = statusCssClass(ev.notifTitle);
                 const newCls = statusCssClass(ev.message);
-                detail = `<span class="ft-status-chip ${oldCls}">${esc(statusLabel(ev.notifTitle) || '?')}</span>`
+                detail = `<span class="ft-status-chip ${oldCls}" title="${esc(statusLabel(ev.notifTitle) || '?')}">${esc(statusLabel(ev.notifTitle) || '?')}</span>`
                        + `<span class="msi" style="font-size:12px;color:var(--tx3);vertical-align:middle;margin:0 4px;">arrow_forward</span>`
-                       + `<span class="ft-status-chip ${newCls}">${esc(statusLabel(ev.message) || '?')}</span>`;
+                       + `<span class="ft-status-chip ${newCls}" title="${esc(statusLabel(ev.message) || '?')}">${esc(statusLabel(ev.message) || '?')}</span>`;
             } else if (ev.notifType === 'statusdesc' || ev.notifType === 'bio') {
                 const v = (ev.message || '').slice(0, 80);
                 detail = v ? esc(v) + ((ev.message || '').length > 80 ? '...' : '') : tlClearedHtml();
@@ -1008,9 +1008,9 @@ function _ftListDetail(ev) {
         case 'friend_status': {
             const oldCls = statusCssClass(ev.oldValue);
             const newCls = statusCssClass(ev.newValue);
-            return `<span class="ft-status-chip ${oldCls}">${esc(statusLabel(ev.oldValue) || '?')}</span>`
+            return `<span class="ft-status-chip ${oldCls}" title="${esc(statusLabel(ev.oldValue) || '?')}">${esc(statusLabel(ev.oldValue) || '?')}</span>`
                  + `<span class="msi" style="font-size:12px;color:var(--tx3);vertical-align:middle;margin:0 4px;">arrow_forward</span>`
-                 + `<span class="ft-status-chip ${newCls}">${esc(statusLabel(ev.newValue) || '?')}</span>`;
+                 + `<span class="ft-status-chip ${newCls}" title="${esc(statusLabel(ev.newValue) || '?')}">${esc(statusLabel(ev.newValue) || '?')}</span>`;
         }
         case 'friend_statusdesc': {
             const v = (ev.newValue || '').slice(0, 80);

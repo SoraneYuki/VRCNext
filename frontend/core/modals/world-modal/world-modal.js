@@ -407,7 +407,7 @@ function renderWdInstanceHistory(worldId, events) {
 
     el.innerHTML = _wdInstanceHistory.map(ev => {
         const meta   = typeof tlTypeMeta === 'function' ? tlTypeMeta(ev.type) : { icon: 'event', label: ev.type };
-        const color  = { instance_join:'var(--accent)', photo:'var(--ok)', first_meet:'var(--cyan)', meet_again:'#AB47BC', notification:'var(--warn)', avatar_switch:'#FF7043', video_url:'#29B6F6' }[ev.type] || 'var(--tx3)';
+        const color  = { instance_join:'var(--accent)', photo:'var(--ok)', first_meet:'var(--cyan)', meet_again:'#6554FF', notification:'var(--warn)', avatar_switch:'#FF7043', video_url:'#29B6F6' }[ev.type] || 'var(--tx3)';
         const d      = new Date(ev.timestamp);
         const dt     = `${fmtShortDate(d)} | ${fmtTime(d)}`;
         const ei     = ev.id.replace(/'/g, "\\'");

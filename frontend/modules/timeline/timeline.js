@@ -113,7 +113,7 @@ const TL_TYPE_COLOR = {
     instance_join: 'var(--accent)',
     photo:         'var(--ok)',
     first_meet:    'var(--cyan)',
-    meet_again:    '#AB47BC',
+    meet_again:    '#6554FF',
     notification:  'var(--warn)',
     avatar_switch: '#FF7043',
     video_url:     '#29B6F6',
@@ -1214,7 +1214,7 @@ function tlProfileMeta(ev) {
         }
         case 'status':     return { icon: 'circle',              label: t('timeline.friend_types.friend_status', 'Status'),          color: 'var(--warn)' };
         case 'statusdesc': return { icon: 'chat_bubble_outline', label: t('timeline.friend_types.friend_statusdesc', 'Status Text'), color: 'var(--cyan)' };
-        case 'bio':        return { icon: 'edit_note',           label: t('timeline.friend_types.friend_bio', 'Bio Change'),         color: '#AB47BC' };
+        case 'bio':        return { icon: 'edit_note',           label: t('timeline.friend_types.friend_bio', 'Bio Change'),         color: '#6554FF' };
         default:           return { icon: 'account_circle',      label: t('timeline.types.profile', 'Profile'),                      color: '#5C6BC0' };
     }
 }
@@ -1228,7 +1228,7 @@ function renderTlProfileBody(ev) {
     if (ev.notifType === 'status') {
         const oldCls = statusCssClass(ev.notifTitle);
         const newCls = statusCssClass(ev.message);
-        sub = `<div style="display:flex;align-items:center;gap:6px;margin-top:3px;"><span class="ft-status-chip ${oldCls}">${esc(statusLabel(ev.notifTitle) || '?')}</span><span class="msi" style="font-size:12px;color:var(--tx3);">arrow_forward</span><span class="ft-status-chip ${newCls}">${esc(statusLabel(ev.message) || '?')}</span></div>`;
+        sub = `<div style="display:flex;align-items:center;gap:6px;margin-top:3px;"><span class="ft-status-chip ${oldCls}" title="${esc(statusLabel(ev.notifTitle) || '?')}">${esc(statusLabel(ev.notifTitle) || '?')}</span><span class="msi" style="font-size:12px;color:var(--tx3);">arrow_forward</span><span class="ft-status-chip ${newCls}" title="${esc(statusLabel(ev.message) || '?')}">${esc(statusLabel(ev.message) || '?')}</span></div>`;
     } else if (ev.notifType === 'statusdesc') {
         sub = ev.message
             ? `<div class="tl-sub-label">${esc(ev.message.slice(0, 60))}${ev.message.length > 60 ? '…' : ''}</div>`
@@ -1283,7 +1283,7 @@ const FT_TYPE_COLOR = {
     friend_statusdesc: 'var(--cyan)',
     friend_online:      'var(--ok)',
     friend_offline:     'var(--tx3)',
-    friend_bio:        '#AB47BC',
+    friend_bio:        '#6554FF',
     friend_avatar:     '#FF7043',
     friend_added:      'var(--ok)',
     friend_removed:    'var(--err)',
@@ -1671,9 +1671,9 @@ function renderFtStatusBody(ev) {
     const oldCls  = statusCssClass(ev.oldValue);
     const newCls  = statusCssClass(ev.newValue);
     const chips   = `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
-        <span class="ft-status-chip ${oldCls}">${esc(statusLabel(ev.oldValue) || '?')}</span>
+        <span class="ft-status-chip ${oldCls}" title="${esc(statusLabel(ev.oldValue) || '?')}">${esc(statusLabel(ev.oldValue) || '?')}</span>
         <span class="msi" style="font-size:12px;color:var(--tx3);">arrow_forward</span>
-        <span class="ft-status-chip ${newCls}">${esc(statusLabel(ev.newValue) || '?')}</span>
+        <span class="ft-status-chip ${newCls}" title="${esc(statusLabel(ev.newValue) || '?')}">${esc(statusLabel(ev.newValue) || '?')}</span>
     </div>`;
     return `<div class="tl-card-body">${av}<div class="tl-card-info">
         <div class="tl-main-label">${esc(ev.friendName || t('timeline.unknown', 'Unknown'))}</div>${chips}

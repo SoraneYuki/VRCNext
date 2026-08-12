@@ -11,6 +11,8 @@
 * Instance entries under **Personal > Instances** now show the server region and instance type as badges.
 * Location entries under **Friends > Location** now show the same badges.
 * Both detail modals now show a **Server** row with the region the instance ran on.
+* Changed the status badges to status dots for a cleaning Ui.
+* Changed color of "Meet Again" and "Bio Change" types.
 
 **Improvements**
 * Improved Light Mode on the Dashboard.

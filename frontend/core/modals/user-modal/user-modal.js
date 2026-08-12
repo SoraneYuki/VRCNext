@@ -1385,7 +1385,7 @@ function drawMiniTimeline(events, el) {
 
     el.innerHTML = events.map(ev => {
         const meta   = typeof tlTypeMeta === 'function' ? tlTypeMeta(ev.type) : { icon: 'event', label: ev.type };
-        const color  = { instance_join:'var(--accent)', photo:'var(--ok)', first_meet:'var(--cyan)', meet_again:'#AB47BC', notification:'var(--warn)', avatar_switch:'#FF7043', video_url:'#29B6F6' }[ev.type] || 'var(--tx3)';
+        const color  = { instance_join:'var(--accent)', photo:'var(--ok)', first_meet:'var(--cyan)', meet_again:'#6554FF', notification:'var(--warn)', avatar_switch:'#FF7043', video_url:'#29B6F6' }[ev.type] || 'var(--tx3)';
         const d      = new Date(ev.timestamp);
         const dt     = `${fmtShortDate(d)} | ${fmtTime(d)}`;
         const ei     = ev.id.replace(/'/g, "\\'");
@@ -1411,7 +1411,7 @@ function renderFdUserActivity(userId, events) {
 
     _fdUserActivityEvents = events;
 
-    const FT_COLOR = { friend_gps:'var(--accent)', friend_status:'var(--cyan)', friend_statusdesc:'var(--cyan)', friend_online:'var(--ok)', friend_offline:'var(--tx3)', friend_bio:'#AB47BC', friend_added:'var(--ok)', friend_removed:'var(--err)' };
+    const FT_COLOR = { friend_gps:'var(--accent)', friend_status:'var(--cyan)', friend_statusdesc:'var(--cyan)', friend_online:'var(--ok)', friend_offline:'var(--tx3)', friend_bio:'#6554FF', friend_added:'var(--ok)', friend_removed:'var(--err)' };
 
     el.innerHTML = events.map(ev => {
         const meta   = typeof ftTypeMeta === 'function' ? ftTypeMeta(ev.type) : { icon: 'circle', label: ev.type };
