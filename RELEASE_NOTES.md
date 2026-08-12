@@ -18,5 +18,8 @@
 * Fixed a rare memory leak in Voice Fight and Kikitan XD where microphone audio could pile up in RAM if speech recognition crashed in the background.
 * VRCNext now regularly compacts its memory to reduce memory growth during long sessions.
 
+**Changes**
+* Notification modal shows now new refresh button instead of old vrcn v1 button.
+
 **Fixed Bugs**
 * Fixed an issue where the calendar cells werent resizing base don window size.
