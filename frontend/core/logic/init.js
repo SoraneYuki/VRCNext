@@ -201,6 +201,3 @@ sendToCS({ action: 'getTimeline' });
     document.querySelector('.lib-wrap')?.addEventListener('scroll', applyLibFade, { passive: true });
     document.documentElement.addEventListener('tabchange', applyLibFade);
 }());
-
-/* === Modal image unload (frees decoded images of hidden modals) === */
-if (typeof _watchModalImages === 'function') _watchModalImages();

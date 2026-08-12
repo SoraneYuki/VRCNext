@@ -1550,6 +1550,7 @@ function _unloadTabImages(tabEl) {
     tabEl.querySelectorAll('img').forEach(img => {
         const s = img.src;
         if (!s || s === _LAZY_PH || img.dataset.lazySrc || img.classList.contains('lazy-keep')) return;
+        if (!s.startsWith('http://localhost:')) return;
         img.dataset.lazySrc = s;
         img.src = _LAZY_PH;
         count++;
@@ -1557,6 +1558,7 @@ function _unloadTabImages(tabEl) {
     tabEl.querySelectorAll('[style*="background-image"]').forEach(el => {
         const bg = el.style.backgroundImage;
         if (!bg || bg === 'none' || el.dataset.lazyBg || el.classList.contains('lazy-keep')) return;
+        if (bg.indexOf('http://localhost:') === -1) return;
         el.dataset.lazyBg = bg;
         el.style.backgroundImage = `url('${_LAZY_PH}')`;
         count++;
@@ -1579,26 +1581,6 @@ function _reloadTabImages(tabEl) {
     });
 }
 
-const _modalImgObserver = new MutationObserver(muts => {
-    for (const m of muts) {
-        const el = m.target;
-        if (!(el instanceof HTMLElement)) continue;
-        const visible = el.style.display !== 'none';
-        if (el.__imgVis === visible) continue;
-        el.__imgVis = visible;
-        if (visible) _reloadTabImages(el);
-        else _unloadTabImages(el);
-    }
-});
-
-function _watchModalImages() {
-    document.querySelectorAll('.modal-overlay').forEach(el => {
-        if (el.__imgWatched) return;
-        el.__imgWatched = true;
-        el.__imgVis = el.style.display !== 'none';
-        _modalImgObserver.observe(el, { attributes: true, attributeFilter: ['style'] });
-    });
-}
 
 function showTab(i) {
     clearTimeout(_lazyUnloadTimer);
