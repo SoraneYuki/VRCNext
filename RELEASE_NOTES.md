@@ -1,5 +1,14 @@
 **2026.41.8**
 
+**Action Flow**
+* #145 Instance info webhooks now carry the full instance instead of only the world. The embed title and a new **Join Instance** link both lead straight into the instance.
+* Messages now include the instance name, region, group name and player count. Player count is new for friend instance info, it was previously only sent for your own instance.
+* Applies to all three blocks: own instance info, own advanced instance info and friend instance info.
+
+**Deep Links**
+* Added `vrcn://instance/<location>` which opens the instance details inside VRCNext.
+* Added `vrcn://instance-join/<location>` which opens the launch dialog. It launches VRChat into the instance while the game is closed and offers a self invite once it is running.
+
 **Fixed Bugs**
 
 * Fixed the platform filter having no effect under Avatars > Recently Used.

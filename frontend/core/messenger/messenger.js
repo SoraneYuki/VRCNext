@@ -28,6 +28,7 @@ function msgrContentOpen(id, prefix) {
     if (prefix === 'grp'  && typeof openGroupDetail      === 'function') return openGroupDetail(id);
     if (prefix === 'usr'  && typeof openUserDetail       === 'function') return openUserDetail(id);
     if (prefix === 'evnt' && typeof openEventDetail      === 'function') return openEventDetail(id);
+    if (prefix === 'inst' && typeof sendToCS             === 'function') return sendToCS({ action: 'vrcGetInstanceDetail', location: id });
 }
 
 function msgrBuildContentCard(id, prefix, time) {

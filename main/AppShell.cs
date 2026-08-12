@@ -818,6 +818,11 @@ public partial class AppShell
     {
         var parsed = DeepLinkService.Parse(url);
         if (parsed == null) return;
+        if (parsed.Value.prefix == "instjoin")
+        {
+            SendToJS("vrcLaunchNeeded", new { location = parsed.Value.id, steamVr = RelayController.IsSteamVrRunning() });
+            return;
+        }
         SendToJS("openDeepLink", new { prefix = parsed.Value.prefix, id = parsed.Value.id });
     }
 

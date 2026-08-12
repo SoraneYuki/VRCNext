@@ -1597,7 +1597,7 @@ function afOwnInstanceInfo() {
     const worldId   = String(ci.location).split(':')[0];
     const raw       = String(ci.instanceType || '');
     const typeLabel = afInstanceTypeLabel(raw === 'hidden' ? 'friends+' : raw === 'group-members' ? 'group' : raw);
-    return { worldId, worldName: afWorldNameFor(worldId, ci.worldName), typeLabel, capacity: Number(ci.capacity) || 0 };
+    return { worldId, worldName: afWorldNameFor(worldId, ci.worldName), typeLabel, capacity: Number(ci.capacity) || 0, location: String(ci.location) };
 }
 
 function afFriendInstanceInfo(friend) {
@@ -1613,6 +1613,7 @@ function afFriendInstanceInfo(friend) {
         worldId,
         worldName: afWorldNameFor(worldId, friend._worldName),
         typeLabel: afInstanceTypeLabel(parsed.instanceType),
+        location: loc,
     };
 }
 
@@ -1733,7 +1734,7 @@ function afExecAction(flow, block) {
                 || meRaw.currentAvatarThumbnailImageUrl || meRaw.currentAvatarImageUrl || '';
             if (typeof sendToCS === 'function') sendToCS({
                 action: 'afInstanceWebhook', url, scope: 'own', advanced,
-                worldId: info.worldId, worldName: info.worldName,
+                worldId: info.worldId, worldName: info.worldName, location: info.location,
                 instanceTypeLabel: info.typeLabel, capacity: info.capacity,
                 authorName: me ? (me.displayName || me.username || '') : '',
                 authorUserId: me ? (me.id || '') : '',
@@ -1753,7 +1754,7 @@ function afExecAction(flow, block) {
             if (!info) { afLog('err', '[' + flow.name + '] ' + aft('log.no_friend_instance', 'friend instance info skipped: no friend in an instance (use inside a "when a friend joins an instance" trigger, or pick a friend)')); break; }
             if (typeof sendToCS === 'function') sendToCS({
                 action: 'afInstanceWebhook', url, scope: 'friend',
-                worldId: info.worldId, worldName: info.worldName,
+                worldId: info.worldId, worldName: info.worldName, location: info.location,
                 instanceTypeLabel: info.typeLabel,
                 authorName: info.friendName,
                 authorUserId: (friend && friend.id) || '',
