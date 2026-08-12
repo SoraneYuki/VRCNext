@@ -1,5 +1,9 @@
 ![Screenshot](https://i.imgur.com/plD8Mx3.png)
 
+IMPORTANT: IF YOU MODIFY VRCN / CREATE A FORK OF IT YOU ARE NOT ALLOWED TO USE MY USER AGENT!
+PLEASE IDENTIFY YOURSELF WITH YOUR OWN USER AGENT! EXAMPLE Modified-VRCNext/0000.00.00(your contact adress)
+That should look like this: Nano-VRCNext/2026.1.0(max@musterman.com)
+
 # VRCNext
 
 VRCNext is a VRChat Launcher and Management system that aims for simplicity and performance.
