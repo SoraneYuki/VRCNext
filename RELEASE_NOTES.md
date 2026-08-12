@@ -1,9 +1,8 @@
 **2026.41.10**
 
-**Sidebar Navigation**
-* Changed foilder size from 3x3 system to 5x3 system.
-
-**Modals**
+**IUmprovements**
+* Improved light mode on dashboard.
+* Changed sidebar folder size from 3x3 system to 5x3 system.
 * Changed the "X" close button of some modals to the new v2 design.
 
 **Calendar**

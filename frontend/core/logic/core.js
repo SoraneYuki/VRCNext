@@ -431,13 +431,26 @@ function _lightEls() {
     return out;
 }
 
+const _LIGHT_ONBG_PREFIX = '--dash-onbg-';
+
+function _lightVarName(el, key) {
+    return (el.id === 'tab0' && key !== 'bg-base') ? _LIGHT_ONBG_PREFIX + key : '--' + key;
+}
+
+function _lightClearVars(el) {
+    for (const k of _LIGHT_VARS) {
+        el.style.removeProperty('--' + k);
+        el.style.removeProperty(_LIGHT_ONBG_PREFIX + k);
+    }
+}
+
 function _applyLightBase() {
     const rs = document.documentElement.style;
     const drops = document.querySelectorAll('#taskbar .tb-dropdown');
     _lightSig = '';
     if (!_activeLightOn) {
-        for (const el of _lightEls()) for (const k of _LIGHT_VARS) el.style.removeProperty('--' + k);
-        for (const d of drops) for (const k of _LIGHT_VARS) d.style.removeProperty('--' + k);
+        for (const el of _lightEls()) _lightClearVars(el);
+        for (const d of drops) _lightClearVars(d);
         return;
     }
     for (const k of _LIGHT_VARS) {
@@ -457,7 +470,7 @@ function _applyLightInterp() {
     if (!onDash) {
         if (_lightSig === 'off') return;
         _lightSig = 'off';
-        for (const el of els) for (const k of _LIGHT_VARS) el.style.removeProperty('--' + k);
+        for (const el of els) _lightClearVars(el);
         return;
     }
     const lSide = document.getElementById('sidebarEl');
@@ -473,14 +486,14 @@ function _applyLightInterp() {
     const sig = tq + '|' + faded.map(e => e.id).join(',');
     if (sig === _lightSig) return;
     _lightSig = sig;
-    for (const el of els) for (const k of _LIGHT_VARS) el.style.removeProperty('--' + k);
+    for (const el of els) _lightClearVars(el);
     const t = tq / 40;
     for (const k of _LIGHT_VARS) {
         const prim = _activePrimaryColors[k];
         if (!prim) continue;
         const lite = _activeLightColors[k] || prim;
         const val = _lerpHex(prim, lite, t);
-        for (const el of faded) el.style.setProperty('--' + k, val);
+        for (const el of faded) el.style.setProperty(_lightVarName(el, k), val);
     }
     const logoEl = document.getElementById('logoIcon');
     if (logoEl && logoEl._repaintLogo) logoEl._repaintLogo();
