@@ -102,6 +102,30 @@ public class ActionFlowController : IDisposable
                 var tray = TrayServiceProvider?.Invoke();
                 tray?.ShowNotification(title, subtitle, "", accent);
 #endif
+                var notifTime = DateTimeHelper.FormatTime(DateTime.Now);
+                _core.VrOverlay?.AddNotification("notif_actionflow", title, subtitle, notifTime);
+                _core.VrOverlay?.EnqueueToast("notif_actionflow", title, subtitle, notifTime, "", false);
+                break;
+            }
+
+            case "afCloseVrchat":
+            {
+                _ = Task.Run(() =>
+                {
+                    var closed = false;
+                    try
+                    {
+                        foreach (var p in System.Diagnostics.Process.GetProcessesByName("VRChat"))
+                        {
+                            try { if (!p.HasExited) { p.CloseMainWindow(); if (!p.WaitForExit(5000)) p.Kill(); closed = true; } }
+                            catch (Exception ex) { CrashHandler.WriteEntry("afCloseVrchat.Process", ex); }
+                            finally { p.Dispose(); }
+                        }
+                    }
+                    catch (Exception ex) { CrashHandler.WriteEntry("afCloseVrchat", ex); }
+                    if (!closed)
+                        _core.SendToJS("log", new { msg = "[ActionFlow] close VRChat: no running instance found", color = "warn" });
+                });
                 break;
             }
 

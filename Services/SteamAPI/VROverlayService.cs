@@ -475,6 +475,7 @@ namespace VRCNext.Services
             "notif_invite"       => _toastInvite,
             "notif_groupinvite"  => _toastGroupInv,
             "friend_joined"      => _toastJoined,
+            "notif_actionflow"   => true,
             _                    => false,
         };
 
@@ -498,21 +499,24 @@ namespace VRCNext.Services
             if (evType == "friend_gps" && (evText == "→ a world" || string.IsNullOrWhiteSpace(evText))) return;
 
             // Per-friend cooldown: max one toast per friend within the cooldown window
-            lock (_toastFriendCooldown)
+            if (evType != "notif_actionflow")
             {
-                var now = DateTime.UtcNow;
-                if (_toastFriendCooldown.TryGetValue(friendName, out var last) &&
-                    (now - last).TotalMilliseconds < TOAST_FRIEND_COOLDOWN_MS)
-                    return;
-                _toastFriendCooldown[friendName] = now;
-
-                // Cleanup old entries
-                if (_toastFriendCooldown.Count > 50)
+                lock (_toastFriendCooldown)
                 {
-                    var expired = new List<string>();
-                    foreach (var kv in _toastFriendCooldown)
-                        if ((now - kv.Value).TotalMilliseconds > TOAST_FRIEND_COOLDOWN_MS) expired.Add(kv.Key);
-                    foreach (var k in expired) _toastFriendCooldown.Remove(k);
+                    var now = DateTime.UtcNow;
+                    if (_toastFriendCooldown.TryGetValue(friendName, out var last) &&
+                        (now - last).TotalMilliseconds < TOAST_FRIEND_COOLDOWN_MS)
+                        return;
+                    _toastFriendCooldown[friendName] = now;
+
+                    // Cleanup old entries
+                    if (_toastFriendCooldown.Count > 50)
+                    {
+                        var expired = new List<string>();
+                        foreach (var kv in _toastFriendCooldown)
+                            if ((now - kv.Value).TotalMilliseconds > TOAST_FRIEND_COOLDOWN_MS) expired.Add(kv.Key);
+                        foreach (var k in expired) _toastFriendCooldown.Remove(k);
+                    }
                 }
             }
 
@@ -2816,11 +2820,14 @@ namespace VRCNext.Services
                 using var avBg = new SolidBrush(Color.FromArgb(A(255, fade), th.BgHover));
                 g.FillPath(avBg, avPath);
                 g.ResetClip();
-                string initials = toast.FriendName.Length > 0 ? toast.FriendName[0].ToString().ToUpper() : "?";
-                using var initFont  = new Font("Segoe UI", 14f, FontStyle.Bold, GraphicsUnit.Point);
-                using var initBrush = new SolidBrush(Color.FromArgb(A(255, fade), th.Tx2));
-                var initFmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                g.DrawString(initials, initFont, initBrush, new RectangleF(avX, avY, avSize, avSize), initFmt);
+                if (!DrawNotifTypeIcon(g, toast.EvType, avX, avY, avSize, Color.FromArgb(A(255, fade), th.Accent)))
+                {
+                    string initials = toast.FriendName.Length > 0 ? toast.FriendName[0].ToString().ToUpper() : "?";
+                    using var initFont  = new Font("Segoe UI", 14f, FontStyle.Bold, GraphicsUnit.Point);
+                    using var initBrush = new SolidBrush(Color.FromArgb(A(255, fade), th.Tx2));
+                    var initFmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                    g.DrawString(initials, initFont, initBrush, new RectangleF(avX, avY, avSize, avSize), initFmt);
+                }
             }
             g.SetClip(oldClip, CombineMode.Replace);
 
@@ -4245,7 +4252,21 @@ namespace VRCNext.Services
             g.FillEllipse(dotBr, cx - r, cy - r, r * 2f, r * 2f);
         }
 
-        private void DrawNotifPortrait(Graphics g, string imageUrl, string name, string friendId,
+        private const string ActionFlowIcon = "\uE65F";
+
+        private bool DrawNotifTypeIcon(Graphics g, string evType, int avX, int avY, int avSize, Color color)
+        {
+            if (evType != "notif_actionflow") return false;
+            using var iconFont = _matSymFamily != null
+                ? new Font(_matSymFamily, avSize * 0.5f, FontStyle.Regular, GraphicsUnit.Pixel)
+                : new Font("Segoe MDL2 Assets", avSize * 0.5f, FontStyle.Regular, GraphicsUnit.Pixel);
+            using var iconBrush = new SolidBrush(color);
+            var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            g.DrawString(ActionFlowIcon, iconFont, iconBrush, new RectangleF(avX, avY, avSize, avSize), fmt);
+            return true;
+        }
+
+        private void DrawNotifPortrait(Graphics g, string imageUrl, string name, string friendId, string evType,
                                        bool showDot, int avX, int avY, int avSize, int avR, Color ringColor)
         {
             Bitmap? avatar = null;
@@ -4266,11 +4287,14 @@ namespace VRCNext.Services
                     using var avBg = new SolidBrush(_theme.BgHover);
                     g.FillPath(avBg, avPath);
                     g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
-                    string initials = name.Length > 0 ? name[0].ToString().ToUpper() : "?";
-                    using var initFont  = new Font("Segoe UI", avSize * 0.42f, FontStyle.Bold, GraphicsUnit.Pixel);
-                    using var initBrush = new SolidBrush(_theme.Tx2);
-                    var initFmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                    g.DrawString(initials, initFont, initBrush, new RectangleF(avX, avY, avSize, avSize), initFmt);
+                    if (!DrawNotifTypeIcon(g, evType, avX, avY, avSize, _theme.Accent))
+                    {
+                        string initials = name.Length > 0 ? name[0].ToString().ToUpper() : "?";
+                        using var initFont  = new Font("Segoe UI", avSize * 0.42f, FontStyle.Bold, GraphicsUnit.Pixel);
+                        using var initBrush = new SolidBrush(_theme.Tx2);
+                        var initFmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                        g.DrawString(initials, initFont, initBrush, new RectangleF(avX, avY, avSize, avSize), initFmt);
+                    }
                 }
             }
 
@@ -4332,7 +4356,7 @@ namespace VRCNext.Services
             const int avSize = 40, avR = 8;
             int avX = x + 10;
             int avY = y + (h - avSize) / 2;
-            DrawNotifPortrait(g, entry.ImageUrl, entry.FriendName, entry.FriendId,
+            DrawNotifPortrait(g, entry.ImageUrl, entry.FriendName, entry.FriendId, entry.EvType,
                               EventHasStatusDot(entry.EvType), avX, avY, avSize, avR, cardColor);
 
             int textX     = avX + avSize + 11;

@@ -20,6 +20,7 @@ public class InstanceController
     private string _cachedInstOwnerId    = "";
     private string _cachedInstOwnerName  = "";
     private string _cachedInstOwnerGroup = "";
+    private string _cachedInstDisplayName = "";
 
     private readonly Dictionary<string, (string displayName, string image)> _cumulativeInstancePlayers = new();
     private readonly Dictionary<string, List<string>> _playerJoinTimes = new();
@@ -922,6 +923,7 @@ public class InstanceController
                 _cachedInstOwnerId    = "";
                 _cachedInstOwnerName  = "";
                 _cachedInstOwnerGroup = "";
+                _cachedInstDisplayName = "";
                 Invoke(() =>
                 {
                     _core.PushDiscordPresence?.Invoke();
@@ -934,7 +936,7 @@ public class InstanceController
 
             // Only fetch world info from API once per instance (when location changes or cache is empty).
             // Player count comes from LogWatcher — no need to poll the instance endpoint repeatedly.
-            string worldName, worldThumb, ownerId, ownerName, ownerGroup;
+            string worldName, worldThumb, ownerId, ownerName, ownerGroup, displayName;
             int worldCapacity;
 
             bool locationChanged = _cachedInstLocation != loc || string.IsNullOrEmpty(_cachedInstWorldName);
@@ -944,6 +946,7 @@ public class InstanceController
                 worldName     = inst?["world"]?["name"]?.ToString() ?? "";
                 worldThumb    = inst?["world"]?["imageUrl"]?.ToString() ?? inst?["world"]?["thumbnailImageUrl"]?.ToString() ?? "";
                 worldCapacity = inst?["world"]?["capacity"]?.Value<int>() ?? inst?["capacity"]?.Value<int>() ?? 0;
+                displayName   = inst?["displayName"]?.ToString() ?? "";
 
                 // Resolve instance owner / group
                 ownerId = inst?["ownerId"]?.ToString() ?? "";
@@ -989,6 +992,7 @@ public class InstanceController
                 ownerId       = _cachedInstOwnerId;
                 ownerName     = _cachedInstOwnerName;
                 ownerGroup    = _cachedInstOwnerGroup;
+                displayName   = _cachedInstDisplayName;
             }
 
             // Step 4: Build player list. Prefer LogWatcher (reads VRChat logs),
@@ -1083,6 +1087,7 @@ public class InstanceController
             _cachedInstOwnerId    = ownerId;
             _cachedInstOwnerName  = ownerName;
             _cachedInstOwnerGroup = ownerGroup;
+            _cachedInstDisplayName = displayName;
 
             Invoke(() =>
             {
@@ -1093,7 +1098,7 @@ public class InstanceController
                     worldName, worldThumb,
                     instanceType = parsed.instanceType,
                     nUsers, capacity = worldCapacity, users, playerSource,
-                    ownerId, ownerName, ownerGroup,
+                    ownerId, ownerName, ownerGroup, displayName,
                     ageGate = loc.Contains("~ageGate"),
                 });
             });
@@ -1149,6 +1154,7 @@ public class InstanceController
             ownerId      = _cachedInstOwnerId,
             ownerName    = _cachedInstOwnerName,
             ownerGroup   = _cachedInstOwnerGroup,
+            displayName  = _cachedInstDisplayName,
             ageGate      = _cachedInstLocation.Contains("~ageGate"),
         });
     }

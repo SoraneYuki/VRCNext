@@ -1,26 +1,55 @@
 **2026.41.8**
 
+**VR Overlay**
+
+* Action Flow notifications now appear on the wrist overlay.
+* Action Flow notifications now also appear as floating notification crumbs.
+
 **Action Flow**
-* #145 Instance info webhooks now carry the full instance instead of only the world. The embed title and a new **Join Instance** link both lead straight into the instance.
-* Messages now include the instance name, region, group name and player count. Player count is new for friend instance info, it was previously only sent for your own instance.
-* Applies to all three blocks: own instance info, own advanced instance info and friend instance info.
+
+* Increased the maximum Action Blocks per flow from **10 to 20**.
+* The server request limit remains **20 requests per 10 minutes** to prevent VRChat API spam.
+* Instance Info webhooks now include the full instance and a direct **Join Instance** link.
+* Instance messages now show the instance name, region, group, and player count.
+* Notifications now use the **Flow Name** as their title instead of the generic "Action Flow".
+
+**New Blocks**
+
+* Added a new **Get Info** category with blocks for:
+
+  * Current world
+  * Current avatar
+  * Instance name and ID
+  * Player count and player list
+  * Friends currently in-game
+  * Current time
+  * Player that triggered the flow
+* Get Info blocks use already available VRCNext data and make **no additional VRChat API requests**.
+* Added **Switch to Avatar by ID**.
+* Added **Set Current World as Home World**.
+* Notification blocks can now include values from Get Info blocks, for example `Joined: <player name>`.
+* Added **Close VRChat**, allowing flows to automatically close the game without using the VRChat API.
 
 **Deep Links**
-* Added `vrcn://instance/<location>` which opens the instance details inside VRCNext.
-* Added `vrcn://instance-join/<location>` which opens the launch dialog. It launches VRChat into the instance while the game is closed and offers a self invite once it is running.
+
+* Added `vrcn://instance/<location>` to open instance details in VRCNext.
+* Added `vrcn://instance-join/<location>` to open the instance launch dialog.
+* VRCNext can launch VRChat directly into the instance when the game is closed or offer a self invite when it is already running.
 
 **Fixed Bugs**
 
-* Fixed the platform filter having no effect under Avatars > Recently Used.
-* Fixed platform icons missing on cards under Avatars > Recently Used. Both were caused by cached avatars not carrying their platform data.
-* Fixed **Create & Join** only sending a self invite while VRChat was closed. It now launches VRChat straight into the new instance.
-* Fixed #150 Action Flow reporting an empty instance when a flow ran shortly after a world switch. It now waits until the player list has settled.
-* Fixed avatar search falsely reporting every avatar as deleted while signed out of VRChat. No availability checks run without an active session.
+* Fixed the platform filter not working under **Avatars > Recently Used**.
+* Fixed missing platform icons on recently used avatar cards.
+* Fixed **Create & Join** only sending a self invite when VRChat was closed. It now launches directly into the new instance.
+* Fixed #150 Action Flow sometimes reporting an empty instance shortly after changing worlds.
+* Fixed Avatar Search incorrectly showing every avatar as deleted while signed out.
 
 **Security**
+
 *Linux Only*
-* Fixed #146 where VRChat credentials on Linux were not properly encrypted and could be easily decoded from `settings.json`.
-* Linux now securely encrypts your VRChat password, auth cookie, and 2FA cookie using AES-256-GCM.
-* Encryption keys are stored separately and protected so copied settings cannot simply be used on another machine.
-* Existing logins continue to work and old credentials are automatically upgraded to the new encryption.
-* Windows continues to use DPAPI for secure credential storage.
+
+* Fixed #146 where VRChat credentials on Linux were not properly encrypted.
+* VRChat passwords, auth cookies, and 2FA cookies are now encrypted using **AES-256-GCM**.
+* Encryption keys are stored separately and protected from simply being copied to another machine.
+* Existing logins continue to work and old credentials are automatically upgraded.
+* Windows continues to use **DPAPI** for credential storage.
