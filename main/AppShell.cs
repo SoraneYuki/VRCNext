@@ -19,6 +19,7 @@ public partial class AppShell
     private System.Net.HttpListener? _httpListener;
     private System.Threading.Timer? _uptimeTimer2;
     private System.Threading.Timer? _worldStatsTimer;
+    private System.Threading.Timer? _memDiagTimer;
     private int _worldStatsOffsetMin; // random 0-10 min offset per session
     private bool _minimized;
     private System.Threading.Timer? _vrcCacheTimer;
@@ -381,6 +382,25 @@ public partial class AppShell
 
         StartAmplitudePolling();
 
+        _memDiagTimer = new System.Threading.Timer(_ =>
+        {
+            try
+            {
+                System.Runtime.GCSettings.LargeObjectHeapCompactionMode =
+                    System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+                var w = _activityLogWriter;
+                if (w == null) return;
+                var jsDepth   = _jsQueue.Reader.CanCount ? _jsQueue.Reader.Count : -1;
+                var profiles  = _core.PlayerProfileCache.Count;
+                var worlds    = _core.World.CachedWorldCount;
+                var friendsKb = Interlocked.Read(ref _lastFriendsPayloadBytes) / 1024;
+                var heapMb    = GC.GetTotalMemory(false) / (1024 * 1024);
+                var wsMb      = Environment.WorkingSet / (1024 * 1024);
+                w.WriteLine($"{DateTime.Now:HH:mm:ss}  [MEMDIAG] jsQueue={jsDepth} profiles={profiles} worldCache={worlds} lastFriendsPayload={friendsKb}KB gcHeap={heapMb}MB workingSet={wsMb}MB");
+            }
+            catch { }
+        }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+
         // Hourly world stats collection for World Insights
         // Fires at each UTC hour + random 0-10 min offset (to spread API load across users)
         _worldStatsOffsetMin = new Random().Next(0, 11);
@@ -674,6 +694,7 @@ public partial class AppShell
         _fileWatcher.Dispose();
         _uptimeTimer2?.Dispose();
         _worldStatsTimer?.Dispose();
+        _memDiagTimer?.Dispose();
         _sfCtrl?.Dispose();
         _fsCtrl?.Dispose();
         _vfCtrl?.Dispose();
@@ -855,11 +876,28 @@ public partial class AppShell
 
     // SendToJS
 
+    private const string FriendsCoalesceMarker = "\0vrcFriends";
+    private readonly object _friendsCoalesceLock = new();
+    private string? _pendingFriendsJson;
+    private int _friendsMarkerQueued;
+    private long _lastFriendsPayloadBytes;
+
     private async Task RunJsDispatcherAsync()
     {
         await foreach (var msg in _jsQueue.Reader.ReadAllAsync())
         {
-            try { _window.Invoke(() => _window.SendWebMessage(msg)); } catch (Exception ex) { CrashHandler.WriteEntry("RunJsDispatcherAsync", ex); }
+            var toSend = msg;
+            if (ReferenceEquals(msg, FriendsCoalesceMarker) || msg == FriendsCoalesceMarker)
+            {
+                Interlocked.Exchange(ref _friendsMarkerQueued, 0);
+                lock (_friendsCoalesceLock)
+                {
+                    if (_pendingFriendsJson == null) continue;
+                    toSend = _pendingFriendsJson;
+                    _pendingFriendsJson = null;
+                }
+            }
+            try { _window.Invoke(() => _window.SendWebMessage(toSend)); } catch (Exception ex) { CrashHandler.WriteEntry("RunJsDispatcherAsync", ex); }
         }
     }
 
@@ -886,7 +924,15 @@ public partial class AppShell
             catch { }
         }
         var msg = JsonConvert.SerializeObject(new { type, payload });
-        _jsQueue.Writer.TryWrite(msg);
+        if (type == "vrcFriends")
+        {
+            Interlocked.Exchange(ref _lastFriendsPayloadBytes, msg.Length * 2L);
+            lock (_friendsCoalesceLock) _pendingFriendsJson = msg;
+            if (Interlocked.CompareExchange(ref _friendsMarkerQueued, 1, 0) == 0)
+                _jsQueue.Writer.TryWrite(FriendsCoalesceMarker);
+        }
+        else
+            _jsQueue.Writer.TryWrite(msg);
 
 #if WINDOWS
         // Forward friend timeline events to the VR wrist overlay

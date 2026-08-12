@@ -1294,6 +1294,8 @@ public class FriendsController
 
             await WarmDecorationsAsync(online.Concat(offline));
 
+            var refreshFactsMap = PrefetchFacts(online.Concat(offline).Select(f => f["id"]?.ToString() ?? ""));
+
             var seenIds = new HashSet<string>();
             var onlineList = online.Select(f =>
             {
@@ -1303,7 +1305,7 @@ public class FriendsController
                 var platform = f["platform"]?.ToString() ?? f["last_platform"]?.ToString() ?? "";
                 bool isWebPlatform = platform.Equals("web", StringComparison.OrdinalIgnoreCase);
                 bool isInGame = !string.IsNullOrEmpty(location) && location != "offline" && location != "" && !isWebPlatform;
-                var facts = CachedFacts(id);
+                var facts = FactsFrom(refreshFactsMap, id);
                 return new
                 {
                     id, displayName = f["displayName"]?.ToString() ?? "",
@@ -1334,7 +1336,7 @@ public class FriendsController
                 .Where(f => !seenIds.Contains(f["id"]?.ToString() ?? ""))
                 .Select(f =>
                 {
-                var offFacts = CachedFacts(f["id"]?.ToString() ?? "");
+                var offFacts = FactsFrom(refreshFactsMap, f["id"]?.ToString() ?? "");
                 return new
                 {
                     id = f["id"]?.ToString() ?? "",
@@ -1656,6 +1658,8 @@ public class FriendsController
 
         _core.SendToJS("log", new { msg = $"[WS] DoPushFriendsFromStore: {snapshot.Count} friends @ {DateTime.UtcNow:HH:mm:ss.fff}", color = "info" });
 
+        var factsMap = PrefetchFacts(snapshot.Select(f => f["id"]?.ToString() ?? ""));
+
         var list = snapshot.Select(f =>
         {
             var location = f["location"]?.ToString() ?? "";
@@ -1664,7 +1668,7 @@ public class FriendsController
             bool isInGame = !string.IsNullOrEmpty(location) && location != "offline" && location != "" && !isWebPlatform;
             var status = f["status"]?.ToString() ?? "offline";
             var presence = (location == "offline" && status == "offline") ? "offline" : isInGame ? "game" : "web";
-            var facts = CachedFacts(f["id"]?.ToString() ?? "");
+            var facts = FactsFrom(factsMap, f["id"]?.ToString() ?? "");
             return new
             {
                 id = f["id"]?.ToString() ?? "",
@@ -2487,6 +2491,27 @@ public class FriendsController
             return (c.ProfileDateJoined, c.ProfilePronouns, MutualFriendCount(c.MutualsJson), JsonArrayCount(c.MutualGroupsJson), lastSeen);
         }
         catch { return ("", "", 0, 0, lastSeen); }
+    }
+
+    private Dictionary<string, (string dateJoined, string pronouns, int mutualFriends, int mutualGroups)>? PrefetchFacts(IEnumerable<string> userIds)
+    {
+        try
+        {
+            var ids = userIds.Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+            return _core.TimeEngine.GetUserFactsBatch(ids);
+        }
+        catch { return null; }
+    }
+
+    private (string dateJoined, string pronouns, int mutualFriends, int mutualGroups, string lastSeen) FactsFrom(
+        Dictionary<string, (string dateJoined, string pronouns, int mutualFriends, int mutualGroups)>? map, string userId)
+    {
+        if (string.IsNullOrEmpty(userId)) return ("", "", 0, 0, "");
+        if (map == null) return CachedFacts(userId);
+        var lastSeen = LastSeenTogether(userId);
+        return map.TryGetValue(userId, out var f)
+            ? (f.dateJoined, f.pronouns, f.mutualFriends, f.mutualGroups, lastSeen)
+            : ("", "", 0, 0, lastSeen);
     }
 
     private readonly object _lastSeenLock = new();
