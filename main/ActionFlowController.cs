@@ -141,6 +141,7 @@ public class ActionFlowController : IDisposable
 
                         if (scope == "own")
                         {
+                            await WaitForInstancePopulationAsync(worldId);
                             var players = _core.LogWatcher.GetCurrentPlayers().OrderBy(p => p.JoinedAt).ToList();
                             int count = players.Count;
                             lines.Add($"**Players:** {(capacity > 0 ? $"{count}/{capacity}" : count.ToString())}");
@@ -243,5 +244,42 @@ public class ActionFlowController : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
+    }
+
+    // The player list is built from log lines that arrive well after the world
+    // switch, so a flow firing shortly afterwards would report an empty instance.
+    // Waits until the count has stopped growing, bounded so a genuinely empty
+    // instance still reports.
+    private async Task WaitForInstancePopulationAsync(string worldId)
+    {
+        const int PollMs      = 500;
+        const int StableTicks = 3;
+        const int MaxWaitMs   = 25_000;
+
+        var waited = 0;
+        var last   = -1;
+        var stable = 0;
+
+        while (waited < MaxWaitMs)
+        {
+            if (!string.IsNullOrEmpty(worldId)
+                && !string.IsNullOrEmpty(_core.LogWatcher.CurrentWorldId)
+                && _core.LogWatcher.CurrentWorldId != worldId)
+                return;
+
+            var count = _core.LogWatcher.PlayerCount;
+            if (count > 0 && count == last)
+            {
+                if (++stable >= StableTicks) return;
+            }
+            else
+            {
+                stable = 0;
+            }
+            last = count;
+
+            await Task.Delay(PollMs);
+            waited += PollMs;
+        }
     }
 }

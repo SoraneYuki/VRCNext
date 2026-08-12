@@ -512,7 +512,13 @@ public class InstanceController
                         var location = _core.Instances.BuildInstanceLocation(ciWorldId, ciType, ciRegion);
                         bool ok;
                         string message;
-                        if (ciAndJoin)
+                        var ciVrcRunning = _core.IsVrcRunning?.Invoke() ?? false;
+                        if (ciAndJoin && !ciVrcRunning)
+                        {
+                            ok = true;
+                            message = "Instance created! Launching VRChat...";
+                        }
+                        else if (ciAndJoin)
                         {
                             ok = await _core.Instances.InviteSelfAsync(location);
                             message = ok ? "Instance created! Self-invite sent." : "Failed to create instance.";
@@ -537,6 +543,12 @@ public class InstanceController
                                 message,
                                 location
                             });
+                            if (ok && ciAndJoin && !ciVrcRunning)
+                                _core.SendToJS("vrcLaunchNeeded", new
+                                {
+                                    location,
+                                    steamVr = _core.IsSteamVrRunning?.Invoke() ?? false
+                                });
                         });
                     });
                 }
