@@ -176,7 +176,7 @@ function renderMyProfileContent() {
         : (u.image
             ? `<img class="myp-avatar" src="${esc(u.image)}" onerror="this.outerHTML='<div class=\\'myp-avatar myp-avatar-fb\\'>${esc((u.displayName||'?')[0])}</div>'">`
             : `<div class="myp-avatar myp-avatar-fb">${esc((u.displayName||'?')[0])}</div>`);
-    const _mypFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(u.iconFrameUrl) : '';
+    const _mypFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(u.iconFrameUrl, true) : '';
     const _editBtnPos = useCompact ? 'top:-4px;left:-4px;' : 'bottom:-4px;right:-4px;';
     const imgTag = `<div style="position:relative;display:inline-block;flex-shrink:0;line-height:0;">${avatarImg}${_mypFrame}<button class="myp-edit-btn" style="position:absolute;${_editBtnPos}z-index:5;padding:2px;min-width:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;" onclick="openImagePicker('profile-icon')" title="${esc(changeIconTitle)}"><span class="msi" style="font-size:11px;">edit</span></button></div>`;
 
@@ -1049,7 +1049,11 @@ function openStatusModal() {
 }
 
 function updateStatusDescCount(len) {
-    document.getElementById('statusDescCount').textContent = (len || 0) + '/32';
+    const el = document.getElementById('statusDescCount');
+    if (!el) return;
+    const remaining = 32 - (len || 0);
+    el.textContent = remaining;
+    el.className = 'status-desc-count' + (remaining <= 5 ? ' warn' : remaining <= 10 ? ' low' : '');
 }
 
 function setStatusDescMode(textMode) {
@@ -1059,6 +1063,8 @@ function setStatusDescMode(textMode) {
     const wrap = sel.parentElement && sel.parentElement.classList.contains('vn-select') ? sel.parentElement : sel;
     wrap.style.display = textMode ? 'none' : '';
     inp.style.display = textMode ? '' : 'none';
+    const cnt = document.getElementById('statusDescCount');
+    if (cnt) cnt.style.display = textMode ? '' : 'none';
     btn.classList.toggle('active', textMode);
     if (textMode) setTimeout(() => inp.focus(), 50);
 }

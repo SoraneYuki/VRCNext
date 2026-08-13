@@ -1378,12 +1378,12 @@ public partial class AppShell
     {
         if (!File.Exists(file)) { ctx.Response.StatusCode = 404; return; }
         var ext = Path.GetExtension(file).ToLowerInvariant();
-        if (ext is not (".jpg" or ".jpeg" or ".png"))
+        if (ext is not (".jpg" or ".jpeg" or ".png" or ".webp" or ".gif"))
         {
             await ServeFileAsync(ctx, file);
             return;
         }
-        var keepAlpha = ext == ".png";
+        var keepAlpha = ext is ".png" or ".webp" or ".gif";
         var thumbPath = Path.Combine(
             Path.GetDirectoryName(file)!, "Thumbs",
             Path.GetFileNameWithoutExtension(file) + "_" + maxSize + (keepAlpha ? ".png" : ".jpg"));
@@ -1404,12 +1404,40 @@ public partial class AppShell
         await ServeFileAsync(ctx, thumbPath);
     }
 
+    private static bool TryGenerateImgThumbSkia(string srcFile, string tmpPath, int maxSize, bool keepAlpha)
+    {
+        var rawBytes = File.ReadAllBytes(srcFile);
+        using var codec = SkiaSharp.SKCodec.Create(new MemoryStream(rawBytes));
+        if (codec == null) return false;
+        var info = codec.Info;
+        var scale = Math.Min(1.0, Math.Min(maxSize / (double)info.Width, maxSize / (double)info.Height));
+        var w = Math.Max(1, (int)Math.Round(info.Width  * scale));
+        var h = Math.Max(1, (int)Math.Round(info.Height * scale));
+        using var src = SkiaSharp.SKBitmap.Decode(codec);
+        if (src == null) return false;
+        using var dst = new SkiaSharp.SKBitmap(w, h, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul);
+        src.ScalePixels(dst, SkiaSharp.SKFilterQuality.High);
+        using var img  = SkiaSharp.SKImage.FromBitmap(dst);
+        using var data = img.Encode(keepAlpha ? SkiaSharp.SKEncodedImageFormat.Png : SkiaSharp.SKEncodedImageFormat.Jpeg, 88);
+        if (data == null) return false;
+        using (var fsOut = File.Create(tmpPath))
+            data.SaveTo(fsOut);
+        return true;
+    }
+
     private static bool TryGenerateImgThumb(string srcFile, string thumbPath, int maxSize, bool keepAlpha)
     {
         var tmpPath = thumbPath + ".tmp";
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(thumbPath)!);
+            var srcExt = Path.GetExtension(srcFile).ToLowerInvariant();
+            if (srcExt is ".webp" or ".gif")
+            {
+                if (!TryGenerateImgThumbSkia(srcFile, tmpPath, maxSize, keepAlpha)) return false;
+                File.Move(tmpPath, thumbPath, overwrite: true);
+                return true;
+            }
 #if WINDOWS
             var rawBytes = File.ReadAllBytes(srcFile);
             using var ms  = new MemoryStream(rawBytes);
@@ -1438,22 +1466,7 @@ public partial class AppShell
                 bmp.Save(tmpPath, jpegCodec, encParams);
             }
 #else
-            var rawBytes = File.ReadAllBytes(srcFile);
-            using var codec = SkiaSharp.SKCodec.Create(new MemoryStream(rawBytes));
-            if (codec == null) return false;
-            var info = codec.Info;
-            var scale = Math.Min(1.0, Math.Min(maxSize / (double)info.Width, maxSize / (double)info.Height));
-            var w = Math.Max(1, (int)Math.Round(info.Width  * scale));
-            var h = Math.Max(1, (int)Math.Round(info.Height * scale));
-            using var src = SkiaSharp.SKBitmap.Decode(codec);
-            if (src == null) return false;
-            using var dst = new SkiaSharp.SKBitmap(w, h, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul);
-            src.ScalePixels(dst, SkiaSharp.SKFilterQuality.High);
-            using var img  = SkiaSharp.SKImage.FromBitmap(dst);
-            using var data = img.Encode(keepAlpha ? SkiaSharp.SKEncodedImageFormat.Png : SkiaSharp.SKEncodedImageFormat.Jpeg, 88);
-            if (data == null) return false;
-            using (var fsOut = File.Create(tmpPath))
-                data.SaveTo(fsOut);
+            if (!TryGenerateImgThumbSkia(srcFile, tmpPath, maxSize, keepAlpha)) return false;
 #endif
             File.Move(tmpPath, thumbPath, overwrite: true);
             return true;

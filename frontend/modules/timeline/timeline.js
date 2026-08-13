@@ -62,7 +62,7 @@ let tlTodayMode         = false;
 let _todayMidnightTimer = null;
 
 // View mode: 'timeline' (card view) or 'list' (table view) — persisted in localStorage
-let tlViewMode = localStorage.getItem('tlViewMode') || 'timeline';
+let tlViewMode = localStorage.getItem('tlViewMode') || 'list';
 
 // Edit/selection mode for bulk delete
 let tlEditMode = false;
@@ -1093,7 +1093,7 @@ function renderTlJoinBody(ev) {
     const bottom = cnt > 0
         ? `<div class="tl-player-row">${avs}${more}<span class="tl-player-label">${esc(tlPlayersLabel(cnt))}</span></div>`
         : `<div class="tl-no-players">${esc(t('timeline.no_player_data', 'No player data yet'))}</div>`;
-    return `<div class="tl-card-body">${thumb}<div class="tl-card-info">${tlInstanceBadgeRow(ev.location)}<div class="tl-main-label">${esc(name)}</div>${bottom}</div></div>`;
+    return `<div class="tl-card-body">${thumb}<div class="tl-card-info">${tlInstanceBadgeRow(ev)}<div class="tl-main-label">${esc(name)}</div>${bottom}</div></div>`;
 }
 
 function tlInstanceBadges(loc) {
@@ -1103,13 +1103,26 @@ function tlInstanceBadges(loc) {
     return `${regionBadgeHtml(loc)}<span class="vrcn-badge ${cls}">${esc(label)}</span>`;
 }
 
-function tlInstanceBadgeRow(loc) {
-    const badges = tlInstanceBadges(loc);
+function tlInstanceBadgeRow(ev) {
+    const loc = (ev && typeof ev === 'object') ? (ev.location || '') : (ev || '');
+    const badges = tlTimeSpentBadge(typeof ev === 'object' ? ev : null) + tlInstanceBadges(loc);
     return badges ? `<div class="tl-badge-row">${badges}</div>` : '';
 }
 
-function tlInstanceListDetail(loc, name) {
-    const badges = tlInstanceBadges(loc);
+function tlTimeSpentBadge(ev) {
+    if (!ev || !ev.tracked) return '';
+    if (!ev.leftAt) {
+        return `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">schedule</span>${esc(t('timeline.detail.ongoing', 'Ongoing'))}</span>`;
+    }
+    if (!ev.timestamp) return '';
+    const secs = Math.floor((new Date(ev.leftAt) - new Date(ev.timestamp)) / 1000);
+    if (!(secs > 0)) return '';
+    return `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">schedule</span>${esc(formatDuration(secs))}</span>`;
+}
+
+function tlInstanceListDetail(ev, name) {
+    const loc = (ev && typeof ev === 'object') ? (ev.location || '') : (ev || '');
+    const badges = tlTimeSpentBadge(typeof ev === 'object' ? ev : null) + tlInstanceBadges(loc);
     return badges ? `<span class="tl-list-badges">${badges}</span>${esc(name)}` : esc(name);
 }
 
@@ -1660,7 +1673,7 @@ function renderFtGpsBody(ev) {
     const wname = ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World');
     const av    = ftFriendAv(ev, 'tl-player-av');
     return `<div class="tl-card-body">${thumb}<div class="tl-card-info">
-        ${tlInstanceBadgeRow(ev.location)}
+        ${tlInstanceBadgeRow(ev)}
         <div class="tl-main-label">${esc(wname)}</div>
         <div class="tl-player-row">${av}<span class="tl-player-label">${esc(ev.friendName || t('timeline.unknown', 'Unknown'))}</span></div>
     </div></div>`;

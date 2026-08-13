@@ -912,7 +912,7 @@ function _tlListPlayerAvatars(players, max) {
 function _tlListData(ev) {
     switch (ev.type) {
         case 'instance_join':
-            return { userHtml: esc(currentVrcUser?.displayName || t('timeline.unknown', 'Unknown')), detail: tlInstanceListDetail(ev.location, ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World')) };
+            return { userHtml: esc(currentVrcUser?.displayName || t('timeline.unknown', 'Unknown')), detail: tlInstanceListDetail(ev, ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World')) };
         case 'photo':
             return { userHtml: _tlListPlayerAvatars(ev.players, 3), detail: esc(ev.photoPath ? ev.photoPath.split(/[\\/]/).pop() : t('timeline.photo', 'Photo')) };
         case 'first_meet':
@@ -1004,7 +1004,7 @@ function _ftListDetail(ev) {
     switch (ev.type) {
         case 'friend_online':      return `<span style="color:var(--ok)">${esc(t('timeline.friend.came_online', 'Came Online'))}</span>`;
         case 'friend_offline':     return `<span style="color:var(--tx3)">${esc(t('timeline.friend.went_offline', 'Went Offline'))}</span>`;
-        case 'friend_gps':        return tlInstanceListDetail(ev.location, ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World'));
+        case 'friend_gps':        return tlInstanceListDetail(ev, ev.worldName || ev.worldId || t('timeline.unknown_world', 'Unknown World'));
         case 'friend_status': {
             const oldCls = statusCssClass(ev.oldValue);
             const newCls = statusCssClass(ev.newValue);

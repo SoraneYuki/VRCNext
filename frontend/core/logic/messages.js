@@ -264,8 +264,8 @@ window.external.receiveMessage(rawMsg => {
                 requestInstanceInfo();
                 refreshNotifications();
                 if (typeof libraryFiles !== 'undefined' && !libraryFiles.length && typeof sendToCS === 'function') sendToCS({ action: 'scanLibrary' });
-                { const vp = document.getElementById('badgeVrcPlus');
-                  if (vp) { const isVrcPlus = Array.isArray(payload.tags) && payload.tags.includes('system_supporter'); vp.style.display = isVrcPlus ? '' : 'none'; } }
+                { _hasVrcPlus = Array.isArray(payload.tags) && payload.tags.includes('system_supporter');
+                  applyTbBadgeVisibility(); }
                 if (!window._lastModerationFetch || Date.now() - window._lastModerationFetch >= 120 * 60 * 1000) {
                     window._lastModerationFetch = Date.now();
                     sendToCS({ action: 'vrcGetAllModerations' });
@@ -274,7 +274,7 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcCredits': {
                 const bc = document.getElementById('badgeVrcCredits');
                 const bl = document.getElementById('badgeVrcCreditsLabel');
-                if (bc && bl) { bl.textContent = payload.balance.toLocaleString(); bc.style.display = ''; }
+                if (bc && bl) { bl.textContent = payload.balance.toLocaleString(); _hasVrcCredits = true; applyTbBadgeVisibility(); }
                 break;
             }
             case 'vrcMyBadges':
@@ -343,7 +343,7 @@ window.external.receiveMessage(rawMsg => {
                 renderVrcProfile(null);
                 { const _fl = document.getElementById('vrcFriendsList'); _fl.innerHTML = ''; _fl.__lastHtml = null; }
                 document.getElementById('vrcLoginPrompt') && (document.getElementById('vrcLoginPrompt').style.display = '');
-                { const vp = document.getElementById('badgeVrcPlus'); if (vp) vp.style.display = 'none'; }
+                { _hasVrcPlus = false; _hasVrcCredits = false; applyTbBadgeVisibility(); }
                 if (typeof updateTbAppUserHeader === 'function') updateTbAppUserHeader();
                 break;
             case 'vrcPrefillLogin':

@@ -1,48 +1,33 @@
-**2026.41.10**
-
-**UI Recator**
-* Added Card design to major tabs.
-* Changed some colors and ui schemes.
-
-**Taskbar**
-* Added "Edit Taskbar" and "Edit Dashboard" to the "View" section.
+**2026.41.11**
 
 **Timeline**
-* Instance entries under **Personal > Instances** now show the server region and instance type as badges.
-* Location entries under **Friends > Location** now show the same badges.
-* Both detail modals now show a **Server** row with the region the instance ran on.
-* Changed the status badges to status dots for a cleaning Ui.
-* Changed color of "Meet Again" and "Bio Change" types.
+* The **Detail** column in list view now starts with a time spent badge, for example **3h 17m · USE · Friends+ · Japan Rainy Day**.
+* Instances that are still running show **Ongoing** instead. Entries without tracked time show no badge at all.
+* Applies to **Personal > Instances** and **Friends > Location**.
 
-**Improvements**
-* Improved Light Mode on the Dashboard.
-* Sidebar folders now use a larger 5x3 layout instead of 3x3.
-* Updated the **X** close button on several modals to the new VRCN v2 design.
-
-**Calendar**
-* Updated Calendar to the VRCN v2 design.
-* Calendar now shows up to 2 events per day, with **"X more events"** for additional events.
-* Added a new **Week View** for a better overview of upcoming events.
-* Calendar now uses the same date picker as Timeline.
-* Added **Help Sort**, which gives each group a fixed color to make events easier to tell apart.
-* Fixed Calendar cells not resizing correctly with the window.
+**UI Changes**
+* Updated the **VRChat Config** modal.
+* Updated the **VRChat Launch Options** modal.
+* Updated the **Edit Dashboard** modal.
+* Updated the **Edit Navbar** modal.
+* Updated the **Change Status** modal.
+* Updated sidebar colors, inputs, and refresh buttons.
+* Media Library cards now show file size, resolution, and rating in a single line separated by dots, for example **4.2 MB · HD · ♥ 3x**. The rating is only shown when one is set.
+* Removed the SD/HD/2K/4K/8K badges from Media Library cards.
 
 **Performance**
-* Fixed several memory leaks that could increase RAM usage during long sessions.
-* Improved memory cleanup for VR Overlay notifications, visited worlds, player profiles, Voice Fight, and Kikitan XD.
-* Improved performance for users with very large friend lists.
-* Friend updates now only refresh the parts of the UI that actually changed instead of rebuilding the entire Friends Sidebar and Dashboard.
-* Status, location, and avatar changes now only update that specific friend's card.
-* Reduced CPU and memory usage when updating large friend lists.
-* VRCNext now regularly cleans up unused memory during long sessions.
-* Added **Settings > Performance > Image Cache > Optimize Memory Usage**, enabled by default.
-* Smaller avatars and icons now use lightweight thumbnails, while larger cards use 256px images instead of 800px. This can greatly reduce RAM and GPU memory usage.
-* Full-quality images are still shown when opening or inspecting them.
-* Image memory settings apply immediately without restarting VRCNext.
+* Added **Settings > General > VRC+ Decorations > Optimize VRC+ Usage**. This is enabled by default. Animated VRC+ decorations, such as icon frames and nameplates, are shown as static images in friend lists and cards. Animations still play in profile modals and on your own profile in the sidebar. A single animated decoration can use over 200 MB of RAM while playing, so this greatly reduces memory and GPU usage for users with decorations enabled. Disable the setting to keep animations enabled everywhere.
+* Friend cards in the sidebar are now completely skipped by the renderer while they are outside the visible area.
 
 **Changes**
-* The Notification Modal now uses the new refresh button design.
-* Changed the colors ofr instance types.
-* Changed the status colors slightly to be more saturated.
-* Updated People tab to new edit mode. should have the same behavior as world tab now.
-* Updated Avatars tab to new edit mode. should have the same behavior as world tab now.
+* **List View** is now the default in Timeline. Timeline View is still available as the secondary option.
+* **Use Direct Modal Navigation** is now enabled by default on clean installs.
+* Moved the clock from the left sidebar to the taskbar.
+* Moved the **Other** card from Appearance to **Sidebar** and renamed it to **Taskbar**.
+* Small adjustments in "Activity Log" tab for better responsive design.
+
+**Removed**
+* Removed **Additional Options** from Appearance.
+* Removed the clock from the sidebar.
+* Removed the **AM/PM** toggle. The time format now follows your system settings.
+* Removed the **Use Trusted Rank Color instead of Badge** setting. Trusted users will now always use the Trusted rank color for their username. This reduces unnecessary settings and makes the UI easier to maintain.

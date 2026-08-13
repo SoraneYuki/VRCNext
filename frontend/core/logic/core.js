@@ -93,13 +93,15 @@ function applyDecorationsSetting() {
     document.documentElement.classList.toggle('profile-cards-transparent', glassCards);
 }
 function applyIconFramesSetting() { applyDecorationsSetting(); }
-function iconFrameHtml(frameUrl) {
+function iconFrameHtml(frameUrl, animated) {
     if (!frameUrl) return '';
-    return `<img class="user-frame-deco" src="${frameUrl}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+    const src = (animated || !vrcPlusOptimizeEnabled) ? frameUrl : _thumbUrl(frameUrl, 96);
+    return `<img class="user-frame-deco" src="${src}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
 }
-function nameplateDecoHtml(url) {
+function nameplateDecoHtml(url, animated) {
     if (!url) return '';
-    return `<img class="nameplate-deco" src="${url}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+    const src = (animated || !vrcPlusOptimizeEnabled) ? url : _thumbUrl(url, 256);
+    return `<img class="nameplate-deco" src="${src}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
 }
 function profileEffectHtml(url) {
     if (!url) return '';
@@ -108,7 +110,6 @@ function profileEffectHtml(url) {
 let currentPlayBtnTheme = '';
 let currentCursorTheme = '';
 let currentAppFont = 'google-sans';
-let currentDesignStyle = 'line';
 let currentCustomFont = '';
 let currentFontSizeOffset = 0;
 let _systemFonts = [];
@@ -1074,19 +1075,6 @@ function renderFontGrid() {
     grid.querySelectorAll('.font-option').forEach(el => _fontPreviewObserver.observe(el));
 }
 
-function applyDesignStyle(style) {
-    currentDesignStyle = style === 'flat' ? 'flat' : 'line';
-    document.documentElement.classList.toggle('design-flat', currentDesignStyle === 'flat');
-    document.querySelectorAll('#designStylePicker .profile-style-option').forEach(el => {
-        el.classList.toggle('active', el.getAttribute('data-style') === currentDesignStyle);
-    });
-}
-
-function setDesignStyle(style) {
-    applyDesignStyle(style);
-    autoSave();
-}
-
 function selectAppFont(key) {
     currentCustomFont = '';
     applyAppFont(key);
@@ -1504,33 +1492,49 @@ function playWaterAlarmSound() {
     }
 }
 
-let _clockEnabled = true;
-let _clockAmPm = false;
+let _clockEnabled = false;
+let _dateEnabled = false;
+let _showVrcPlus = true;
+let _showVrcCredits = true;
+let _hasVrcPlus = false;
+let _hasVrcCredits = false;
 
 function applyClockSettings() {
-    const enableEl = document.getElementById('setClockEnabled');
-    const ampmEl   = document.getElementById('setClockAmPm');
-    if (enableEl) _clockEnabled = enableEl.checked;
-    if (ampmEl)   _clockAmPm   = ampmEl.checked;
-    const area = document.querySelector('.clock-area');
-    if (area) area.style.display = _clockEnabled ? '' : 'none';
+    const enableEl  = document.getElementById('setClockEnabled');
+    const dateEl    = document.getElementById('setDateEnabled');
+    const vrcpEl    = document.getElementById('setShowVrcPlus');
+    const creditsEl = document.getElementById('setShowVrcCredits');
+    if (enableEl)  _clockEnabled   = enableEl.checked;
+    if (dateEl)    _dateEnabled    = dateEl.checked;
+    if (vrcpEl)    _showVrcPlus    = vrcpEl.checked;
+    if (creditsEl) _showVrcCredits = creditsEl.checked;
+    const anyClock = _clockEnabled || _dateEnabled;
+    const clockEl = document.getElementById('tbClock');
+    if (clockEl) clockEl.style.display = anyClock ? '' : 'none';
+    const sepEl = document.getElementById('tbClockSep');
+    if (sepEl) sepEl.style.display = anyClock ? '' : 'none';
+    const timeEl = document.getElementById('clock');
+    if (timeEl) timeEl.style.display = _clockEnabled ? '' : 'none';
+    const dEl = document.getElementById('clockDate');
+    if (dEl) dEl.style.display = _dateEnabled ? '' : 'none';
+    applyTbBadgeVisibility();
     updateClock();
 }
 
+function applyTbBadgeVisibility() {
+    const vp = document.getElementById('badgeVrcPlus');
+    if (vp) vp.style.display = (_showVrcPlus && _hasVrcPlus) ? '' : 'none';
+    const bc = document.getElementById('badgeVrcCredits');
+    if (bc) bc.style.display = (_showVrcCredits && _hasVrcCredits) ? '' : 'none';
+}
+
 function updateClock() {
-    if (!_clockEnabled) return;
+    if (!_clockEnabled && !_dateEnabled) return;
     const n = new Date();
-    // Clock time: respect the user's explicit AM/PM setting in preferences
-    let clockTime;
-    if (_clockAmPm) {
-        const h = n.getHours();
-        const min = String(n.getMinutes()).padStart(2, '0');
-        clockTime = String(h % 12 || 12).padStart(2, '0') + ':' + min + ' ' + (h >= 12 ? 'PM' : 'AM');
-    } else {
-        clockTime = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
-    }
-    document.getElementById('clock').textContent = clockTime;
-    document.getElementById('clockDate').textContent = fmtShortDate(n);
+    const timeEl = document.getElementById('clock');
+    const dateEl = document.getElementById('clockDate');
+    if (timeEl && _clockEnabled) timeEl.textContent = fmtTime(n);
+    if (dateEl && _dateEnabled) dateEl.textContent = fmtShortDate(n);
 }
 
 function toggleNavGroup(id) {
@@ -2040,11 +2044,16 @@ function cssUrl(s) {
 }
 
 let imgThumbsEnabled = true;
+let vrcPlusOptimizeEnabled = true;
+
+function _thumbUrl(url, size) {
+    if (!url || url.indexOf('/imgcache/') === -1 || url.indexOf('thumb=') !== -1) return url;
+    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'thumb=' + size;
+}
 
 function imgThumb(url, size = 64) {
     if (!imgThumbsEnabled) return url;
-    if (!url || url.indexOf('/imgcache/') === -1 || url.indexOf('thumb=') !== -1) return url;
-    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'thumb=' + size;
+    return _thumbUrl(url, size);
 }
 
 function imgOriginal(url) {
