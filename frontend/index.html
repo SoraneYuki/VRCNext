@@ -594,13 +594,15 @@
                 <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" id="exportTitle">Export</span></div>
                 <div class="fd-modal-bar-actions"><button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="document.getElementById('modalExport').style.display='none'"><span class="msi" style="font-size:20px;">close</span></button></div>
             </div>
+            <div class="modal-card">
             <div class="modal-msg" id="exportDesc" style="margin:20px 0 14px;"></div>
             <textarea id="exportText" readonly spellcheck="false" style="width:100%;height:320px;box-sizing:border-box;resize:vertical;background:var(--bg-input);color:var(--tx1);border:1px solid var(--brd-lt);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:calc(12px + var(--fs-off, 0px));line-height:1.5;white-space:pre;overflow:auto;"></textarea>
-            <div class="modal-btns" style="margin-top:16px;">
-                <button class="vrcn-button-round" onclick="exportCopy()"><span class="msi" style="font-size:14px;">content_copy</span> <span data-i18n="export.copy">Copy</span></button>
-                <button class="vrcn-button-round vrcn-btn-join" onclick="exportSaveCsv()"><span class="msi" style="font-size:14px;">download</span> <span data-i18n="export.export_csv">Export CSV</span></button>
             </div>
-        </div>
+            <div class="modal-foot"><div class="modal-foot-spacer"></div>
+                <button class="vrcn-button" onclick="exportCopy()"><span class="msi" style="font-size:14px;">content_copy</span> <span data-i18n="export.copy">Copy</span></button>
+                <button class="vrcn-button vrcn-btn-join" onclick="exportSaveCsv()"><span class="msi" style="font-size:14px;">download</span> <span data-i18n="export.export_csv">Export CSV</span></button>
+            </div>
+</div>
     </div>
 
     <!-- Import Modal -->
@@ -610,14 +612,16 @@
                 <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" id="importTitle">Import</span></div>
                 <div class="fd-modal-bar-actions"><button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="closeImportModal()"><span class="msi" style="font-size:20px;">close</span></button></div>
             </div>
+            <div class="modal-card">
             <div class="modal-msg" id="importDesc" style="margin:20px 0 14px;"></div>
             <div id="importRows"></div>
             <div class="modal-msg" id="importStatus" style="margin:14px 0 0;min-height:18px;"></div>
-            <div class="modal-btns" style="margin-top:16px;">
-                <button class="vrcn-button-round" onclick="closeImportModal()"><span data-i18n="common.cancel">Cancel</span></button>
-                <button class="vrcn-button-round vrcn-btn-join" id="importStartBtn" onclick="importStart()"><span class="msi" style="font-size:14px;">upload</span> <span data-i18n="import.start">Import</span></button>
             </div>
-        </div>
+            <div class="modal-foot"><div class="modal-foot-spacer"></div>
+                <button class="vrcn-button" onclick="closeImportModal()"><span data-i18n="common.cancel">Cancel</span></button>
+                <button class="vrcn-button vrcn-btn-join" id="importStartBtn" onclick="importStart()"><span class="msi" style="font-size:14px;">upload</span> <span data-i18n="import.start">Import</span></button>
+            </div>
+</div>
     </div>
 
     <!-- VRChat Launch Options Modal -->
@@ -667,15 +671,17 @@
                 <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" data-i18n="nav.editor.title">Edit Navigation</span></div>
                 <div class="fd-modal-bar-actions"><button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="closeNavEditor()"><span class="msi" style="font-size:20px;">close</span></button></div>
             </div>
-            <div id="navEditorList" class="ne-list vrcn-scrollbar" style="margin-top:20px;"></div>
-            <div style="display:flex;gap:8px;align-items:center;">
+            <div class="modal-card">
+            <div id="navEditorList" class="ne-list vrcn-scrollbar"></div>
+            </div>
+            <div class="modal-foot">
                 <button class="vrcn-button" onclick="_edAddFolder()"><span class="msi" style="font-size:16px;">create_new_folder</span><span data-i18n="nav.editor.add_folder">Add Folder</span></button>
                 <button class="vrcn-button" onclick="_edAddSeparator()"><span class="msi" style="font-size:16px;">horizontal_rule</span><span data-i18n="nav.editor.add_separator">Add Separator</span></button>
-                <span style="flex:1;"></span>
+                <div class="modal-foot-spacer"></div>
                 <button class="vrcn-button" onclick="_edRestoreDefault()"><span class="msi" style="font-size:16px;">restore</span><span data-i18n="nav.editor.reset">Reset</span></button>
-                <button class="vrcn-button vrcn-btn-primary" onclick="_edConfirm()"><span class="msi" style="font-size:16px;">check</span><span data-i18n="common.save">Save</span></button>
+                <button class="vrcn-button" onclick="_edConfirm()"><span class="msi" style="font-size:16px;">check</span><span data-i18n="common.save">Save</span></button>
             </div>
-        </div>
+</div>
     </div>
 
     <!-- Crash Report Modal -->

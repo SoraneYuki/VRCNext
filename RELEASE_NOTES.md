@@ -1,5 +1,11 @@
 **2026.41.11**
 
+**UI Changes**
+* Updated "VRChat Config" Modal
+* Updated "VRCHat Launch Options" Modal
+* Updated "Edit Dashboard" Modal
+* Updated "Edit Navbar" Modsl
+
 **Changes**
 
 * **Use Direct Modal Navigation** is now enabled by default on clean installs.
