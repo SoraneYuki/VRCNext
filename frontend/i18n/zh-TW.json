@@ -892,6 +892,8 @@
   "profiles.friends.sections_short.in_game": "遊戲",
   "profiles.friends.sections_short.web": "網頁",
   "profiles.friends.sections_short.offline": "離線",
+  "profiles.friends.pending_offline": "即將離線...",
+  "profiles.friends.traveling": "移動中...",
   "profiles.last_seen.just_now": "剛剛",
   "profiles.last_seen.minutes_ago": "{count} 分鐘前",
   "profiles.last_seen.hours_ago": "{count} 小時前",

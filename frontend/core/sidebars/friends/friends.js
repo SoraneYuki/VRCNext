@@ -20,7 +20,7 @@ function buildFriendCardHtml(f, presenceType) {
     const imgTag = img
         ? `<img class="vrc-friend-avatar" src="${imgThumb(img, 96)}" loading="lazy" decoding="async" onerror="this.style.display='none'">`
         : `<div class="vrc-friend-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(12px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName || '?')[0])}</div>`;
-    const statusCls = presenceType === 'offline' ? 's-offline' : statusDotClass(f.status);
+    const statusCls = (f.pendingOffline || presenceType === 'offline') ? 's-offline' : statusDotClass(f.status);
     const rank = getTrustRank(f.tags || []);
     const rankBadge = '';
     const nameColorStyle = rank ? `color:${rank.color};` : '';
@@ -52,6 +52,8 @@ function getRegionCode(region) {
     return (region || 'us').toUpperCase();
 }
 function _friendLocLineInner(f, presenceType, statusText, locationText) {
+    if (f.pendingOffline) return esc(t('profiles.friends.pending_offline', 'Pending offline...'));
+    if (f.traveling) return esc(t('profiles.friends.traveling', 'Traveling...'));
     const locationOnly = (typeof settings !== 'undefined') && settings.friendsSidebarLocationOnly === true;
     if (locationOnly) {
         const inWorld = f.location && f.location.startsWith('wrld_');

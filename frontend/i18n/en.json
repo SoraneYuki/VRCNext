@@ -892,6 +892,8 @@
   "profiles.friends.sections_short.in_game": "GME",
   "profiles.friends.sections_short.web": "WEB",
   "profiles.friends.sections_short.offline": "OFF",
+  "profiles.friends.pending_offline": "Pending offline...",
+  "profiles.friends.traveling": "Traveling...",
   "profiles.last_seen.just_now": "Just now",
   "profiles.last_seen.minutes_ago": "{count}m ago",
   "profiles.last_seen.hours_ago": "{count}h ago",

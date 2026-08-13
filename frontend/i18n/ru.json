@@ -871,6 +871,8 @@
   "profiles.friends.sections_short.in_game": "В игре",
   "profiles.friends.sections_short.web": "Веб",
   "profiles.friends.sections_short.offline": "Офлайн",
+  "profiles.friends.pending_offline": "Ожидание оффлайна...",
+  "profiles.friends.traveling": "Перемещается...",
   "profiles.last_seen.just_now": "Только что",
   "profiles.last_seen.minutes_ago": "минут назад",
   "profiles.last_seen.hours_ago": "часов назад",

@@ -870,6 +870,8 @@
   "profiles.friends.sections_short.in_game": "游戏",
   "profiles.friends.sections_short.web": "网页",
   "profiles.friends.sections_short.offline": "离线",
+  "profiles.friends.pending_offline": "即将离线...",
+  "profiles.friends.traveling": "移动中...",
   "profiles.last_seen.just_now": "刚刚",
   "profiles.last_seen.minutes_ago": "{count} 分钟前",
   "profiles.last_seen.hours_ago": "{count} 小时前",

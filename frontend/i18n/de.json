@@ -880,6 +880,8 @@
   "profiles.friends.sections_short.in_game": "ING",
   "profiles.friends.sections_short.web": "WEB",
   "profiles.friends.sections_short.offline": "OFF",
+  "profiles.friends.pending_offline": "Offline ausstehend...",
+  "profiles.friends.traveling": "Unterwegs...",
   "profiles.last_seen.just_now": "Gerade eben",
   "profiles.last_seen.minutes_ago": "vor {count} Min.",
   "profiles.last_seen.hours_ago": "vor {count} Std.",

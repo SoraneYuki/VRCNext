@@ -870,6 +870,8 @@
   "profiles.friends.sections_short.in_game": "ゲーム",
   "profiles.friends.sections_short.web": "WEB",
   "profiles.friends.sections_short.offline": "オフ",
+  "profiles.friends.pending_offline": "オフライン保留中...",
+  "profiles.friends.traveling": "移動中...",
   "profiles.last_seen.just_now": "たった今",
   "profiles.last_seen.minutes_ago": "{count}分前",
   "profiles.last_seen.hours_ago": "{count}時間前",

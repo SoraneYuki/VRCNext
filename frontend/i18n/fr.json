@@ -870,6 +870,8 @@
   "profiles.friends.sections_short.in_game": "JEU",
   "profiles.friends.sections_short.web": "WEB",
   "profiles.friends.sections_short.offline": "OFF",
+  "profiles.friends.pending_offline": "Hors ligne en attente...",
+  "profiles.friends.traveling": "En transit...",
   "profiles.last_seen.just_now": "À l'instant",
   "profiles.last_seen.minutes_ago": "il y a {count} min",
   "profiles.last_seen.hours_ago": "il y a {count} h",

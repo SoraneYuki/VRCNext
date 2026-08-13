@@ -637,8 +637,12 @@ function buildPeopleListHtml(friends) {
         const st = _peopleStatsMap[f.id];
         const cat = f.presence ? _allFriendCategory(f) : '';
         const dotKind = f.presence === 'web' ? 'vrc-status-ring' : 'vrc-status-dot';
-        const dotCls = cat === 'offline' ? 's-offline' : statusDotClass(f.status);
-        const statusTxt = f.statusDescription || statusLabel(f.status);
+        const dotCls = (f.pendingOffline || cat === 'offline') ? 's-offline' : statusDotClass(f.status);
+        const statusTxt = f.pendingOffline
+            ? t('profiles.friends.pending_offline', 'Pending offline...')
+            : f.traveling
+                ? t('profiles.friends.traveling', 'Traveling...')
+                : (f.statusDescription || statusLabel(f.status));
         const statusCell = f.status
             ? `<span class="${dotKind} ${dotCls}"></span><span class="pl-status-txt">${esc(statusTxt)}</span>`
             : '';

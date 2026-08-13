@@ -25,8 +25,9 @@ function renderUserItem(user, onclick, opts) {
     const status = live?.status || user.status || '';
     const statusDesc = live?.statusDescription || user.statusDescription || '';
     const presence = live ? live.presence : (user.presence || '');
+    const pendingOffline = !!(live ? live.pendingOffline : user.pendingOffline);
     const dotCls = presence === 'web' ? 'vrc-status-ring' : 'vrc-status-dot';
-    const dot = `<span class="${dotCls} ${statusDotClass(status)} vrcn-user-item-dot"></span>`;
+    const dot = `<span class="${dotCls} ${pendingOffline ? 's-offline' : statusDotClass(status)} vrcn-user-item-dot"></span>`;
 
     const platform = live?.platform || user.platform || '';
     const platBadge = getPlatformBadgeHtml(platform);
@@ -34,9 +35,14 @@ function renderUserItem(user, onclick, opts) {
     const statusText = statusDesc || (status ? statusLabel(status) : t('status.offline', 'Offline'));
 
     const worldInner = opts.noWorld ? '' : _userItemWorldInner(live?.location || user.location || '');
-    const secondRow = worldInner
-        ? `<div class="vrcn-user-item-world">${worldInner}</div>`
-        : `<div class="vrcn-user-item-status">${esc(statusText)}</div>`;
+    const traveling = !!(live ? live.traveling : user.traveling);
+    const secondRow = pendingOffline
+        ? `<div class="vrcn-user-item-status">${esc(t('profiles.friends.pending_offline', 'Pending offline...'))}</div>`
+        : traveling
+            ? `<div class="vrcn-user-item-status">${esc(t('profiles.friends.traveling', 'Traveling...'))}</div>`
+            : worldInner
+                ? `<div class="vrcn-user-item-world">${worldInner}</div>`
+                : `<div class="vrcn-user-item-status">${esc(statusText)}</div>`;
 
     const attrs = opts.attrs ? ' ' + opts.attrs : '';
     const cls = opts.cls ? ' ' + opts.cls : '';

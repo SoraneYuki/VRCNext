@@ -1,33 +1,9 @@
-**2026.41.11**
+**2026.41.12**
 
-**Timeline**
-* The **Detail** column in list view now starts with a time spent badge, for example **3h 17m · USE · Friends+ · Japan Rainy Day**.
-* Instances that are still running show **Ongoing** instead. Entries without tracked time show no badge at all.
-* Applies to **Personal > Instances** and **Friends > Location**.
+**Improvements**
 
-**UI Changes**
-* Updated the **VRChat Config** modal.
-* Updated the **VRChat Launch Options** modal.
-* Updated the **Edit Dashboard** modal.
-* Updated the **Edit Navbar** modal.
-* Updated the **Change Status** modal.
-* Updated sidebar colors, inputs, and refresh buttons.
-* Media Library cards now show file size, resolution, and rating in a single line separated by dots, for example **4.2 MB · HD · ♥ 3x**. The rating is only shown when one is set.
-* Removed the SD/HD/2K/4K/8K badges from Media Library cards.
-
-**Performance**
-* Added **Settings > General > VRC+ Decorations > Optimize VRC+ Usage**. This is enabled by default. Animated VRC+ decorations, such as icon frames and nameplates, are shown as static images in friend lists and cards. Animations still play in profile modals and on your own profile in the sidebar. A single animated decoration can use over 200 MB of RAM while playing, so this greatly reduces memory and GPU usage for users with decorations enabled. Disable the setting to keep animations enabled everywhere.
-* Friend cards in the sidebar are now completely skipped by the renderer while they are outside the visible area.
-
-**Changes**
-* **List View** is now the default in Timeline. Timeline View is still available as the secondary option.
-* **Use Direct Modal Navigation** is now enabled by default on clean installs.
-* Moved the clock from the left sidebar to the taskbar.
-* Moved the **Other** card from Appearance to **Sidebar** and renamed it to **Taskbar**.
-* Small adjustments in "Activity Log" tab for better responsive design.
-
-**Removed**
-* Removed **Additional Options** from Appearance.
-* Removed the clock from the sidebar.
-* Removed the **AM/PM** toggle. The time format now follows your system settings.
-* Removed the **Use Trusted Rank Color instead of Badge** setting. Trusted users will now always use the Trusted rank color for their username. This reduces unnecessary settings and makes the UI easier to maintain.
+* Fixed false **Went Offline** and **Came Online** entries when friends were only switching between instances. VRChat may briefly report friends as offline during a world switch.
+* Offline reports for in-game friends are now delayed by 1 minute. If the friend comes back online within that time, nothing is logged. The Timeline entry and VR Overlay notification are only created if they remain offline.
+* While a friend is in this waiting state, the Sidebar and People tab now show **Pending offline...** with a grey status dot.
+* Friends switching worlds now show **Traveling...** in the Sidebar and People tab until they arrive in the new instance.
+* Timeline world visits now end at the time the friend actually left instead of 1 minute later.
