@@ -645,7 +645,7 @@
   "relay.empty.posted_files": "Aucun fichier publié",
   "relay.webhook.channel_placeholder": "Canal {index}",
   "relay.webhook.url_placeholder": "https://discord.com/api/webhooks/...",
-  "activity.websocket": "WebSocket",
+  "activity.websocket": "WS",
   "activity.copy_done": "Journal copié dans le presse-papiers",
   "activity.actions.copy_title": "Copier dans le presse-papiers",
   "activity.actions.open_log": "Ouvrir le journal",

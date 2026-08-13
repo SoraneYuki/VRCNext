@@ -657,7 +657,7 @@
   "relay.empty.posted_files": "No files posted yet",
   "relay.webhook.channel_placeholder": "Channel {index}",
   "relay.webhook.url_placeholder": "https://discord.com/api/webhooks/...",
-  "activity.websocket": "WebSocket",
+  "activity.websocket": "WS",
   "activity.copy_done": "Log copied to clipboard",
   "activity.actions.copy_title": "Copy to Clipboard",
   "activity.actions.open_log": "Open Log",

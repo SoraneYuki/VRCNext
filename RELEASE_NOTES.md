@@ -18,6 +18,7 @@
 * **Use Direct Modal Navigation** is now enabled by default on clean installs.
 * Moved the clock from the left sidebar to the taskbar.
 * Moved the **Other** card from Appearance to **Sidebar** and renamed it to **Taskbar**.
+* Small adjustments in "Activity Log" tab for better responsive design.
 
 **Removed**
 * Removed **Additional Options** from Appearance.

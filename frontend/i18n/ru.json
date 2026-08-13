@@ -646,7 +646,7 @@
   "relay.empty.posted_files": "Нет отправленных файлов",
   "relay.webhook.channel_placeholder": "ID канала Discord",
   "relay.webhook.url_placeholder": "URL вебхука",
-  "activity.websocket": "WebSocket активность",
+  "activity.websocket": "WS",
   "activity.copy_done": "Скопировано",
   "activity.actions.copy_title": "Копировать лог",
   "activity.actions.open_log": "Открыть лог",

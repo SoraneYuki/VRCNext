@@ -645,7 +645,7 @@
   "relay.empty.posted_files": "Aún no se han publicado archivos",
   "relay.webhook.channel_placeholder": "Canal {index}",
   "relay.webhook.url_placeholder": "https://discord.com/api/webhooks/...",
-  "activity.websocket": "WebSocket",
+  "activity.websocket": "WS",
   "activity.copy_done": "Registro copiado al portapapeles",
   "activity.actions.copy_title": "Copiar al portapapeles",
   "activity.actions.open_log": "Abrir registro",

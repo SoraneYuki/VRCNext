@@ -645,7 +645,7 @@
   "relay.empty.posted_files": "まだファイルは投稿されていません",
   "relay.webhook.channel_placeholder": "チャンネル {index}",
   "relay.webhook.url_placeholder": "https://discord.com/api/webhooks/...",
-  "activity.websocket": "WebSocket",
+  "activity.websocket": "WS",
   "activity.copy_done": "ログをクリップボードにコピーしました",
   "activity.actions.copy_title": "クリップボードにコピー",
   "activity.actions.open_log": "ログを開く",
