@@ -20,6 +20,7 @@
 * Friend cards in the sidebar are now completely skipped by the renderer while they are outside the visible area.
 
 **Changes**
+* **List View** is now the default in Timeline. Timeline View is still available as the secondary option.
 * **Use Direct Modal Navigation** is now enabled by default on clean installs.
 * Moved the clock from the left sidebar to the taskbar.
 * Moved the **Other** card from Appearance to **Sidebar** and renamed it to **Taskbar**.
