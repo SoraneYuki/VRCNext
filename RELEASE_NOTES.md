@@ -4,7 +4,8 @@
 * Updated "VRChat Config" Modal
 * Updated "VRCHat Launch Options" Modal
 * Updated "Edit Dashboard" Modal
-* Updated "Edit Navbar" Modsl
+* Updated "Edit Navbar" Modal
+* Updated "Change Status" Modal
 
 **Changes**
 

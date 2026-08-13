@@ -440,10 +440,10 @@
 }
 .status-desc-row .status-desc-input { padding: 6px 14px; }
 .status-desc-row #statusDescEditBtn:not(.active) {
-    background: var(--bg-btn);
+    background: var(--ui-input-bg);
     color: var(--tx1);
 }
-.status-desc-row #statusDescEditBtn:not(.active):hover { background: var(--bg-btn-h); color: var(--tx0); }
+.status-desc-row #statusDescEditBtn:not(.active):hover { background: var(--ui-input-hover-bg); color: var(--tx0); }
 
 body:has(#tab0.active) .rsidebar.collapsed::before {
     background: transparent;
