@@ -609,19 +609,18 @@ body.maximized .tb-icon-restore {
 }
 
 .tb-clock {
-    display: inline-flex;
-    flex-direction: row;
+    position: relative;
+    display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 8px;
+    gap: 8px;
+    padding: 0 11px;
+    font-size: calc(13px + var(--fs-off, 0px));
+    color: var(--tx2);
+    cursor: default;
+    white-space: nowrap;
     flex-shrink: 0;
 }
 .tb-clock-time,
 .tb-clock-date {
-    font-family: var(--font-app);
     font-variant-numeric: tabular-nums;
-    font-size: calc(11px + var(--fs-off, 0px));
-    font-weight: 600;
-    color: var(--tx2);
-    white-space: nowrap;
 }
