@@ -268,6 +268,7 @@ public class AppSettings
     public bool ModernFolderLayout { get; set; } = true;
     public bool NavSidebarHoverText { get; set; } = true;
     public bool DirectModalNav { get; set; } = true;
+    public bool VrcPlusOptimizeEnabled { get; set; } = true;
     public bool EnableProfileIconFrames { get; set; } = false;
     public bool SquareIconFrames { get; set; } = false;
     public bool EnableNameplateDecoration { get; set; } = false;

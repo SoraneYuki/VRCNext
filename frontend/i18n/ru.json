@@ -3071,6 +3071,8 @@
   "language.ru": "Русский",
   "_generated": "2026-05-16T22:44:13.9723759Z",
   "settings.decorations.title": "VRC+ Decorations",
+  "settings.decorations.optimize.label": "Оптимизация VRC+",
+  "settings.decorations.optimize.desc": "Показывает анимированные украшения как статичные изображения в списках друзей и карточках, снижая нагрузку на память и GPU. Анимации продолжают работать в профилях и в вашем собственном профиле.",
   "settings.decorations.icon_frames": "Enable Profile Icon Frames",
   "settings.decorations.icon_frames_desc": "When enabled all profile icons including your own will be round instead of square, and the profile frame decoration is shown on every player that has one.",
   "settings.decorations.nameplate": "Enable Name Plate Decoration",

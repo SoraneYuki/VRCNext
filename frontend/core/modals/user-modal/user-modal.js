@@ -603,7 +603,7 @@ function renderFriendDetail(d) {
     const _fdAvatarInner = img
         ? `<img class="fd-avatar" src="${img}" onerror="this.style.display='none'">`
         : `<div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(20px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((d.displayName || '?')[0])}</div>`;
-    const _fdFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(d.iconFrameUrl) : '';
+    const _fdFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(d.iconFrameUrl, true) : '';
     const imgTag = _fdFrame ? `<div class="icon-frame-wrap">${_fdAvatarInner}${_fdFrame}</div>` : _fdAvatarInner;
 
     let _worldPartHtml = '';

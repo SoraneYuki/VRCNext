@@ -3047,6 +3047,8 @@
   "action_flow.info.instance_type": "現在のインスタンスタイプ",
   "action_flow.info.instance_type_tooltip": "現在いるインスタンスのタイプを読みやすい文字で表します。例: Friends+ や Group Public。",
   "settings.decorations.title": "VRC+ Decorations",
+  "settings.decorations.optimize.label": "VRC+ 使用量を最適化",
+  "settings.decorations.optimize.desc": "フレンドリストやカードではアニメーション付きデコレーションを静止画で表示し、メモリとGPUの負荷を大幅に削減します。プロフィールと自分のプロフィールでは引き続き再生されます。",
   "settings.decorations.icon_frames": "Enable Profile Icon Frames",
   "settings.decorations.icon_frames_desc": "When enabled all profile icons including your own will be round instead of square, and the profile frame decoration is shown on every player that has one.",
   "settings.decorations.nameplate": "Enable Name Plate Decoration",

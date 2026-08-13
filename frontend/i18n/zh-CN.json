@@ -3048,6 +3048,8 @@
   "action_flow.info.instance_type": "当前实例类型",
   "action_flow.info.instance_type_tooltip": "你当前所在实例的类型，以可读文本显示，例如 Friends+ 或 Group Public。",
   "settings.decorations.title": "VRC+ Decorations",
+  "settings.decorations.optimize.label": "优化 VRC+ 占用",
+  "settings.decorations.optimize.desc": "在好友列表和卡片中将动态装饰显示为静态图片，大幅降低内存和 GPU 占用。个人资料弹窗和自己的个人资料仍会播放动画。",
   "settings.decorations.icon_frames": "Enable Profile Icon Frames",
   "settings.decorations.icon_frames_desc": "When enabled all profile icons including your own will be round instead of square, and the profile frame decoration is shown on every player that has one.",
   "settings.decorations.nameplate": "Enable Name Plate Decoration",

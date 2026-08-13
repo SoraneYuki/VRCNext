@@ -3063,6 +3063,8 @@
   "action_flow.info.instance_type": "aktueller Instance-Type",
   "action_flow.info.instance_type_tooltip": "Typ der Instance, in der du dich gerade befindest, als lesbarer Text, zum Beispiel Friends+ oder Group Public.",
   "settings.decorations.title": "VRC+ Dekorationen",
+  "settings.decorations.optimize.label": "VRC+ Nutzung optimieren",
+  "settings.decorations.optimize.desc": "Zeigt animierte Dekorationen in Freundeslisten und Karten als Standbilder, um Speicher- und GPU-Last deutlich zu senken. In Profil-Modals und bei deinem eigenen Profil laufen Animationen weiterhin.",
   "settings.decorations.icon_frames": "Profil-Icon-Rahmen aktivieren",
   "settings.decorations.icon_frames_desc": "Wenn aktiviert werden alle Profil-Icons inklusive deines eigenen rund statt eckig dargestellt, und die Profil-Rahmen-Dekoration wird bei jedem Spieler mit Rahmen angezeigt.",
   "settings.decorations.nameplate": "Nameplate-Dekoration aktivieren",

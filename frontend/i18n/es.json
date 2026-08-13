@@ -3048,6 +3048,8 @@
   "action_flow.info.instance_type": "tipo de la instancia actual",
   "action_flow.info.instance_type_tooltip": "Tipo de la instancia en la que te encuentras, como texto legible, por ejemplo Friends+ o Group Public.",
   "settings.decorations.title": "VRC+ Decorations",
+  "settings.decorations.optimize.label": "Optimizar uso de VRC+",
+  "settings.decorations.optimize.desc": "Muestra las decoraciones animadas como imágenes estáticas en listas de amigos y tarjetas para reducir el uso de memoria y GPU. Las animaciones siguen activas en los perfiles y en tu propio perfil.",
   "settings.decorations.icon_frames": "Enable Profile Icon Frames",
   "settings.decorations.icon_frames_desc": "When enabled all profile icons including your own will be round instead of square, and the profile frame decoration is shown on every player that has one.",
   "settings.decorations.nameplate": "Enable Name Plate Decoration",

@@ -3100,6 +3100,8 @@
   "action_flow.info.instance_type": "目前房間類型",
   "action_flow.info.instance_type_tooltip": "你目前所在房間的類型，以可讀文字顯示，例如 Friends+ 或 Group Public。",
   "settings.decorations.title": "VRC+ Decorations",
+  "settings.decorations.optimize.label": "優化 VRC+ 使用",
+  "settings.decorations.optimize.desc": "在好友列表與卡片中將動態裝飾顯示為靜態圖片，大幅降低記憶體與 GPU 使用量。個人資料視窗與自己的個人資料仍會播放動畫。",
   "settings.decorations.icon_frames": "Enable Profile Icon Frames",
   "settings.decorations.icon_frames_desc": "When enabled all profile icons including your own will be round instead of square, and the profile frame decoration is shown on every player that has one.",
   "settings.decorations.nameplate": "Enable Name Plate Decoration",

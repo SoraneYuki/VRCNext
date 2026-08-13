@@ -93,13 +93,15 @@ function applyDecorationsSetting() {
     document.documentElement.classList.toggle('profile-cards-transparent', glassCards);
 }
 function applyIconFramesSetting() { applyDecorationsSetting(); }
-function iconFrameHtml(frameUrl) {
+function iconFrameHtml(frameUrl, animated) {
     if (!frameUrl) return '';
-    return `<img class="user-frame-deco" src="${frameUrl}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+    const src = (animated || !vrcPlusOptimizeEnabled) ? frameUrl : _thumbUrl(frameUrl, 96);
+    return `<img class="user-frame-deco" src="${src}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
 }
-function nameplateDecoHtml(url) {
+function nameplateDecoHtml(url, animated) {
     if (!url) return '';
-    return `<img class="nameplate-deco" src="${url}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+    const src = (animated || !vrcPlusOptimizeEnabled) ? url : _thumbUrl(url, 256);
+    return `<img class="nameplate-deco" src="${src}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
 }
 function profileEffectHtml(url) {
     if (!url) return '';
@@ -2042,11 +2044,16 @@ function cssUrl(s) {
 }
 
 let imgThumbsEnabled = true;
+let vrcPlusOptimizeEnabled = true;
+
+function _thumbUrl(url, size) {
+    if (!url || url.indexOf('/imgcache/') === -1 || url.indexOf('thumb=') !== -1) return url;
+    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'thumb=' + size;
+}
 
 function imgThumb(url, size = 64) {
     if (!imgThumbsEnabled) return url;
-    if (!url || url.indexOf('/imgcache/') === -1 || url.indexOf('thumb=') !== -1) return url;
-    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'thumb=' + size;
+    return _thumbUrl(url, size);
 }
 
 function imgOriginal(url) {
