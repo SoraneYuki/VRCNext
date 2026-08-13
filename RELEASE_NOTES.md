@@ -1,5 +1,10 @@
 **2026.41.11**
 
+**Timeline**
+* The **Detail** column in list view now starts with a time spent badge, for example **3h 17m · USE · Friends+ · Japan Rainy Day**.
+* Instances that are still running show **Ongoing** instead. Entries without tracked time show no badge at all.
+* Applies to **Personal > Instances** and **Friends > Location**.
+
 **UI Changes**
 * Updated the **VRChat Config** modal.
 * Updated the **VRChat Launch Options** modal.

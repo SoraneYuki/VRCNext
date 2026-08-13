@@ -1108,8 +1108,20 @@ function tlInstanceBadgeRow(loc) {
     return badges ? `<div class="tl-badge-row">${badges}</div>` : '';
 }
 
-function tlInstanceListDetail(loc, name) {
-    const badges = tlInstanceBadges(loc);
+function tlTimeSpentBadge(ev) {
+    if (!ev || !ev.tracked) return '';
+    if (!ev.leftAt) {
+        return `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">schedule</span>${esc(t('timeline.detail.ongoing', 'Ongoing'))}</span>`;
+    }
+    if (!ev.timestamp) return '';
+    const secs = Math.floor((new Date(ev.leftAt) - new Date(ev.timestamp)) / 1000);
+    if (!(secs > 0)) return '';
+    return `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">schedule</span>${esc(formatDuration(secs))}</span>`;
+}
+
+function tlInstanceListDetail(ev, name) {
+    const loc = (ev && typeof ev === 'object') ? (ev.location || '') : (ev || '');
+    const badges = tlTimeSpentBadge(typeof ev === 'object' ? ev : null) + tlInstanceBadges(loc);
     return badges ? `<span class="tl-list-badges">${badges}</span>${esc(name)}` : esc(name);
 }
 
