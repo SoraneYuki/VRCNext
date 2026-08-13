@@ -449,6 +449,35 @@
     box-sizing: border-box;
 }
 .status-desc-row .status-desc-input { padding: 6px 14px; }
+.status-desc-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+.status-desc-field .status-desc-input { display: block; vertical-align: middle; }
+.status-desc-field .vn-select,
+.status-desc-field .status-desc-select,
+.status-desc-field .status-desc-input { width: 100%; }
+.status-desc-field .status-desc-input { padding-right: 34px; }
+
+.status-desc-count {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: calc(11px + var(--fs-off, 0px));
+    color: var(--tx3);
+    font-variant-numeric: tabular-nums;
+    min-width: 20px;
+    text-align: right;
+    pointer-events: none;
+    line-height: 1;
+    transition: color .2s;
+}
+.status-desc-count.low  { color: var(--status-ask); }
+.status-desc-count.warn { color: var(--status-busy); }
 .status-desc-row #statusDescEditBtn:not(.active) {
     background: var(--ui-input-bg);
     color: var(--tx1);

@@ -1049,7 +1049,11 @@ function openStatusModal() {
 }
 
 function updateStatusDescCount(len) {
-    document.getElementById('statusDescCount').textContent = (len || 0) + '/32';
+    const el = document.getElementById('statusDescCount');
+    if (!el) return;
+    const remaining = 32 - (len || 0);
+    el.textContent = remaining;
+    el.className = 'status-desc-count' + (remaining <= 5 ? ' warn' : remaining <= 10 ? ' low' : '');
 }
 
 function setStatusDescMode(textMode) {
@@ -1059,6 +1063,8 @@ function setStatusDescMode(textMode) {
     const wrap = sel.parentElement && sel.parentElement.classList.contains('vn-select') ? sel.parentElement : sel;
     wrap.style.display = textMode ? 'none' : '';
     inp.style.display = textMode ? '' : 'none';
+    const cnt = document.getElementById('statusDescCount');
+    if (cnt) cnt.style.display = textMode ? '' : 'none';
     btn.classList.toggle('active', textMode);
     if (textMode) setTimeout(() => inp.focus(), 50);
 }
