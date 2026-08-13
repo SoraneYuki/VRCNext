@@ -262,13 +262,12 @@ public class AppSettings
     public bool FriendOnlineToastEnabled { get; set; }
     public bool FriendOnlineToastFavOnly { get; set; }
     public bool FriendsSidebarLocationOnly { get; set; } = true;
-    public bool FriendsSidebarRankColor { get; set; } = false;
     public bool FriendsSidebarPreviewCollapsed { get; set; } = true;
     public bool FriendsSidebarPreviewOpen { get; set; } = false;
     public bool PeopleAlwaysStats { get; set; } = false;
     public bool ModernFolderLayout { get; set; } = true;
     public bool NavSidebarHoverText { get; set; } = true;
-    public bool DirectModalNav { get; set; }
+    public bool DirectModalNav { get; set; } = true;
     public bool EnableProfileIconFrames { get; set; } = false;
     public bool SquareIconFrames { get; set; } = false;
     public bool EnableNameplateDecoration { get; set; } = false;
@@ -293,7 +292,6 @@ public class AppSettings
     public string PlayBtnTheme { get; set; } = "";
     public string CursorTheme { get; set; } = "";
     public string AppFont { get; set; } = "google-sans";
-    public string DesignStyle { get; set; } = "line";
     public string CustomFont { get; set; } = "";
     public int FontSizeOffset { get; set; } = 0;
     public List<string> ActiveCustomThemes { get; set; } = ["VRCNext v2 Preview"];
@@ -301,8 +299,10 @@ public class AppSettings
     public string DashBgPath { get; set; } = "";
     public int DashOpacity { get; set; } = 40;
     public bool RandomDashBg { get; set; } = false;
-    public bool ClockEnabled { get; set; } = true;
-    public bool ClockAmPm { get; set; } = false;
+    public bool ClockEnabled { get; set; } = false;
+    public bool DateEnabled { get; set; } = false;
+    public bool ShowVrcPlus { get; set; } = true;
+    public bool ShowVrcCredits { get; set; } = true;
     // List of configured VRChat accounts and the currently active local AccountId (not UserId).
     public List<VrcAccount> Accounts { get; set; } = new();
     public string ActiveAccountId { get; set; } = "";

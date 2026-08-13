@@ -22,9 +22,8 @@ function buildFriendCardHtml(f, presenceType) {
         : `<div class="vrc-friend-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(12px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((f.displayName || '?')[0])}</div>`;
     const statusCls = presenceType === 'offline' ? 's-offline' : statusDotClass(f.status);
     const rank = getTrustRank(f.tags || []);
-    const useRankColor = (typeof settings !== 'undefined') && settings.friendsSidebarRankColor === true;
-    const rankBadge = (rank && !useRankColor) ? `<span class="vrcn-badge ${rank.cls}">${rank.label}</span>` : '';
-    const nameColorStyle = (useRankColor && rank) ? `color:${rank.color};` : '';
+    const rankBadge = '';
+    const nameColorStyle = rank ? `color:${rank.color};` : '';
     const fid = (f.id || '').replace(/'/g, "\\'");
     const statusText = f.statusDescription || statusLabel(f.status);
     const locationText = getFriendLocationLabel(presenceType, f.location);

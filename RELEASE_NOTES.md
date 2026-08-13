@@ -1,48 +1,14 @@
-**2026.41.10**
-
-**UI Recator**
-* Added Card design to major tabs.
-* Changed some colors and ui schemes.
-
-**Taskbar**
-* Added "Edit Taskbar" and "Edit Dashboard" to the "View" section.
-
-**Timeline**
-* Instance entries under **Personal > Instances** now show the server region and instance type as badges.
-* Location entries under **Friends > Location** now show the same badges.
-* Both detail modals now show a **Server** row with the region the instance ran on.
-* Changed the status badges to status dots for a cleaning Ui.
-* Changed color of "Meet Again" and "Bio Change" types.
-
-**Improvements**
-* Improved Light Mode on the Dashboard.
-* Sidebar folders now use a larger 5x3 layout instead of 3x3.
-* Updated the **X** close button on several modals to the new VRCN v2 design.
-
-**Calendar**
-* Updated Calendar to the VRCN v2 design.
-* Calendar now shows up to 2 events per day, with **"X more events"** for additional events.
-* Added a new **Week View** for a better overview of upcoming events.
-* Calendar now uses the same date picker as Timeline.
-* Added **Help Sort**, which gives each group a fixed color to make events easier to tell apart.
-* Fixed Calendar cells not resizing correctly with the window.
-
-**Performance**
-* Fixed several memory leaks that could increase RAM usage during long sessions.
-* Improved memory cleanup for VR Overlay notifications, visited worlds, player profiles, Voice Fight, and Kikitan XD.
-* Improved performance for users with very large friend lists.
-* Friend updates now only refresh the parts of the UI that actually changed instead of rebuilding the entire Friends Sidebar and Dashboard.
-* Status, location, and avatar changes now only update that specific friend's card.
-* Reduced CPU and memory usage when updating large friend lists.
-* VRCNext now regularly cleans up unused memory during long sessions.
-* Added **Settings > Performance > Image Cache > Optimize Memory Usage**, enabled by default.
-* Smaller avatars and icons now use lightweight thumbnails, while larger cards use 256px images instead of 800px. This can greatly reduce RAM and GPU memory usage.
-* Full-quality images are still shown when opening or inspecting them.
-* Image memory settings apply immediately without restarting VRCNext.
+**2026.41.11**
 
 **Changes**
-* The Notification Modal now uses the new refresh button design.
-* Changed the colors ofr instance types.
-* Changed the status colors slightly to be more saturated.
-* Updated People tab to new edit mode. should have the same behavior as world tab now.
-* Updated Avatars tab to new edit mode. should have the same behavior as world tab now.
+
+* **Use Direct Modal Navigation** is now enabled by default on clean installs.
+* Moved the Clock to the taskbar instead of the left sidebar.
+* Moved the "Other" Card from Appereance to "Sidebar" and changed the name to "Taskbar".
+
+**Removed**
+
+* Removed **Additional Options** from Appearance.
+* Removed the clock from the sidebar.
+* Removed the **AM/PM** toggle. The time format now follows your system settings.
+* Removed the **Use Trusted Rank Color instead of Badge** setting. Trusted users will now always use the Trusted rank color for their username. This reduces unnecessary settings and makes the UI easier to maintain.

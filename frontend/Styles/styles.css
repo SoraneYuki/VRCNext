@@ -37,7 +37,6 @@
     --font-mono: 'Google Sans Mono', monospace;
 }
 
-.clock-date,
 .topbar-title,
 .modal-fname,
 .lib-world-badge-text,
@@ -155,8 +154,6 @@
     padding: 0;
     box-sizing: border-box;
 }
-
-html.design-flat { --sep-color: transparent; }
 
 .tab-toolbar {
     background: var(--tab-card-bg, var(--bg-input));
