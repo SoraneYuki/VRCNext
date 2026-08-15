@@ -1396,6 +1396,11 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 .dash-hero-slot .dash-flocs-card:hover {
     background: rgba(30,30,36,.75);
 }
+.dash-hero-slot .dash-flocs-name           { color: #fff; }
+.dash-hero-slot .dash-flocs-status         { color: rgba(255,255,255,.6); }
+.dash-hero-slot .dash-flocs-world          { color: rgba(255,255,255,.75); }
+.dash-hero-slot .dash-flocs-avatar         { background: rgba(255,255,255,.08); }
+.dash-hero-slot .dash-flocs-avatar-letter  { color: rgba(255,255,255,.6); }
 
 .dash-hw-event, .dash-hw-news { min-height: 0; }
 .dash-hero-widgets:has(#dashHeroLeft:empty) .dash-hw-event,

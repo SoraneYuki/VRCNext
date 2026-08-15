@@ -633,7 +633,19 @@
             if (loc) return buildInstanceLinkItems(loc);
         }
 
-        const groupActInst = el.closest('#dashGroupActivityCards .vrcn-content-card, #dashGroupActivityShelf .dash-flocs-card, #groupInstancesGrid .vrcn-content-card, .tl-list-table[data-tl-list="groupInstList"] .tl-list-row');
+        const pinCard = el.closest('.dash-hw-card[data-pin-type]');
+        if (pinCard) {
+            const pinType = pinCard.dataset.pinType;
+            const pinId   = pinCard.dataset.pinId;
+            if (pinType && pinId) {
+                const items = [{ icon: 'open_in_new', label: cm('pins.open_details', 'Open Details'), action: () => pinsOpen(pinType, pinId) }];
+                const unpin = (typeof pinsContextItem === 'function') ? pinsContextItem(pinType, pinId) : null;
+                if (unpin) { items.push('sep'); items.push(unpin); }
+                return items;
+            }
+        }
+
+        const groupActInst = el.closest('#dashGroupActivityCards .vrcn-content-card, #dashGroupActivityShelf .dash-flocs-card, #groupInstancesGrid .vrcn-content-card, .tl-list-table[data-tl-list="groupInstList"] .tl-list-row, .dash-hero-slot .dash-hw-card');
         if (groupActInst) {
             const loc = (groupActInst.getAttribute('onclick') || '').match(/openGroupInstanceDetail\('([^']+)'\)/)?.[1];
             if (loc) return buildInstanceLinkItems(loc);
@@ -659,7 +671,7 @@
             }
         }
 
-        const dashWorld = el.closest('#dashFavWorlds .vrcn-content-card, #dashDiscoveryGrid .vrcn-content-card, #dashFavWorldsShelf .vrcn-content-card, #dashRecentlyVisitedShelf .vrcn-content-card, #dashPopularWorldsShelf .vrcn-content-card, #dashActiveWorldsShelf .vrcn-content-card, #dashFriendLocSmallShelf .dash-flocs-card');
+        const dashWorld = el.closest('#dashFavWorlds .vrcn-content-card, #dashDiscoveryGrid .vrcn-content-card, #dashFavWorldsShelf .vrcn-content-card, #dashRecentlyVisitedShelf .vrcn-content-card, #dashPopularWorldsShelf .vrcn-content-card, #dashActiveWorldsShelf .vrcn-content-card, #dashFriendLocSmallShelf .dash-flocs-card, .dash-hero-slot .dash-flocs-card');
         if (dashWorld) {
             const id = extractWorldId(dashWorld)
                 || extractId(dashWorld, /openFriendLocationDetail\('([^']+)'/);
@@ -729,7 +741,7 @@
                 : buildFriendItems(id);
         }
 
-        const friendCard = el.closest('.vrc-friend-card, .vrcn-user-item, .inst-user-row, .iim-user-item, .dash-feed-card, .tl-list-table[data-tl-list="friendsList"] .tl-list-row, .tl-list-table[data-tl-list="modList"] .tl-list-row, .tl-list-table[data-tl-list="instanceList"] .tl-list-row');
+        const friendCard = el.closest('.vrc-friend-card, .vrcn-user-item, .inst-user-row, .iim-user-item, .dash-feed-card, .dash-flocs-card, .tl-list-table[data-tl-list="friendsList"] .tl-list-row, .tl-list-table[data-tl-list="modList"] .tl-list-row, .tl-list-table[data-tl-list="instanceList"] .tl-list-row');
         if (friendCard) {
             const id = extractFriendId(friendCard);
             if (id) {

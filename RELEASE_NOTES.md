@@ -10,6 +10,7 @@
 
 * Completely redesigned the Dashboard with the new **VRCN v2** style.
 * Added customizable hero widgets for **Friends/Group Activity**, **Next Event**, and **VRChat News**.
+* Added "Pins" Widget to hero widget section.
 * Reworked **Edit Dashboard**. Widgets can now be added, removed, and reordered directly on the Dashboard.
 * Added support for **2 widgets side by side**.
 * Redesigned and improved most Dashboard widgets.
@@ -37,6 +38,10 @@
 * Fixed **See All** on the **Friends Recent Activity** widget not switching to **Timeline > Friends**.
 * **See All** on the **Group Activity** widget now opens **Groups > Group Instances**.
 * Fixed an issue where timeline events on the Dashboard were not updating live and required a manual refresh.
+* Fixed the activity widgets showing raw internal names such as `group.announcement` instead of proper labels, and status changes now show the old and new status again.
+* Fixed missing right click context menus on **Friends Activity** and **Group Activity** items in the hero section.
+* Fixed the header image disappearing from the **World** modal after opening a timeline event from it.
 * Fixed an issue where timeline events on the Dashboard did not use localization keys for their text.
 * Fixed an issue where timeline events did not show status dots.
 * Fixed an issue where World modal banners could become corrupted when opening a timeline event from inside the modal.
+* Fixed an bug on dashboard that caused context menu to no work anymore on friends activity and group activity hero widgets.

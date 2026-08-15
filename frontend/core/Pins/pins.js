@@ -56,6 +56,10 @@ const _PINS_TYPE_ICON = {
     group: 'groups', event: 'event', feature: 'widgets',
 };
 
+function pinsTypeIcon(type) {
+    return _PINS_TYPE_ICON[type] || 'push_pin';
+}
+
 function _pinsTypeLabel(type) {
     switch (type) {
         case 'user':    return t('pins.type.user', 'Profile');
@@ -188,6 +192,7 @@ function _pinsCloseMenu() {
 
 // Built via DOM rather than innerHTML so pinned names cannot inject markup.
 function _pinsRenderMenu() {
+    if (typeof dashHeroRefreshPins === 'function') dashHeroRefreshPins();
     const drop = document.getElementById('pinsDropdown');
     if (!drop) return;
     drop.innerHTML = '';
@@ -274,6 +279,7 @@ window.pinsAdd          = pinsAdd;
 window.pinsRemove       = pinsRemove;
 window.pinsHas          = pinsHas;
 window.pinsList         = pinsList;
+window.pinsTypeIcon     = pinsTypeIcon;
 window.pinsInit         = pinsInit;
 window.pinsOnUserBasic  = pinsOnUserBasic;
 

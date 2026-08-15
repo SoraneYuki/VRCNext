@@ -1041,12 +1041,14 @@ const DASH_HERO_OPTIONS = {
     left:  [
         { id: 'friends_activity', nameKey: 'dashboard.section.friend_activity', name: 'Friends Activity' },
         { id: 'group_activity',   nameKey: 'dashboard.section.group_activity',  name: 'Group Activity' },
+        { id: 'pins',             nameKey: 'dashboard.hero.pins',               name: 'Pins' },
     ],
     right: [
         { id: 'next_event',       nameKey: 'dashboard.hero.next_event',          name: 'Next Event' },
         { id: 'vrchat_news',      nameKey: 'dashboard.section.vrchat_news',      name: 'VRChat News' },
         { id: 'friends_activity', nameKey: 'dashboard.section.friend_activity',  name: 'Friends Activity' },
         { id: 'group_activity',   nameKey: 'dashboard.section.group_activity',   name: 'Group Activity' },
+        { id: 'pins',             nameKey: 'dashboard.hero.pins',                name: 'Pins' },
     ],
 };
 
@@ -1301,6 +1303,36 @@ function _dashHeroGroupsHtml() {
     }).join('') + `</div>`;
 }
 
+function _dashHeroPinsHtml() {
+    const list = (typeof pinsList === 'function') ? pinsList() : [];
+    if (!list.length) return `<div class="dash-hw-empty">${esc(t('pins.empty', 'No pins yet.'))}</div>`;
+    return `<div class="dash-hw-friends">` + list.map(pin => {
+        const label = pin.name || pin.id;
+        const typeLabel = (typeof _pinsTypeLabel === 'function') ? _pinsTypeLabel(pin.type) : '';
+        const sub = pin.sub ? `${typeLabel} · ${pin.sub}` : typeLabel;
+        const typeIcon = (typeof pinsTypeIcon === 'function') ? pinsTypeIcon(pin.type) : 'push_pin';
+        let av;
+        if (pin.type === 'feature') {
+            av = `<span class="dash-hw-av dash-hw-av-letter"><span class="msi" style="font-size:14px;">${esc(pin.icon || typeIcon)}</span></span>`;
+        } else if (pin.image) {
+            av = `<span class="dash-hw-av" style="background-image:url('${cssUrl(imgThumb(pin.image, 96))}')"></span>`;
+        } else {
+            av = `<span class="dash-hw-av dash-hw-av-letter">${esc((label[0] || '?').toUpperCase())}</span>`;
+        }
+        return `<div class="dash-hw-card" data-pin-type="${esc(pin.type)}" data-pin-id="${esc(pin.id)}" onclick="pinsOpen('${jsq(pin.type)}','${jsq(pin.id)}')">
+            ${av}
+            <div class="dash-hw-info">
+                <div class="dash-hw-name">${esc(label)}</div>
+                <div class="dash-hw-world"><span class="msi" style="font-size:11px;">${esc(typeIcon)}</span>${esc(sub)}</div>
+            </div>
+        </div>`;
+    }).join('') + `</div>`;
+}
+
+function dashHeroRefreshPins() {
+    if (_dashLayout.hero.left === 'pins' || _dashLayout.hero.right === 'pins') renderDashHeroWidgets();
+}
+
 function _dashHeroEventHtml() {
     if (!currentVrcUser) return `<div class="dash-hw-empty">${esc(t('dashboard.section.login', 'Login to VRChat'))}</div>`;
     if (_dashUpcomingEvents === null) {
@@ -1366,6 +1398,7 @@ function renderDashHeroWidgets() {
         else if (id === 'group_activity') body = _dashHeroGroupsHtml();
         else if (id === 'next_event') body = _dashHeroEventHtml();
         else if (id === 'vrchat_news') body = _dashHeroNewsHtml();
+        else if (id === 'pins') body = _dashHeroPinsHtml();
         if (!id) {
             slot.innerHTML = _dashEditMode
                 ? `<button class="dash-slot-add" onclick="dashHeroPick(event, '${side}')"><span class="msi">add</span><span>${esc(t('dashboard.edit.add_widget', 'Add Widget'))}</span></button>`
