@@ -28,6 +28,9 @@
 **Groups**
 * Added a new **Group Instances** tab showing active instances from all your groups.
 
+**Timeline**
+* The search bar now suggests friends and worlds while you type. Pick one and it turns into a badge that filters the timeline to that friend or world.
+
 **Performance**
 * Improved memory cleanup to reduce VRCNext's RAM usage.
 * **Memory Trim** is now enabled by default and runs every 15 minutes.
