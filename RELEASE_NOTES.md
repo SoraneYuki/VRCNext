@@ -55,6 +55,7 @@
 * Fixed an bug on dashboard that caused context menu to no work anymore on friends activity and group activity hero widgets.
 * Fixed avatar author lookups always sending at least one unnecessary request to avtrdb. The pagination now follows the API's own `has_more` flag, which cuts the requests in half for every author with a single page of avatars.
 * Fixed the **AVTRDB/GET** counter in the Activity Log always staying at 0 even though avatar searches were running.
+* Fixed missing "instance.announcement" type in notification system and timeline.
 
 **Internal Changes**
 Mostly cleanup to improve maintainability and reduce some of the structural chaos I created in the first place.

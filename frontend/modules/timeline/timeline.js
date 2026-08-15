@@ -177,6 +177,7 @@ const TL_NOTIF_TYPE_META = {
     message: { key: 'timeline.notif.message', fallback: 'Message' },
     halted: { key: 'timeline.notif.instance_closed', fallback: 'Instance Closed' },
     'group.announcement': { key: 'timeline.notif.group_announcement', fallback: 'Group Announcement' },
+    'instance.announcement': { key: 'timeline.notif.instance_announcement', fallback: 'Instance Announcement' },
     'group.invite': { key: 'timeline.notif.group_invite', fallback: 'Group Invite' },
     'group.joinRequest': { key: 'timeline.notif.group_join_request', fallback: 'Group Join Request' },
     'group.informationRequest': { key: 'timeline.notif.group_info_request', fallback: 'Group Info Request' },
