@@ -621,41 +621,6 @@ public class UnifiedTimeEngine : IDisposable
         }
     }
 
-    public void SaveUserDetail(string userId, string displayName, string image, string status,
-        string statusDescription, string bio, string location, bool isFriend, string currentAvatarImg)
-    {
-        if (string.IsNullOrEmpty(userId)) return;
-        var now = DateTime.UtcNow.ToString("o");
-        lock (_lock)
-        {
-            try
-            {
-                using var cmd = _db.CreateCommand();
-                cmd.CommandText = @"INSERT INTO user_tracking(user_id,display_name,image,profile_status,profile_status_desc,
-                    profile_bio,profile_location,profile_is_friend,profile_avatar_img,profile_cached_at)
-                    VALUES($id,$dn,$img,$st,$sd,$bio,$loc,$fr,$ai,$cat)
-                    ON CONFLICT(user_id) DO UPDATE SET
-                        display_name=excluded.display_name, image=excluded.image,
-                        profile_status=excluded.profile_status, profile_status_desc=excluded.profile_status_desc,
-                        profile_bio=excluded.profile_bio, profile_location=excluded.profile_location,
-                        profile_is_friend=excluded.profile_is_friend, profile_avatar_img=excluded.profile_avatar_img,
-                        profile_cached_at=excluded.profile_cached_at";
-                cmd.Parameters.AddWithValue("$id",  userId);
-                cmd.Parameters.AddWithValue("$dn",  displayName);
-                cmd.Parameters.AddWithValue("$img", image);
-                cmd.Parameters.AddWithValue("$st",  status);
-                cmd.Parameters.AddWithValue("$sd",  statusDescription);
-                cmd.Parameters.AddWithValue("$bio", bio);
-                cmd.Parameters.AddWithValue("$loc", location);
-                cmd.Parameters.AddWithValue("$fr",  isFriend ? 1 : 0);
-                cmd.Parameters.AddWithValue("$ai",  currentAvatarImg);
-                cmd.Parameters.AddWithValue("$cat", now);
-                cmd.ExecuteNonQuery();
-            }
-            catch { }
-        }
-    }
-
     // User profile cache
 
     public class UserProfileCache

@@ -330,15 +330,6 @@ public class VoiceFightController : IDisposable
             }).ToList()
         }).ToList();
 
-    private static void VfOscString(List<byte> buf, string s)
-    {
-        var b = System.Text.Encoding.UTF8.GetBytes(s);
-        buf.AddRange(b);
-        int pad = 4 - (b.Length % 4);
-        if (pad == 0) pad = 4;
-        buf.AddRange(new byte[pad]);
-    }
-
     // Disposal
 
     public void Dispose()

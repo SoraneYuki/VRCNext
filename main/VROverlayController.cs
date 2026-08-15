@@ -233,7 +233,6 @@ public class VROverlayController : IDisposable
 
             case "vroShow":    _core.VrOverlay?.VroShow();   break;
             case "vroHide":    _core.VrOverlay?.VroHide();   break;
-            case "vroToggle":  _core.VrOverlay?.VroToggle(); break;
 
             case "vroConfig":
             {
@@ -305,10 +304,6 @@ public class VROverlayController : IDisposable
 
             case "vroCancelRecording":
                 _core.VrOverlay?.VroCancelRecording();
-                break;
-
-            case "vroSetTab":
-                _core.VrOverlay?.VroSetTab(msg["tab"]?.Value<int>() ?? 0);
                 break;
 
             case "vroWaterConfig":

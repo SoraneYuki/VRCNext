@@ -285,8 +285,6 @@ public sealed class VRSubprocessHost : IDisposable
 
     public void VroShow()            => Send("vro_show");
     public void VroHide()            => Send("vro_hide");
-    public void VroToggle()          => Send("vro_toggle");
-    public void VroSetTab(int tab)   => Send("vro_set_tab",   new { tab });
     public void VroRecordKeybind()   => Send("vro_record_keybind");
     public void VroCancelRecording() => Send("vro_cancel_recording");
 
@@ -459,8 +457,6 @@ public sealed class VRSubprocessHost : IDisposable
     public void VroDisconnect() { }
     public void VroShow()       { }
     public void VroHide()       { }
-    public void VroToggle()     { }
-    public void VroSetTab(int tab) { }
     public void VroRecordKeybind()   { }
     public void VroCancelRecording() { }
     public void VroConfig(bool a, bool b, float c, float d, float e, float f, float g, float h, float i,

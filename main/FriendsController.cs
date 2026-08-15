@@ -757,7 +757,6 @@ public class FriendsController
                 if (!string.IsNullOrEmpty(uid))
                 {
                     _core.Timeline?.SetUserMemo(uid, memo);
-                    _core.SendToJS("userMemoUpdated", new { userId = uid, memo });
                 }
                 break;
             }
@@ -1149,28 +1148,6 @@ public class FriendsController
                 var uid = msg["userId"]?.ToString();
                 if (!string.IsNullOrEmpty(uid))
                     _ = Task.Run(async () => await GetUserFavWorldsAsync(uid));
-                break;
-            }
-
-            case "vrcGetUser":
-            {
-                var uid = msg["userId"]?.ToString();
-                if (!string.IsNullOrEmpty(uid))
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        var u = await _core.Users.GetUserAsync(uid);
-                        if (u != null) _core.SendToJS("vrcUserDetail", new
-                        {
-                            id = u["id"]?.ToString() ?? "", displayName = u["displayName"]?.ToString() ?? "",
-                            image = ImageCacheHelper.GetUserUrl(u["id"]?.ToString(), VRChatApiService.GetUserImage(u)), status = u["status"]?.ToString() ?? "offline",
-                            statusDescription = u["statusDescription"]?.ToString() ?? "",
-                            bio = u["bio"]?.ToString() ?? "", location = u["location"]?.ToString() ?? "",
-                            isFriend = u["isFriend"]?.Value<bool>() ?? false,
-                            currentAvatarImageUrl = ImageCacheHelper.GetAvatarUrl(u["currentAvatar"]?.ToString(), u["currentAvatarImageUrl"]?.ToString()),
-                        });
-                    });
-                }
                 break;
             }
 

@@ -168,12 +168,6 @@ public static class LinuxDesktopHelper
         catch (Exception ex) { error = ex.Message; return false; }
     }
 
-    private static bool TryPipeText(string file, string[] args, string text, out string? error)
-    {
-        using var ms = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(text));
-        return TryPipeStream(file, args, ms, out error);
-    }
-
     private static bool TryPipeStream(string file, string[] args, Stream input, out string? error)
     {
         error = null;

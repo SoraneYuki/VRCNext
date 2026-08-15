@@ -290,22 +290,3 @@ function onChangelogJoinResult(success) {
         btn.disabled = false;
     }
 }
-
-// ===== Account Switcher =====
-
-let _savedAccounts = [];
-
-
-function closeAccountSwitcher() {
-    document.getElementById('accountSwitcherOverlay').style.display = 'none';
-}
-
-function doSwitchAccount(userId, username) {
-    closeAccountSwitcher();
-    sendToCS({ action: 'switchAccount', username: username || '' });
-}
-
-
-function removeAccount(userId) {
-    sendToCS({ action: 'removeSavedAccount', userId });
-}

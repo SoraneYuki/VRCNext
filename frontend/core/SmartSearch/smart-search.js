@@ -592,7 +592,6 @@ const SmartSearch = (() => {
         imagePickerOverlay: () => typeof closeImagePicker === 'function' && closeImagePicker(),
         groupPostOverlay: () => typeof closeGroupPostModal === 'function' && closeGroupPostModal(),
         groupEventOverlay: () => typeof closeGroupEventModal === 'function' && closeGroupEventModal(),
-        accountSwitcherOverlay: () => typeof closeAccountSwitcher === 'function' && closeAccountSwitcher(),
     };
 
     function _isVisibleOverlay(el) {
@@ -628,7 +627,7 @@ const SmartSearch = (() => {
     function _closeOpenModalsBeforeOpen() {
         const overlays = [
             ...document.querySelectorAll('.modal-overlay'),
-            ...document.querySelectorAll('#imagePickerOverlay, #groupPostOverlay, #groupEventOverlay, #accountSwitcherOverlay'),
+            ...document.querySelectorAll('#imagePickerOverlay, #groupPostOverlay, #groupEventOverlay'),
         ];
         let closedAny = false;
 

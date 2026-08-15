@@ -1020,12 +1020,6 @@ namespace VRCNext.Services
             if (IsVisible) Hide(); else Show();
         }
 
-        public void SetActiveTab(int tab)
-        {
-            _activeTab = tab < 1 ? 1 : tab;
-            _dirty = true;
-        }
-
         public void ApplyConfig(bool attachLeft, bool attachHand,
             float px, float py, float pz,
             float rx, float ry, float rz,

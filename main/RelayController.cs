@@ -149,8 +149,6 @@ public class RelayController : IDisposable
             case "vcStop":
                 StopVcProcess();
                 break;
-            case "vcSend":
-                break;
             case "vrcLaunchAndJoin":
                 {
                     var llLoc = msg["location"]?.ToString() ?? "";
@@ -399,7 +397,6 @@ public class RelayController : IDisposable
 
             Invoke(() =>
             {
-                _core.SendToJS("vcLog",   new { msg = $"VRCVideoCacher {version} installed", color = "ok" });
                 _core.SendToJS("vcState", GetVcState());
             });
         }

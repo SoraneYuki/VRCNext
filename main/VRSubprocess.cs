@@ -198,8 +198,6 @@ static class VRSubprocess
 
             case "vro_show":    vro.Show();    break;
             case "vro_hide":    vro.Hide();    break;
-            case "vro_toggle":  vro.Toggle();  break;
-            case "vro_set_tab": vro.SetActiveTab(I(cmd, "tab")); break;
 
             case "vro_water_config":
                 vro.ApplyWaterConfig(B(cmd, "enabled"), I(cmd, "intervalSec") * 1000L);
