@@ -7,6 +7,14 @@ let _mypAvatarsPage = 0;
 let _mypWorldsRequested = false;
 let _mypAvatarsRequested = false;
 let _mypAvatarsLoaded = false;
+
+function _mypTrustUser() {
+    const u = (typeof currentVrcUser !== 'undefined' && currentVrcUser) ? currentVrcUser : {};
+    const groups = (typeof myGroups !== 'undefined' && Array.isArray(myGroups)) ? myGroups : [];
+    const rep = (typeof myRepresentedGroup !== 'undefined' && myRepresentedGroup)
+        || groups.find(g => g.isRepresenting === true) || null;
+    return Object.assign({}, u, { userGroups: groups, representedGroup: rep });
+}
 let _mypFavsRequested = false;
 let _mypHeatmapDays = 30;
 let _mypHeatmapView = 'online';
@@ -311,7 +319,7 @@ function renderMyProfileContent() {
     const _trustCard = `<div class="fd-info-card">
         <div class="fd-group-rep-label">${t('profiles.trust.title', 'Trust &amp; Safety')}</div>
         ${_trustBadgesRow}
-        <div id="mypTrustBarSlot">${getTrustBarHtml(u, _mypAllAvatars.length, _mypAvatarsLoaded)}</div>
+        <div id="mypTrustBarSlot">${getTrustBarHtml(_mypTrustUser(), _mypAllAvatars.length, _mypAvatarsLoaded)}</div>
     </div>`;
 
     const pronounsHtml = u.pronouns ? `<div class="fd-pronouns">${esc(u.pronouns)}</div>` : '';
@@ -831,7 +839,7 @@ function onMypUserAvatars(payload) {
     if (!_mypIsSelf(payload.userId)) return;
     _mypAllAvatars = payload.avatars || [];
     _mypAvatarsLoaded = true;
-    updateTrustBar('mypTrustBarSlot', currentVrcUser, _mypAllAvatars.length);
+    updateTrustBar('mypTrustBarSlot', _mypTrustUser(), _mypAllAvatars.length);
     _mypUpdateContentCounts();
     renderMypAvatarsPage(0);
 }

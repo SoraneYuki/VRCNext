@@ -345,7 +345,10 @@ function getCreatorBadgeHtml(u) {
 
 const TRUST_RANK_MAX = 4;
 const TRUST_BADGE_TARGET = 4;
-const TRUST_YEAR_TARGET = 2;
+const TRUST_YEAR_TARGET = 3;
+const TRUST_YEAR_WEIGHT = 3;
+const TRUST_GROUP_TARGET = 20;
+const TRUST_GROUP_JOIN_WEIGHT = 0.8;
 
 function getTrustRankLevel(tags) {
     if (!Array.isArray(tags)) return 0;
@@ -367,6 +370,9 @@ function getTrustCriteria(u, avatarCount) {
     const rankLevel = getTrustRankLevel(tags);
     const rankInfo = (typeof getTrustRank === 'function' && tags.length) ? getTrustRank(tags) : null;
     const badgeCount = Array.isArray(u?.badges) ? u.badges.length : 0;
+    const groupCount = Array.isArray(u?.userGroups) ? u.userGroups.length : 0;
+    const rep = u?.representedGroup;
+    const representing = !!(rep && (rep.id || rep.groupId || rep.name));
     return [
         { score: rankLevel / TRUST_RANK_MAX,
           label: t('profiles.trust.criteria.trusted', 'Trusted User'),
@@ -374,7 +380,8 @@ function getTrustCriteria(u, avatarCount) {
         { score: (u?.ageVerified === true || u?.ageVerificationStatus === '18+') ? 1 : 0,
           label: t('profiles.meta.age_verified', 'Age Verified') },
         { score: Math.max(Math.min(years / TRUST_YEAR_TARGET, 1), 0),
-          label: t('profiles.trust.criteria.years', '2+ years on VRChat'),
+          weight: TRUST_YEAR_WEIGHT,
+          label: t('profiles.trust.criteria.years', '3+ years on VRChat'),
           detail: Math.min(Math.max(Math.floor(years), 0), TRUST_YEAR_TARGET) + ' / ' + TRUST_YEAR_TARGET },
         { score: tags.includes('system_supporter') ? 1 : 0,
           label: t('profiles.trust.criteria.supporter', 'VRC+ Supporter') },
@@ -385,11 +392,16 @@ function getTrustCriteria(u, avatarCount) {
           label: t('profiles.trust.criteria.bio', 'Has a bio') },
         { score: (worlds + avatars >= 1) ? 1 : 0,
           label: t('profiles.trust.criteria.content', 'Uploaded content') },
+        { score: Math.min(groupCount / TRUST_GROUP_TARGET, 1) * TRUST_GROUP_JOIN_WEIGHT
+               + (representing ? 1 - TRUST_GROUP_JOIN_WEIGHT : 0),
+          label: t('profiles.trust.criteria.groups', 'Joined a few groups') },
     ];
 }
 
 function getTrustScorePct(crit) {
-    return Math.round(crit.reduce((s, c) => s + c.score, 0) / crit.length * 100);
+    const total = crit.reduce((s, c) => s + (c.weight || 1), 0);
+    if (!total) return 0;
+    return Math.round(crit.reduce((s, c) => s + c.score * (c.weight || 1), 0) / total * 100);
 }
 
 function _trustPctColor() {
