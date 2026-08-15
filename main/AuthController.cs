@@ -1335,6 +1335,7 @@ public class AuthController
             lastPlatform      = user["last_platform"]?.ToString() ?? "",
             platform          = user["platform"]?.ToString() ?? "",
             ageVerified       = user["ageVerified"]?.Value<bool>() ?? false,
+            isEconomyCreator  = user["isEconomyCreator"]?.Value<bool>() ?? false,
             ageVerificationStatus = user["ageVerificationStatus"]?.ToString() ?? "",
             vrcRunning        = _core.IsVrcRunning?.Invoke() ?? false,
             allowAvatarCopying = user["allowAvatarCopying"]?.Value<bool>() ?? false,

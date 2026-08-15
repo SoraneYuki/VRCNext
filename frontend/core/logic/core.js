@@ -327,6 +327,152 @@ function getPlatformBadgeHtml(platform) {
     if (platform === 'web')               return `<span class="vrcn-badge platform-web" title="${t('instance.platform.web', 'Web')}"><span class="msi" style="font-size:11px;">language</span>${t('instance.platform.web', 'Web')}</span>`;
     return '';
 }
+
+const VRC_CREATOR_BADGE_ID = 'bdg_98b3f9e6-ab5e-4133-96c1-70cb06c07500';
+
+function isEconomyCreator(u) {
+    if (!u) return false;
+    if (u.isEconomyCreator === true) return true;
+    return Array.isArray(u.badges)
+        && u.badges.some(b => b && (b.id === VRC_CREATOR_BADGE_ID || b.badgeId === VRC_CREATOR_BADGE_ID));
+}
+
+function getCreatorBadgeHtml(u) {
+    if (!isEconomyCreator(u)) return '';
+    const label = t('profiles.badges.creator', 'Creator');
+    return `<span class="vrcn-badge" style="background:rgba(128,106,252,.18);color:#806afc;" title="${label}"><span class="msi" style="font-size:11px;">verified</span>${label}</span>`;
+}
+
+const TRUST_RANK_MAX = 4;
+const TRUST_BADGE_TARGET = 4;
+
+function getTrustRankLevel(tags) {
+    if (!Array.isArray(tags)) return 0;
+    if (tags.includes('system_trust_legend') || tags.includes('system_trust_veteran')) return 4;
+    if (tags.includes('system_trust_trusted')) return 3;
+    if (tags.includes('system_trust_known')) return 2;
+    if (tags.includes('system_trust_basic')) return 1;
+    return 0;
+}
+
+function getTrustCriteria(u, avatarCount) {
+    const tags = Array.isArray(u?.tags) ? u.tags : [];
+    const worlds = Array.isArray(u?.userWorlds) ? u.userWorlds.length : 0;
+    const avatars = Number(avatarCount) > 0 ? Number(avatarCount) : 0;
+    const raw = u?.dateJoined || u?.date_joined || '';
+    const joined = raw ? new Date(raw.length === 10 ? raw + 'T00:00:00' : raw) : null;
+    const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
+    const rankLevel = getTrustRankLevel(tags);
+    const rankInfo = (typeof getTrustRank === 'function' && tags.length) ? getTrustRank(tags) : null;
+    const badgeCount = Array.isArray(u?.badges) ? u.badges.length : 0;
+    return [
+        { score: rankLevel / TRUST_RANK_MAX,
+          label: t('profiles.trust.criteria.trusted', 'Trusted User'),
+          detail: rankInfo ? rankInfo.label : t('profiles.trust.visitor', 'Visitor') },
+        { score: (u?.ageVerified === true || u?.ageVerificationStatus === '18+') ? 1 : 0,
+          label: t('profiles.meta.age_verified', 'Age Verified') },
+        { score: (!!joined && !isNaN(joined.getTime()) && joined.getTime() <= oneYearAgo) ? 1 : 0,
+          label: t('profiles.trust.criteria.one_year', '1+ year on VRChat') },
+        { score: tags.includes('system_supporter') ? 1 : 0,
+          label: t('profiles.trust.criteria.supporter', 'VRC+ Supporter') },
+        { score: Math.min(badgeCount / TRUST_BADGE_TARGET, 1),
+          label: t('profiles.trust.criteria.badges', '4+ badges'),
+          detail: Math.min(badgeCount, TRUST_BADGE_TARGET) + ' / ' + TRUST_BADGE_TARGET },
+        { score: (u?.bio && String(u.bio).trim()) ? 1 : 0,
+          label: t('profiles.trust.criteria.bio', 'Has a bio') },
+        { score: (worlds + avatars >= 1) ? 1 : 0,
+          label: t('profiles.trust.criteria.content', 'Uploaded content') },
+    ];
+}
+
+function getTrustScorePct(crit) {
+    return Math.round(crit.reduce((s, c) => s + c.score, 0) / crit.length * 100);
+}
+
+function _trustPctColor(pct) {
+    return pct >= 100 ? 'var(--ok)' : pct >= 67 ? 'var(--accent)' : pct >= 34 ? 'var(--warn)' : 'var(--err)';
+}
+
+function _trustCritRows(crit) {
+    return crit.map(c => {
+        const full = c.score >= 1;
+        const partial = !full && c.score > 0;
+        const icon = full ? 'check_circle' : partial ? 'radio_button_checked' : 'radio_button_unchecked';
+        const cls = full ? ' met' : partial ? ' partial' : '';
+        const detail = c.detail ? `<span class="fd-trust-crit-detail">${esc(c.detail)}</span>` : '';
+        return `<div class="fd-trust-crit${cls}">
+            <span class="msi">${icon}</span>${esc(c.label)}${detail}
+        </div>`;
+    }).join('');
+}
+
+function _animateTrustPct(el, target) {
+    if (!el) return;
+    const from = parseInt(el.textContent, 10) || 0;
+    if (from === target) { el.textContent = target + '%'; return; }
+    if (el._trustRaf) cancelAnimationFrame(el._trustRaf);
+    const start = performance.now();
+    const step = now => {
+        const k = Math.min((now - start) / 420, 1);
+        const eased = 1 - Math.pow(1 - k, 3);
+        el.textContent = Math.round(from + (target - from) * eased) + '%';
+        if (k < 1) el._trustRaf = requestAnimationFrame(step);
+        else el._trustRaf = 0;
+    };
+    el._trustRaf = requestAnimationFrame(step);
+}
+
+let _trustBarSeq = 0;
+
+function _fillTrustBar(id, pct, color, tries) {
+    requestAnimationFrame(() => {
+        const wrap = document.getElementById(id);
+        if (!wrap) {
+            if ((tries || 0) < 40) _fillTrustBar(id, pct, color, (tries || 0) + 1);
+            return;
+        }
+        const fill = wrap.querySelector('.fd-trust-bar-fill');
+        if (fill) { fill.style.background = color; fill.style.width = pct + '%'; }
+        _animateTrustPct(wrap.querySelector('.fd-trust-pct'), pct);
+    });
+}
+
+function getTrustBarHtml(u, avatarCount) {
+    const crit = getTrustCriteria(u, avatarCount);
+    const pct = getTrustScorePct(crit);
+    const color = _trustPctColor(pct);
+    const id = 'trustBar' + (++_trustBarSeq);
+    _fillTrustBar(id, pct, color);
+    return `<div class="fd-trust-bar-wrap" id="${id}">
+        <button type="button" class="fd-trust-bar-head" onclick="toggleTrustCrits(this)">
+            <span>${esc(t('profiles.trust.score', 'Trust Score'))}</span>
+            <span class="fd-trust-pct" style="color:${color};">0%</span>
+            <span class="msi fd-trust-chevron">expand_more</span>
+        </button>
+        <div class="fd-trust-bar"><div class="fd-trust-bar-fill" style="width:0%;background:${color};"></div></div>
+        <div class="fd-trust-crits">${_trustCritRows(crit)}</div>
+    </div>`;
+}
+
+function toggleTrustCrits(el) {
+    el.closest('.fd-trust-bar-wrap')?.classList.toggle('open');
+}
+
+function updateTrustBar(slotId, u, avatarCount) {
+    const slot = document.getElementById(slotId);
+    if (!slot) return;
+    const wrap = slot.querySelector('.fd-trust-bar-wrap');
+    if (!wrap) { slot.innerHTML = getTrustBarHtml(u, avatarCount); return; }
+    const crit = getTrustCriteria(u, avatarCount);
+    const pct = getTrustScorePct(crit);
+    const color = _trustPctColor(pct);
+    const crits = wrap.querySelector('.fd-trust-crits');
+    if (crits) crits.innerHTML = _trustCritRows(crit);
+    const fill = wrap.querySelector('.fd-trust-bar-fill');
+    if (fill) { fill.style.background = color; fill.style.width = pct + '%'; }
+    const pctEl = wrap.querySelector('.fd-trust-pct');
+    if (pctEl) { pctEl.style.color = color; _animateTrustPct(pctEl, pct); }
+}
 // Space Flight
 let sfConnected = false;
 // FrameShot

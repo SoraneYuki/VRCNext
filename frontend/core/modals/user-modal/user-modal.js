@@ -449,6 +449,7 @@ function renderFdUserAvatars(payload) {
 
     window._fdAllAvatars = avatars;
     window._fdAvatarsPage = 0;
+    updateTrustBar('fdTrustBarSlot', currentFriendDetail, avatars.length);
     renderFdAvatarsPage(0);
 }
 
@@ -727,6 +728,7 @@ function renderFriendDetail(d) {
     const platBadge = getPlatformBadgeHtml(d.platform || d.lastPlatform || '');
     if (platBadge) badgesHtml += platBadge;
     if (d.isFriend) badgesHtml += `<span class="vrcn-badge bdg-friend"><span class="msi" style="font-size:11px;">check_circle</span>${t('profiles.badges.friend', 'Friend')}</span>`;
+    badgesHtml += getCreatorBadgeHtml(d);
     if (d.ageVerified) badgesHtml += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>${t('profiles.meta.age_verified', 'Age Verified')}</span>`;
     if (d.ageVerificationStatus === '18+') badgesHtml += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>18+</span>`;
     const rank = getTrustRank(d.tags || []);
@@ -925,9 +927,14 @@ function renderFriendDetail(d) {
     const fdDotClass = fdIsWeb ? 'vrc-status-ring' : 'vrc-status-dot';
     const fdStatusDotCls = fdIsOffline ? 's-offline' : statusDotClass(d.status);
 
-    const trustSideHtml = rank ? `<div class="fd-group-rep-label">${t('profiles.trust.title', 'Trust &amp; Safety')}</div>
-        <span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>
-        <p style="margin:10px 0 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>` : '';
+    const trustCreatorBadge = getCreatorBadgeHtml(d);
+    const trustBadgesRow = (rank || trustCreatorBadge)
+        ? `<div class="fd-badges-row" style="margin-bottom:0;">${rank ? `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>` : ''}${trustCreatorBadge}</div>`
+        : '';
+    const trustSideHtml = `<div class="fd-group-rep-label">${t('profiles.trust.title', 'Trust &amp; Safety')}</div>
+        ${trustBadgesRow}
+        ${rank ? `<p style="margin:10px 0 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>` : ''}
+        <div id="fdTrustBarSlot">${getTrustBarHtml(d, (window._fdAllAvatars || []).length)}</div>`;
 
     const _fdInstFriends = (_worldPartHtml && d.location && d.location !== 'private' && d.location !== 'traveling')
         ? (typeof getInstanceMembers === 'function' ? getInstanceMembers(d.location) : []).filter(m => m.id !== d.id)
@@ -1209,6 +1216,7 @@ function patchFriendDetailLive(f) {
             let html = '';
             if (platBadge) html += platBadge;
             if (currentFriendDetail.isFriend) html += `<span class="vrcn-badge bdg-friend"><span class="msi" style="font-size:11px;">check_circle</span>${t('profiles.badges.friend', 'Friend')}</span>`;
+            html += isEconomyCreator(f) ? getCreatorBadgeHtml(f) : getCreatorBadgeHtml(currentFriendDetail);
             if (ageVerified) html += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>${t('profiles.meta.age_verified', 'Age Verified')}</span>`;
             if (ageVerificationStatus === '18+') html += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>18+</span>`;
             if (rank) html += `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>`;

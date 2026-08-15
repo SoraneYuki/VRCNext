@@ -174,8 +174,10 @@ function renderMyProfileContent() {
     const rank = getTrustRank(u.tags || []);
     const vrcPlusBadge = (u.tags || []).includes('system_supporter') ? `<span class="vrcn-supporter-badge">VRC+</span>` : '';
     const platBadge = getPlatformBadgeHtml(u.platform || u.lastPlatform || '');
+    const creatorBadge = getCreatorBadgeHtml(u);
     let badgesRowHtml = '<div class="fd-badges-row">';
     if (platBadge) badgesRowHtml += platBadge;
+    if (creatorBadge) badgesRowHtml += creatorBadge;
     if (u.ageVerified) badgesRowHtml += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>${t('profiles.meta.age_verified', 'Age Verified')}</span>`;
     if (u.ageVerificationStatus === '18+') badgesRowHtml += `<span class="vrcn-badge ok"><span class="msi" style="font-size:11px;">verified</span>18+</span>`;
     if (rank) badgesRowHtml += `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>`;
@@ -301,11 +303,15 @@ function renderMyProfileContent() {
     const _pronounsCard = `<div class="fd-info-card">${_pronounsSection}</div>`;
 
     // Trust & Safety card (right)
-    const _trustCard = rank ? `<div class="fd-info-card">
+    const _trustBadgesRow = (rank || creatorBadge)
+        ? `<div class="fd-badges-row" style="margin-bottom:0;">${rank ? `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>` : ''}${creatorBadge}</div>`
+        : '';
+    const _trustCard = `<div class="fd-info-card">
         <div class="fd-group-rep-label">${t('profiles.trust.title', 'Trust &amp; Safety')}</div>
-        <span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>
-        <p style="margin:10px 0 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>
-    </div>` : '';
+        ${_trustBadgesRow}
+        ${rank ? `<p style="margin:10px 0 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>` : ''}
+        <div id="mypTrustBarSlot">${getTrustBarHtml(u, (typeof _mypAllAvatars !== 'undefined' ? _mypAllAvatars : []).length)}</div>
+    </div>`;
 
     const pronounsHtml = u.pronouns ? `<div class="fd-pronouns">${esc(u.pronouns)}</div>` : '';
 
@@ -823,6 +829,7 @@ function onMypMyWorlds(worlds) {
 function onMypUserAvatars(payload) {
     if (!_mypIsSelf(payload.userId)) return;
     _mypAllAvatars = payload.avatars || [];
+    updateTrustBar('mypTrustBarSlot', currentVrcUser, _mypAllAvatars.length);
     _mypUpdateContentCounts();
     renderMypAvatarsPage(0);
 }
