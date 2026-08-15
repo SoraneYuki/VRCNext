@@ -280,12 +280,14 @@ public class AvatarsAPI(VRChatApiService ctx)
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UA);
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 
-        // avtrdb caps the page size, so paginate until a short/empty page is hit.
+        // kubectl db ignores the requested limit and answers with has more thus the pagesize.
+        // the comparison should be only fallback for the array response shape. might check later to change.
         int pageSize = -1;
         for (int page = 0; page < 25; page++)
         {
             var url = $"https://api.avtrdb.com/v2/avatar/search?query={Uri.EscapeDataString(authorId)}&limit={n}&page={page}";
             JArray? arr = null;
+            bool? hasMore = null;
             try
             {
                 ctx.Log("[AVTRDB] GET author-search");
@@ -295,12 +297,13 @@ public class AvatarsAPI(VRChatApiService ctx)
                 ctx.Log($"SearchAvatarsByAuthor [{(int)resp.StatusCode}] len={body.Length}");
                 if (!resp.IsSuccessStatusCode || string.IsNullOrWhiteSpace(body)) break;
                 var parsed = JToken.Parse(body);
-                arr = (parsed as JObject)?["avatars"] as JArray ?? parsed as JArray;
+                var obj = parsed as JObject;
+                arr = obj?["avatars"] as JArray ?? parsed as JArray;
+                if (obj?["has_more"] is JValue hm && hm.Type != JTokenType.Null) hasMore = hm.Value<bool>();
             }
             catch (Exception ex) { ctx.Log($"SearchAvatarsByAuthor exception: {ex.Message}"); break; }
 
             if (arr == null || arr.Count == 0) break;
-            if (pageSize < 0) pageSize = arr.Count;
 
             foreach (var item in arr)
             {
@@ -309,7 +312,16 @@ public class AvatarsAPI(VRChatApiService ctx)
                 all.Add(item);
             }
 
-            if (arr.Count < pageSize) break;
+            if (hasMore.HasValue)
+            {
+                if (!hasMore.Value) break;
+            }
+            else
+            {
+                if (pageSize >= 0 && arr.Count < pageSize) break;
+                if (arr.Count > pageSize) pageSize = arr.Count;
+            }
+
             await Task.Delay(200);
         }
         return all;

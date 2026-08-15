@@ -45,3 +45,12 @@
 * Fixed an issue where timeline events did not show status dots.
 * Fixed an issue where World modal banners could become corrupted when opening a timeline event from inside the modal.
 * Fixed an bug on dashboard that caused context menu to no work anymore on friends activity and group activity hero widgets.
+* Fixed avatar author lookups always sending at least one unnecessary request to avtrdb. The pagination now follows the API's own `has_more` flag, which cuts the requests in half for every author with a single page of avatars.
+
+**Internal Changes**
+
+Mostly cleanup to improve maintainability and reduce some of the structural chaos I created in the first place.
+
+* Removed a bunch of unused methods left over from previous versions.
+* Removed unused JavaScript functions that are no longer needed.
+* Removed old CSS classes left over from the V1 design.
