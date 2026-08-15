@@ -2555,6 +2555,8 @@
   "search.remote.groups": "群组",
   "search.remote.users": "用户",
   "search.remote.avatars": "虚拟形象",
+  "search.remote.timeline_friends": "好友时间线",
+  "search.remote.timeline_personal": "个人时间线",
   "search.section.settings": "设置",
   "search.section.modules": "导航",
   "relay.folders.title": "监视文件夹",

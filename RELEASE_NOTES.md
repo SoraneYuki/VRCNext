@@ -1,5 +1,9 @@
 **2026.41.13**
 
+**Smart Search**
+* Added Friends and personal timeline button to smart search to
+quickly search the timeline for a keyword without opening the timeline.
+
 **User Profiles**
 * Added a **Creator** badge for users who sell content or participate in the VRChat Creator Economy.
 * Added a **Trusted Score** to user profiles, indicating how established and trustworthy a user appears to be.

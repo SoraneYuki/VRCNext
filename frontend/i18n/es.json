@@ -2555,6 +2555,8 @@
   "search.remote.groups": "Grupos",
   "search.remote.users": "Usuarios",
   "search.remote.avatars": "Avatares",
+  "search.remote.timeline_friends": "Cronología de amigos",
+  "search.remote.timeline_personal": "Cronología personal",
   "search.section.settings": "Ajustes",
   "search.section.modules": "Navegación",
   "relay.folders.title": "Carpetas vigiladas",

@@ -136,9 +136,15 @@
 .ss-search-in-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     flex-wrap: wrap;
     min-width: 0;
+}
+.ss-search-in-actions .vrcn-button {
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: calc(10px + var(--fs-off, 0px));
 }
 
 /* Result item */
@@ -312,7 +318,7 @@
 }
 
 .ss-modal-box {
-    width: 520px;
+    width: 560px;
     max-width: calc(100vw - 48px);
     background: var(--bg-card);
     border: 1px solid var(--brd-lt);

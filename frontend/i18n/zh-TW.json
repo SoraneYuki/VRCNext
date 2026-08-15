@@ -2606,6 +2606,8 @@
   "search.remote.groups": "群組",
   "search.remote.users": "玩家",
   "search.remote.avatars": "角色",
+  "search.remote.timeline_friends": "好友時間軸",
+  "search.remote.timeline_personal": "個人時間軸",
   "search.section.settings": "設定",
   "search.section.modules": "導航",
   "relay.folders.title": "監視數據夾",

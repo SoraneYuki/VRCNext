@@ -2555,6 +2555,8 @@
   "search.remote.groups": "Groupes",
   "search.remote.users": "Utilisateurs",
   "search.remote.avatars": "Avatars",
+  "search.remote.timeline_friends": "Chronologie amis",
+  "search.remote.timeline_personal": "Chronologie perso",
   "search.section.settings": "Paramètres",
   "search.section.modules": "Navigation",
   "relay.folders.title": "Dossiers surveillés",

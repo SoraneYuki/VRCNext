@@ -2519,6 +2519,8 @@
   "search.remote.groups": "Группы",
   "search.remote.users": "Пользователи",
   "search.remote.avatars": "Аватары",
+  "search.remote.timeline_friends": "Лента друзей",
+  "search.remote.timeline_personal": "Личная лента",
   "search.section.settings": "Настройки",
   "search.section.modules": "Модули",
   "relay.folders.title": "Папки ретранслятора",

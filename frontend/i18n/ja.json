@@ -2554,6 +2554,8 @@
   "search.remote.groups": "グループ",
   "search.remote.users": "ユーザー",
   "search.remote.avatars": "アバター",
+  "search.remote.timeline_friends": "フレンドのタイムライン",
+  "search.remote.timeline_personal": "自分のタイムライン",
   "search.section.settings": "設定",
   "search.section.modules": "ナビゲーション",
   "relay.folders.title": "監視フォルダ",

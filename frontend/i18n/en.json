@@ -2610,6 +2610,8 @@
   "search.remote.groups": "Groups",
   "search.remote.users": "Users",
   "search.remote.avatars": "Avatars",
+  "search.remote.timeline_friends": "Friends Timeline",
+  "search.remote.timeline_personal": "Personal Timeline",
   "search.section.settings": "Settings",
   "search.section.modules": "Navigation",
   "relay.folders.title": "Watch Folders",
