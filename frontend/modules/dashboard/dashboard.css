@@ -40,7 +40,7 @@ body:has(.rsidebar.collapsed) .dash-hero { margin-right: calc(-1 * (var(--rsideb
 .dash-hero-content {
     position: relative;
     z-index: 1;
-    padding: calc(54px + var(--tb-h) + 119px) calc(var(--rsidebar-w) + 28px) 24px calc(var(--sidebar-w) + 28px);
+    padding: calc(54px + var(--tb-h) + 99px) calc(var(--rsidebar-w) + 28px) 24px calc(var(--sidebar-w) + 28px);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -1247,7 +1247,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
     grid-template-rows: minmax(0, 1fr);
     gap: 24px;
     align-items: stretch;
-    margin-top: 85px;
+    margin-top: 105px;
     min-width: 0;
     flex: 1;
     min-height: 0;

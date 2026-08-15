@@ -90,7 +90,7 @@
                         <div class="dash-section-label">
                             <span data-i18n="dashboard.section.group_activity">GROUP ACTIVITY</span>
                             <button class="mi-refresh-btn" id="dashGroupActivitySmallRefreshBtn" onclick="refreshDashGroupInstances()" title="Refresh"><span class="msi">refresh</span></button>
-                            <button class="dash-section-seeall" onclick="showTab(2)" data-i18n="dashboard.section.see_all">SEE ALL →</button>
+                            <button class="dash-section-seeall" onclick="showTab(2);setTimeout(()=>{if(typeof setGroupFilter==='function')setGroupFilter('instances');},80)" data-i18n="dashboard.section.see_all">SEE ALL →</button>
                         </div>
                         <div class="dash-friends-feed" id="dashGroupActivityShelf"></div>
                     </div>
@@ -112,7 +112,7 @@
                     <div class="dash-section-wrap" data-section="friends_recent_activity">
                         <div class="dash-section-label">
                             <span data-i18n="dashboard.section.friends_recent_activity">FRIENDS RECENT ACTIVITY</span>
-                            <button class="dash-section-seeall" onclick="showTab(12);setTimeout(()=>{if(typeof setTlModeFriends==='function')setTlModeFriends();},80)" data-i18n="dashboard.section.see_all">SEE ALL →</button>
+                            <button class="dash-section-seeall" onclick="showTab(12);setTimeout(()=>{if(typeof setTlMode==='function')setTlMode('friends');},80)" data-i18n="dashboard.section.see_all">SEE ALL →</button>
                         </div>
                         <div id="dashFriendsRecentTl"></div>
                     </div>

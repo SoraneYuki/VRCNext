@@ -34,3 +34,5 @@
 **Fixes**
 
 * Fixed the horizontal scroll position in **People > Instance** resetting during player list updates.
+* Fixed **See All** on the **Friends Recent Activity** widget not switching to **Timeline > Friends**.
+* **See All** on the **Group Activity** widget now opens **Groups > Group Instances**.
