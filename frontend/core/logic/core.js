@@ -1801,9 +1801,9 @@ function addLog(m, c) {
     if (/\[REST\] (GET|POST|PUT|DELETE|PATCH) /.test(m) && !/→/.test(m)) return;
 
     // Track avtrdb requests
-    if (m.startsWith('[AVTRDB] GET')) { _avtrdbGetCount++; _updateAvtrdbStats(); }
-    else if (m.startsWith('[AVTRDB] QRY')) { _avtrdbQryCount++; _updateAvtrdbStats(); }
-    else if (m.startsWith('[AVTRDB] SUB')) { _avtrdbSubCount++; _updateAvtrdbStats(); }
+    if (/\[AVTRDB\] GET/.test(m)) { _avtrdbGetCount++; _updateAvtrdbStats(); }
+    else if (/\[AVTRDB\] QRY/.test(m)) { _avtrdbQryCount++; _updateAvtrdbStats(); }
+    else if (/\[AVTRDB\] SUB/.test(m)) { _avtrdbSubCount++; _updateAvtrdbStats(); }
 
     // Track CDN image downloads
     if (m.startsWith('CDN ') || m.startsWith('CDN -')) {

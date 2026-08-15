@@ -46,6 +46,7 @@
 * Fixed an issue where World modal banners could become corrupted when opening a timeline event from inside the modal.
 * Fixed an bug on dashboard that caused context menu to no work anymore on friends activity and group activity hero widgets.
 * Fixed avatar author lookups always sending at least one unnecessary request to avtrdb. The pagination now follows the API's own `has_more` flag, which cuts the requests in half for every author with a single page of avatars.
+* Fixed the **AVTRDB/GET** counter in the Activity Log always staying at 0 even though avatar searches were running.
 
 **Internal Changes**
 
