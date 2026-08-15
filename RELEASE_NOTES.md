@@ -55,3 +55,6 @@ Mostly cleanup to improve maintainability and reduce some of the structural chao
 * Removed a bunch of unused methods left over from previous versions.
 * Removed unused JavaScript functions that are no longer needed.
 * Removed old CSS classes left over from the V1 design.
+
+**Packs**
+* Removed VRChat.API as we don't use it in vrcn.
