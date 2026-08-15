@@ -63,9 +63,6 @@ public class FriendsController
     public bool IsFavorited(string userId) => _favoriteFriends.ContainsKey(userId);
     public string GetFavoriteFriendId(string userId)
         => _favoriteFriends.TryGetValue(userId, out var v) ? v.fvrtId : "";
-    public string GetFavoriteFriendGroup(string userId)
-        => _favoriteFriends.TryGetValue(userId, out var v) ? v.groupName : "group_0";
-
     public List<JObject> GetStoreSnapshot()
     {
         lock (_friendStore) return _friendStore.Values.ToList();
@@ -1264,24 +1261,6 @@ public class FriendsController
     }
 
     // Set of actions this controller handles
-    private static readonly HashSet<string> _handledActions = new()
-    {
-        "vrcRefreshFriends", "vrcUpdateStatus", "vrcGetFriendDetail", "vrcGetFriendPreview", "vrcJoinFriend",
-        "vrcInviteFriend", "vrcInviteFriendWithPhoto", "vrcGetInviteMessages",
-        "vrcUpdateInviteMessage", "vrcRequestInvite", "vrcUpdateNote", "vrcBatchInvite",
-        "vrcGetFavoriteFriends", "vrcAddFavoriteFriend", "vrcRemoveFavoriteFriend",
-        "vrcAddFavoriteFriendToGroup",
-        "vrcSendFriendRequest", "vrcUnfriend", "vrcGetBlocked", "vrcGetMuted", "vrcGetAllModerations",
-        "vrcBlock", "vrcMute", "vrcUnblock", "vrcUnmute",
-        "vrcHideAvatar", "vrcShowAvatar", "vrcInteractOff", "vrcInteractOn", "vrcMuteChat", "vrcUnmuteChat",
-        "vrcBoop",
-        "vrcSendChatMessage", "vrcGetChatHistory", "vrcGetUser",
-        "vrcGetUserAvatars", "vrcGetUserFavWorlds",
-        "vrcSetFriendAlert", "vrcGetFriendAlert",
-    };
-
-    public static bool HandlesAction(string action) => _handledActions.Contains(action);
-
     // Core Friend Methods
 
     public async Task FetchAndCacheFavFriendsAsync()

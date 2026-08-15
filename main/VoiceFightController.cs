@@ -330,22 +330,6 @@ public class VoiceFightController : IDisposable
             }).ToList()
         }).ToList();
 
-    private static void VfSendChatbox(string text)
-    {
-        try
-        {
-            using var udp = new System.Net.Sockets.UdpClient();
-            udp.Connect("127.0.0.1", 9000);
-            var buf = new List<byte>();
-            VfOscString(buf, "/chatbox/input");
-            VfOscString(buf, ",sTF"); // string, sendImmediate=true, notifySound=false
-            VfOscString(buf, text.Length > 144 ? text[..144] : text);
-            var pkt = buf.ToArray();
-            udp.Send(pkt, pkt.Length);
-        }
-        catch { }
-    }
-
     private static void VfOscString(List<byte> buf, string s)
     {
         var b = System.Text.Encoding.UTF8.GetBytes(s);

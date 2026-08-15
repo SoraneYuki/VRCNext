@@ -1058,11 +1058,6 @@ public partial class AppShell
         _ = Task.Run(ServeHttpAsync);
     }
 
-    private void UpdateVirtualHostMappings()
-    {
-        // No-op with Photino — watch folders served via /media{i}/ routes in HttpListener
-    }
-
 #if !WINDOWS
     private string FrontendHttpUrl(string filePath)
     {
@@ -1264,8 +1259,6 @@ public partial class AppShell
         ctx.Response.ContentLength64 = bytes.Length;
         await ctx.Response.OutputStream.WriteAsync(bytes);
     }
-
-    public string GetCustomThemesDir() => _customThemesDir;
 
     private void SeedBuiltInThemes()
     {

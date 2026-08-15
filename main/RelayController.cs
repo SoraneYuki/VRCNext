@@ -348,14 +348,6 @@ public class RelayController : IDisposable
         _vroCtrl.UpdateToolStates();
     }
 
-    public void ToggleVc()
-    {
-        if (_vcProcess != null && !_vcProcess.HasExited)
-            StopVcProcess();
-        else
-            StartVcProcess();
-    }
-
     private async Task InstallVcAsync()
     {
         try
@@ -429,78 +421,6 @@ public class RelayController : IDisposable
         var idx = _core.Settings.EnsureProfileIndex(acc);
         if (idx != before) _core.Settings.Save();
         return $"--profile={idx}";
-    }
-
-    private void LaunchVRChat()
-    {
-        try
-        {
-#if WINDOWS
-            var extraLaunchArgs = (_core.Settings.VrcLaunchArgs ?? "").Trim();
-            var lvProfileArg = GetVrcProfileArg();
-            var lvSteamExe = FindSteamExe();
-            bool launched = false;
-            if (lvSteamExe != null)
-            {
-                try
-                {
-                    var steamArgs = System.Text.RegularExpressions.Regex.Replace(
-                        $"-applaunch 438100 --no-vr {lvProfileArg} {extraLaunchArgs}", "\\s+", " ").Trim();
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = lvSteamExe, Arguments = steamArgs,
-                        UseShellExecute = false
-                    });
-                    launched = true;
-                }
-                catch { }
-            }
-            if (!launched)
-            {
-                var vrcPath = _core.Settings.VrcPath;
-                if (string.IsNullOrWhiteSpace(vrcPath) || !File.Exists(vrcPath))
-                {
-                    _core.SendToJS("log", new { msg = "Could not launch VRChat: Steam not found and no exe path configured.", color = "err" });
-                    return;
-                }
-                var exeArgs = System.Text.RegularExpressions.Regex.Replace(
-                    $"--no-vr {lvProfileArg} {extraLaunchArgs}", "\\s+", " ").Trim();
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = vrcPath, Arguments = exeArgs,
-                    WorkingDirectory = Path.GetDirectoryName(vrcPath) ?? "",
-                    UseShellExecute = false
-                });
-            }
-#else
-            // On Linux, launch via Steam so Proton is applied automatically
-            var lvExtraArgs = (_core.Settings.VrcLaunchArgs ?? "").Trim();
-            var lvProfile   = GetVrcProfileArg();
-            var lvApplaunch = System.Text.RegularExpressions.Regex.Replace(
-                $"-applaunch 438100 --no-vr {lvProfile} {lvExtraArgs}", "\\s+", " ").Trim();
-            try
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "steam",
-                    Arguments = lvApplaunch,
-                    UseShellExecute = false
-                });
-            }
-            catch
-            {
-                Process.Start(new ProcessStartInfo { FileName = "steam://rungameid/438100", UseShellExecute = true });
-            }
-#endif
-            _core.SendToJS("log", new { msg = "Launched VRChat", color = "ok" });
-
-            _vrcLaunchByUsAt = DateTime.UtcNow;
-            LaunchExtraApps(_core.Settings.ExtraExeDesktop, log: true, vr: false);
-        }
-        catch (Exception ex)
-        {
-            _core.SendToJS("log", new { msg = $"Launch error: {ex.Message}", color = "err" });
-        }
     }
 
     // Launches the configured startup apps and remembers them so they can be

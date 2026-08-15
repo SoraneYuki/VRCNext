@@ -629,12 +629,6 @@ namespace VRCNext.Services
         // Theme colors
         private OverlayTheme _theme = OverlayTheme.FromName("vrcn");
 
-        public void SetTheme(string name)
-        {
-            _theme = OverlayTheme.FromName(name);
-            _dirty = true;
-        }
-
         // called from JS applyColors, handles both named themes and auto color
         public void SetThemeColors(Dictionary<string, string> colors)
         {
@@ -4460,38 +4454,6 @@ namespace VRCNext.Services
             "notif_invite"       => _theme.Accent,
             "notif_groupinvite"  => _theme.Warn,
             _                    => _theme.Tx2,
-        };
-
-        private static string EventTypeLabel(string evType) => evType switch
-        {
-            "friend_online"      => "Online",
-            "friend_offline"     => "Offline",
-            "friend_gps"         => "Location",
-            "friend_status"      => "Status",
-            "friend_statusdesc"  => "Status Text",
-            "friend_bio"         => "Bio",
-            "friend_added"       => "Added",
-            "friend_removed"     => "Removed",
-            "notif_friendreq"    => "Friend Req",
-            "notif_invite"       => "Invite",
-            "notif_groupinvite"  => "Group Inv",
-            _                    => "",
-        };
-
-        private static string EventBadgeLabel(string evType, string evText) => evType switch
-        {
-            "friend_online"      => "Online",
-            "friend_offline"     => "Offline",
-            "friend_gps"         => evText,
-            "friend_status"      => evText,
-            "friend_statusdesc"  => evText,
-            "friend_bio"         => evText,
-            "friend_added"       => "Friend added",
-            "friend_removed"     => "Removed",
-            "notif_friendreq"    => "Friend Request",
-            "notif_invite"       => evText,
-            "notif_groupinvite"  => evText,
-            _                    => evText,
         };
 
         private void DrawMusicPlayer(Graphics g)

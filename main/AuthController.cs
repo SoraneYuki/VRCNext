@@ -1104,13 +1104,6 @@ public class AuthController
     }
 
     // Public wrapper that acquires the mutation lock itself.
-    public async Task SaveVrcCookiesAsync()
-    {
-        await _core.AccountMutationLock.WaitAsync();
-        try { SaveVrcCookiesUnlocked(); _core.Settings.Save(); }
-        finally { _core.AccountMutationLock.Release(); }
-    }
-
     // Public wrapper for SendVrcUserData that acquires the mutation lock synchronously for callback sites.
     public void SendVrcUserData(JObject user, bool loginFlow = false)
     {

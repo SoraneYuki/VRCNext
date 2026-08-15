@@ -82,28 +82,6 @@ public class AvatarsAPI(VRChatApiService ctx)
         return all;
     }
 
-    public async Task<List<JObject>> GetFavoriteAvatarsAsync()
-    {
-        if (!ctx.IsLoggedIn) return new();
-        var all = new List<JObject>();
-        try
-        {
-            for (int offset = 0; offset < 500; offset += 50)
-            {
-                var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/avatars/favorites?n=50&offset={offset}");
-                if (!resp.IsSuccessStatusCode) break;
-                var arr = JArray.Parse(await resp.Content.ReadAsStringAsync());
-                if (arr.Count == 0) break;
-                all.AddRange(arr.Cast<JObject>());
-                if (arr.Count < 50) break;
-                await Task.Delay(300);
-            }
-            ctx.Log($"GetFavoriteAvatars: found {all.Count}");
-        }
-        catch (Exception ex) { ctx.Log($"GetFavoriteAvatars exception: {ex.Message}"); }
-        return all;
-    }
-
     public async Task<List<JObject>> GetFavoriteAvatarsByGroupAsync(string groupTag, int max = 100)
     {
         var all = new List<JObject>();
@@ -384,19 +362,6 @@ public class AvatarsAPI(VRChatApiService ctx)
         }
         catch (Exception ex) { ctx.Log($"GetAvatarIdsByFileIds exception: {ex.Message}"); }
         return result;
-    }
-
-    public async Task<bool> CheckAvatarExistsAvtrIcuAsync(string avatarId)
-    {
-        var results = await SearchAvatarsAvtrIcuAsync(avatarId, 5, 0);
-        return results.Any(a => a["id"]?.ToString() == avatarId);
-    }
-
-    public async Task<bool> CheckAvatarExistsAvtrdbAsync(string avatarId)
-    {
-        var results = await SearchAvatarsAsync(avatarId, 1);
-        return results.Count > 0 && results.Any(a =>
-            (a["vrc_id"]?.ToString() ?? a["id"]?.ToString() ?? "") == avatarId);
     }
 
     public async Task<JArray> GetAvatarGalleryAsync(string avatarId)

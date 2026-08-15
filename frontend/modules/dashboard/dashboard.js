@@ -963,7 +963,7 @@ function renderDashMyRecentTimeline() {
         return;
     }
     const personal = (typeof timelineEvents !== 'undefined') ? timelineEvents : [];
-    if (!personal.length && !_dashLayout.hidden.includes('my_recent_activity')) sendToCS({ action: 'vrcGetTimeline', offset: 0 });
+    if (!personal.length && !_dashLayout.hidden.includes('my_recent_activity')) sendToCS({ action: 'getTimeline', offset: 0 });
     el.innerHTML = personal.length ? _dashTlRows(personal, false) : _dashTlSkeleton();
 }
 

@@ -361,25 +361,6 @@ public class UnifiedTimeEngine : IDisposable
         public string LastEventJson   { get; set; } = "";
     }
 
-    public string GetGroupDetailStatus(string groupId)
-    {
-        if (string.IsNullOrEmpty(groupId)) return "empty_id";
-        lock (_lock)
-        {
-            try
-            {
-                using var cmd = _db.CreateCommand();
-                cmd.CommandText = "SELECT detail_cached_at FROM group_tracking WHERE group_id=$id";
-                cmd.Parameters.AddWithValue("$id", groupId);
-                using var r = cmd.ExecuteReader();
-                if (!r.Read()) return "no_row";
-                var cachedAt = r.IsDBNull(0) ? "" : r.GetString(0);
-                return string.IsNullOrEmpty(cachedAt) ? "empty_cached_at" : $"ok:{cachedAt}";
-            }
-            catch (Exception ex) { return $"ex:{ex.Message}"; }
-        }
-    }
-
     public GroupDetailCache? GetGroupDetail(string groupId)
     {
         if (string.IsNullOrEmpty(groupId)) return null;
@@ -501,25 +482,6 @@ public class UnifiedTimeEngine : IDisposable
         public string PcPerf            { get; set; } = "";
         public string QuestPerf         { get; set; } = "";
         public string IosPerf           { get; set; } = "";
-    }
-
-    public string GetAvatarDetailStatus(string avatarId)
-    {
-        if (string.IsNullOrEmpty(avatarId)) return "empty_id";
-        lock (_lock)
-        {
-            try
-            {
-                using var cmd = _db.CreateCommand();
-                cmd.CommandText = "SELECT detail_cached_at FROM avatar_tracking WHERE avatar_id=$id";
-                cmd.Parameters.AddWithValue("$id", avatarId);
-                using var r = cmd.ExecuteReader();
-                if (!r.Read()) return "no_row";
-                var cachedAt = r.IsDBNull(0) ? "" : r.GetString(0);
-                return string.IsNullOrEmpty(cachedAt) ? "empty_cached_at" : $"ok:{cachedAt}";
-            }
-            catch (Exception ex) { return $"ex:{ex.Message}"; }
-        }
     }
 
     private static readonly string[] _perfNames = { "excellent", "good", "medium", "poor", "verypoor" };
