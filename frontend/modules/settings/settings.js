@@ -122,7 +122,6 @@ function saveSettings() {
             peopleAlwaysStats: document.getElementById('setPeopleAlwaysStats')?.checked ?? false,
             modernFolderLayout: document.getElementById('setModernFolderLayout')?.checked ?? true,
             navSidebarHoverText: document.getElementById('setNavSidebarHoverText')?.checked ?? true,
-            directModalNav: document.getElementById('setDirectModalNav')?.checked ?? true,
             enableProfileIconFrames: document.getElementById('setEnableIconFrames')?.checked ?? false,
             squareIconFrames: document.getElementById('setSquareIconFrames')?.checked ?? false,
             enableNameplateDecoration: document.getElementById('setEnableNameplateDeco')?.checked ?? false,
@@ -133,10 +132,6 @@ function saveSettings() {
             profileThemeContrast: document.getElementById('setProfileThemeContrast')?.checked ?? true,
             transparentProfileCards: document.getElementById('setTransparentProfileCards')?.checked ?? false,
             showDecorationsOnDashboard: document.getElementById('setDecoOnDashboard')?.checked ?? false,
-            profileModalStyle: settings.profileModalStyle || 'classic',
-            worldModalStyle: settings.worldModalStyle || 'classic',
-            groupModalStyle: settings.groupModalStyle || 'classic',
-            avatarModalStyle: settings.avatarModalStyle || 'classic',
             language: currentLanguage,
             theme: currentTheme,
             specialTheme: currentSpecialTheme,
@@ -361,7 +356,7 @@ function autoSave() {
 function initAutoSave() {
     const ids = ['setBotName','setBotAvatar','setVrcPath','setStartWithWindows','setMinimizeToTray','setTrayNotifications',
         'setNotifySoundEnabled','setMessageSoundEnabled','setMediaRelaySoundEnabled','setSteamOverlaySoundEnabled',
-        'setFriendsSidebarLocationOnly','setFriendsSidebarPreviewCollapsed','setFriendsSidebarPreviewOpen','setPeopleAlwaysStats','setDirectModalNav',
+        'setFriendsSidebarLocationOnly','setFriendsSidebarPreviewCollapsed','setFriendsSidebarPreviewOpen','setPeopleAlwaysStats',
         'setRandomBg','setClockEnabled','setDateEnabled','setShowVrcPlus','setShowVrcCredits',
         'setAutoStartVR','setAutoStartDesktop',
         'setCloseWithVrc','setStartAlwaysWithVrc',
@@ -443,9 +438,6 @@ function loadSettingsToUI(s) {
     const _nshtEl = document.getElementById('setNavSidebarHoverText');
     if (_nshtEl) _nshtEl.checked = settings.navSidebarHoverText;
     if (typeof applyNavFolderMode === 'function') applyNavFolderMode();
-    settings.directModalNav = s.DirectModalNav ?? s.directModalNav ?? true;
-    const _dmnEl = document.getElementById('setDirectModalNav');
-    if (_dmnEl) _dmnEl.checked = settings.directModalNav;
     settings.enableProfileIconFrames = s.EnableProfileIconFrames ?? s.enableProfileIconFrames ?? false;
     const _eifEl = document.getElementById('setEnableIconFrames');
     if (_eifEl) _eifEl.checked = settings.enableProfileIconFrames;
@@ -478,14 +470,6 @@ function loadSettingsToUI(s) {
     const _dodEl = document.getElementById('setDecoOnDashboard');
     if (_dodEl) _dodEl.checked = settings.showDecorationsOnDashboard;
     if (typeof applyDecorationsSetting === 'function') applyDecorationsSetting();
-    settings.profileModalStyle = s.ProfileModalStyle ?? s.profileModalStyle ?? 'classic';
-    if (typeof _applyProfileModalStyleUI === 'function') _applyProfileModalStyleUI(settings.profileModalStyle);
-    settings.worldModalStyle = s.WorldModalStyle ?? s.worldModalStyle ?? 'classic';
-    if (typeof _applyWorldModalStyleUI === 'function') _applyWorldModalStyleUI(settings.worldModalStyle);
-    settings.groupModalStyle = s.GroupModalStyle ?? s.groupModalStyle ?? 'classic';
-    if (typeof _applyGroupModalStyleUI === 'function') _applyGroupModalStyleUI(settings.groupModalStyle);
-    settings.avatarModalStyle = s.AvatarModalStyle ?? s.avatarModalStyle ?? 'classic';
-    if (typeof _applyAvatarModalStyleUI === 'function') _applyAvatarModalStyleUI(settings.avatarModalStyle);
     settings.folders = s.WatchFolders || s.watchFolders || s.folders || [];
     settings.relayEnabledFolders = s.RelayEnabledFolders ?? s.relayEnabledFolders ?? null;
     settings.extraExe = s.ExtraExe || s.extraExe || [];
@@ -1949,83 +1933,3 @@ function _fotUpdateFavOnly() {
     if (row) row.classList.toggle('disabled', !enabled);
 }
 
-function _applyProfileModalStyleUI(style) {
-    const picker = document.getElementById('profileStylePicker');
-    if (!picker) return;
-    picker.querySelectorAll('.profile-style-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.style === style);
-    });
-}
-
-function setProfileModalStyle(style) {
-    if (style !== 'classic' && style !== 'compact') style = 'classic';
-    settings.profileModalStyle = style;
-    _applyProfileModalStyleUI(style);
-    if (typeof autoSave === 'function') autoSave();
-    const m = document.getElementById('modalFriendDetail');
-    if (m && m.style.display !== 'none' && typeof currentFriendDetail !== 'undefined' && currentFriendDetail
-        && typeof renderFriendDetail === 'function') {
-        renderFriendDetail(currentFriendDetail);
-    }
-}
-
-function _applyWorldModalStyleUI(style) {
-    const picker = document.getElementById('worldStylePicker');
-    if (!picker) return;
-    picker.querySelectorAll('.profile-style-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.style === style);
-    });
-}
-
-function setWorldModalStyle(style) {
-    if (style !== 'classic' && style !== 'compact') style = 'classic';
-    settings.worldModalStyle = style;
-    _applyWorldModalStyleUI(style);
-    if (typeof autoSave === 'function') autoSave();
-    const m = document.getElementById('modalDetail');
-    if (m && m.style.display !== 'none' && typeof _wdCurrentWorldId !== 'undefined' && _wdCurrentWorldId
-        && typeof worldInfoCache !== 'undefined' && worldInfoCache[_wdCurrentWorldId]
-        && typeof renderWorldSearchDetail === 'function') {
-        renderWorldSearchDetail(worldInfoCache[_wdCurrentWorldId]);
-    }
-}
-
-function _applyGroupModalStyleUI(style) {
-    const picker = document.getElementById('groupStylePicker');
-    if (!picker) return;
-    picker.querySelectorAll('.profile-style-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.style === style);
-    });
-}
-
-function setGroupModalStyle(style) {
-    if (style !== 'classic' && style !== 'compact') style = 'classic';
-    settings.groupModalStyle = style;
-    _applyGroupModalStyleUI(style);
-    if (typeof autoSave === 'function') autoSave();
-    const m = document.getElementById('modalDetail');
-    if (m && m.style.display !== 'none' && typeof window._currentGroupDetailFull !== 'undefined' && window._currentGroupDetailFull
-        && typeof renderGroupDetail === 'function') {
-        renderGroupDetail(window._currentGroupDetailFull);
-    }
-}
-
-function _applyAvatarModalStyleUI(style) {
-    const picker = document.getElementById('avatarStylePicker');
-    if (!picker) return;
-    picker.querySelectorAll('.profile-style-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.style === style);
-    });
-}
-
-function setAvatarModalStyle(style) {
-    if (style !== 'classic' && style !== 'compact') style = 'classic';
-    settings.avatarModalStyle = style;
-    _applyAvatarModalStyleUI(style);
-    if (typeof autoSave === 'function') autoSave();
-    const m = document.getElementById('modalAvatarDetail');
-    if (m && m.style.display !== 'none' && typeof _avDetailData !== 'undefined' && _avDetailData
-        && typeof renderAvatarDetail === 'function') {
-        renderAvatarDetail(_avDetailData);
-    }
-}

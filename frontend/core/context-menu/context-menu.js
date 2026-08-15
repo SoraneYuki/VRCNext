@@ -633,7 +633,7 @@
             if (loc) return buildInstanceLinkItems(loc);
         }
 
-        const groupActInst = el.closest('#dashGroupActivityCards .vrcn-content-card, #dashGroupActivityShelf .dash-flocs-card');
+        const groupActInst = el.closest('#dashGroupActivityCards .vrcn-content-card, #dashGroupActivityShelf .dash-flocs-card, #groupInstancesGrid .vrcn-content-card, .tl-list-table[data-tl-list="groupInstList"] .tl-list-row');
         if (groupActInst) {
             const loc = (groupActInst.getAttribute('onclick') || '').match(/openGroupInstanceDetail\('([^']+)'\)/)?.[1];
             if (loc) return buildInstanceLinkItems(loc);

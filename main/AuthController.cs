@@ -239,8 +239,6 @@ public class AuthController
                         enableProfileIconFrames        = _core.Settings.EnableProfileIconFrames,
                         friendsSidebarLocationOnly     = _core.Settings.FriendsSidebarLocationOnly,
                         friendsSidebarPreviewCollapsed = _core.Settings.FriendsSidebarPreviewCollapsed,
-                        directModalNav                 = _core.Settings.DirectModalNav,
-                        profileModalStyle              = _core.Settings.ProfileModalStyle,
                     },
                 });
                 _ = VrcTryResumeAsync();
@@ -1870,12 +1868,6 @@ public class AuthController
             var v = prefs[key];
             if (v != null && v.Type != JTokenType.Null) set(v.Value<bool>());
         }
-        void Style(string key, Action<string> set)
-        {
-            var v = prefs[key]?.ToString();
-            if (v == "classic" || v == "compact") set(v);
-        }
-
         Flag("enableProfileIconFrames",        v => _core.Settings.EnableProfileIconFrames = v);
         Flag("squareIconFrames",               v => _core.Settings.SquareIconFrames = v);
         Flag("enableNameplateDecoration",      v => _core.Settings.EnableNameplateDecoration = v);
@@ -1888,11 +1880,6 @@ public class AuthController
         Flag("showDecorationsOnDashboard",     v => _core.Settings.ShowDecorationsOnDashboard = v);
         Flag("friendsSidebarLocationOnly",     v => _core.Settings.FriendsSidebarLocationOnly = v);
         Flag("friendsSidebarPreviewCollapsed", v => _core.Settings.FriendsSidebarPreviewCollapsed = v);
-        Flag("directModalNav",                 v => _core.Settings.DirectModalNav = v);
-        Style("profileModalStyle",             v => _core.Settings.ProfileModalStyle = v);
-        Style("worldModalStyle",               v => _core.Settings.WorldModalStyle = v);
-        Style("groupModalStyle",               v => _core.Settings.GroupModalStyle = v);
-        Style("avatarModalStyle",              v => _core.Settings.AvatarModalStyle = v);
 
         _core.Settings.Save();
     }
@@ -1922,7 +1909,6 @@ public class AuthController
             _core.Settings.PeopleAlwaysStats = data["peopleAlwaysStats"]?.Value<bool>() ?? false;
             _core.Settings.ModernFolderLayout = data["modernFolderLayout"]?.Value<bool>() ?? true;
             _core.Settings.NavSidebarHoverText = data["navSidebarHoverText"]?.Value<bool>() ?? true;
-            _core.Settings.DirectModalNav = data["directModalNav"]?.Value<bool>() ?? true;
             _core.Settings.EnableProfileIconFrames = data["enableProfileIconFrames"]?.Value<bool>() ?? false;
             _core.Settings.SquareIconFrames = data["squareIconFrames"]?.Value<bool>() ?? false;
             _core.Settings.EnableNameplateDecoration = data["enableNameplateDecoration"]?.Value<bool>() ?? false;
@@ -1933,10 +1919,6 @@ public class AuthController
             _core.Settings.ProfileThemeContrast = data["profileThemeContrast"]?.Value<bool>() ?? true;
             _core.Settings.TransparentProfileCards = data["transparentProfileCards"]?.Value<bool>() ?? false;
             _core.Settings.ShowDecorationsOnDashboard = data["showDecorationsOnDashboard"]?.Value<bool>() ?? false;
-            _core.Settings.ProfileModalStyle = data["profileModalStyle"]?.ToString() ?? "classic";
-            _core.Settings.WorldModalStyle = data["worldModalStyle"]?.ToString() ?? "classic";
-            _core.Settings.GroupModalStyle = data["groupModalStyle"]?.ToString() ?? "classic";
-            _core.Settings.AvatarModalStyle = data["avatarModalStyle"]?.ToString() ?? "classic";
             _core.Settings.MinimizeToTray = data["minimizeToTray"]?.Value<bool>() ?? false;
             _core.Settings.TrayNotificationsEnabled = data["trayNotificationsEnabled"]?.Value<bool>() ?? false;
 #if WINDOWS

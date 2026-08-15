@@ -147,8 +147,7 @@ function openFriendDetail(userId) {
     if (typeof navSetCurrent === 'function') navSetCurrent('friend', userId);
     const m = document.getElementById('modalFriendDetail');
     const c = document.getElementById('friendDetailContent');
-    const _useCompact = (typeof settings !== 'undefined' && settings.profileModalStyle === 'compact');
-    c.innerHTML = sk(_useCompact ? 'content-modal-compact' : 'content-modal');
+    c.innerHTML = sk('content-modal-compact');
     if (typeof vrcnPlusOnProfileOpened === 'function') {
         const _fdBox = m.querySelector('.modal-box');
         if (_fdBox) vrcnPlusOnProfileOpened(userId, _fdBox);
@@ -593,11 +592,8 @@ function renderFriendDetail(d) {
     window._fdAllAvatars = [];
     const c = document.getElementById('friendDetailContent');
 
-    // Classic = single-column layout with top banner (default, pre-refactor look).
-    // Compact = two-column layout with a left identity sidebar.
-    const useCompact = (typeof settings !== 'undefined' && settings.profileModalStyle === 'compact');
     const _fdModal = document.getElementById('modalFriendDetail');
-    if (_fdModal) _fdModal.classList.toggle('fd-style-compact', useCompact);
+    if (_fdModal) _fdModal.classList.add('fd-style-compact');
 
     const img = d.image || '';
     const _fdAvatarInner = img
@@ -954,24 +950,19 @@ function renderFriendDetail(d) {
         <div class="fd-group-rep-label">${t('instance.owner', 'Instance Owner')}</div>
         ${_ownerPartHtml}
     </div>` : '';
-    // Compact: trust badges (PC/Friend/18+/Trusted/User-ID) sit at the top of
-    // the Biography card; the id-badge truncates with ellipsis to keep them on
-    // one row. Classic: badges live in the top row, bio holds languages instead.
-    const _bioBadgesHtml = useCompact
-        ? badgesHtml.replace('<div class="fd-badges-row">', '<div class="fd-badges-row fd-bio-badges-row" style="margin-bottom:10px;">')
-        : '';
-    const _bioCardCondition = useCompact
-        ? (d.id || d.bio || bioLinksHtml)
-        : (d.bio || bioLinksHtml || langsHtml);
+    // Trust badges (PC/Friend/18+/Trusted/User-ID) sit at the top of the
+    // Biography card; the id-badge truncates with ellipsis to keep them on one row.
+    const _bioBadgesHtml = badgesHtml.replace('<div class="fd-badges-row">', '<div class="fd-badges-row fd-bio-badges-row" style="margin-bottom:10px;">');
+    const _bioCardCondition = (d.id || d.bio || bioLinksHtml);
     const _bioTransBtn = (d.bio && window._kxdProfileTranslationEnabled !== false)
         ? `<button class="fd-bio-translate myp-edit-btn" onclick="fdTranslateBio(this)" title="${esc(t('profiles.bio.translate', 'Translate'))}"><span class="msi" style="font-size:14px;">translate</span></button>`
         : '';
     const _bioCard = _bioCardCondition ? `<div class="fd-info-card">
         <div class="fd-group-rep-label">${t('profiles.bio.title', 'Biography')}${d.bio ? `<button class="fd-bio-expand" onclick="fdToggleBio(this)" style="display:none"><span class="msi">chevron_right</span></button>` : ''}${_bioTransBtn}</div>
-        ${_bioBadgesHtml}${bioHtml}${bioLinksHtml}${useCompact ? '' : langsHtml}
+        ${_bioBadgesHtml}${bioHtml}${bioLinksHtml}
     </div>` : '';
     const _noteCard = `<div class="fd-info-card">${vrcNoteHtml}</div>`;
-    const _memoTitle = useCompact ? t('profiles.memo.title_compact', 'Memo') : t('profiles.memo.title', 'User Memo');
+    const _memoTitle = t('profiles.memo.title_compact', 'Memo');
     const _memoView  = esc((d.memo && d.memo.trim()) ? d.memo : (d.displayName || ''));
     const _memoCard = `<div class="fd-info-card">
         <div class="myp-section-header">
@@ -994,30 +985,15 @@ function renderFriendDetail(d) {
     const _trustCard = trustSideHtml ? `<div class="fd-info-card">${trustSideHtml}</div>` : '';
     const _repCard = repGroupInfoHtml ? `<div class="fd-info-card">${repGroupInfoHtml}</div>` : '';
     const _modCard = `<div class="fd-info-card" id="fdModerationCard">${_buildModCardInner(d.id)}</div>`;
-    const _fdTrustBadgesCard = `<div class="fd-info-card">${badgesHtml}</div>`;
     const _fdBadgesCard = vrcBadgesRowHtml ? `<div class="fd-info-card"><div class="fd-group-rep-label">${t('profiles.badges.badges', 'Badges')}</div>${vrcBadgesRowHtml}</div>` : '';
     const _fdLangCard = langsHtml ? `<div class="fd-info-card"><div class="fd-group-rep-label">${t('profiles.my_profile.sections.languages', 'Languages')}</div>${langsHtml}</div>` : '';
-    const infoContent = useCompact
-        ? `<div class="fd-info-wrap">
+    const infoContent = `<div class="fd-info-wrap">
             <div class="fd-info-cols">
                 <div class="fd-info-left">
                     ${_currentWorldCard}${avatarRowHtml}${_bioCard}${_noteCard}
                 </div>
                 <div class="fd-info-right">
                     ${_ownerCard}${_repCard}${_trustCard}${_modCard}
-                </div>
-            </div>
-            ${_tlCard}
-            ${_insightsCard}
-            ${_heatmapCard}
-        </div>`
-        : `<div class="fd-info-wrap">
-            <div class="fd-info-cols">
-                <div class="fd-info-left">
-                    ${_currentWorldCard}${_fdBadgesCard}${avatarRowHtml}${_bioCard}${_noteCard}
-                </div>
-                <div class="fd-info-right">
-                    ${_ownerCard}${_infosCard}${_memoCard}${_trustCard}${_modCard}
                 </div>
             </div>
             ${_tlCard}
@@ -1062,16 +1038,15 @@ function renderFriendDetail(d) {
             <div id="fdAvatarsPageBar" class="mini-paginator"></div>
         </div>`;
 
-    // Status row & dot — classic embeds the dot inside the status text; compact
-    // moves the dot onto the avatar (#fd-live-dot) and shows only the user's
-    // status description (label/web suffix come from the avatar dot's color).
+    // Status row & dot — the dot sits on the avatar (#fd-live-dot) and the row
+    // shows only the user's status description (label/web suffix come from the
+    // avatar dot's color).
     const _fdDotHtml = `<span class="${fdDotClass} ${fdStatusDotCls} fd-left-status-dot" id="fd-live-dot"></span>`;
     const _fdStatusRowCompact = d.statusDescription
         ? `<div class="fd-status-row"><div class="fd-status" id="fd-live-status">${esc(d.statusDescription)}</div></div>`
         : `<div class="fd-status-row" style="display:none;"><div class="fd-status" id="fd-live-status"></div></div>`;
-    const _fdStatusRowClassic = `<div class="fd-status-row"><div class="fd-status" id="fd-live-status"><span class="${fdDotClass} ${fdStatusDotCls}" style="width:8px;height:8px;"></span>${fdIsOffline ? t('status.offline', 'Offline') : statusLabel(d.status)}${(!fdIsOffline && fdIsWeb) ? ' ' + t('profiles.friends.web_suffix', '(Web)') : ''}${(!fdIsOffline && d.statusDescription) ? ' - ' + esc(d.statusDescription) : ''}</div>${repGroupBadgeHtml}</div>`;
 
-    if (useCompact) {
+    {
         const bannerSlotHtml = `<div class="fd-left-banner" id="fd-banner-slot">${bannerSrc ? '<div class="fd-banner-fade"></div>' : ''}${(typeof profileEffectHtml === 'function') ? profileEffectHtml(d.profileEffectUrl) : ''}</div>`;
         const _fdLeftHtml = `<div class="fd-left">
             ${bannerSlotHtml}
@@ -1086,9 +1061,6 @@ function renderFriendDetail(d) {
         </div>`;
         const _fdRightHtml = `<div class="fd-right"><div class="fd-right-scroll">${tabsHtml}<div id="fdTabInfo">${infoContent}</div><div id="fdTabGroups" style="display:none;">${groupsContent}</div><div id="fdTabMutuals" style="display:none;">${mutualsContent}</div><div id="fdTabContent" style="display:none;">${contentHtml}</div><div id="fdTabFavs" style="display:none;" data-user-id="${esc(userId)}"></div><div id="fdTabJson" style="display:none;"><div class="json-viewer">${jsonHighlight((d.id && _fdRawJsonCache[d.id]) || {})}</div></div></div></div>`;
         c.innerHTML = `${fdHeaderActions}<div class="fd-layout">${_fdLeftHtml}${_fdRightHtml}</div>`;
-    } else {
-        const bannerHtml = bannerSrc ? `<div class="fd-banner" id="fd-banner-slot"><div class="fd-banner-fade"></div>${(typeof profileEffectHtml === 'function') ? profileEffectHtml(d.profileEffectUrl) : ''}</div>` : '';
-        c.innerHTML = `${fdHeaderActions}${bannerHtml}<div class="fd-content${bannerSrc ? ' fd-has-banner' : ''}"><div class="fd-header">${imgTag}<div><div class="fd-name" style="display:flex;align-items:center;gap:6px;">${esc(d.displayName)}${vrcPlusBadge}</div>${pronounsHtml}${_fdStatusRowClassic}</div></div>${badgesHtml}${actionsHtml}${favPickerHtml}${tabsHtml}<div id="fdTabInfo">${infoContent}</div><div id="fdTabGroups" style="display:none;">${groupsContent}</div><div id="fdTabMutuals" style="display:none;">${mutualsContent}</div><div id="fdTabContent" style="display:none;">${contentHtml}</div><div id="fdTabFavs" style="display:none;" data-user-id="${esc(userId)}"></div><div id="fdTabJson" style="display:none;"><div class="json-viewer">${jsonHighlight((d.id && _fdRawJsonCache[d.id]) || {})}</div></div></div>`;
     }
 
     if (bannerSrc) {
@@ -1153,13 +1125,12 @@ function renderFriendDetail(d) {
     if (userId) { _fdHeatmapDays = 30; _fdHeatmapView = 'online'; _fdStatusData = null; sendToCS({ action: 'getUserOnlineHeatmap', userId, days: 30 }); }
     if (userId && !isSelf) sendToCS({ action: 'getUserStatusTime', userId, days: 30 });
 
-    // VRC+ profile background. Classic covers the whole modal box in place of the
-    // theme colour; compact only skins the left identity sidebar.
+    // VRC+ profile background skins the left identity sidebar.
     if (typeof applyProfileBg === 'function') {
         const _bgBox  = document.querySelector('#modalFriendDetail .modal-box');
         const _bgLeft = c.querySelector('.fd-left');
-        applyProfileBg(_bgBox,  useCompact ? null : d);
-        applyProfileBg(_bgLeft, useCompact ? d : null);
+        applyProfileBg(_bgBox,  null);
+        applyProfileBg(_bgLeft, d);
     }
     if (typeof applyProfileTheme === 'function') {
         applyProfileTheme(document.querySelector('#modalFriendDetail .modal-box'), d);

@@ -267,7 +267,6 @@ public class AppSettings
     public bool PeopleAlwaysStats { get; set; } = false;
     public bool ModernFolderLayout { get; set; } = true;
     public bool NavSidebarHoverText { get; set; } = true;
-    public bool DirectModalNav { get; set; } = true;
     public bool VrcPlusOptimizeEnabled { get; set; } = true;
     public bool EnableProfileIconFrames { get; set; } = false;
     public bool SquareIconFrames { get; set; } = false;
@@ -279,10 +278,6 @@ public class AppSettings
     public bool ProfileThemeContrast { get; set; } = true;
     public bool TransparentProfileCards { get; set; } = false;
     public bool ShowDecorationsOnDashboard { get; set; } = false;
-    public string ProfileModalStyle { get; set; } = "classic";
-    public string WorldModalStyle { get; set; } = "classic";
-    public string GroupModalStyle { get; set; } = "classic";
-    public string AvatarModalStyle { get; set; } = "classic";
     public bool MinimizeToTray { get; set; }
     public bool TrayNotificationsEnabled { get; set; }
     public string Language { get; set; } = "en";
