@@ -86,8 +86,11 @@ function _tlBanner(hasThumb) {
 function _tlInsertBanner(el, key, src) {
     if (!src || !key) return;
     const s = el.querySelector('#tl-banner-slot');
-    const bi = _getWorldBannerImg(key, src);
-    if (s && bi) s.insertBefore(bi, s.firstChild);
+    if (!s) return;
+    const img = new Image();
+    img.src = src;
+    img.onerror = () => { if (img.parentElement) img.parentElement.style.display = 'none'; };
+    s.insertBefore(img, s.firstChild);
 }
 function _tlAvRow(image, name, label, labelColor) {
     const av = image

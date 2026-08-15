@@ -440,6 +440,7 @@ function handleFriendTimelineEventDeleted(payload) {
     const before = friendTimelineEvents.length;
     friendTimelineEvents = friendTimelineEvents.filter(e => e.id !== payload.id);
     if (friendTimelineEvents.length !== before && tlMode === 'friends') filterFriendTimeline();
+    if (friendTimelineEvents.length !== before && typeof renderDashFriendsRecentTimeline === 'function') renderDashFriendsRecentTimeline();
 }
 
 function handleTimelineReload(payload) {
@@ -524,7 +525,10 @@ function handleTimelineEventDeleted(payload) {
     if (!payload?.id) return;
     const before = timelineEvents.length;
     timelineEvents = timelineEvents.filter(e => e.id !== payload.id);
-    if (timelineEvents.length !== before) filterTimeline();
+    if (timelineEvents.length !== before) {
+        filterTimeline();
+        if (typeof renderDashMyRecentTimeline === 'function') renderDashMyRecentTimeline();
+    }
 }
 
 function handleTimelineEvent(ev) {
@@ -539,6 +543,7 @@ function handleTimelineEvent(ev) {
     filterTimeline();
     // Update friend-detail preview if it's currently open
     if (typeof updateFdTlPreview === 'function') updateFdTlPreview();
+    if (typeof renderDashMyRecentTimeline === 'function') renderDashMyRecentTimeline();
 }
 
 function setTlFilter(f) {
@@ -1375,6 +1380,7 @@ function handleFriendTimelineEvent(ev) {
     else friendTimelineEvents.unshift(ev);
     friendTimelineEvents.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
     if (tlMode === 'friends') filterFriendTimeline();
+    if (typeof renderDashFriendsRecentTimeline === 'function') renderDashFriendsRecentTimeline();
 }
 
 function setFtFilter(f) {

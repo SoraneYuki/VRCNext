@@ -886,8 +886,8 @@ function _dashTlDetail(ev, isFriend) {
     if (isFriend) {
         switch (ev.type) {
             case 'friend_gps':        return ev.worldName || ev.worldId || '';
-            case 'friend_status':     return ev.newValue || '';
-            case 'friend_statusdesc': return ev.newValue || '';
+            case 'friend_status':     return '';
+            case 'friend_statusdesc': return ev.newValue || t('timeline.value.cleared', '(cleared)');
             case 'friend_bio':        return ev.newValue || '';
             case 'friend_online':
             case 'friend_offline':
@@ -901,18 +901,33 @@ function _dashTlDetail(ev, isFriend) {
         case 'photo':          return ev.worldName || (ev.photoPath ? ev.photoPath.split(/[\\/]/).pop() : '') || '';
         case 'first_meet':
         case 'meet_again':     return ev.worldName || '';
-        case 'avatar_switch':  return ev.avatarName || '';
-        case 'notification':   return ev.notifType || '';
-        case 'video_url':      return ev.url || '';
+        case 'avatar_switch':  return '';
+        case 'notification':   return (typeof tlNotifTypeLabel === 'function') ? tlNotifTypeLabel(ev.notifType) : (ev.notifType || '');
+        case 'moderation':     return (typeof tlModTypeLabel === 'function')
+            ? tlModTypeLabel(ev.notifType, (typeof tlModIsActive === 'function') ? tlModIsActive(ev) : false)
+            : (ev.notifType || '');
+        case 'profile': {
+            if (ev.notifType === 'status') return '';
+            if (ev.notifType === 'statusdesc') return ev.message || t('timeline.value.cleared', '(cleared)');
+            if (ev.notifType === 'bio') return ev.message || '';
+            return (typeof tlProfileMeta === 'function') ? tlProfileMeta(ev).label : '';
+        }
+        case 'video_url':      return ev.message || ev.url || '';
         default:               return '';
     }
+}
+
+function _dashTlStatusChips(oldV, newV) {
+    return `<span class="ft-status-chip ${statusCssClass(oldV)}">${esc(statusLabel(oldV) || '?')}</span>`
+        + `<span class="msi" style="font-size:11px;color:var(--tx3);">arrow_forward</span>`
+        + `<span class="ft-status-chip ${statusCssClass(newV)}">${esc(statusLabel(newV) || '?')}</span>`;
 }
 
 function _dashTlRows(events, isFriend) {
     if (!events.length) {
         return `<div class="empty-msg" style="padding:16px 8px;">${t('dashboard.timeline.empty', 'No events yet')}</div>`;
     }
-    const rows = events.slice(0, 8).map(ev => {
+    const rows = events.slice(0, 10).map(ev => {
         const ei = jsq(ev.id);
         let icon, color, name, click;
         if (isFriend) {
@@ -944,12 +959,19 @@ function _dashTlRows(events, isFriend) {
             ? `<span class="dash-act-av" style="background-image:url('${cssUrl(imgThumb(img, 48))}')"></span>`
             : `<span class="dash-act-av dash-act-av-letter">${esc((name || '?')[0].toUpperCase())}</span>`;
         const d = new Date(ev.timestamp);
+        const isStatusChange = typeof statusCssClass === 'function' && (
+            (isFriend && ev.type === 'friend_status') ||
+            (!isFriend && ev.type === 'profile' && ev.notifType === 'status'));
+        const detailHtml = isStatusChange
+            ? `<span class="dash-act-detail" style="display:flex;align-items:center;gap:5px;overflow:hidden;">${
+                isFriend ? _dashTlStatusChips(ev.oldValue, ev.newValue) : _dashTlStatusChips(ev.notifTitle, ev.message)}</span>`
+            : `<span class="dash-act-detail">${esc(detail)}</span>`;
         return `<div class="dash-act-row" onclick="${click}">
             <span class="msi dash-act-icon" style="color:${color}">${icon}</span>
             <span class="dash-act-time">${esc(fmtShortDate(d))}<span class="dash-act-clock">${esc(fmtTime(d))}</span></span>
             ${av}
             <span class="dash-act-name">${esc(name)}</span>
-            <span class="dash-act-detail">${esc(detail)}</span>
+            ${detailHtml}
         </div>`;
     }).join('');
     return `<div class="dash-act-list">${rows}</div>`;

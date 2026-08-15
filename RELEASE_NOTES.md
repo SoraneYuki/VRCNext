@@ -36,3 +36,7 @@
 * Fixed the horizontal scroll position in **People > Instance** resetting during player list updates.
 * Fixed **See All** on the **Friends Recent Activity** widget not switching to **Timeline > Friends**.
 * **See All** on the **Group Activity** widget now opens **Groups > Group Instances**.
+* Fixed an issue where timeline events on the Dashboard were not updating live and required a manual refresh.
+* Fixed an issue where timeline events on the Dashboard did not use localization keys for their text.
+* Fixed an issue where timeline events did not show status dots.
+* Fixed an issue where World modal banners could become corrupted when opening a timeline event from inside the modal.
