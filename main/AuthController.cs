@@ -2190,7 +2190,7 @@ public class AuthController
             _core.Settings.VrcndbConsentShown  = data["vrcndbConsentShown"]?.Value<bool>() ?? _core.Settings.VrcndbConsentShown;
 
             // Memory Trim
-            _core.Settings.MemoryTrimEnabled = data["memoryTrimEnabled"]?.Value<bool>() ?? false;
+            _core.Settings.MemoryTrimEnabled = data["memoryTrimEnabled"]?.Value<bool>() ?? true;
             _core.MemTrim.SetEnabled(_core.Settings.MemoryTrimEnabled);
 
             // Windows Fixes
@@ -2240,8 +2240,12 @@ public class AuthController
             // Dashboard layout
             var dashOrder  = data["dashSectionOrder"]?.ToObject<List<string>>();
             var dashHidden = data["dashSectionHidden"]?.ToObject<List<string>>();
+            var dashRows   = data["dashRows"]?.ToObject<List<string>>();
+            var dashHero   = data["dashHero"]?.ToObject<List<string>>();
             if (dashOrder  != null) _core.Settings.DashSectionOrder  = dashOrder;
             if (dashHidden != null) _core.Settings.DashSectionHidden = dashHidden;
+            if (dashRows   != null) _core.Settings.DashRows          = dashRows;
+            if (dashHero   != null) _core.Settings.DashHero          = dashHero;
 
             _core.Settings.Save();
             if (_core.Settings.LastSaveError != null)

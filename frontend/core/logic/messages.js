@@ -259,7 +259,6 @@ window.external.receiveMessage(rawMsg => {
                     if (fsl) fsl.innerHTML = `<div class="vrc-section-label">${t('profiles.friends.sections.loading', 'IN-GAME - ...')}</div>` + sk('friend', 10);
                 }
                 renderDashboard();
-                fetchWorldTabs();
                 loadMyInstances();
                 requestInstanceInfo();
                 refreshNotifications();

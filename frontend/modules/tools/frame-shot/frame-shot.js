@@ -196,6 +196,14 @@ function fsUpdateActivationRadius() {
 let _fsSavedDevice = '';
 let _fsDevicesReady = false;
 function fsRequestDevices() { sendToCS({ action: 'fsGetDevices' }); }
+
+let _fsDevicesRequested = false;
+function fsEnsureDeviceLists() {
+    if (_fsDevicesRequested) return;
+    _fsDevicesRequested = true;
+    fsRequestAudioDevices();
+    fsRequestDevices();
+}
 function fsCurrentOutputDevice() {
     return _fsDevicesReady ? (document.getElementById('fsOutputDevice')?.value ?? '') : _fsSavedDevice;
 }

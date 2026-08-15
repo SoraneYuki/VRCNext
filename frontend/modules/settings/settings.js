@@ -316,7 +316,13 @@ function saveSettings() {
             vrcndbSubmitAvatars: document.getElementById('setVrcndbSubmit').checked,
             vrcndbReportDeleted: document.getElementById('setVrcndbReport').checked,
             dashSectionOrder:  (typeof _dashLayout !== 'undefined') ? _dashLayout.order  : [],
-            dashSectionHidden: (typeof _dashLayout !== 'undefined') ? _dashLayout.hidden : []
+            dashSectionHidden: (typeof _dashLayout !== 'undefined') ? _dashLayout.hidden : [],
+            dashRows: (typeof _dashLayout !== 'undefined' && Array.isArray(_dashLayout.rows))
+                ? _dashLayout.rows.map(r => r.map(id => id || '').join('|'))
+                : [],
+            dashHero: (typeof _dashLayout !== 'undefined' && _dashLayout.hero)
+                ? [_dashLayout.hero.left || '', _dashLayout.hero.right || '']
+                : []
         }
     };
     // Sync in-memory flags immediately so sound functions see the updated value without waiting for round-trip
@@ -508,7 +514,7 @@ function loadSettingsToUI(s) {
     applyGuiZoom(savedZoom / 100);
 
     dashBgPath = s.DashBgPath || s.dashBgPath || '';
-    if (typeof loadDashLayout === 'function') loadDashLayout({ order: s.DashSectionOrder || s.dashSectionOrder, hidden: s.DashSectionHidden || s.dashSectionHidden });
+    if (typeof loadDashLayout === 'function') loadDashLayout({ hero: s.DashHero || s.dashHero, rows: s.DashRows || s.dashRows, order: s.DashSectionOrder || s.dashSectionOrder, hidden: s.DashSectionHidden || s.dashSectionHidden });
 
     const randomBg = s.RandomDashBg || s.randomDashBg || false;
     document.getElementById('setRandomBg').checked = randomBg;
@@ -676,7 +682,6 @@ function loadSettingsToUI(s) {
     if (typeof fsRenderKeybind === 'function') fsRenderKeybind();
     if (typeof _fsSavedAudioA !== 'undefined') _fsSavedAudioA = s.FsVideoDeviceA ?? s.fsVideoDeviceA ?? '';
     if (typeof _fsSavedAudioB !== 'undefined') _fsSavedAudioB = s.FsVideoDeviceB ?? s.fsVideoDeviceB ?? '';
-    if (typeof fsRequestAudioDevices === 'function') fsRequestAudioDevices();
     const _fsVF  = document.getElementById('fsVideoFps');
     const _fsVQ  = document.getElementById('fsVideoQuality');
     const _fsVBQ = document.getElementById('fsVideoBitrateQuality');
@@ -686,7 +691,6 @@ function loadSettingsToUI(s) {
     if (_fsVBQ) _fsVBQ.value = String(s.FsVideoBitrateQuality ?? s.fsVideoBitrateQuality ?? 'medium');
     if (_fsAK)  _fsAK.value  = String(s.FsAudioKbps           ?? s.fsAudioKbps           ?? 256);
     if (typeof _fsSavedDevice !== 'undefined') _fsSavedDevice = s.FsOutputDevice ?? s.fsOutputDevice ?? '';
-    if (typeof fsRequestDevices === 'function') fsRequestDevices();
     if (typeof fsRequestFfmpegState === 'function') fsRequestFfmpegState();
     const _fsAr = document.getElementById('fsActivationRadius');
     if (_fsAr) {
@@ -830,7 +834,7 @@ function loadSettingsToUI(s) {
     document.getElementById('setVrcndbReport').checked = s.VrcndbReportDeleted ?? s.vrcndbReportDeleted ?? false;
 
     // Memory Trim
-    document.getElementById('setMemoryTrimEnabled').checked = s.MemoryTrimEnabled ?? s.memoryTrimEnabled ?? false;
+    document.getElementById('setMemoryTrimEnabled').checked = s.MemoryTrimEnabled ?? s.memoryTrimEnabled ?? true;
     { const _mfEl = document.getElementById('setMediaFixEnabled'); if (_mfEl) _mfEl.checked = s.MediaFixEnabled ?? s.mediaFixEnabled ?? true; }
 
     // Database optimization

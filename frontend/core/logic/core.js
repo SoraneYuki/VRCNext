@@ -1627,10 +1627,11 @@ function showTab(i) {
         }
     });
     updateCurrentPageTitle();
-    if (i === 0) renderDashboard();
+    if (i === 0) { if (typeof _dashRollGreeting === 'function') _dashRollGreeting(); renderDashboard(); }
     if (i === 1 && favWorldsData.length === 0) sendToCS({ action: 'vrcGetFavoriteWorlds' });
     if (i === 2 && !myGroupsLoaded) loadMyGroups();
     if (i === 2 && typeof _myGroupsDirty !== 'undefined' && _myGroupsDirty && myGroupsLoaded) filterMyGroups();
+    if (i === 2 && typeof _groupInstDirty !== 'undefined' && _groupInstDirty && typeof _dashGroupInstances !== 'undefined' && _dashGroupInstances !== null) renderGroupInstancesView();
     if (i === 23) { if (!myGroupsLoaded) loadMyGroups(); if (typeof onSnipeTabOpen === 'function') onSnipeTabOpen(); }
     if (i === 3 && favFriendsData.length === 0) sendToCS({ action: 'vrcGetFavoriteFriends' });
     if (i === 3 && typeof _favFriendsDirty !== 'undefined' && _favFriendsDirty && favFriendsData.length > 0) filterFavFriends();
@@ -1651,6 +1652,7 @@ function showTab(i) {
     if (i === 22) { kxdInitLangSelects(); kxdOnTabOpen(); }
     if (i === 25) { if (typeof afOnTabOpen === 'function') afOnTabOpen(); }
     if (i === 27) { if (typeof onStatusScheduleTabOpen === 'function') onStatusScheduleTabOpen(); }
+    if (i === 26) { if (typeof fsEnsureDeviceLists === 'function') fsEnsureDeviceLists(); }
 
     if (_prevTabEl) {
         if (_lazyUnloadDelay === 0) {

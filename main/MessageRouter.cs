@@ -3677,7 +3677,7 @@ public partial class AppShell
                             var json = await http.GetStringAsync("https://ask.vrchat.com/c/official/31.json");
                             var data = JObject.Parse(json);
                             var topics = data["topic_list"]?["topics"] as JArray ?? new JArray();
-                            var items = topics.Take(3).Select(t => new
+                            var items = topics.Take(6).Select(t => new
                             {
                                 id      = t["id"]?.ToString() ?? "",
                                 title   = t["title"]?.ToString() ?? "",

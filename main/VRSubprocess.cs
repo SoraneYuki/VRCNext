@@ -12,6 +12,9 @@ namespace VRCNext;
 
 static class VRSubprocess
 {
+    private static volatile bool _toolConnected;
+    private static System.Threading.Timer? _idleExitTimer;
+
     public static void Run()
     {
         Console.InputEncoding  = Encoding.UTF8;
@@ -118,6 +121,15 @@ static class VRSubprocess
             SendLine(new JObject { ["t"] = "fs_photo_saved", ["path"] = path });
         fs.OnVRQuit += () => Environment.Exit(0);
 
+        _idleExitTimer = new System.Threading.Timer(_ =>
+        {
+            if (!_toolConnected)
+            {
+                Log("[Sub] No tool connected, exiting idle subprocess");
+                Environment.Exit(0);
+            }
+        }, null, 20_000, System.Threading.Timeout.Infinite);
+
         string? line;
         while ((line = Console.ReadLine()) != null)
         {
@@ -143,6 +155,7 @@ static class VRSubprocess
         {
             case "vro_connect":
             {
+                _toolConnected = true;
                 bool ok = vro.Connect();
                 if (ok) vro.StartPolling();
                 SendLine(new JObject
@@ -311,6 +324,7 @@ static class VRSubprocess
 
             case "sf_connect":
             {
+                _toolConnected = true;
                 bool ok = sf.Connect();
                 if (ok)
                 {
@@ -350,6 +364,7 @@ static class VRSubprocess
 
             case "fs_connect":
             {
+                _toolConnected = true;
                 bool ok = fs.Connect();
                 if (ok)
                 {

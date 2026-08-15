@@ -592,7 +592,7 @@ public class AppSettings
     public bool FfcEnabled { get; set; } = true;
 
     // Memory Trim
-    public bool MemoryTrimEnabled { get; set; } = false;
+    public bool MemoryTrimEnabled { get; set; } = true;
 
     // Instance prints — download prints other players drop in the instance
     public bool   SaveInstancePrints { get; set; } = false;
@@ -680,6 +680,8 @@ public class AppSettings
     // Dashboard layout customization
     public List<string>? DashSectionOrder  { get; set; } = null;
     public List<string>? DashSectionHidden { get; set; } = null;
+    public List<string>? DashRows          { get; set; } = null;
+    public List<string>? DashHero          { get; set; } = null;
 
     public bool SetupComplete { get; set; }
 
