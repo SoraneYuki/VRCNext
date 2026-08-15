@@ -186,7 +186,10 @@
     background: var(--status-offline);
 }
 .ft-status-chip.active         { background: var(--status-online); }
+.ft-status-chip.join-me        { background: var(--status-join); }
+.ft-status-chip.ask-me         { background: var(--status-ask); }
 .ft-status-chip.busy           { background: var(--status-busy); }
+.ft-status-chip.do-not-disturb { background: var(--status-busy); }
 .ft-status-chip.offline        { background: var(--status-offline); }
 
 .tl-datebtn { padding: 0 10px; }

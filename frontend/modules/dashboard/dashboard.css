@@ -1418,7 +1418,7 @@ body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsi
 .dash-hero-arrow {
     align-self: center;
     margin-top: auto;
-    margin-bottom: -8px;
+    margin-bottom: -16px;
     border: none;
     background: none;
     color: rgba(255,255,255,.65);

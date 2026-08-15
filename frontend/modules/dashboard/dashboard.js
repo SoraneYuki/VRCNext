@@ -1002,14 +1002,18 @@ const DASH_SECTION_META = [
     { id: 'friends_recent_activity', nameKey: 'dashboard.section.friends_recent_activity', name: 'Friends Recent Activity' },
 ];
 const DASH_DEFAULT_ORDER   = DASH_SECTION_META.map(s => s.id);
-const DASH_DEFAULT_VISIBLE = new Set(['my_instances', 'upcoming_events', 'group_activity_small', 'friend_locations_small', 'recent_photos']);
-
 const DASH_DEFAULT_ROWS = [
     ['my_instances'],
+    ['my_recent_activity', 'friends_recent_activity'],
+    ['friend_locations_small'],
+    ['group_activity_small'],
     ['upcoming_events'],
-    ['group_activity_small', 'friend_locations_small'],
     ['recent_photos'],
+    ['own_avatars', 'fav_avatars'],
+    ['popular_worlds', 'active_worlds'],
+    ['recently_visited', 'fav_worlds'],
 ];
+const DASH_DEFAULT_VISIBLE = new Set(DASH_DEFAULT_ROWS.flat());
 
 const DASH_HERO_OPTIONS = {
     left:  [
@@ -1025,7 +1029,7 @@ const DASH_HERO_OPTIONS = {
 };
 
 let _dashLayout = {
-    hero:   { left: 'friends_activity', right: 'next_event' },
+    hero:   { left: 'friends_activity', right: 'group_activity' },
     rows:   DASH_DEFAULT_ROWS.map(r => [...r]),
     order:  [...DASH_DEFAULT_ORDER],
     hidden: DASH_DEFAULT_ORDER.filter(id => !DASH_DEFAULT_VISIBLE.has(id)),

@@ -677,6 +677,7 @@ public class AppSettings
     public List<string>? DashSectionHidden { get; set; } = null;
     public List<string>? DashRows          { get; set; } = null;
     public List<string>? DashHero          { get; set; } = null;
+    public int DashLayoutVersion           { get; set; } = 0;
 
     public bool SetupComplete { get; set; }
 
@@ -716,6 +717,16 @@ public class AppSettings
                 if (s.Webhooks == null) s.Webhooks = new();
                 if (s.Webhooks.Count > 4) s.Webhooks = s.Webhooks.Take(4).ToList();
                 while (s.Webhooks.Count < 4) s.Webhooks.Add(new() { Name = $"Channel {s.Webhooks.Count + 1}" });
+
+                // One-time reset so the new dashboard default layout applies to existing users.
+                if (s.DashLayoutVersion < 2)
+                {
+                    s.DashSectionOrder  = null;
+                    s.DashSectionHidden = null;
+                    s.DashRows          = null;
+                    s.DashHero          = null;
+                    s.DashLayoutVersion = 2;
+                }
 
                 // One-time migration of legacy single-account fields into Accounts[0] as primary.
                 if (s.Accounts == null) s.Accounts = new();
@@ -757,7 +768,7 @@ public class AppSettings
             }
         }
         catch { }
-        return new();
+        return new() { DashLayoutVersion = 2 };
     }
 
     public void Save()
