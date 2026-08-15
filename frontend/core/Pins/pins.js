@@ -17,7 +17,6 @@ function _pinsSave() {
     try { localStorage.setItem(_PINS_KEY, JSON.stringify(_pins)); } catch { }
 }
 
-function pinsKey(type, id) { return type + ':' + id; }
 
 function pinsHas(type, id) {
     return _pins.some(p => p.type === type && p.id === id);

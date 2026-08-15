@@ -53,12 +53,6 @@ function refreshModalActions(actions) {
     if (el) el.innerHTML = _mnActionsHtml(actions, false);
 }
 
-function setTaskbarModalActions(actions) {
-    actions = (actions || []).filter(Boolean);
-    _mnActions = actions;
-    const el = _mnActiveBar()?.querySelector('.fd-modal-bar-actions');
-    if (el) el.innerHTML = _mnActionsHtml(actions, false);
-}
 
 let _modalRefreshTimer = null;
 function triggerModalRefresh(action) {
@@ -422,10 +416,6 @@ function _navHideBackdrop() {
     if (_navBackdropEl) _navBackdropEl.style.display = 'none';
 }
 
-function _navCloseCurrentSilent() {
-    const entry = (_navIdx >= 0 && _navStack[_navIdx]) ? _navStack[_navIdx] : _navCurrentEntry;
-    _navCloseForEntry(entry);
-}
 
 function _navCloseForEntry(entry) {
     if (!entry) return;

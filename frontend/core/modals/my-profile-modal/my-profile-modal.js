@@ -501,24 +501,6 @@ function renderMyProfileContent() {
 
 let _myBadgesEditing = false;
 
-function _renderMyBadgesSection(u) {
-    const badges = u.badges || [];
-    if (badges.length === 0) return '';
-    const noBadgesLabel = t('profiles.my_profile.empty.no_badges', 'No badges');
-    const badgesTitle = t('profiles.my_profile.sections.badges', 'Badges');
-    const iconsHtml = badges.map(b => {
-        const hidden = !b.showcased;
-        return `<div class="myp-badge-item fd-vrc-badge-wrap${hidden ? ' myp-badge-hidden' : ''}${_myBadgesEditing ? ' myp-badge-editing' : ''}" data-badge-id="${esc(b.id)}" data-badge-img="${esc(b.imageUrl)}" data-badge-name="${encodeURIComponent(b.name)}" data-badge-desc="${encodeURIComponent(b.description || '')}" onclick="${_myBadgesEditing ? `toggleMyBadge('${esc(b.id)}')` : ''}"><img class="fd-vrc-badge-icon" src="${esc(imgThumb(b.imageUrl, 64))}" alt="${esc(b.name)}" onerror="this.closest('.myp-badge-item').style.display='none'"></div>`;
-    }).join('');
-    return `<div class="myp-section">
-        <div class="myp-section-header">
-            <span class="myp-section-title">${badgesTitle}</span>
-            <button class="myp-edit-btn" onclick="toggleBadgeEditMode()"><span class="msi" style="font-size:14px;">${_myBadgesEditing ? 'check' : 'edit'}</span></button>
-        </div>
-        <div class="myp-badges-row">${iconsHtml}</div>
-    </div>`;
-}
-
 function toggleBadgeEditMode() {
     _myBadgesEditing = !_myBadgesEditing;
     renderMyProfileContent();

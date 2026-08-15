@@ -59,28 +59,6 @@ function openTlDetail(id, stacked) {
 }
 
 // Navigate to a specific event in the Timeline tab
-function navigateToTlEvent(id) {
-    if (!id) return;
-    // Set the scroll target BEFORE switching tabs. filterTimeline() will consume it
-    // once the cards are actually in the DOM (after C# responds to getTimeline).
-    _tlScrollTarget = id;
-    // Reset filter button state silently (don't call filterTimeline() yet, that
-    // would consume _tlScrollTarget before the tab has rendered its cards)
-    tlFilter = 'all';
-    tlMode = 'personal';
-    document.querySelectorAll('#tlPersonalFilters .sub-tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tlModePersonal')?.classList.add('active');
-    document.getElementById('tlModeFriends')?.classList.remove('active');
-    const pf = document.getElementById('tlPersonalFilters');
-    const ff = document.getElementById('tlFriendsFilters');
-    if (pf) pf.style.display = '';
-    if (ff) ff.style.display = 'none';
-    const allBtn = document.getElementById(TL_FILTER_IDS['all']);
-    if (allBtn) allBtn.classList.add('active');
-    // Switch to Tab 12 -> refreshTimeline() -> C# sends timelineData -> renderTimeline()
-    // -> filterTimeline() -> _tlScrollTarget consumed there
-    showTab(12);
-}
 
 // Shared helpers for timeline detail modals
 function _tlMr(label, val) {

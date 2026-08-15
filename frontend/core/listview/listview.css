@@ -57,7 +57,6 @@
     padding: 12px 0 4px;
 }
 .lv-perf { white-space: nowrap; }
-.lv-perf .av-perf-icon { width: 20px; height: 20px; }
 
 /* Tab layout: toolbar + paginator fixed, only the grid scrolls */
 #tab1.active,

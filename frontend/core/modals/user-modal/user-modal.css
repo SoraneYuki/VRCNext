@@ -108,11 +108,6 @@
 .fd-bio-translate[disabled] .msi { animation: fd-bio-trans-spin 1s linear infinite; }
 @keyframes fd-bio-trans-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-.fd-owner-col .vrcn-user-item-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 6px;
-}
 
 .fd-vrc-badge-tooltip-global {
     position: fixed;
@@ -404,7 +399,6 @@
     align-items: center;
     gap: 6px;
 }
-.fd-hm-period-label { font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx3); }
 .fd-hm-head-right .vrcn-dropdown { flex-shrink: 0; }
 
 .fd-hm-stats {

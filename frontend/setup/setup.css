@@ -150,10 +150,6 @@ body.maximized .tb-icon-restore { display: block; }
 }
 .setup-desc strong { color: var(--tx0); }
 
-.setup-subtitle {
-    font-size: 13px; font-weight: 700; color: var(--tx0);
-    margin: 18px 0 6px;
-}
 
 /* ── Welcome steps list ── */
 .step-list { display: flex; flex-direction: column; gap: 5px; }

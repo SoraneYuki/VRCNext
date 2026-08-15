@@ -170,10 +170,6 @@ function closeFriendDetail(fromNav = false) {
 }
 
 
-function lookupAndOpenAvatar(fileId, iconEl) {
-    if (iconEl) iconEl.style.opacity = '0.4';
-    sendToCS({ action: 'vrcLookupAvatarByFileId', fileId, openModal: true });
-}
 
 function _applyAvatarSection(payload) {
     const section = document.getElementById('fdAvatarSection');
@@ -1884,13 +1880,6 @@ function onFriendFavGroupsLoaded(groups) {
     }
 }
 
-function toggleMod(userId, type, btn) {
-    const isActive = btn.classList.contains('active');
-    sendToCS({ action: isActive
-        ? (type === 'block' ? 'vrcUnblock' : 'vrcUnmute')
-        : (type === 'block' ? 'vrcBlock'   : 'vrcMute'),
-        userId });
-}
 
 function _buildModCardInner(userId) {
     const isBlocked     = Array.isArray(blockedData)      && blockedData.some(x => x.targetUserId === userId);

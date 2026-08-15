@@ -31,7 +31,6 @@ function vfSyncStateUi() {
     if (dot) dot.className = vfRunning ? 'sf-dot online' : 'sf-dot offline';
     if (txt) txt.textContent = vfStatusText();
     if (btn) btn.innerHTML = vfButtonHtml();
-    if (typeof updateDashQuickControls === 'function') updateDashQuickControls();
     const vfBadge = document.getElementById('badgeVoice');
     if (vfBadge) {
         vfBadge.classList.toggle('tb-active', vfRunning);

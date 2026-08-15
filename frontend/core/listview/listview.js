@@ -38,11 +38,6 @@ function lvReady() {
     return typeof tlTableHtml === 'function' && typeof tlTableRow === 'function';
 }
 
-function lvSyncViewButtons(key, gridBtnId, listBtnId) {
-    const isList = lvViewMode(key) === 'list';
-    document.getElementById(gridBtnId)?.classList.toggle('active', !isList);
-    document.getElementById(listBtnId)?.classList.toggle('active', isList);
-}
 
 function lvKeepScroll(startEl, render) {
     const saved = [];
@@ -103,11 +98,6 @@ function lvDuration(seconds) {
     return parts.length ? parts.join(' ') : '';
 }
 
-function lvDate(v) {
-    if (!v) return '';
-    const d = new Date(v);
-    return isNaN(d) ? '' : fmtShortDate(d);
-}
 
 function lvDateTime(v) {
     if (!v) return '';

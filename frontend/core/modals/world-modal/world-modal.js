@@ -965,11 +965,6 @@ function wiNav(dir) {
     _wiRequestData();
 }
 
-function wiToday() {
-    _wiAnchor = new Date();
-    _wiUpdateToolbar();
-    _wiRequestData();
-}
 
 // date picker
 function wiToggleDatePicker() {

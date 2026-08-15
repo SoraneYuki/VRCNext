@@ -701,21 +701,6 @@ function buildSearchPagination(page, totalPages, onPageFn, total = 0) {
 
 // Personal Timeline pagination helpers
 
-function loadMoreTimeline() {
-    if (tlLoading) return;
-    // Drain already-loaded pool first (timeline/card view)
-    if (timelineEvents.length > tlRenderedCount) {
-        tlRenderedCount += 100;
-        filterTimeline();
-        return;
-    }
-    if (!tlHasMore) return;
-    tlLoading = true;
-    const btn = document.getElementById('tlLoadMoreBtn');
-    if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;">hourglass_empty</span> ${esc(t('timeline.load_more.loading', 'Loading...'))}`; }
-    sendToCS({ action: 'getTimelinePage', offset: tlOffset, type: tlFilter === 'all' ? '' : tlFilter, ...tlSortParams('personal'), limit: tlPageSize });
-}
-
 function buildTlPagination(page, totalPages, hasMore) {
     const countHtml = tlTotal > 0 ? `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:0 8px;">${esc(tlTotalSummary(tlTotal))}</span>` : '';
     const bar = buildPaginator(page, totalPages, 'tlGoPage', countHtml, hasMore) || countHtml;
@@ -994,15 +979,6 @@ function clearTlDateFilter() {
 
 // Rendering helpers
 
-function tlSearchable(e) {
-    return [
-        e.worldName, e.userName, e.senderName, e.notifType,
-        tlNotifTypeLabel(e.notifType),
-        e.message,
-        e.photoPath ? e.photoPath.split(/[\\/]/).pop() : '',
-        ...(e.players || []).map(p => p.displayName),
-    ].filter(Boolean).join(' ').toLowerCase();
-}
 
 function buildTimelineHtml(events) {
     // Group by local date
@@ -1530,27 +1506,8 @@ function ftlGoSearchPage(page) {
     sendToCS({ action: 'searchFriendTimeline', query: _ftlSearchQuery, date: _ftlSearchDate, offset: page * tlPageSize, type: ftFilter === 'all' ? '' : ftFilter, limit: tlPageSize });
 }
 
-function ftSearchable(e) {
-    return [e.friendName, e.worldName, e.newValue, e.oldValue, e.location]
-        .filter(Boolean).join(' ').toLowerCase();
-}
 
 // Friends Timeline pagination helpers
-
-function loadMoreFriendTimeline() {
-    if (ftlLoading) return;
-    // Drain already-loaded pool first (timeline/card view)
-    if (friendTimelineEvents.length > ftlRenderedCount) {
-        ftlRenderedCount += 100;
-        filterFriendTimeline();
-        return;
-    }
-    if (!ftlHasMore) return;
-    ftlLoading = true;
-    const btn = document.getElementById('ftlLoadMoreBtn');
-    if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;">hourglass_empty</span> ${esc(t('timeline.load_more.loading', 'Loading...'))}`; }
-    sendToCS({ action: 'getFriendTimelinePage', offset: ftlOffset, type: ftFilter === 'all' ? '' : ftFilter, ...tlSortParams('friends'), limit: tlPageSize });
-}
 
 function ftlGoPage(page) {
     if (page < 0) return;

@@ -51,7 +51,6 @@ function renderExtraExeDesktop(l) { _renderExeList('extraExeDesktopList', l, 're
 function renderExtraExeVR(l)      { _renderExeList('extraExeVRList',      l, 'removeExtraExeVR');      }
 
 // legacy — kept so i18n.js re-render calls don't break on old references
-function renderExtraExe(l) {}
 
 function browseExe(t) {
     sendToCS({ action: 'browseExe', target: t });
@@ -892,9 +891,6 @@ function loadSettingsToUI(s) {
     setTimeout(initAutoSave, 100);
 }
 
-function updateImgCacheUi() {
-    sendToCS({ action: 'getImgCacheSize' });
-}
 
 function updateImgCacheSizeBar(bytes) {
     const el = document.getElementById('imgCacheSizeBar');

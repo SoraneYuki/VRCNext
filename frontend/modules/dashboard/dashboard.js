@@ -20,12 +20,6 @@ function updateDashHeroStats() {
     }
 }
 
-function getDashFriendCountLabel(count, keyBase) {
-    return count === 1
-        ? tf(`${keyBase}.one`, { count }, '{count} friend')
-        : tf(`${keyBase}.other`, { count }, '{count} friends');
-}
-
 function updateDashSub() {
     const el = document.getElementById('dashSub');
     if (!el) return;
@@ -810,15 +804,6 @@ function onDashGroupInstances(instances) {
     }
 }
 
-function _ensureDashGroupInstancesLoaded() {
-    if (_dashGroupInstances === null) {
-        loadDashGroupInstances();
-        return false;
-    }
-    return true;
-}
-
-
 function renderDashGroupActivityInstancesSmall() {
     const el = document.getElementById('dashGroupActivityShelf');
     if (!el) return;
@@ -895,17 +880,6 @@ function _dashTlSkeleton(n = 6) {
         <span class="sk-block" style="height:9px;flex:1;border-radius:3px;"></span>
     </div>`;
     return `<div class="dash-act-list">${Array.from({ length: n }, () => row).join('')}</div>`;
-}
-
-function _dashTlRelative(ts) {
-    const diff = Date.now() - new Date(ts).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1)  return t('common.time.just_now', 'just now');
-    if (m < 60) return tf('common.time.min_ago',  { m }, '{m}m ago');
-    const h = Math.floor(m / 60);
-    if (h < 24) return tf('common.time.hour_ago', { h }, '{h}h ago');
-    const d = Math.floor(h / 24);
-    return tf('common.time.day_ago', { d }, '{d}d ago');
 }
 
 function _dashTlDetail(ev, isFriend) {

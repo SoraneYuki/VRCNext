@@ -45,11 +45,6 @@ function fsApplyInputMode() {
     fsSendConfig();
 }
 
-function fsBtnSets() {
-    const cur = fsReadBtns();
-    const idx = typeof vrInputMode !== 'undefined' && vrInputMode === 1;
-    return { legacy: idx ? _fsOtherBtns : cur, index: idx ? cur : _fsOtherBtns };
-}
 
 function fsSetMode(mode) {
     if (!FS_MODE_SELECTS[mode]) return;
@@ -255,7 +250,6 @@ function fsAutoSave() {
 function handleFsUpdate(data) {
     _fsLastState = { ...data };
     fsConnected = !!data.connected;
-    if (typeof updateDashQuickControls === 'function') updateDashQuickControls();
 
     const badge = document.getElementById('badgeFrameShot');
     if (badge) badge.classList.toggle('tb-active', !!data.connected);

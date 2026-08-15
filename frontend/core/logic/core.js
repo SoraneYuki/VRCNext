@@ -92,7 +92,6 @@ function applyDecorationsSetting() {
     document.documentElement.classList.toggle('deco-dashboard-on', onDash);
     document.documentElement.classList.toggle('profile-cards-transparent', glassCards);
 }
-function applyIconFramesSetting() { applyDecorationsSetting(); }
 function iconFrameHtml(frameUrl, animated) {
     if (!frameUrl) return '';
     const src = (animated || !vrcPlusOptimizeEnabled) ? frameUrl : _thumbUrl(frameUrl, 96);
@@ -1484,12 +1483,6 @@ function playSteamOverlaySound() {
     }
 }
 
-function playWaterAlarmSound() {
-    if (waterAudio?._ready) {
-        waterAudio.currentTime = 0;
-        waterAudio.play().catch(() => {});
-    }
-}
 
 let _clockEnabled = false;
 let _dateEnabled = false;
@@ -1682,7 +1675,6 @@ function relayStatusLabel(running) {
 
 function setRelayState(r, s) {
     relayOn = r;
-    if (typeof updateDashQuickControls === 'function') updateDashQuickControls();
     const b = document.getElementById('btnRelay');
     const dot = document.getElementById('relayDot');
     const txt = document.getElementById('relayStatusText');
@@ -1885,7 +1877,6 @@ function vcInstall() {
 }
 function handleVcState(d) {
     _vcLastState = d;
-    if (typeof updateDashQuickControls === 'function') updateDashQuickControls();
     const bdYt = document.getElementById('badgeYt');
     if (bdYt) bdYt.classList.toggle('tb-active', !!d.running);
     const running    = !!d.running;
