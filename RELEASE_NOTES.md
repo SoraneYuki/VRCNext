@@ -48,6 +48,13 @@
 * Fixed avatar author lookups always sending at least one unnecessary request to avtrdb. The pagination now follows the API's own `has_more` flag, which cuts the requests in half for every author with a single page of avatars.
 * Fixed the **AVTRDB/GET** counter in the Activity Log always staying at 0 even though avatar searches were running.
 
+**VR Overlay**
+
+* Fixed major FPS drops caused by repeatedly resizing images every single frame. Every image in the overlay is now scaled once and reused, so the overlay stays smooth no matter how high resolution the source images are.
+* This covers the whole overlay, not just one tab: world thumbnails and friend avatars on the **World** tab, **notification** portraits, the **Friends** tab, your own avatar in the header, the album art and its blurred backdrop in the **Music** player, and the avatars inside **notification toasts**.
+* Improved overlay rendering performance by reducing unnecessary CPU work.
+
+
 **Internal Changes**
 
 Mostly cleanup to improve maintainability and reduce some of the structural chaos I created in the first place.
