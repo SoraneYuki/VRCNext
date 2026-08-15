@@ -345,6 +345,7 @@ function getCreatorBadgeHtml(u) {
 
 const TRUST_RANK_MAX = 4;
 const TRUST_BADGE_TARGET = 4;
+const TRUST_YEAR_TARGET = 2;
 
 function getTrustRankLevel(tags) {
     if (!Array.isArray(tags)) return 0;
@@ -361,7 +362,8 @@ function getTrustCriteria(u, avatarCount) {
     const avatars = Number(avatarCount) > 0 ? Number(avatarCount) : 0;
     const raw = u?.dateJoined || u?.date_joined || '';
     const joined = raw ? new Date(raw.length === 10 ? raw + 'T00:00:00' : raw) : null;
-    const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
+    const years = (joined && !isNaN(joined.getTime()))
+        ? (Date.now() - joined.getTime()) / (365.25 * 24 * 60 * 60 * 1000) : 0;
     const rankLevel = getTrustRankLevel(tags);
     const rankInfo = (typeof getTrustRank === 'function' && tags.length) ? getTrustRank(tags) : null;
     const badgeCount = Array.isArray(u?.badges) ? u.badges.length : 0;
@@ -371,8 +373,9 @@ function getTrustCriteria(u, avatarCount) {
           detail: rankInfo ? rankInfo.label : t('profiles.trust.visitor', 'Visitor') },
         { score: (u?.ageVerified === true || u?.ageVerificationStatus === '18+') ? 1 : 0,
           label: t('profiles.meta.age_verified', 'Age Verified') },
-        { score: (!!joined && !isNaN(joined.getTime()) && joined.getTime() <= oneYearAgo) ? 1 : 0,
-          label: t('profiles.trust.criteria.one_year', '1+ year on VRChat') },
+        { score: Math.max(Math.min(years / TRUST_YEAR_TARGET, 1), 0),
+          label: t('profiles.trust.criteria.years', '2+ years on VRChat'),
+          detail: Math.min(Math.max(Math.floor(years), 0), TRUST_YEAR_TARGET) + ' / ' + TRUST_YEAR_TARGET },
         { score: tags.includes('system_supporter') ? 1 : 0,
           label: t('profiles.trust.criteria.supporter', 'VRC+ Supporter') },
         { score: Math.min(badgeCount / TRUST_BADGE_TARGET, 1),
@@ -389,8 +392,17 @@ function getTrustScorePct(crit) {
     return Math.round(crit.reduce((s, c) => s + c.score, 0) / crit.length * 100);
 }
 
-function _trustPctColor(pct) {
-    return pct >= 100 ? 'var(--ok)' : pct >= 67 ? 'var(--accent)' : pct >= 34 ? 'var(--warn)' : 'var(--err)';
+function _trustPctColor() {
+    return 'var(--bdg-rank-trusted)';
+}
+
+function _trustDescription(pct) {
+    if (pct >= 100) return t('profiles.trust.description', 'This user has a trusted user standing within the community.');
+    if (pct >= 80)  return t('profiles.trust.desc.high', 'This user has a highly trusted standing within the community.');
+    if (pct >= 60)  return t('profiles.trust.desc.good', 'This user has a good standing within the community.');
+    if (pct >= 40)  return t('profiles.trust.desc.some', 'This user has some established trust within the community.');
+    if (pct >= 20)  return t('profiles.trust.desc.low',  'This user has a low level of established trust within the community.');
+    return t('profiles.trust.desc.none', 'This user has no established trust within the community yet.');
 }
 
 function _trustCritRows(crit) {
@@ -423,6 +435,7 @@ function _animateTrustPct(el, target) {
 }
 
 let _trustBarSeq = 0;
+const _trustBarTimers = {};
 
 function _fillTrustBar(id, pct, color, tries) {
     requestAnimationFrame(() => {
@@ -431,25 +444,35 @@ function _fillTrustBar(id, pct, color, tries) {
             if ((tries || 0) < 40) _fillTrustBar(id, pct, color, (tries || 0) + 1);
             return;
         }
-        const fill = wrap.querySelector('.fd-trust-bar-fill');
-        if (fill) { fill.style.background = color; fill.style.width = pct + '%'; }
-        _animateTrustPct(wrap.querySelector('.fd-trust-pct'), pct);
+        _paintTrustBar(wrap, pct, color);
     });
 }
 
-function getTrustBarHtml(u, avatarCount) {
+function _paintTrustBar(wrap, pct, color) {
+    wrap.classList.remove('fd-trust-pending');
+    const fill = wrap.querySelector('.fd-trust-bar-fill');
+    if (fill) { fill.style.background = color; fill.style.width = pct + '%'; }
+    const pctEl = wrap.querySelector('.fd-trust-pct');
+    if (pctEl) { pctEl.style.color = color; _animateTrustPct(pctEl, pct); }
+    const descEl = wrap.querySelector('.fd-trust-desc');
+    if (descEl) descEl.textContent = _trustDescription(pct);
+}
+
+function getTrustBarHtml(u, avatarCount, ready) {
     const crit = getTrustCriteria(u, avatarCount);
     const pct = getTrustScorePct(crit);
     const color = _trustPctColor(pct);
     const id = 'trustBar' + (++_trustBarSeq);
-    _fillTrustBar(id, pct, color);
-    return `<div class="fd-trust-bar-wrap" id="${id}">
+    if (ready) _fillTrustBar(id, pct, color);
+    else _trustBarTimers[id] = setTimeout(() => { delete _trustBarTimers[id]; _fillTrustBar(id, pct, color); }, 6000);
+    return `<div class="fd-trust-bar-wrap${ready ? '' : ' fd-trust-pending'}" id="${id}">
         <button type="button" class="fd-trust-bar-head" onclick="toggleTrustCrits(this)">
             <span>${esc(t('profiles.trust.score', 'Trust Score'))}</span>
             <span class="fd-trust-pct" style="color:${color};">0%</span>
             <span class="msi fd-trust-chevron">expand_more</span>
         </button>
         <div class="fd-trust-bar"><div class="fd-trust-bar-fill" style="width:0%;background:${color};"></div></div>
+        <p class="fd-trust-desc">${esc(_trustDescription(pct))}</p>
         <div class="fd-trust-crits">${_trustCritRows(crit)}</div>
     </div>`;
 }
@@ -462,16 +485,12 @@ function updateTrustBar(slotId, u, avatarCount) {
     const slot = document.getElementById(slotId);
     if (!slot) return;
     const wrap = slot.querySelector('.fd-trust-bar-wrap');
-    if (!wrap) { slot.innerHTML = getTrustBarHtml(u, avatarCount); return; }
+    if (!wrap) { slot.innerHTML = getTrustBarHtml(u, avatarCount, true); return; }
+    if (_trustBarTimers[wrap.id]) { clearTimeout(_trustBarTimers[wrap.id]); delete _trustBarTimers[wrap.id]; }
     const crit = getTrustCriteria(u, avatarCount);
-    const pct = getTrustScorePct(crit);
-    const color = _trustPctColor(pct);
     const crits = wrap.querySelector('.fd-trust-crits');
     if (crits) crits.innerHTML = _trustCritRows(crit);
-    const fill = wrap.querySelector('.fd-trust-bar-fill');
-    if (fill) { fill.style.background = color; fill.style.width = pct + '%'; }
-    const pctEl = wrap.querySelector('.fd-trust-pct');
-    if (pctEl) { pctEl.style.color = color; _animateTrustPct(pctEl, pct); }
+    _paintTrustBar(wrap, getTrustScorePct(crit), _trustPctColor(getTrustScorePct(crit)));
 }
 // Space Flight
 let sfConnected = false;

@@ -933,8 +933,7 @@ function renderFriendDetail(d) {
         : '';
     const trustSideHtml = `<div class="fd-group-rep-label">${t('profiles.trust.title', 'Trust &amp; Safety')}</div>
         ${trustBadgesRow}
-        ${rank ? `<p style="margin:10px 0 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>` : ''}
-        <div id="fdTrustBarSlot">${getTrustBarHtml(d, (window._fdAllAvatars || []).length)}</div>`;
+        <div id="fdTrustBarSlot">${getTrustBarHtml(d, 0, false)}</div>`;
 
     const _fdInstFriends = (_worldPartHtml && d.location && d.location !== 'private' && d.location !== 'traveling')
         ? (typeof getInstanceMembers === 'function' ? getInstanceMembers(d.location) : []).filter(m => m.id !== d.id)

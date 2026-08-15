@@ -6,6 +6,7 @@ let _mypWorldsPage = 0;
 let _mypAvatarsPage = 0;
 let _mypWorldsRequested = false;
 let _mypAvatarsRequested = false;
+let _mypAvatarsLoaded = false;
 let _mypFavsRequested = false;
 let _mypHeatmapDays = 30;
 let _mypHeatmapView = 'online';
@@ -34,6 +35,7 @@ function openMyProfileModal() {
     if (typeof navSetCurrent === 'function') navSetCurrent('myprofile', currentVrcUser.id || 'me');
     if (typeof navUpdateLabel === 'function') navUpdateLabel(currentVrcUser.displayName || '');
     _mypAvatarsRequested = false;
+    _mypAvatarsLoaded = false;
     _mypFavsRequested    = false;
     _mypHeatmapDays      = 30;
     _mypHeatmapView      = 'online';
@@ -309,8 +311,7 @@ function renderMyProfileContent() {
     const _trustCard = `<div class="fd-info-card">
         <div class="fd-group-rep-label">${t('profiles.trust.title', 'Trust &amp; Safety')}</div>
         ${_trustBadgesRow}
-        ${rank ? `<p style="margin:10px 0 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);line-height:1.45;">${t('profiles.trust.description', 'This user has a trusted user standing within the community.')}</p>` : ''}
-        <div id="mypTrustBarSlot">${getTrustBarHtml(u, (typeof _mypAllAvatars !== 'undefined' ? _mypAllAvatars : []).length)}</div>
+        <div id="mypTrustBarSlot">${getTrustBarHtml(u, _mypAllAvatars.length, _mypAvatarsLoaded)}</div>
     </div>`;
 
     const pronounsHtml = u.pronouns ? `<div class="fd-pronouns">${esc(u.pronouns)}</div>` : '';
@@ -829,6 +830,7 @@ function onMypMyWorlds(worlds) {
 function onMypUserAvatars(payload) {
     if (!_mypIsSelf(payload.userId)) return;
     _mypAllAvatars = payload.avatars || [];
+    _mypAvatarsLoaded = true;
     updateTrustBar('mypTrustBarSlot', currentVrcUser, _mypAllAvatars.length);
     _mypUpdateContentCounts();
     renderMypAvatarsPage(0);

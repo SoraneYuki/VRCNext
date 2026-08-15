@@ -4,6 +4,7 @@
 * Added a **Creator** badge for users who sell content or participate in the VRChat Creator Economy.
 * Added a **Trusted Score** to user profiles, indicating how established and trustworthy a user appears to be.
 * The score is based on several factors, including account age, uploaded worlds or avatars, VRC+ support, profile biography, trust rank, badges, and participation in the Creator Economy.
+* Added text that indicates how trusted a user is inside "Trust & Safety".
 
 **Removed**
 * Removed the **Navigation** tab from Settings.
