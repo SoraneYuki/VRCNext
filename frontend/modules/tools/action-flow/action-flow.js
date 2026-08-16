@@ -82,6 +82,7 @@ let afAutoSaveSuppressed = false;
 let afTriggerState = {};
 let afWatchState = {
     lastInstanceUserIds: null,
+    lastInstanceUsers:   null,
     lastStatus:          null,
 };
 let afTaskHistory = [];   /* timestamps (ms) of dispatched API-calling actions, last TASK_WINDOW_MS only */
@@ -713,6 +714,7 @@ function afDefineBlocks() {
         ['af_get_ingame_friends', 'info.ingame_friends', 'friends in game',        'info.ingame_friends_tooltip', 'Names of your friends that are currently in VRChat, separated by commas.'],
         ['af_get_time',           'info.time',           'current time',           'info.time_tooltip',           'Your current local time.'],
         ['af_get_joined_player_name', 'info.joined_player_name', 'joined player name', 'info.joined_player_name_tooltip', 'Name of the player from the trigger, for example the one who just joined your instance.'],
+        ['af_get_left_player_name', 'info.left_player_name', 'left player name', 'info.left_player_name_tooltip', 'Name of the player who just left your instance. Empty when the trigger was not a leave.'],
         ['af_get_instance_type_label', 'info.instance_type', 'current instance type', 'info.instance_type_tooltip', 'Instance type you are currently in as readable text, for example Friends+ or Group Public.'],
     ];
     for (const [type, labelKey, labelFb, tipKey, tipFb] of INFO_BLOCKS) {
@@ -779,6 +781,7 @@ function afToolbox() {
                 { kind: 'block', type: 'af_get_ingame_friends' },
                 { kind: 'block', type: 'af_get_time' },
                 { kind: 'block', type: 'af_get_joined_player_name' },
+                { kind: 'block', type: 'af_get_left_player_name' },
                 { kind: 'block', type: 'af_get_instance_type_label' },
             ]},
             { kind: 'category', name: aft('toolbox.friends', 'Friends'), colour: COLOR_PARAM, contents: [
@@ -1390,6 +1393,7 @@ function afTick() {
         mm:        today.getMinutes(),
         dayKey:    today.toISOString().slice(0, 10),
         userIds:   afObservedInstanceUserIds(),
+        users:     afObservedInstanceUsers(),
         myStatus:  (typeof currentVrcUser !== 'undefined' && currentVrcUser?.status) || null,
     };
 
@@ -1404,6 +1408,7 @@ function afTick() {
     }
 
     if (obs.userIds)  afWatchState.lastInstanceUserIds = obs.userIds;
+    if (obs.users)    afWatchState.lastInstanceUsers   = obs.users;
     if (obs.myStatus) afWatchState.lastStatus          = obs.myStatus;
 
     afUpdateRunIndicator();
@@ -1418,6 +1423,15 @@ function afObservedInstanceUserIds() {
     if (currentInstanceData.empty || currentInstanceData.error) return null;
     const arr = Array.isArray(currentInstanceData.users) ? currentInstanceData.users : [];
     return new Set(arr.map(u => u && u.id).filter(Boolean));
+}
+
+function afObservedInstanceUsers() {
+    if (typeof currentInstanceData === 'undefined' || !currentInstanceData) return null;
+    if (currentInstanceData.empty || currentInstanceData.error) return null;
+    const arr = Array.isArray(currentInstanceData.users) ? currentInstanceData.users : [];
+    const map = new Map();
+    for (const u of arr) if (u && u.id) map.set(u.id, u);
+    return map;
 }
 
 function afUpdateRunIndicator() {
@@ -1490,14 +1504,14 @@ function afEvalTrigger(flow, block, obs) {
             if (fireJoins) {
                 for (const id of obs.userIds) {
                     if (!afWatchState.lastInstanceUserIds.has(id) && matches(id)) {
-                        afFireTrigger(flow, block, 'user joined: ' + id, afLookupUser(id));
+                        afFireTrigger(flow, block, 'user joined: ' + id, afLookupUser(id), null, 'join');
                     }
                 }
             }
             if (fireLeaves) {
                 for (const id of afWatchState.lastInstanceUserIds) {
                     if (!obs.userIds.has(id) && matches(id)) {
-                        afFireTrigger(flow, block, 'user left: ' + id, afLookupUser(id));
+                        afFireTrigger(flow, block, 'user left: ' + id, afLookupUser(id), null, 'leave');
                     }
                 }
             }
@@ -1520,7 +1534,7 @@ function afEvalTrigger(flow, block, obs) {
     }
 }
 
-function afFireTrigger(flow, block, reason, triggeringUser, notificationId) {
+function afFireTrigger(flow, block, reason, triggeringUser, notificationId, triggerAction) {
     const actionCount = afCountActionsInWorkspace(flow.workspace);
     if (actionCount > FLOW_ACTION_LIMIT) {
         afLog('err', '[' + flow.name + '] ' + aftf('log.over_action_limit', { count: actionCount, limit: FLOW_ACTION_LIMIT }, 'over action limit (' + actionCount + '/' + FLOW_ACTION_LIMIT + '). Flow disabled until trimmed.'));
@@ -1535,7 +1549,12 @@ function afFireTrigger(flow, block, reason, triggeringUser, notificationId) {
     const triggerKind =
         block.type === 'af_trigger_invite_received'         ? 'invite' :
         block.type === 'af_trigger_invite_request_received' ? 'requestInvite' : null;
-    afContext = { triggeringUser: triggeringUser || null, triggerKind, notificationId: notificationId || null };
+    afContext = {
+        triggeringUser: triggeringUser || null,
+        triggerKind,
+        notificationId: notificationId || null,
+        triggerAction: triggerAction || null,
+    };
     try {
         afLog('info', '[' + flow.name + '] ' + aftf('log.trigger_fired', { reason }, 'trigger fired (' + reason + ')'));
         afExecStatements(flow, afInputStatement(block, 'DO'));
@@ -1544,10 +1563,21 @@ function afFireTrigger(flow, block, reason, triggeringUser, notificationId) {
     }
 }
 
+function afInstanceUserName(id) {
+    if (!id) return '';
+    const u = afObservedInstanceUsers()?.get(id) || afWatchState.lastInstanceUsers?.get(id);
+    return u?.displayName || '';
+}
+
 function afLookupUser(id) {
     if (!id) return null;
     const live = typeof vrcFriendsData !== 'undefined' && vrcFriendsData.find(x => x.id === id);
-    return live || { id };
+    if (live) return live;
+
+    const inst = afObservedInstanceUsers()?.get(id) || afWatchState.lastInstanceUsers?.get(id);
+    if (inst && inst.displayName) return inst;
+
+    return { id };
 }
 
 let _afFriendJoinDebounce = {};
@@ -2109,7 +2139,12 @@ function afEvalValue(block) {
         }
         case 'af_get_joined_player_name': {
             const tu = afContext.triggeringUser;
-            return tu ? String(tu.displayName || tu.id || '') : '';
+            return tu ? String(tu.displayName || afInstanceUserName(tu.id) || tu.id || '') : '';
+        }
+        case 'af_get_left_player_name': {
+            if (afContext.triggerAction !== 'leave') return '';
+            const tu = afContext.triggeringUser;
+            return tu ? String(tu.displayName || afInstanceUserName(tu.id) || tu.id || '') : '';
         }
         case 'af_get_instance_type_label': {
             const ci = afCurInst();
@@ -2147,17 +2182,10 @@ function afEvalUser(block) {
     if (!block) return null;
     const f = block.fields || {};
     switch (block.type) {
-        case 'af_friend_obj': {
-            const id = f.FRIEND_ID;
-            if (!id) return null;
-            const live = typeof vrcFriendsData !== 'undefined' && vrcFriendsData.find(x => x.id === id);
-            return live || { id };
-        }
-        case 'af_user_obj': {
-            const id = f.USER_ID;
-            const live = typeof vrcFriendsData !== 'undefined' && vrcFriendsData.find(x => x.id === id);
-            return live || { id };
-        }
+        case 'af_friend_obj':
+            return afLookupUser(f.FRIEND_ID);
+        case 'af_user_obj':
+            return afLookupUser(f.USER_ID);
         case 'af_own_user': {
             return (typeof currentVrcUser !== 'undefined' && currentVrcUser) || null;
         }

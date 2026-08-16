@@ -3100,6 +3100,8 @@
   "action_flow.info.time_tooltip": "Ваше текущее местное время.",
   "action_flow.info.joined_player_name": "имя зашедшего игрока",
   "action_flow.info.joined_player_name_tooltip": "Имя игрока из триггера, например того, кто только что зашёл в ваш инстанс.",
+  "action_flow.info.left_player_name": "имя вышедшего игрока",
+  "action_flow.info.left_player_name_tooltip": "Имя игрока, который только что покинул ваш инстанс. Пусто, если триггер не был выходом.",
   "action_flow.log.notify_skipped": "уведомление пропущено: нечего отправлять",
   "action_flow.log.close_vrchat": "закрытие VRChat",
   "action_flow.log.switch_avatar_id_skipped": "смена аватара пропущена: неверный ID аватара",

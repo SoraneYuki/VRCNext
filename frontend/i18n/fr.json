@@ -3080,6 +3080,8 @@
   "action_flow.info.time_tooltip": "Votre heure locale actuelle.",
   "action_flow.info.joined_player_name": "nom du joueur arrivé",
   "action_flow.info.joined_player_name_tooltip": "Nom du joueur issu du déclencheur, par exemple celui qui vient de rejoindre votre instance.",
+  "action_flow.info.left_player_name": "nom du joueur parti",
+  "action_flow.info.left_player_name_tooltip": "Nom du joueur qui vient de quitter votre instance. Vide lorsque le déclencheur n'était pas un départ.",
   "action_flow.log.notify_skipped": "notification ignorée : rien à envoyer",
   "action_flow.log.close_vrchat": "fermeture de VRChat",
   "action_flow.log.switch_avatar_id_skipped": "changement d’avatar ignoré : ID d’avatar invalide",

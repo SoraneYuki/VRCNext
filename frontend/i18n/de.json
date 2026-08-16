@@ -3095,6 +3095,8 @@
   "action_flow.info.time_tooltip": "Deine aktuelle Ortszeit.",
   "action_flow.info.joined_player_name": "Name des beigetretenen Spielers",
   "action_flow.info.joined_player_name_tooltip": "Name des Spielers aus dem Trigger, zum Beispiel der Spieler, der gerade deiner Instance beigetreten ist.",
+  "action_flow.info.left_player_name": "Name des verlassenden Spielers",
+  "action_flow.info.left_player_name_tooltip": "Name des Spielers, der gerade deine Instance verlassen hat. Leer, wenn der Trigger kein Verlassen war.",
   "action_flow.log.notify_skipped": "Benachrichtigung übersprungen: nichts zu senden",
   "action_flow.log.close_vrchat": "schließe VRChat",
   "action_flow.log.switch_avatar_id_skipped": "Avatarwechsel übersprungen: ungültige Avatar-ID",

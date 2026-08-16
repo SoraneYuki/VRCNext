@@ -13,6 +13,10 @@
 * The score considers account age, uploaded worlds or avatars, VRC+ support, biography, trust rank, badges, and Creator Economy participation.
 * Added a trust description inside **Trust & Safety** based on the user's score.
 
+**Action Flow**
+* Added "left player name (string)" action flows.
+* Fixed an bug where the joined playername returned an user id instead of username.
+
 **Time Spent**
 * Updated the Time Spent tab design to v2.
 

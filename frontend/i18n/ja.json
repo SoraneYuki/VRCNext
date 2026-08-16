@@ -3079,6 +3079,8 @@
   "action_flow.info.time_tooltip": "現在のローカル時刻です。",
   "action_flow.info.joined_player_name": "参加したプレイヤー名",
   "action_flow.info.joined_player_name_tooltip": "トリガーのプレイヤー名です。例えばインスタンスに参加したばかりのプレイヤーです。",
+  "action_flow.info.left_player_name": "退出したプレイヤー名",
+  "action_flow.info.left_player_name_tooltip": "インスタンスから退出したばかりのプレイヤー名です。トリガーが退出でない場合は空になります。",
   "action_flow.log.notify_skipped": "通知をスキップ: 送信する内容がありません",
   "action_flow.log.close_vrchat": "VRChatを終了しています",
   "action_flow.log.switch_avatar_id_skipped": "アバター切り替えをスキップ: アバターIDが無効です",

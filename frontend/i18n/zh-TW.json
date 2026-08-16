@@ -3131,6 +3131,8 @@
   "action_flow.info.time_tooltip": "你目前的本地時間。",
   "action_flow.info.joined_player_name": "加入的玩家名稱",
   "action_flow.info.joined_player_name_tooltip": "來自觸發器的玩家名稱，例如剛剛加入你房間的玩家。",
+  "action_flow.info.left_player_name": "離開的玩家名稱",
+  "action_flow.info.left_player_name_tooltip": "剛剛離開你的執行個體的玩家名稱。當觸發器不是離開時為空。",
   "action_flow.log.notify_skipped": "已略過通知：沒有可傳送的內容",
   "action_flow.log.close_vrchat": "正在關閉 VRChat",
   "action_flow.log.switch_avatar_id_skipped": "已略過切換大頭貼：大頭貼 ID 無效",

@@ -3080,6 +3080,8 @@
   "action_flow.info.time_tooltip": "Tu hora local actual.",
   "action_flow.info.joined_player_name": "nombre del jugador que entró",
   "action_flow.info.joined_player_name_tooltip": "Nombre del jugador del disparador, por ejemplo quien acaba de entrar en tu instancia.",
+  "action_flow.info.left_player_name": "nombre del jugador que salió",
+  "action_flow.info.left_player_name_tooltip": "Nombre del jugador que acaba de salir de tu instancia. Vacío cuando el disparador no fue una salida.",
   "action_flow.log.notify_skipped": "notificación omitida: nada que enviar",
   "action_flow.log.close_vrchat": "cerrando VRChat",
   "action_flow.log.switch_avatar_id_skipped": "cambio de avatar omitido: ID de avatar no válido",
