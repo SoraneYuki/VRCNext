@@ -473,3 +473,43 @@
 }
 .font-option.active .font-option-name { color: var(--tx0); }
 
+
+.snd-picker {
+    background: var(--bg-input);
+    border: 1px solid var(--brd);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.snd-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.snd-label {
+    font-size: calc(12px + var(--fs-off, 0px));
+    color: var(--tx2);
+    flex-shrink: 0;
+    min-width: 62px;
+}
+
+.snd-select { flex: 1; min-width: 0; }
+
+.snd-slider {
+    flex: 1;
+    min-width: 0;
+    accent-color: var(--accent);
+}
+
+.snd-val {
+    font-size: calc(12px + var(--fs-off, 0px));
+    color: var(--tx2);
+    min-width: 42px;
+    text-align: right;
+    flex-shrink: 0;
+}

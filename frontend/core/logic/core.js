@@ -1614,9 +1614,33 @@ function tryLoadLogo() {
     i.src = 'logo.png';
 }
 
-function _initAudio(path) {
+const SOUND_LIBRARY = [
+    'Amogus.wav', 'Bing.wav', 'Clicker.wav', 'Cryo.wav', 'Food Finished.wav',
+    'Fooley.wav', 'Insert Disk.wav', 'Kalimba Bell.wav', 'Karambola.wav', 'Ladida.wav',
+    'Plug.wav', 'Soft Lace.wav', 'Solana.wav', 'Sweep.wav', 'Waum.wav',
+];
+
+const SOUND_SLOTS = {
+    notify:       { def: 'Notification.wav', fileKey: 'notifySoundFile',       volKey: 'notifySoundVolume' },
+    message:      { def: 'Message.wav',      fileKey: 'messageSoundFile',      volKey: 'messageSoundVolume' },
+    mediaRelay:   { def: 'MediaRelay.wav',   fileKey: 'mediaRelaySoundFile',   volKey: 'mediaRelaySoundVolume' },
+    steamOverlay: { def: 'SteamOverlay.wav', fileKey: 'steamOverlaySoundFile', volKey: 'steamOverlaySoundVolume' },
+};
+
+function soundFileUrl(file, defaultFile) {
+    if (!file) return 'sounds/notifications/' + encodeURIComponent(defaultFile);
+    return 'sounds/notifications/Notificationsv2/' + encodeURIComponent(file);
+}
+
+function soundSlotVolume(slot) {
+    const raw = settings?.[SOUND_SLOTS[slot].volKey];
+    const n = Number.isFinite(raw) ? raw : 50;
+    return Math.min(100, Math.max(0, n)) / 100;
+}
+
+function _initAudio(path, volume) {
     const a = new Audio(path);
-    a.volume = 0.5;
+    a.volume = typeof volume === 'number' ? volume : 0.5;
     a._ready = false;
     a.addEventListener('canplaythrough', () => { a._ready = true; }, { once: true });
     a.addEventListener('error', () => { a._ready = false; });
@@ -1624,16 +1648,40 @@ function _initAudio(path) {
     return a;
 }
 
+function _initSlotAudio(slot) {
+    const cfg = SOUND_SLOTS[slot];
+    return _initAudio(soundFileUrl(settings?.[cfg.fileKey], cfg.def), soundSlotVolume(slot));
+}
+
 function tryInitNotifySound() {
-    notifyAudio = _initAudio('sounds/notifications/Notification.wav');
-    messageAudio = _initAudio('sounds/notifications/Message.wav');
-    mediaRelayAudio = _initAudio('sounds/notifications/MediaRelay.wav');
-    steamOverlayAudio = _initAudio('sounds/notifications/SteamOverlay.wav');
+    notifyAudio = _initSlotAudio('notify');
+    messageAudio = _initSlotAudio('message');
+    mediaRelayAudio = _initSlotAudio('mediaRelay');
+    steamOverlayAudio = _initSlotAudio('steamOverlay');
     waterAudio = _initAudio('sounds/notifications/water.wav');
+}
+
+function applySoundSettings() {
+    notifyAudio = _initSlotAudio('notify');
+    messageAudio = _initSlotAudio('message');
+    mediaRelayAudio = _initSlotAudio('mediaRelay');
+    steamOverlayAudio = _initSlotAudio('steamOverlay');
+}
+
+let _sndPreviewAudio = null;
+
+function previewSound(slot, file) {
+    const cfg = SOUND_SLOTS[slot];
+    if (!cfg) return;
+    if (_sndPreviewAudio) { try { _sndPreviewAudio.pause(); } catch {} }
+    _sndPreviewAudio = new Audio(soundFileUrl(file, cfg.def));
+    _sndPreviewAudio.volume = soundSlotVolume(slot);
+    _sndPreviewAudio.play().catch(() => {});
 }
 
 function playNotificationSound() {
     if (notifyAudio?._ready && settings.notifySoundEnabled) {
+        notifyAudio.volume = soundSlotVolume('notify');
         notifyAudio.currentTime = 0;
         notifyAudio.play().catch(() => {});
     }
@@ -1641,6 +1689,7 @@ function playNotificationSound() {
 
 function playMessageSound() {
     if (messageAudio?._ready && settings.messageSoundEnabled) {
+        messageAudio.volume = soundSlotVolume('message');
         messageAudio.currentTime = 0;
         messageAudio.play().catch(() => {});
     }
@@ -1648,6 +1697,7 @@ function playMessageSound() {
 
 function playMediaRelaySound() {
     if (mediaRelayAudio?._ready && settings.mediaRelaySoundEnabled) {
+        mediaRelayAudio.volume = soundSlotVolume('mediaRelay');
         mediaRelayAudio.currentTime = 0;
         mediaRelayAudio.play().catch(() => {});
     }
@@ -1655,10 +1705,16 @@ function playMediaRelaySound() {
 
 function playSteamOverlaySound() {
     if (steamOverlayAudio?._ready && settings.steamOverlaySoundEnabled) {
+        steamOverlayAudio.volume = soundSlotVolume('steamOverlay');
         steamOverlayAudio.currentTime = 0;
         steamOverlayAudio.play().catch(() => {});
     }
 }
+
+function sndPreviewNotify(file)       { previewSound('notify', file); }
+function sndPreviewMessage(file)      { previewSound('message', file); }
+function sndPreviewMediaRelay(file)   { previewSound('mediaRelay', file); }
+function sndPreviewSteamOverlay(file) { previewSound('steamOverlay', file); }
 
 
 let _clockEnabled = false;

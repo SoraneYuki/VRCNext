@@ -259,6 +259,14 @@ public class AppSettings
     public bool MessageSoundEnabled { get; set; }
     public bool MediaRelaySoundEnabled { get; set; }
     public bool SteamOverlaySoundEnabled { get; set; } = true;
+    public string NotifySoundFile { get; set; } = "";
+    public string MessageSoundFile { get; set; } = "";
+    public string MediaRelaySoundFile { get; set; } = "";
+    public string SteamOverlaySoundFile { get; set; } = "";
+    public int NotifySoundVolume { get; set; } = 50;
+    public int MessageSoundVolume { get; set; } = 50;
+    public int MediaRelaySoundVolume { get; set; } = 50;
+    public int SteamOverlaySoundVolume { get; set; } = 50;
     public bool FriendOnlineToastEnabled { get; set; }
     public bool FriendOnlineToastFavOnly { get; set; }
     public bool FriendsSidebarLocationOnly { get; set; } = true;

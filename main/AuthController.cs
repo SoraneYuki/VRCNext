@@ -1895,6 +1895,14 @@ public class AuthController
             _core.Settings.MessageSoundEnabled = data["messageSoundEnabled"]?.Value<bool>() ?? false;
             _core.Settings.MediaRelaySoundEnabled = data["mediaRelaySoundEnabled"]?.Value<bool>() ?? false;
             _core.Settings.SteamOverlaySoundEnabled = data["steamOverlaySoundEnabled"]?.Value<bool>() ?? true;
+            _core.Settings.NotifySoundFile = data["notifySoundFile"]?.ToString() ?? "";
+            _core.Settings.MessageSoundFile = data["messageSoundFile"]?.ToString() ?? "";
+            _core.Settings.MediaRelaySoundFile = data["mediaRelaySoundFile"]?.ToString() ?? "";
+            _core.Settings.SteamOverlaySoundFile = data["steamOverlaySoundFile"]?.ToString() ?? "";
+            _core.Settings.NotifySoundVolume = data["notifySoundVolume"]?.Value<int>() ?? 50;
+            _core.Settings.MessageSoundVolume = data["messageSoundVolume"]?.Value<int>() ?? 50;
+            _core.Settings.MediaRelaySoundVolume = data["mediaRelaySoundVolume"]?.Value<int>() ?? 50;
+            _core.Settings.SteamOverlaySoundVolume = data["steamOverlaySoundVolume"]?.Value<int>() ?? 50;
             _core.Settings.FriendOnlineToastEnabled = data["friendOnlineToastEnabled"]?.Value<bool>() ?? false;
             _core.Settings.FriendOnlineToastFavOnly = data["friendOnlineToastFavOnly"]?.Value<bool>() ?? false;
             _core.Settings.FriendsSidebarLocationOnly = data["friendsSidebarLocationOnly"]?.Value<bool>() ?? true;

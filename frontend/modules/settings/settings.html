@@ -438,13 +438,57 @@
                     <div class="vrcn-panel-card" data-section="notifications" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">volume_up</span> <span data-i18n="settings.sounds.title">Sounds</span></div>
                         <div class="sf-toggle-row"><span data-i18n="settings.sounds.notifications">Notification Sounds</span><label class="toggle"><input type="checkbox" id="setNotifySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.sounds.notifications_desc">Plays a sound when you receive a new notification such as friend requests, invites and more.</div>
+                        <div class="set-desc" data-i18n="settings.sounds.notifications_desc">Plays a sound when you receive a new notification such as friend requests, invites and more.</div>
+                        <div class="snd-picker">
+                            <div class="snd-row">
+                                <label class="snd-label" data-i18n="settings.sounds.sound">Sound</label>
+                                <select id="setNotifySoundFile" class="vrcn-dropdown snd-select" data-vn-hover="sndPreviewNotify" onchange="applySoundSettings();autoSave()"></select>
+                            </div>
+                            <div class="snd-row">
+                                <label class="snd-label" data-i18n="settings.sounds.volume">Volume</label>
+                                <input type="range" id="setNotifySoundVolume" min="0" max="100" step="1" value="50" class="snd-slider" oninput="sndOnVolumeInput('notify',this)">
+                                <span id="notifySoundVolumeVal" class="snd-val">50%</span>
+                            </div>
+                        </div>
                         <div class="sf-toggle-row"><span data-i18n="settings.sounds.messages">Message Sounds</span><label class="toggle"><input type="checkbox" id="setMessageSoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.sounds.messages_desc">Plays a sound when you get a boop or when someone sends you a message through the VRCN Messenger.</div>
+                        <div class="set-desc" data-i18n="settings.sounds.messages_desc">Plays a sound when you get a boop or when someone sends you a message through the VRCN Messenger.</div>
+                        <div class="snd-picker">
+                            <div class="snd-row">
+                                <label class="snd-label" data-i18n="settings.sounds.sound">Sound</label>
+                                <select id="setMessageSoundFile" class="vrcn-dropdown snd-select" data-vn-hover="sndPreviewMessage" onchange="applySoundSettings();autoSave()"></select>
+                            </div>
+                            <div class="snd-row">
+                                <label class="snd-label" data-i18n="settings.sounds.volume">Volume</label>
+                                <input type="range" id="setMessageSoundVolume" min="0" max="100" step="1" value="50" class="snd-slider" oninput="sndOnVolumeInput('message',this)">
+                                <span id="messageSoundVolumeVal" class="snd-val">50%</span>
+                            </div>
+                        </div>
                         <div class="sf-toggle-row" data-windows-only><span data-i18n="settings.sounds.media_relay">Media Relay Success Sounds</span><label class="toggle"><input type="checkbox" id="setMediaRelaySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                        <div class="set-desc" data-windows-only style="margin-bottom:10px;" data-i18n="settings.sounds.media_relay_desc">Plays a sound when Media Relay successfully sends an image to one of your Discord channels.</div>
+                        <div class="set-desc" data-windows-only data-i18n="settings.sounds.media_relay_desc">Plays a sound when Media Relay successfully sends an image to one of your Discord channels.</div>
+                        <div class="snd-picker" data-windows-only>
+                            <div class="snd-row">
+                                <label class="snd-label" data-i18n="settings.sounds.sound">Sound</label>
+                                <select id="setMediaRelaySoundFile" class="vrcn-dropdown snd-select" data-vn-hover="sndPreviewMediaRelay" onchange="applySoundSettings();autoSave()"></select>
+                            </div>
+                            <div class="snd-row">
+                                <label class="snd-label" data-i18n="settings.sounds.volume">Volume</label>
+                                <input type="range" id="setMediaRelaySoundVolume" min="0" max="100" step="1" value="50" class="snd-slider" oninput="sndOnVolumeInput('mediaRelay',this)">
+                                <span id="mediaRelaySoundVolumeVal" class="snd-val">50%</span>
+                            </div>
+                        </div>
                         <div class="sf-toggle-row" data-windows-only><span data-i18n="settings.sounds.overlay">VR Overlay Notification Sounds</span><label class="toggle"><input type="checkbox" id="setSteamOverlaySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                        <div class="set-desc" data-windows-only style="margin-bottom:10px;" data-i18n="settings.sounds.overlay_desc">Plays a sound when a notification toast appears in the SteamVR overlay.</div>
+                        <div class="set-desc" data-windows-only data-i18n="settings.sounds.overlay_desc">Plays a sound when a notification toast appears in the SteamVR overlay.</div>
+                        <div class="snd-picker" data-windows-only>
+                            <div class="snd-row">
+                                <label class="snd-label" data-i18n="settings.sounds.sound">Sound</label>
+                                <select id="setSteamOverlaySoundFile" class="vrcn-dropdown snd-select" data-vn-hover="sndPreviewSteamOverlay" onchange="applySoundSettings();autoSave()"></select>
+                            </div>
+                            <div class="snd-row">
+                                <label class="snd-label" data-i18n="settings.sounds.volume">Volume</label>
+                                <input type="range" id="setSteamOverlaySoundVolume" min="0" max="100" step="1" value="50" class="snd-slider" oninput="sndOnVolumeInput('steamOverlay',this)">
+                                <span id="steamOverlaySoundVolumeVal" class="snd-val">50%</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- FRIENDS NOTIFICATION TOASTS -->

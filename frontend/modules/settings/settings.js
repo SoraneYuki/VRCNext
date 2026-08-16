@@ -113,6 +113,14 @@ function saveSettings() {
             messageSoundEnabled: document.getElementById('setMessageSoundEnabled').checked,
             mediaRelaySoundEnabled: document.getElementById('setMediaRelaySoundEnabled').checked,
             steamOverlaySoundEnabled: document.getElementById('setSteamOverlaySoundEnabled')?.checked ?? true,
+            notifySoundFile: document.getElementById('setNotifySoundFile')?.value ?? '',
+            messageSoundFile: document.getElementById('setMessageSoundFile')?.value ?? '',
+            mediaRelaySoundFile: document.getElementById('setMediaRelaySoundFile')?.value ?? '',
+            steamOverlaySoundFile: document.getElementById('setSteamOverlaySoundFile')?.value ?? '',
+            notifySoundVolume: Number(document.getElementById('setNotifySoundVolume')?.value ?? 50),
+            messageSoundVolume: Number(document.getElementById('setMessageSoundVolume')?.value ?? 50),
+            mediaRelaySoundVolume: Number(document.getElementById('setMediaRelaySoundVolume')?.value ?? 50),
+            steamOverlaySoundVolume: Number(document.getElementById('setSteamOverlaySoundVolume')?.value ?? 50),
             friendOnlineToastEnabled: document.getElementById('setFriendOnlineToastEnabled')?.checked ?? false,
             friendOnlineToastFavOnly: document.getElementById('setFriendOnlineToastFavOnly')?.checked ?? false,
             friendsSidebarLocationOnly: document.getElementById('setFriendsSidebarLocationOnly')?.checked ?? true,
@@ -322,6 +330,14 @@ function saveSettings() {
     settings.messageSoundEnabled     = payload.data.messageSoundEnabled;
     settings.mediaRelaySoundEnabled  = payload.data.mediaRelaySoundEnabled;
     settings.steamOverlaySoundEnabled = payload.data.steamOverlaySoundEnabled;
+    settings.notifySoundFile         = payload.data.notifySoundFile;
+    settings.messageSoundFile        = payload.data.messageSoundFile;
+    settings.mediaRelaySoundFile     = payload.data.mediaRelaySoundFile;
+    settings.steamOverlaySoundFile   = payload.data.steamOverlaySoundFile;
+    settings.notifySoundVolume       = payload.data.notifySoundVolume;
+    settings.messageSoundVolume      = payload.data.messageSoundVolume;
+    settings.mediaRelaySoundVolume   = payload.data.mediaRelaySoundVolume;
+    settings.steamOverlaySoundVolume = payload.data.steamOverlaySoundVolume;
     settings.friendOnlineToastEnabled = payload.data.friendOnlineToastEnabled;
     settings.friendOnlineToastFavOnly = payload.data.friendOnlineToastFavOnly;
     settings.webhooks = w;
@@ -385,6 +401,45 @@ function updateSquareFrameToggle() {
     el.disabled = !(typeof settings !== 'undefined' && settings.enableProfileIconFrames);
     const row = el.closest('.sf-toggle-row');
     if (row) row.style.opacity = el.disabled ? '.45' : '';
+}
+
+const SND_SLOT_IDS = {
+    notify:       'setNotifySoundFile',
+    message:      'setMessageSoundFile',
+    mediaRelay:   'setMediaRelaySoundFile',
+    steamOverlay: 'setSteamOverlaySoundFile',
+};
+
+function sndPopulateSelects() {
+    const lib = typeof SOUND_LIBRARY !== 'undefined' ? SOUND_LIBRARY : [];
+    for (const id of Object.values(SND_SLOT_IDS)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const prev = el.value;
+        el.innerHTML = '';
+        const def = document.createElement('option');
+        def.value = '';
+        def.textContent = t('settings.sounds.default', 'Default');
+        el.appendChild(def);
+        for (const file of lib) {
+            const o = document.createElement('option');
+            o.value = file;
+            o.textContent = file.replace(/\.wav$/i, '');
+            el.appendChild(o);
+        }
+        el.value = prev;
+        el._vnRefresh?.();
+    }
+}
+
+function sndOnVolumeInput(slot, el) {
+    const val = Number(el.value) || 0;
+    const cfg = typeof SOUND_SLOTS !== 'undefined' ? SOUND_SLOTS[slot] : null;
+    if (cfg) settings[cfg.volKey] = val;
+    const base = el.id.replace(/^set/, '');
+    const lbl = document.getElementById(base.charAt(0).toLowerCase() + base.slice(1) + 'Val');
+    if (lbl) lbl.textContent = val + '%';
+    autoSave();
 }
 
 function loadSettingsToUI(s) {
@@ -485,6 +540,25 @@ function loadSettingsToUI(s) {
     settings.messageSoundEnabled = s.MessageSoundEnabled ?? s.messageSoundEnabled ?? false;
     settings.mediaRelaySoundEnabled = s.MediaRelaySoundEnabled ?? s.mediaRelaySoundEnabled ?? false;
     settings.steamOverlaySoundEnabled = s.SteamOverlaySoundEnabled ?? s.steamOverlaySoundEnabled ?? true;
+
+    sndPopulateSelects();
+    for (const [slot, id] of Object.entries(SND_SLOT_IDS)) {
+        const cfg = SOUND_SLOTS[slot];
+        const key = cfg.fileKey.charAt(0).toUpperCase() + cfg.fileKey.slice(1);
+        const file = s[key] ?? s[cfg.fileKey] ?? '';
+        settings[cfg.fileKey] = file;
+        const el = document.getElementById(id);
+        if (el) { el.value = file; el._vnRefresh?.(); }
+
+        const vKey = cfg.volKey.charAt(0).toUpperCase() + cfg.volKey.slice(1);
+        const vol = s[vKey] ?? s[cfg.volKey] ?? 50;
+        settings[cfg.volKey] = vol;
+        const vEl = document.getElementById(id.replace('File', 'Volume'));
+        if (vEl) vEl.value = vol;
+        const vLbl = document.getElementById(cfg.volKey + 'Val');
+        if (vLbl) vLbl.textContent = vol + '%';
+    }
+    applySoundSettings();
     settings.friendOnlineToastEnabled = s.FriendOnlineToastEnabled ?? s.friendOnlineToastEnabled ?? false;
     settings.friendOnlineToastFavOnly = s.FriendOnlineToastFavOnly ?? s.friendOnlineToastFavOnly ?? false;
     const _sovEl = document.getElementById('setSteamOverlaySoundEnabled');
@@ -1927,3 +2001,5 @@ function _fotUpdateFavOnly() {
     if (row) row.classList.toggle('disabled', !enabled);
 }
 
+
+document.documentElement.addEventListener('languagechange', sndPopulateSelects);
