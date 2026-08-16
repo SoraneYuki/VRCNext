@@ -74,6 +74,7 @@
 * Fixed inaccurate person counts, meet counts, and time-spent values in the **Time Spent** tab.
 * Fixed an issue on time spent tab causing the users and worlds to not be filtered correctly.
 * Fixed an issue where time spent tab showed wrong orders or spent-bars.
+* Fixed meet counts being one too low in **Rewind** and inconsistent in **Profile Insights**.
 
 **Internal Changes**
 Mostly cleanup to improve maintainability and reduce some of the structural chaos created over time.
