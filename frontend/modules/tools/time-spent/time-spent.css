@@ -49,7 +49,6 @@
     margin-bottom: 14px;
 }
 
-/* With no stats to show, the toolbar becomes a card on its own again. */
 .ts-summary:empty { display: none; }
 .ts-header:has(+ .ts-summary:empty) {
     border-bottom-left-radius: 12px;
@@ -75,7 +74,6 @@
     margin-bottom: 0;
 }
 
-/* Stat tiles wrap instead of squishing when the window gets narrow. */
 .ts-root .ts-stat-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
@@ -120,7 +118,6 @@
 }
 .ts-hl-stranger .msi { color: var(--cyan); }
 
-/* v2 content panel — same recipe as the Worlds / People / Timeline lists */
 .ts-list {
     flex: 1;
     overflow-y: auto;

@@ -674,6 +674,7 @@ public class InstanceController
                 var tsView    = msg["view"]?.ToString() ?? "worlds";
                 var tsQuery   = (msg["query"]?.ToString() ?? "").Trim().ToLowerInvariant();
                 var tsPage    = msg["page"]?.ToObject<int>() ?? 0;
+                var tsReqId   = msg["reqId"]?.ToObject<long>() ?? 0;
                 const int tsPageSize = 100;
 
                 _ = Task.Run(async () =>
@@ -714,6 +715,7 @@ public class InstanceController
                     {
                         totalSeconds  = worldData.TotalSeconds,
                         page          = tsPage,
+                        reqId         = tsReqId,
                         totalWorlds   = worldData.TotalFiltered,
                         totalPersons  = personData.TotalFiltered,
                         allUniqueWorlds   = worldData.TotalAll,

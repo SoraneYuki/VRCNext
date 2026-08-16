@@ -11,6 +11,7 @@ let _tsPersonQuery = '';
 let _tsSearchTimer = null;
 let _tsWorldPage = 0;
 let _tsPersonPage = 0;
+let _tsReqId = 0;
 let _tsTotalWorlds = 0;
 let _tsTotalPersons = 0;
 let _tsAllUniqueWorlds = 0;
@@ -80,7 +81,6 @@ function tsFilterSearch(value) {
     _tsSearchTimer = setTimeout(() => {
         if (_tsView === 'worlds') { _tsWorldQuery = search; _tsWorldPage = 0; }
         else                      { _tsPersonQuery = search; _tsPersonPage = 0; }
-        _tsLoading = false;
         _tsLoad();
     }, 300);
 }
@@ -104,7 +104,6 @@ function tsLoad() {
 }
 
 function _tsLoad() {
-    if (_tsLoading) return;
     _tsLoading = true;
 
     const icon = document.getElementById('tsRefreshIcon');
@@ -121,14 +120,11 @@ function _tsLoad() {
 
     const query = _tsView === 'worlds' ? _tsWorldQuery : _tsPersonQuery;
     const page  = _tsView === 'worlds' ? _tsWorldPage  : _tsPersonPage;
-    sendToCS({ action: 'vrcGetTimeSpent', view: _tsView, query: query.trim(), page });
+    sendToCS({ action: 'vrcGetTimeSpent', view: _tsView, query: query.trim(), page, reqId: ++_tsReqId });
 }
 
 function tsOnData(payload) {
-    const currentQuery = _tsView === 'worlds'
-        ? (document.getElementById('tsWorldSearchInput')?.value ?? '').trim()
-        : (document.getElementById('tsPersonSearchInput')?.value ?? '').trim();
-    if (currentQuery !== (_tsView === 'worlds' ? _tsWorldQuery : _tsPersonQuery)) return;
+    if ((payload.reqId ?? 0) !== _tsReqId) return;
     _tsLoading = false;
     _tsData = payload;
     _tsTotalWorlds       = payload.totalWorlds   ?? 0;
