@@ -69,6 +69,7 @@
 * Fixed inaccuracies in the **Time Spent** tab that could show incorrect overall playtime.
 * Fixed inaccurate person counts, meet counts, and time-spent values in the **Time Spent** tab.
 * Fixed an issue on time spent tab causing the users and worlds to not be filtered correctly.
+* Fixed an issue where time spent tab showed wrong orders or spent-bars.
 
 **Internal Changes**
 Mostly cleanup to improve maintainability and reduce some of the structural chaos created over time.

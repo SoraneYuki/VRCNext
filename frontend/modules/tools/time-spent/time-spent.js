@@ -233,10 +233,10 @@ function tsRenderWorldItems() {
     }
 
     const totalPages = Math.ceil(_tsTotalWorlds / TS_PAGE_SIZE) || 1;
-    const maxSec = worlds[0].seconds || 1;
+    const maxSec = _tsData.maxWorldSeconds || worlds[0].seconds || 1;
     const rows = worlds.map((world, i) => {
-        const pct = Math.round((world.seconds / maxSec) * 100);
-        const rank = _tsWorldPage * TS_PAGE_SIZE + i + 1;
+        const pct = ((world.seconds / maxSec) * 100).toFixed(2);
+        const rank = world.rank ?? (_tsWorldPage * TS_PAGE_SIZE + i + 1);
         const thumb = world.worldThumb
             ? `<img class="ts-item-thumb" src="${esc(imgThumb(world.worldThumb, 96))}" onerror="this.style.display='none'">`
             : `<div class="ts-item-thumb ts-thumb-placeholder"><span class="msi" style="font-size:18px;color:var(--tx3);">travel_explore</span></div>`;
@@ -334,10 +334,10 @@ function tsRenderPersonItems() {
     }
 
     const totalPages = Math.ceil(_tsTotalPersons / TS_PAGE_SIZE) || 1;
-    const maxSec = persons[0].seconds || 1;
+    const maxSec = _tsData.maxPersonSeconds || persons[0].seconds || 1;
     const rows = persons.map((person, i) => {
-        const pct = Math.round((person.seconds / maxSec) * 100);
-        const rank = _tsPersonPage * TS_PAGE_SIZE + i + 1;
+        const pct = ((person.seconds / maxSec) * 100).toFixed(2);
+        const rank = person.rank ?? (_tsPersonPage * TS_PAGE_SIZE + i + 1);
         const isFriend = person.isFriend;
         const avatar = person.image
             ? `<img class="ts-item-avatar" src="${esc(imgThumb(person.image, 96))}" onerror="this.style.display='none'">`

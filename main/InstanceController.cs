@@ -729,6 +729,8 @@ public class InstanceController
                         globalTotalWithOthers = personData.TotalSeconds,
                         globalTopWorldName    = worldData.TopWorldName,
                         globalTotalVisits     = worldData.TotalVisits,
+                        maxWorldSeconds       = worldData.MaxSeconds,
+                        maxPersonSeconds      = personData.MaxSeconds,
                         worlds = worldPage.Select(w => new
                         {
                             worldId    = w.WorldId,
@@ -736,6 +738,7 @@ public class InstanceController
                             worldThumb = ImageCacheHelper.GetWorldUrl(w.WorldId, w.WorldThumb),
                             seconds    = w.Seconds,
                             visits     = w.Visits,
+                            rank       = w.Rank,
                         }),
                         persons = personPage.Select(p => new
                         {
@@ -744,6 +747,7 @@ public class InstanceController
                             image       = ImageCacheHelper.GetUserUrl(p.UserId, p.Image),
                             seconds     = p.Seconds,
                             meets       = p.Meets,
+                            rank        = p.Rank,
                         }),
                     }));
 

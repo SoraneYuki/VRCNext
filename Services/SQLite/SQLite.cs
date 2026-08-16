@@ -203,6 +203,7 @@ public class UnifiedTimeEngine : IDisposable
         public string WorldThumb { get; set; } = "";
         public long   Seconds    { get; set; }
         public int    Visits     { get; set; }
+        public long   Rank       { get; set; }
     }
 
     public class TimeSpentPersonRow
@@ -212,6 +213,7 @@ public class UnifiedTimeEngine : IDisposable
         public string Image       { get; set; } = "";
         public long   Seconds     { get; set; }
         public long   Meets       { get; set; }
+        public long   Rank        { get; set; }
     }
 
     public class TimeSpentWorldPage
@@ -221,6 +223,7 @@ public class UnifiedTimeEngine : IDisposable
         public int    TotalAll      { get; set; }
         public long   TotalSeconds  { get; set; }
         public long   TotalVisits   { get; set; }
+        public long   MaxSeconds    { get; set; }
         public string TopWorldName  { get; set; } = "";
     }
 
@@ -230,6 +233,7 @@ public class UnifiedTimeEngine : IDisposable
         public int  TotalFiltered { get; set; }
         public int  TotalAll      { get; set; }
         public long TotalSeconds  { get; set; }
+        public long MaxSeconds    { get; set; }
     }
 
     private const string TsWorldWhere  = "total_seconds > 0 AND world_name <> ''";
@@ -248,7 +252,8 @@ public class UnifiedTimeEngine : IDisposable
             {
                 using (var cmd = _db.CreateCommand())
                 {
-                    cmd.CommandText = $@"SELECT COUNT(*), COALESCE(SUM(total_seconds),0), COALESCE(SUM(visit_count),0)
+                    cmd.CommandText = $@"SELECT COUNT(*), COALESCE(SUM(total_seconds),0), COALESCE(SUM(visit_count),0),
+                                                COALESCE(MAX(total_seconds),0)
                         FROM world_tracking WHERE {TsWorldWhere}";
                     using var r = cmd.ExecuteReader();
                     if (r.Read())
@@ -256,6 +261,7 @@ public class UnifiedTimeEngine : IDisposable
                         result.TotalAll     = r.GetInt32(0);
                         result.TotalSeconds = r.GetInt64(1);
                         result.TotalVisits  = r.GetInt64(2);
+                        result.MaxSeconds   = r.GetInt64(3);
                     }
                 }
 
@@ -275,14 +281,22 @@ public class UnifiedTimeEngine : IDisposable
                     result.TotalFiltered = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
                 }
 
+                var skip = Math.Max(0, page) * (long)pageSize;
                 using (var cmd = _db.CreateCommand())
                 {
-                    cmd.CommandText = $@"SELECT world_id, world_name, world_thumb, total_seconds, visit_count
-                        FROM world_tracking WHERE {TsWorldWhere}{filter}
-                        ORDER BY total_seconds DESC, world_id ASC LIMIT $take OFFSET $skip";
+                    cmd.CommandText = string.IsNullOrEmpty(query)
+                        ? $@"SELECT world_id, world_name, world_thumb, total_seconds, visit_count, 0
+                            FROM world_tracking WHERE {TsWorldWhere}
+                            ORDER BY total_seconds DESC, world_id ASC LIMIT $take OFFSET $skip"
+                        : $@"SELECT world_id, world_name, world_thumb, total_seconds, visit_count, rnk FROM (
+                                SELECT world_id, world_name, world_thumb, total_seconds, visit_count,
+                                       ROW_NUMBER() OVER (ORDER BY total_seconds DESC, world_id ASC) AS rnk
+                                FROM world_tracking WHERE {TsWorldWhere}
+                             ) WHERE instr(lower(world_name), $q) > 0
+                            ORDER BY rnk LIMIT $take OFFSET $skip";
                     if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("$q", query);
                     cmd.Parameters.AddWithValue("$take", pageSize);
-                    cmd.Parameters.AddWithValue("$skip", Math.Max(0, page) * (long)pageSize);
+                    cmd.Parameters.AddWithValue("$skip", skip);
                     using var r = cmd.ExecuteReader();
                     while (r.Read())
                         result.Rows.Add(new TimeSpentWorldRow
@@ -292,8 +306,11 @@ public class UnifiedTimeEngine : IDisposable
                             WorldThumb = r.GetString(2),
                             Seconds    = r.GetInt64(3),
                             Visits     = r.GetInt32(4),
+                            Rank       = r.GetInt64(5),
                         });
                 }
+                if (string.IsNullOrEmpty(query))
+                    for (int i = 0; i < result.Rows.Count; i++) result.Rows[i].Rank = skip + i + 1;
             }
             catch { }
         }
@@ -312,7 +329,7 @@ public class UnifiedTimeEngine : IDisposable
             {
                 using (var cmd = _db.CreateCommand())
                 {
-                    cmd.CommandText = $@"SELECT COUNT(*), COALESCE(SUM(total_seconds),0)
+                    cmd.CommandText = $@"SELECT COUNT(*), COALESCE(SUM(total_seconds),0), COALESCE(MAX(total_seconds),0)
                         FROM user_tracking WHERE {TsPersonWhere}";
                     cmd.Parameters.AddWithValue("$self", selfId);
                     using var r = cmd.ExecuteReader();
@@ -320,6 +337,7 @@ public class UnifiedTimeEngine : IDisposable
                     {
                         result.TotalAll     = r.GetInt32(0);
                         result.TotalSeconds = r.GetInt64(1);
+                        result.MaxSeconds   = r.GetInt64(2);
                     }
                 }
 
@@ -334,15 +352,23 @@ public class UnifiedTimeEngine : IDisposable
                     result.TotalFiltered = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
                 }
 
+                var skip = Math.Max(0, page) * (long)pageSize;
                 using (var cmd = _db.CreateCommand())
                 {
-                    cmd.CommandText = $@"SELECT user_id, display_name, image, total_seconds, {TsMeetsExpr}
-                        FROM user_tracking WHERE {TsPersonWhere}{filter}
-                        ORDER BY total_seconds DESC, user_id ASC LIMIT $take OFFSET $skip";
+                    cmd.CommandText = string.IsNullOrEmpty(query)
+                        ? $@"SELECT user_id, display_name, image, total_seconds, {TsMeetsExpr}, 0
+                            FROM user_tracking WHERE {TsPersonWhere}
+                            ORDER BY total_seconds DESC, user_id ASC LIMIT $take OFFSET $skip"
+                        : $@"SELECT user_id, display_name, image, total_seconds, meets, rnk FROM (
+                                SELECT user_id, display_name, image, total_seconds, {TsMeetsExpr} AS meets,
+                                       ROW_NUMBER() OVER (ORDER BY total_seconds DESC, user_id ASC) AS rnk
+                                FROM user_tracking WHERE {TsPersonWhere}
+                             ) WHERE instr(lower(display_name), $q) > 0
+                            ORDER BY rnk LIMIT $take OFFSET $skip";
                     cmd.Parameters.AddWithValue("$self", selfId);
                     if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("$q", query);
                     cmd.Parameters.AddWithValue("$take", pageSize);
-                    cmd.Parameters.AddWithValue("$skip", Math.Max(0, page) * (long)pageSize);
+                    cmd.Parameters.AddWithValue("$skip", skip);
                     using var r = cmd.ExecuteReader();
                     while (r.Read())
                         result.Rows.Add(new TimeSpentPersonRow
@@ -352,8 +378,11 @@ public class UnifiedTimeEngine : IDisposable
                             Image       = r.GetString(2),
                             Seconds     = r.GetInt64(3),
                             Meets       = r.GetInt64(4),
+                            Rank        = r.GetInt64(5),
                         });
                 }
+                if (string.IsNullOrEmpty(query))
+                    for (int i = 0; i < result.Rows.Count; i++) result.Rows[i].Rank = skip + i + 1;
             }
             catch { }
         }
