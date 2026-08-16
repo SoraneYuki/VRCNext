@@ -46,6 +46,7 @@
 * Profile, World, Group, and Avatar modals now always use the **Compact** layout.
 * Modal actions and breadcrumb history now always appear in the top bar.
 * Removed the old taskbar navigation mode and its related settings.
+* Added outlines to cards.
 
 **Removed**
 * Removed the **Navigation** tab from Settings.

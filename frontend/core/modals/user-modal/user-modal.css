@@ -86,6 +86,7 @@
 
 .fd-info-card {
     background: var(--bg-input);
+    border: 1px solid var(--brd);
     border-radius: 10px;
     padding: 12px 14px;
 }
