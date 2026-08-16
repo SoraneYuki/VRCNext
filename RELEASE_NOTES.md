@@ -1,5 +1,9 @@
-**2026.42.0**
+**2026.42.1**
+* HOTFIX - Pin system shows only world id instead of world name.
+* HOTFIX - Pin system shows username weirdly.
+* HOTFIX - Pin system shows incorrect names, images and icons.
 
+**2026.42.0**
 **Smart Search**
 * Added **Friends** and **Personal Timeline** buttons to Smart Search, allowing you to quickly search the timeline for a keyword without opening the Timeline first.
 
