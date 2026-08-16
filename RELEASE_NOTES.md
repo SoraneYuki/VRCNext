@@ -1,3 +1,9 @@
+**2026.42.3**
+* Temporarily disabled the **"VRCN has crashed"** modal.
+* The current watchdog is too aggressive and can count a simple **taskkill** as a crash, so the crash handler has been disabled for now.
+* Crash logs are still generated when an actual crash occurs.
+
+
 **2026.42.2**
 * Added an option to use the SteamVR Overlay without movement blocking.
 * HOTFIX - Fixed Voice Fight having no entries.
