@@ -1,7 +1,13 @@
+**2026.42.2**
+* Added an option to use the SteamVR Overlay without movement blocking.
+* HOTFIX - Fixed Voice Fight having no entries.
+* HOTFIX - Fixed being unable to add new sound files to Voice Fight.
+
 **2026.42.1**
-* HOTFIX - Pin system shows only world id instead of world name.
-* HOTFIX - Pin system shows username weirdly.
-* HOTFIX - Pin system shows incorrect names, images and icons.
+* HOTFIX - Fixed the Pin system showing the world ID instead of the world name.
+* HOTFIX - Fixed usernames displaying incorrectly in the Pin system.
+* HOTFIX - Fixed incorrect names, images, and icons in the Pin system.
+
 
 **2026.42.0**
 **Smart Search**
