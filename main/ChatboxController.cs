@@ -94,12 +94,6 @@ public class ChatboxController : IDisposable
                 }
                 break;
 
-            case "chatboxStop":
-                _chatbox?.Stop();
-                _chatbox = null;
-                _vroCtrl.UpdateToolStates();
-                break;
-
             case "chatboxDirectSend":
                 {
                     var text = msg["text"]?.ToString() ?? "";

@@ -17,7 +17,6 @@ function _pinsSave() {
     try { localStorage.setItem(_PINS_KEY, JSON.stringify(_pins)); } catch { }
 }
 
-function pinsKey(type, id) { return type + ':' + id; }
 
 function pinsHas(type, id) {
     return _pins.some(p => p.type === type && p.id === id);
@@ -56,6 +55,10 @@ const _PINS_TYPE_ICON = {
     user: 'person', world: 'public', avatar: 'checkroom',
     group: 'groups', event: 'event', feature: 'widgets',
 };
+
+function pinsTypeIcon(type) {
+    return _PINS_TYPE_ICON[type] || 'push_pin';
+}
 
 function _pinsTypeLabel(type) {
     switch (type) {
@@ -189,6 +192,7 @@ function _pinsCloseMenu() {
 
 // Built via DOM rather than innerHTML so pinned names cannot inject markup.
 function _pinsRenderMenu() {
+    if (typeof dashHeroRefreshPins === 'function') dashHeroRefreshPins();
     const drop = document.getElementById('pinsDropdown');
     if (!drop) return;
     drop.innerHTML = '';
@@ -275,6 +279,7 @@ window.pinsAdd          = pinsAdd;
 window.pinsRemove       = pinsRemove;
 window.pinsHas          = pinsHas;
 window.pinsList         = pinsList;
+window.pinsTypeIcon     = pinsTypeIcon;
 window.pinsInit         = pinsInit;
 window.pinsOnUserBasic  = pinsOnUserBasic;
 

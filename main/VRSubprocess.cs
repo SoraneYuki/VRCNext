@@ -12,6 +12,9 @@ namespace VRCNext;
 
 static class VRSubprocess
 {
+    private static volatile bool _toolConnected;
+    private static System.Threading.Timer? _idleExitTimer;
+
     public static void Run()
     {
         Console.InputEncoding  = Encoding.UTF8;
@@ -118,6 +121,15 @@ static class VRSubprocess
             SendLine(new JObject { ["t"] = "fs_photo_saved", ["path"] = path });
         fs.OnVRQuit += () => Environment.Exit(0);
 
+        _idleExitTimer = new System.Threading.Timer(_ =>
+        {
+            if (!_toolConnected)
+            {
+                Log("[Sub] No tool connected, exiting idle subprocess");
+                Environment.Exit(0);
+            }
+        }, null, 20_000, System.Threading.Timeout.Infinite);
+
         string? line;
         while ((line = Console.ReadLine()) != null)
         {
@@ -143,6 +155,7 @@ static class VRSubprocess
         {
             case "vro_connect":
             {
+                _toolConnected = true;
                 bool ok = vro.Connect();
                 if (ok) vro.StartPolling();
                 SendLine(new JObject
@@ -185,8 +198,6 @@ static class VRSubprocess
 
             case "vro_show":    vro.Show();    break;
             case "vro_hide":    vro.Hide();    break;
-            case "vro_toggle":  vro.Toggle();  break;
-            case "vro_set_tab": vro.SetActiveTab(I(cmd, "tab")); break;
 
             case "vro_water_config":
                 vro.ApplyWaterConfig(B(cmd, "enabled"), I(cmd, "intervalSec") * 1000L);
@@ -311,6 +322,7 @@ static class VRSubprocess
 
             case "sf_connect":
             {
+                _toolConnected = true;
                 bool ok = sf.Connect();
                 if (ok)
                 {
@@ -350,6 +362,7 @@ static class VRSubprocess
 
             case "fs_connect":
             {
+                _toolConnected = true;
                 bool ok = fs.Connect();
                 if (ok)
                 {
@@ -370,7 +383,7 @@ static class VRSubprocess
                         S(cmd, "videoQuality", "1080p"),
                         S(cmd, "videoBitrateQuality", "medium"),
                         I(cmd, "audioKbps", 256));
-                    fs.SetOutputDevice(FsFindDeviceIndex(S(cmd, "outputDevice")));
+                    fs.SetOutputDevice(VRCNext.Services.Helpers.AudioSelection.From(S(cmd, "outputDeviceId"), S(cmd, "outputDeviceName")));
                     fs.StartPolling();
                 }
                 break;
@@ -401,7 +414,7 @@ static class VRSubprocess
                 break;
 
             case "fs_set_output":
-                fs.SetOutputDevice(FsFindDeviceIndex(S(cmd, "deviceName")));
+                fs.SetOutputDevice(VRCNext.Services.Helpers.AudioSelection.From(S(cmd, "deviceId"), S(cmd, "deviceName")));
                 break;
 
             case "fs_get_audio_devices":
@@ -416,11 +429,13 @@ static class VRSubprocess
 
             case "fs_get_devices":
             {
-                var devices = FrameShotService.GetOutputDevices();
+                var arr = new JArray();
+                foreach (var (id, name) in VRCNext.Services.Helpers.AudioDeviceManager.ListOutputs())
+                    arr.Add(new JObject { ["id"] = id, ["name"] = name });
                 SendLine(new JObject
                 {
                     ["t"]       = "fs_devices",
-                    ["devices"] = JArray.FromObject(devices),
+                    ["devices"] = arr,
                 });
                 break;
             }
@@ -462,9 +477,6 @@ static class VRSubprocess
     private static double D(JToken t, string k, double def = 0)     => t[k]?.Value<double>() ?? def;
     private static string S(JToken t, string k, string def = "")    => t[k]?.Value<string>() ?? def;
     private static string? SN(JToken t, string k) => t[k]?.Type == JTokenType.Null ? null : t[k]?.Value<string>();
-
-    private static int FsFindDeviceIndex(string name)
-        => VRCNext.Services.Helpers.AudioDeviceHelper.ResolveOutput(-1, name);
 
     private static List<uint> UList(JToken t, string k)
     {
