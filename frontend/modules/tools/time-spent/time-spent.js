@@ -116,7 +116,8 @@ function _tsLoad() {
     }
 
     const summary = document.getElementById('tsSummary');
-    if (summary) summary.innerHTML = '';
+    if (summary && !summary.querySelector('.ts-stat'))
+        summary.innerHTML = `<div class="ts-stat-row">${'<div class="ts-sk-stat"></div>'.repeat(4)}</div>`;
 
     const query = _tsView === 'worlds' ? _tsWorldQuery : _tsPersonQuery;
     const page  = _tsView === 'worlds' ? _tsWorldPage  : _tsPersonPage;
@@ -171,8 +172,6 @@ function tsSetView(view) {
 }
 
 function _tsShowSearch() {
-    const wrap = document.getElementById('tsSearchWrap');
-    if (wrap) wrap.style.display = '';
     document.getElementById('tsSearchWorlds')?.style.setProperty('display', _tsView === 'worlds' ? '' : 'none');
     document.getElementById('tsSearchPersons')?.style.setProperty('display', _tsView === 'persons' ? '' : 'none');
 }

@@ -194,6 +194,231 @@ public class UnifiedTimeEngine : IDisposable
         }
     }
 
+    // fix time spent and get from user_tracking and world_tracking
+
+    public class TimeSpentWorldRow
+    {
+        public string WorldId    { get; set; } = "";
+        public string WorldName  { get; set; } = "";
+        public string WorldThumb { get; set; } = "";
+        public long   Seconds    { get; set; }
+        public int    Visits     { get; set; }
+    }
+
+    public class TimeSpentPersonRow
+    {
+        public string UserId      { get; set; } = "";
+        public string DisplayName { get; set; } = "";
+        public string Image       { get; set; } = "";
+        public long   Seconds     { get; set; }
+        public long   Meets       { get; set; }
+    }
+
+    public class TimeSpentWorldPage
+    {
+        public List<TimeSpentWorldRow> Rows { get; } = new();
+        public int    TotalFiltered { get; set; }
+        public int    TotalAll      { get; set; }
+        public long   TotalSeconds  { get; set; }
+        public long   TotalVisits   { get; set; }
+        public string TopWorldName  { get; set; } = "";
+    }
+
+    public class TimeSpentPersonPage
+    {
+        public List<TimeSpentPersonRow> Rows { get; } = new();
+        public int  TotalFiltered { get; set; }
+        public int  TotalAll      { get; set; }
+        public long TotalSeconds  { get; set; }
+    }
+
+    private const string TsWorldWhere  = "total_seconds > 0 AND world_name <> ''";
+    private const string TsPersonWhere = "total_seconds > 0 AND display_name <> '' AND user_id <> $self";
+    private const string TsMeetsExpr   = "meet_again_count + CASE WHEN first_meet_date <> '' THEN 1 ELSE 0 END";
+
+    public TimeSpentWorldPage GetTimeSpentWorldPage(string query, int page, int pageSize)
+    {
+        var result = new TimeSpentWorldPage();
+        var filter = string.IsNullOrEmpty(query) ? "" : " AND instr(lower(world_name), $q) > 0";
+
+        lock (_lock)
+        {
+            if (_disposed) return result;
+            try
+            {
+                using (var cmd = _db.CreateCommand())
+                {
+                    cmd.CommandText = $@"SELECT COUNT(*), COALESCE(SUM(total_seconds),0), COALESCE(SUM(visit_count),0)
+                        FROM world_tracking WHERE {TsWorldWhere}";
+                    using var r = cmd.ExecuteReader();
+                    if (r.Read())
+                    {
+                        result.TotalAll     = r.GetInt32(0);
+                        result.TotalSeconds = r.GetInt64(1);
+                        result.TotalVisits  = r.GetInt64(2);
+                    }
+                }
+
+                using (var cmd = _db.CreateCommand())
+                {
+                    cmd.CommandText = $"SELECT world_name FROM world_tracking WHERE {TsWorldWhere} ORDER BY total_seconds DESC LIMIT 1";
+                    result.TopWorldName = cmd.ExecuteScalar() as string ?? "";
+                }
+
+                if (string.IsNullOrEmpty(query))
+                    result.TotalFiltered = result.TotalAll;
+                else
+                {
+                    using var cmd = _db.CreateCommand();
+                    cmd.CommandText = $"SELECT COUNT(*) FROM world_tracking WHERE {TsWorldWhere}{filter}";
+                    cmd.Parameters.AddWithValue("$q", query);
+                    result.TotalFiltered = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+                }
+
+                using (var cmd = _db.CreateCommand())
+                {
+                    cmd.CommandText = $@"SELECT world_id, world_name, world_thumb, total_seconds, visit_count
+                        FROM world_tracking WHERE {TsWorldWhere}{filter}
+                        ORDER BY total_seconds DESC, world_id ASC LIMIT $take OFFSET $skip";
+                    if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("$q", query);
+                    cmd.Parameters.AddWithValue("$take", pageSize);
+                    cmd.Parameters.AddWithValue("$skip", Math.Max(0, page) * (long)pageSize);
+                    using var r = cmd.ExecuteReader();
+                    while (r.Read())
+                        result.Rows.Add(new TimeSpentWorldRow
+                        {
+                            WorldId    = r.GetString(0),
+                            WorldName  = r.GetString(1),
+                            WorldThumb = r.GetString(2),
+                            Seconds    = r.GetInt64(3),
+                            Visits     = r.GetInt32(4),
+                        });
+                }
+            }
+            catch { }
+        }
+        return result;
+    }
+
+    public TimeSpentPersonPage GetTimeSpentPersonPage(string selfId, string query, int page, int pageSize)
+    {
+        var result = new TimeSpentPersonPage();
+        var filter = string.IsNullOrEmpty(query) ? "" : " AND instr(lower(display_name), $q) > 0";
+
+        lock (_lock)
+        {
+            if (_disposed) return result;
+            try
+            {
+                using (var cmd = _db.CreateCommand())
+                {
+                    cmd.CommandText = $@"SELECT COUNT(*), COALESCE(SUM(total_seconds),0)
+                        FROM user_tracking WHERE {TsPersonWhere}";
+                    cmd.Parameters.AddWithValue("$self", selfId);
+                    using var r = cmd.ExecuteReader();
+                    if (r.Read())
+                    {
+                        result.TotalAll     = r.GetInt32(0);
+                        result.TotalSeconds = r.GetInt64(1);
+                    }
+                }
+
+                if (string.IsNullOrEmpty(query))
+                    result.TotalFiltered = result.TotalAll;
+                else
+                {
+                    using var cmd = _db.CreateCommand();
+                    cmd.CommandText = $"SELECT COUNT(*) FROM user_tracking WHERE {TsPersonWhere}{filter}";
+                    cmd.Parameters.AddWithValue("$self", selfId);
+                    cmd.Parameters.AddWithValue("$q", query);
+                    result.TotalFiltered = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+                }
+
+                using (var cmd = _db.CreateCommand())
+                {
+                    cmd.CommandText = $@"SELECT user_id, display_name, image, total_seconds, {TsMeetsExpr}
+                        FROM user_tracking WHERE {TsPersonWhere}{filter}
+                        ORDER BY total_seconds DESC, user_id ASC LIMIT $take OFFSET $skip";
+                    cmd.Parameters.AddWithValue("$self", selfId);
+                    if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("$q", query);
+                    cmd.Parameters.AddWithValue("$take", pageSize);
+                    cmd.Parameters.AddWithValue("$skip", Math.Max(0, page) * (long)pageSize);
+                    using var r = cmd.ExecuteReader();
+                    while (r.Read())
+                        result.Rows.Add(new TimeSpentPersonRow
+                        {
+                            UserId      = r.GetString(0),
+                            DisplayName = r.GetString(1),
+                            Image       = r.GetString(2),
+                            Seconds     = r.GetInt64(3),
+                            Meets       = r.GetInt64(4),
+                        });
+                }
+            }
+            catch { }
+        }
+        return result;
+    }
+
+    // Counts how many of the given users appear in the Time Spent person list.
+    public int CountTimeSpentPersons(string selfId, ICollection<string> userIds)
+    {
+        if (userIds.Count == 0) return 0;
+        var total = 0;
+
+        lock (_lock)
+        {
+            if (_disposed) return 0;
+            try
+            {
+                foreach (var chunk in userIds.Chunk(400))
+                {
+                    using var cmd = _db.CreateCommand();
+                    var inP = string.Join(",", chunk.Select((_, i) => $"$u{i}"));
+                    cmd.CommandText = $"SELECT COUNT(*) FROM user_tracking WHERE {TsPersonWhere} AND user_id IN ({inP})";
+                    cmd.Parameters.AddWithValue("$self", selfId);
+                    for (int i = 0; i < chunk.Length; i++) cmd.Parameters.AddWithValue($"$u{i}", chunk[i]);
+                    total += Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+                }
+            }
+            catch { return total; }
+        }
+        return total;
+    }
+
+    public (TimeSpentPersonRow? Friend, TimeSpentPersonRow? Stranger) GetTopTimeSpentPersons(
+        string selfId, ICollection<string> friendIds)
+    {
+        TimeSpentPersonRow? friend = null, stranger = null;
+
+        lock (_lock)
+        {
+            if (_disposed) return (null, null);
+            try
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = $@"SELECT user_id, display_name, total_seconds
+                    FROM user_tracking WHERE {TsPersonWhere}
+                    ORDER BY total_seconds DESC, user_id ASC";
+                cmd.Parameters.AddWithValue("$self", selfId);
+                using var r = cmd.ExecuteReader();
+                while (r.Read() && (friend == null || stranger == null))
+                {
+                    var row = new TimeSpentPersonRow
+                    {
+                        UserId      = r.GetString(0),
+                        DisplayName = r.GetString(1),
+                        Seconds     = r.GetInt64(2),
+                    };
+                    if (friendIds.Contains(row.UserId)) friend ??= row;
+                    else                                stranger ??= row;
+                }
+            }
+            catch { }
+        }
+        return (friend, stranger);
+    }
+
     // World detail cache
     public class WorldDetailCache
     {
@@ -1704,6 +1929,10 @@ public class UnifiedTimeEngine : IDisposable
         idx.CommandText = "CREATE INDEX IF NOT EXISTS idx_ut_lastseen ON user_tracking(last_seen DESC)";
         try { idx.ExecuteNonQuery(); } catch { }
 
+        using var idxSec = _db.CreateCommand();
+        idxSec.CommandText = "CREATE INDEX IF NOT EXISTS idx_ut_seconds ON user_tracking(total_seconds DESC)";
+        try { idxSec.ExecuteNonQuery(); } catch { }
+
         foreach (var col in new[]
         {
             "display_name                TEXT    NOT NULL DEFAULT ''",
@@ -1944,6 +2173,10 @@ public class UnifiedTimeEngine : IDisposable
             world_thumb   TEXT    NOT NULL DEFAULT ''
         )";
         wcmd.ExecuteNonQuery();
+
+        using var widx = _db.CreateCommand();
+        widx.CommandText = "CREATE INDEX IF NOT EXISTS idx_wt_seconds ON world_tracking(total_seconds DESC)";
+        try { widx.ExecuteNonQuery(); } catch { }
 
         foreach (var col in new[]
         {
