@@ -347,8 +347,11 @@ public class VROverlayController : IDisposable
                 _core.Settings.VroToastTtsInvite = msg["ttsInvite"]?.Value<bool>() ?? false;
                 _core.Settings.VroToastTtsGroupInv = msg["ttsGroupInv"]?.Value<bool>() ?? false;
                 _core.Settings.VroToastTtsJoined = msg["ttsJoined"]?.Value<bool>() ?? false;
-                _core.Settings.VroTtsDevice = msg["ttsDevice"]?.Value<int?>() ?? -1;
-                _core.Settings.VroTtsDeviceName = VRCNext.Services.Helpers.AudioDeviceHelper.OutputNameAt(_core.Settings.VroTtsDevice);
+                if (VRCNext.Services.Helpers.AudioDeviceManager.TryReadSelectionFromMessage(msg["ttsDeviceId"], msg["ttsDeviceName"]?.ToString(), false, _core.Settings.VroTtsDeviceName, out var ttsId, out var ttsName))
+                {
+                    _core.Settings.VroTtsDeviceId = ttsId;
+                    _core.Settings.VroTtsDeviceName = ttsName;
+                }
                 _core.Settings.VroTtsVoice  = msg["ttsVoice"]?.ToString() ?? "";
                 _core.Settings.VroTtsEngine = msg["ttsEngine"]?.ToString() ?? "sapi";
                 _core.Settings.VroToastEnabled    = enabled;
@@ -438,7 +441,7 @@ public class VROverlayController : IDisposable
         var line = string.IsNullOrWhiteSpace(evText) ? friendName : $"{friendName} {evText}";
         VRCNext.Services.Helpers.TtsService.Speak(
             line, _core.Settings.VroTtsEngine, _core.Settings.VroTtsVoice,
-            VRCNext.Services.Helpers.AudioDeviceHelper.ResolveOutput(_core.Settings.VroTtsDevice, _core.Settings.VroTtsDeviceName), 100, 0);
+            VRCNext.Services.Helpers.AudioSelection.From(_core.Settings.VroTtsDeviceId, _core.Settings.VroTtsDeviceName), 100, 0);
     }
 
     public void UpdateToolStates()

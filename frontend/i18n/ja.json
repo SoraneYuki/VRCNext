@@ -3261,5 +3261,8 @@
   "settings.taskbar.title": "タスクバー",
   "settings.design.date_enabled": "日付を表示",
   "settings.design.show_vrcplus": "VRC+バッジを表示",
-  "settings.design.show_vrccredits": "VRCクレジットを表示"
+  "settings.design.show_vrccredits": "VRCクレジットを表示",
+  "audio.system_default": "システム既定",
+  "audio.unavailable": "（利用不可）",
+  "audio.unresolved": "（未解決）"
 }

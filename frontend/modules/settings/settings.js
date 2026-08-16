@@ -171,7 +171,6 @@ function saveSettings() {
             fsAutoStartVR:            document.getElementById('setFsAutoStartVR')?.checked        ?? false,
             fsLeftButton:             _fsCur.fsLeftButton,
             fsRightButton:            _fsCur.fsRightButton,
-            fsOutputDevice:           (typeof fsCurrentOutputDevice === 'function') ? fsCurrentOutputDevice() : (document.getElementById('fsOutputDevice')?.value ?? ''),
             fsActivationRadius:       parseInt(document.getElementById('fsActivationRadius')?.value ?? '15', 10),
             fsLeftRecordButton:       _fsCur.fsLeftRecord,
             fsRightRecordButton:      _fsCur.fsRightRecord,
@@ -240,7 +239,6 @@ function saveSettings() {
             vroToastTtsGroupInv:     !!document.getElementById('vroToastGroupInvTts')?.checked,
             vroToastTtsJoined:       !!document.getElementById('vroToastJoinedTts')?.checked,
             vroToastJoined:          !!document.getElementById('vroToastJoined')?.checked,
-            vroTtsDevice:       _vroParseDevice(document.getElementById('vroTtsDevice')?.value),
             vroTtsVoice:        document.getElementById('vroTtsVoice')?.value || '',
             vroTtsEngine:       document.getElementById('vroTtsEngine')?.value || 'sapi',
             vroTtsLang:         document.getElementById('vroTtsLang')?.value || '',
@@ -328,6 +326,10 @@ function saveSettings() {
     settings.friendOnlineToastFavOnly = payload.data.friendOnlineToastFavOnly;
     settings.webhooks = w;
     settings.Webhooks = w;
+    const vroTtsDev = (typeof audioDeviceValue === 'function') ? audioDeviceValue('vroTtsDevice') : null;
+    if (vroTtsDev) { payload.data.vroTtsDeviceId = vroTtsDev.id; payload.data.vroTtsDeviceName = vroTtsDev.name; }
+    const fsOutDev = (typeof fsCurrentOutputDevice === 'function') ? fsCurrentOutputDevice() : null;
+    if (fsOutDev) { payload.data.fsOutputDeviceId = fsOutDev.id; payload.data.fsOutputDeviceName = fsOutDev.name; }
     sendToCS(payload);
 }
 
@@ -383,11 +385,6 @@ function updateSquareFrameToggle() {
     el.disabled = !(typeof settings !== 'undefined' && settings.enableProfileIconFrames);
     const row = el.closest('.sf-toggle-row');
     if (row) row.style.opacity = el.disabled ? '.45' : '';
-}
-
-function _vroParseDevice(v) {
-    const n = parseInt(v ?? '-1', 10);
-    return Number.isNaN(n) ? -1 : n;
 }
 
 function loadSettingsToUI(s) {
@@ -673,7 +670,7 @@ function loadSettingsToUI(s) {
     if (_fsVQ)  _fsVQ.value  = String(s.FsVideoQuality        ?? s.fsVideoQuality        ?? '1080p');
     if (_fsVBQ) _fsVBQ.value = String(s.FsVideoBitrateQuality ?? s.fsVideoBitrateQuality ?? 'medium');
     if (_fsAK)  _fsAK.value  = String(s.FsAudioKbps           ?? s.fsAudioKbps           ?? 256);
-    if (typeof _fsSavedDevice !== 'undefined') _fsSavedDevice = s.FsOutputDevice ?? s.fsOutputDevice ?? '';
+    if (typeof fsApplySavedOutputDevice === 'function') fsApplySavedOutputDevice(s);
     if (typeof fsRequestFfmpegState === 'function') fsRequestFfmpegState();
     const _fsAr = document.getElementById('fsActivationRadius');
     if (_fsAr) {
@@ -755,7 +752,8 @@ function loadSettingsToUI(s) {
         vroToastTtsGroupInv: s.VroToastTtsGroupInv ?? s.vroToastTtsGroupInv ?? false,
         vroToastTtsJoined: s.VroToastTtsJoined ?? s.vroToastTtsJoined ?? false,
         vroToastJoined:     s.VroToastJoined     ?? s.vroToastJoined     ?? true,
-        vroTtsDevice:       s.VroTtsDevice       ?? s.vroTtsDevice       ?? -1,
+        vroTtsDeviceId:     s.VroTtsDeviceId     ?? s.vroTtsDeviceId     ?? '',
+        vroTtsDeviceName:   s.VroTtsDeviceName   ?? s.vroTtsDeviceName   ?? '',
         vroTtsVoice:        s.VroTtsVoice        ?? s.vroTtsVoice        ?? '',
         vroTtsEngine:       s.VroTtsEngine       ?? s.vroTtsEngine       ?? 'sapi',
         vroTtsLang:         s.VroTtsLang         ?? s.vroTtsLang         ?? '',

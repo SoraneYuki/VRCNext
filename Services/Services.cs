@@ -434,7 +434,8 @@ public class AppSettings
     public uint   FsLeftButton       { get; set; } = 2;  // EVRButtonId.k_EButton_Grip
     public uint   FsRightButton      { get; set; } = 2;  // EVRButtonId.k_EButton_Grip
     public bool   FsAutoStartVR      { get; set; }
-    public string FsOutputDevice     { get; set; } = ""; // empty = system default
+    public string FsOutputDevice     { get; set; } = "";
+    public string FsOutputDeviceId   { get; set; } = "";
     public int    FsActivationRadius { get; set; } = 15; // cm, 5–30
     public uint   FsLeftRecordButton  { get; set; } = 0; // 0 = none
     public uint   FsRightRecordButton { get; set; } = 0; // 0 = none
@@ -534,6 +535,7 @@ public class AppSettings
     public bool       VroToastTtsJoined     { get; set; } = false;
     public int        VroTtsDevice         { get; set; } = -1;
     public string     VroTtsDeviceName     { get; set; } = "";
+    public string     VroTtsDeviceId       { get; set; } = "";
     public string     VroTtsVoice          { get; set; } = "";
     public string     VroTtsEngine         { get; set; } = "sapi";
     public string     VroTtsLang           { get; set; } = "";
@@ -805,8 +807,10 @@ public class VoiceFightSettings
 {
     public int InputDeviceIndex { get; set; }
     public string InputDeviceName { get; set; } = "";
+    public string InputDeviceId { get; set; } = "";
     public int OutputDeviceIndex { get; set; } = -1;
     public string OutputDeviceName { get; set; } = "";
+    public string OutputDeviceId { get; set; } = "";
     public string StopWord { get; set; } = "";
     public List<VfSoundItem> Items { get; set; } = new();
 

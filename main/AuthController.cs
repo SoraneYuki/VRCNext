@@ -1941,8 +1941,11 @@ public class AuthController
             _core.Settings.VroToastTtsGroupInv = data["vroToastTtsGroupInv"]?.Value<bool>() ?? false;
             _core.Settings.VroToastTtsJoined = data["vroToastTtsJoined"]?.Value<bool>() ?? false;
             _core.Settings.VroToastJoined = data["vroToastJoined"]?.Value<bool>() ?? true;
-            _core.Settings.VroTtsDevice = data["vroTtsDevice"]?.Value<int?>() ?? -1;
-            _core.Settings.VroTtsDeviceName = VRCNext.Services.Helpers.AudioDeviceHelper.OutputNameAt(_core.Settings.VroTtsDevice);
+            if (VRCNext.Services.Helpers.AudioDeviceManager.TryReadSelectionFromMessage(data["vroTtsDeviceId"], data["vroTtsDeviceName"]?.ToString(), false, _core.Settings.VroTtsDeviceName, out var vroTtsId, out var vroTtsName))
+            {
+                _core.Settings.VroTtsDeviceId = vroTtsId;
+                _core.Settings.VroTtsDeviceName = vroTtsName;
+            }
             _core.Settings.VroTtsVoice  = data["vroTtsVoice"]?.ToString() ?? "";
             _core.Settings.VroTtsEngine = data["vroTtsEngine"]?.ToString() ?? "sapi";
             _core.Settings.VroTtsLang   = data["vroTtsLang"]?.ToString() ?? "";
@@ -2070,7 +2073,11 @@ public class AuthController
                 _core.Settings.FsLeftButton  = SfIn("fsLeftButton",  _core.Settings.FsLeftButton);
                 _core.Settings.FsRightButton = SfIn("fsRightButton", _core.Settings.FsRightButton);
             }
-            _core.Settings.FsOutputDevice          = data["fsOutputDevice"]?.Value<string>()        ?? "";
+            if (VRCNext.Services.Helpers.AudioDeviceManager.TryReadSelectionFromMessage(data["fsOutputDeviceId"], data["fsOutputDeviceName"]?.ToString(), false, _core.Settings.FsOutputDevice, out var fsOutId, out var fsOutName))
+            {
+                _core.Settings.FsOutputDeviceId = fsOutId;
+                _core.Settings.FsOutputDevice = fsOutName;
+            }
             _core.Settings.FsActivationRadius      = data["fsActivationRadius"]?.Value<int>()       ?? 15;
             if (vrIdx)
             {

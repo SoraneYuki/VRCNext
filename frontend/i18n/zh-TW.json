@@ -3309,5 +3309,8 @@
   "settings.taskbar.title": "工作列",
   "settings.design.date_enabled": "顯示日期",
   "settings.design.show_vrcplus": "顯示 VRC+ 徽章",
-  "settings.design.show_vrccredits": "顯示 VRC 點數"
+  "settings.design.show_vrccredits": "顯示 VRC 點數",
+  "audio.system_default": "系統預設",
+  "audio.unavailable": "（無法使用）",
+  "audio.unresolved": "（未解析）"
 }

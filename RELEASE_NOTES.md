@@ -60,6 +60,11 @@ quickly search the timeline for a keyword without opening the timeline.
 * Fixed avatar author lookups always sending at least one unnecessary request to avtrdb. The pagination now follows the API's own `has_more` flag, which cuts the requests in half for every author with a single page of avatars.
 * Fixed the **AVTRDB/GET** counter in the Activity Log always staying at 0 even though avatar searches were running.
 * Fixed missing "instance.announcement" type in notification system and timeline.
+* Fixed audio devices changing after restarting VRCNext, Windows, or reconnecting devices.
+* Audio devices are now saved using their stable Windows device ID, so the correct device is restored reliably.
+* Missing devices now show as **(Unavailable)** without overwriting the saved selection or using the wrong device.
+* Existing audio settings are migrated automatically where possible.
+* Fixed FrameShot audio inputs losing their selection when temporarily unavailable.
 
 **Internal Changes**
 Mostly cleanup to improve maintainability and reduce some of the structural chaos I created in the first place.
@@ -70,3 +75,4 @@ Mostly cleanup to improve maintainability and reduce some of the structural chao
 
 **Packs**
 * Removed VRChat.API as we don't use it in vrcn.
+* Updated NAudio 2.2.1 to NAudio 3.0.0.

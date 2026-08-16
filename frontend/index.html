@@ -902,6 +902,7 @@
             if (typeof sendToCS === 'function') {
                 sendToCS({ action: 'ready' });
                 sendToCS({ action: 'kxdGetDevices' });
+                sendToCS({ action: 'vfGetDevices' });
             }
             if (typeof navApplyStartPage === 'function') navApplyStartPage();
             const _splashBar = document.getElementById('vrcnSplashBar');

@@ -3309,5 +3309,8 @@
   "avatars.list.header.android": "Android",
   "avatars.list.header.ios": "iOS",
   "avatars.status.public": "Public",
-  "avatars.status.private": "Private"
+  "avatars.status.private": "Private",
+  "audio.system_default": "System default",
+  "audio.unavailable": "(Unavailable)",
+  "audio.unresolved": "(Unresolved)"
 }

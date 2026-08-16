@@ -3284,5 +3284,8 @@
   "settings.taskbar.title": "Панель задач",
   "settings.design.date_enabled": "Показывать дату",
   "settings.design.show_vrcplus": "Показывать значок VRC+",
-  "settings.design.show_vrccredits": "Показывать кредиты VRC"
+  "settings.design.show_vrccredits": "Показывать кредиты VRC",
+  "audio.system_default": "Системное устройство по умолчанию",
+  "audio.unavailable": "(Недоступно)",
+  "audio.unresolved": "(Не определено)"
 }

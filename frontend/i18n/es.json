@@ -3262,5 +3262,8 @@
   "settings.taskbar.title": "Barra de tareas",
   "settings.design.date_enabled": "Mostrar fecha",
   "settings.design.show_vrcplus": "Mostrar insignia VRC+",
-  "settings.design.show_vrccredits": "Mostrar créditos VRC"
+  "settings.design.show_vrccredits": "Mostrar créditos VRC",
+  "audio.system_default": "Predeterminado del sistema",
+  "audio.unavailable": "(No disponible)",
+  "audio.unresolved": "(Sin resolver)"
 }

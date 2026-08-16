@@ -2194,9 +2194,65 @@ function execConsoleCommand(cmd) {
     sendToCS({ action: 'consoleCommand', cmd });
 }
 
-function audioDeviceIndex(id) {
-    const n = parseInt(document.getElementById(id)?.value, 10);
-    return Number.isNaN(n) ? -1 : n;
+function audioSelectionFromSaved(id, name) {
+    if (id) return { mode: 'endpoint', id, name: name || '' };
+    if (name) return { mode: 'legacy', id: '', name };
+    return { mode: 'default', id: '', name: '' };
+}
+
+function audioSelectionFromSelect(sel) {
+    if (!sel || sel.options.length === 0) return { mode: 'default', id: '', name: '' };
+    const v = sel.value || '';
+    if (!v) return { mode: 'default', id: '', name: '' };
+    if (v.startsWith('legacy:')) return { mode: 'legacy', id: '', name: v.slice(7) };
+    const opt = sel.options[sel.selectedIndex];
+    return { mode: 'endpoint', id: v, name: opt?.dataset.name || '' };
+}
+
+function audioFillDeviceSelect(sel, devices, selection) {
+    if (!sel) return;
+    const list = Array.isArray(devices) ? devices : [];
+    const s = selection || {};
+    let html = `<option value="">${esc(t('audio.system_default', 'System default'))}</option>`;
+    for (const d of list) html += `<option value="${esc(d.id)}" data-name="${esc(d.name)}">${esc(d.name)}</option>`;
+    let wanted = '';
+    if (s.mode === 'endpoint' && s.id) {
+        wanted = s.id;
+        if (!list.some(d => d.id === s.id)) {
+            html += `<option value="${esc(s.id)}" data-name="${esc(s.name || '')}">${esc((s.name || s.id) + ' ' + t('audio.unavailable', '(Unavailable)'))}</option>`;
+        }
+    } else if (s.mode === 'legacy' && s.name) {
+        wanted = 'legacy:' + s.name;
+        html += `<option value="${esc(wanted)}" data-name="${esc(s.name)}">${esc(s.name + ' ' + t('audio.unresolved', '(Unresolved)'))}</option>`;
+    }
+    sel.innerHTML = html;
+    sel.value = wanted;
+    sel.dataset.audioReady = '1';
+    if (sel._vnRefresh) sel._vnRefresh();
+}
+
+function audioPrefillDeviceSelect(sel, selection) {
+    if (!sel || sel.dataset.audioReady === '1') return;
+    const s = selection || {};
+    let html = `<option value="">${esc(t('audio.system_default', 'System default'))}</option>`;
+    let wanted = '';
+    if (s.mode === 'endpoint' && s.id) {
+        wanted = s.id;
+        html += `<option value="${esc(s.id)}" data-name="${esc(s.name || '')}">${esc(s.name || s.id)}</option>`;
+    } else if (s.mode === 'legacy' && s.name) {
+        wanted = 'legacy:' + s.name;
+        html += `<option value="${esc(wanted)}" data-name="${esc(s.name)}">${esc(s.name)}</option>`;
+    }
+    sel.innerHTML = html;
+    sel.value = wanted;
+    if (sel._vnRefresh) sel._vnRefresh();
+}
+
+function audioDeviceValue(selId) {
+    const sel = document.getElementById(selId);
+    if (!sel || sel.options.length === 0) return null;
+    const opt = sel.options[sel.selectedIndex];
+    return { id: sel.value || '', name: opt?.dataset.name || '' };
 }
 
 const _escMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
