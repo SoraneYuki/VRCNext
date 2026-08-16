@@ -389,6 +389,33 @@ public class UnifiedTimeEngine : IDisposable
         return result;
     }
 
+    public List<TimeSpentPersonRow> GetAllTimeSpentPersonStats(string selfId)
+    {
+        var rows = new List<TimeSpentPersonRow>();
+
+        lock (_lock)
+        {
+            if (_disposed) return rows;
+            try
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = $@"SELECT user_id, total_seconds, {TsMeetsExpr}
+                    FROM user_tracking WHERE total_seconds > 0 AND user_id <> $self";
+                cmd.Parameters.AddWithValue("$self", selfId);
+                using var r = cmd.ExecuteReader();
+                while (r.Read())
+                    rows.Add(new TimeSpentPersonRow
+                    {
+                        UserId  = r.GetString(0),
+                        Seconds = r.GetInt64(1),
+                        Meets   = r.GetInt64(2),
+                    });
+            }
+            catch { }
+        }
+        return rows;
+    }
+
     // Counts how many of the given users appear in the Time Spent person list.
     public int CountTimeSpentPersons(string selfId, ICollection<string> userIds)
     {

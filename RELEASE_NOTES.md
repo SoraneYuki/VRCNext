@@ -3,6 +3,10 @@
 **Smart Search**
 * Added **Friends** and **Personal Timeline** buttons to Smart Search, allowing you to quickly search the timeline for a keyword without opening the Timeline first.
 
+**Profile Previews**
+* Updated the profile preview design to v2.
+* Fixed time spent and meet counts showing different values than the profile and the Time Spent tab.
+
 **User Profiles**
 * Added a **Creator** badge for users who sell content or participate in the VRChat Creator Economy.
 * Added a **Trusted Score** showing how established and trustworthy a user appears to be.
