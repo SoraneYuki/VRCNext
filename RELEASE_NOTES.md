@@ -1,4 +1,4 @@
-**2026.41.13**
+**2026.42.0**
 
 **Smart Search**
 * Added **Friends** and **Personal Timeline** buttons to Smart Search, allowing you to quickly search the timeline for a keyword without opening the Timeline first.
