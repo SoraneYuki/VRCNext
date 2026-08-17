@@ -568,12 +568,10 @@ function vnPromptModal(opts) {
     o.onclick = e => { if (e.target === o) o.remove(); };
     o.innerHTML = `<div class="modal-box">
         ${renderModalBar(opts.title || '', [modalCloseAction(`document.getElementById('${id}').remove()`)])}
-        <div class="modal-msg" style="margin-top:20px;">${opts.message || ''}</div>
-        <div style="padding:0 20px;">
-            <input id="${id}Input" class="vrcn-edit-field" style="width:100%;box-sizing:border-box;"
-                   maxlength="${parseInt(opts.maxLength, 10) || 128}"
-                   placeholder="${esc(opts.placeholder || '')}" value="${esc(opts.value || '')}">
-        </div>
+        <div class="modal-msg" style="margin:20px 0 8px;word-break:normal;">${opts.message || ''}</div>
+        <input id="${id}Input" class="vrcn-edit-field" style="width:100%;box-sizing:border-box;margin-bottom:20px;"
+               maxlength="${parseInt(opts.maxLength, 10) || 128}"
+               placeholder="${esc(opts.placeholder || '')}" value="${esc(opts.value || '')}">
         <div class="modal-btns">
             <button class="vrcn-button-round" id="${id}Ok">${esc(opts.confirmLabel || t('common.save', 'Save'))}</button>
         </div></div>`;
