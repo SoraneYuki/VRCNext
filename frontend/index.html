@@ -56,6 +56,7 @@
     <link rel="stylesheet" href="core/modals/my-instance-modal/my-instance-modal.css">
     <link rel="stylesheet" href="core/modals/timeline-modal/timeline-modal.css">
     <link rel="stylesheet" href="core/modals/import-modal/import-modal.css">
+    <link rel="stylesheet" href="core/modals/window-manager/window-manager.css">
     <link rel="stylesheet" href="core/context-menu/context-menu.css">
     <link rel="stylesheet" href="core/messenger/messenger.css">
     <link rel="stylesheet" href="core/items/items.css">
@@ -697,6 +698,9 @@
         </div>
     </div>
 
+    <div id="wmLayer"></div>
+    <div id="wmDock"></div>
+
     <script>
     (async function () {
         function showFatalError(msg, detail) {
@@ -852,6 +856,7 @@
             'modules/tools/avatar-scaling/avatar-scaling.js',
             'modules/tools/action-flow/action-flow.js',
             'modules/tools/status-schedule/status-schedule.js',
+            'core/modals/window-manager/window-manager.js',
             'core/logic/init.js',
             'core/debounce/debounce.js',
             'core/SmartSearch/smart-search.js',

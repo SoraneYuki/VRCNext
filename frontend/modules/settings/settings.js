@@ -290,6 +290,7 @@ function saveSettings() {
             ffcEnabled: document.getElementById('setFfcEnabled').checked,
             memoryTrimEnabled: document.getElementById('setMemoryTrimEnabled').checked,
             mediaFixEnabled: document.getElementById('setMediaFixEnabled')?.checked ?? true,
+            multiTaskMode: document.getElementById('setMultiTaskMode')?.checked ?? false,
             dbOptimize: document.getElementById('setDbOptimize').checked,
             dbOptimizeMaxEntries: Math.max(500, Math.min(250000, parseInt(document.getElementById('setDbOptimizeMaxEntries').value) || 500)),
             autoUpdate: document.getElementById('setAutoUpdate').checked,
@@ -894,6 +895,10 @@ function loadSettingsToUI(s) {
     document.getElementById('setMemoryTrimEnabled').checked = s.MemoryTrimEnabled ?? s.memoryTrimEnabled ?? true;
     { const _mfEl = document.getElementById('setMediaFixEnabled'); if (_mfEl) _mfEl.checked = s.MediaFixEnabled ?? s.mediaFixEnabled ?? true; }
 
+    const multiTaskMode = s.MultiTaskMode ?? s.multiTaskMode ?? false;
+    { const _mtEl = document.getElementById('setMultiTaskMode'); if (_mtEl) _mtEl.checked = multiTaskMode; }
+    if (typeof wmSetEnabled === 'function') wmSetEnabled(multiTaskMode);
+
     // Database optimization
     const dbOptimize           = s.DbOptimize ?? s.dbOptimize ?? true;
     const dbOptimizeMaxEntries = Math.max(500, Math.min(250000, s.DbOptimizeMaxEntries ?? s.dbOptimizeMaxEntries ?? 500));
@@ -1045,6 +1050,11 @@ function onPerfSettingChange() {
     if (hint) hint.style.display = '';
     const linuxHint = document.getElementById('linuxPerfRestartHint');
     if (linuxHint) linuxHint.style.display = '';
+}
+
+function onMultiTaskModeChange(el) {
+    if (typeof wmSetEnabled === 'function') wmSetEnabled(!!el.checked);
+    autoSave();
 }
 
 function onSearchDebounceMsChange() {

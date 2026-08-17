@@ -607,6 +607,8 @@ public class AppSettings
     // Windows Fixes
     public bool MediaFixEnabled { get; set; } = true;
 
+    public bool MultiTaskMode { get; set; } = false;
+
     // Database optimization — load limited entries into RAM at startup
     public bool DbOptimize           { get; set; } = true;
     public int  DbOptimizeMaxEntries { get; set; } = 500;
