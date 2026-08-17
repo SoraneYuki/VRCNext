@@ -3311,5 +3311,6 @@
   "kikitan.local.runtimes": "Среды выполнения",
   "kikitan.local.download": "Скачать",
   "kikitan.local.uninstall": "Удалить",
-  "kikitan.local.uninstall_confirm": "Удалить"
+  "kikitan.local.uninstall_confirm": "Удалить {name} с диска?",
+  "kikitan.local.uninstall_title": "Удалить модель"
 }

@@ -565,8 +565,24 @@ function kxdLocalCancel(id)   { sendToCS({ action: 'kxdLocalCancel', id }); }
 function kxdLocalUninstall(id) {
     const item = (_kxdLocalState?.items || []).find(i => i.id === id);
     const name = item ? item.name : id;
-    if (!confirm(t('kikitan.local.uninstall_confirm', 'Remove') + ` "${name}"?`)) return;
-    sendToCS({ action: 'kxdLocalUninstall', id });
+
+    const old = document.getElementById('kxdUninstallModal');
+    if (old) old.remove();
+
+    const o = document.createElement('div');
+    o.className = 'modal-overlay';
+    o.style.display = 'flex';
+    o.id = 'kxdUninstallModal';
+    o.style.zIndex = '10003';
+    o.onclick = e => { if (e.target === o) o.remove(); };
+    o.innerHTML = `<div class="modal-box">
+        ${renderModalBar(t('kikitan.local.uninstall_title', 'Remove Model'), [modalCloseAction("document.getElementById('kxdUninstallModal').remove()")])}
+        <div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">delete</span></div>
+        <div class="modal-msg">${tf('kikitan.local.uninstall_confirm', { name: esc(name) }, 'Remove {name} from your disk?')}</div>
+        <div class="modal-btns">
+            <button class="vrcn-button-round vrcn-btn-danger" onclick="document.getElementById('kxdUninstallModal').remove();sendToCS({action:'kxdLocalUninstall',id:'${jsq(id)}'});">${esc(t('kikitan.local.uninstall', 'Uninstall'))}</button>
+        </div></div>`;
+    document.body.appendChild(o);
 }
 
 function kxdSaveLocalSelection() {

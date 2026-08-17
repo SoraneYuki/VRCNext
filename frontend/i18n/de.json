@@ -3300,5 +3300,6 @@
   "kikitan.local.runtimes": "Runtimes",
   "kikitan.local.download": "Herunterladen",
   "kikitan.local.uninstall": "Entfernen",
-  "kikitan.local.uninstall_confirm": "Entfernen"
+  "kikitan.local.uninstall_confirm": "{name} von der Festplatte entfernen?",
+  "kikitan.local.uninstall_title": "Modell entfernen"
 }

@@ -3288,5 +3288,6 @@
   "kikitan.local.runtimes": "ランタイム",
   "kikitan.local.download": "ダウンロード",
   "kikitan.local.uninstall": "削除",
-  "kikitan.local.uninstall_confirm": "削除"
+  "kikitan.local.uninstall_confirm": "{name} をディスクから削除しますか？",
+  "kikitan.local.uninstall_title": "モデルを削除"
 }

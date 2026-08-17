@@ -104,17 +104,27 @@
                             <div class="sf-toggle-row"><span data-i18n="kikitan.local.use_gpu">Use GPU</span><label class="toggle"><input type="checkbox" id="kxdLocalGpu" checked onchange="kxdSaveLocalSelection()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                             <div class="set-desc" style="margin-bottom:12px;" data-i18n="kikitan.local.use_gpu_desc">Runs both models on the graphics card via Vulkan, which works with your normal display driver. Requires the two GPU runtimes below. Turn this off to use the processor instead, which is far slower.</div>
 
-                            <div class="vrcn-panel-card-header" style="margin:0 0 6px;"><span class="msi">record_voice_over</span> <span data-i18n="kikitan.local.rec_models">Recognition Models</span></div>
-                            <div id="kxdLocalStt"></div>
+                            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+                                <div style="flex:1;min-width:250px;">
+                                    <div class="vrcn-panel-card-header" style="margin:0 0 6px;"><span class="msi">record_voice_over</span> <span data-i18n="kikitan.local.rec_models">Recognition Models</span></div>
+                                    <div id="kxdLocalStt"></div>
+                                </div>
+                                <div style="flex:1;min-width:250px;">
+                                    <div class="vrcn-panel-card-header" style="margin:0 0 6px;"><span class="msi">graphic_eq</span> <span data-i18n="kikitan.local.vad">Voice Activity Detection</span></div>
+                                    <div id="kxdLocalVad"></div>
+                                </div>
+                            </div>
 
-                            <div class="vrcn-panel-card-header" style="margin:14px 0 6px;"><span class="msi">graphic_eq</span> <span data-i18n="kikitan.local.vad">Voice Activity Detection</span></div>
-                            <div id="kxdLocalVad"></div>
-
-                            <div class="vrcn-panel-card-header" style="margin:14px 0 6px;"><span class="msi">translate</span> <span data-i18n="kikitan.local.trans_models">Translation Engine</span></div>
-                            <div id="kxdLocalLlm"></div>
-
-                            <div class="vrcn-panel-card-header" style="margin:14px 0 6px;"><span class="msi">memory</span> <span data-i18n="kikitan.local.runtimes">Runtimes</span></div>
-                            <div id="kxdLocalRuntime"></div>
+                            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-top:14px;">
+                                <div style="flex:1;min-width:250px;">
+                                    <div class="vrcn-panel-card-header" style="margin:0 0 6px;"><span class="msi">translate</span> <span data-i18n="kikitan.local.trans_models">Translation Engine</span></div>
+                                    <div id="kxdLocalLlm"></div>
+                                </div>
+                                <div style="flex:1;min-width:250px;">
+                                    <div class="vrcn-panel-card-header" style="margin:0 0 6px;"><span class="msi">memory</span> <span data-i18n="kikitan.local.runtimes">Runtimes</span></div>
+                                    <div id="kxdLocalRuntime"></div>
+                                </div>
+                            </div>
 
                             <div id="kxdLocalRoot" style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);margin-top:10px;word-break:break-all;"></div>
                         </div>

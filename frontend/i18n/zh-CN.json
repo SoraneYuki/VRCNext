@@ -3289,5 +3289,6 @@
   "kikitan.local.runtimes": "运行时",
   "kikitan.local.download": "下载",
   "kikitan.local.uninstall": "卸载",
-  "kikitan.local.uninstall_confirm": "移除"
+  "kikitan.local.uninstall_confirm": "要从磁盘中移除 {name} 吗？",
+  "kikitan.local.uninstall_title": "移除模型"
 }
