@@ -2778,6 +2778,11 @@ public partial class AppShell
                 case "kxdGetDevices":
                 case "kxdSaveSettings":
                 case "kxdTranslateProfileText":
+                case "kxdLocalGetState":
+                case "kxdLocalDownload":
+                case "kxdLocalCancel":
+                case "kxdLocalUninstall":
+                case "kxdLocalSaveSelection":
                     _kxdCtrl.HandleMessage(action, msg);
                     break;
 

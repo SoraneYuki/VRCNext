@@ -1075,6 +1075,9 @@ case 'vrcNews':
             case 'kxdRecognized': handleKxdRecognized(payload); break;
             case 'kxdTranslated': handleKxdTranslated(payload); break;
             case 'kxdProfileTranslated': handleKxdProfileTranslated(payload); break;
+            case 'kxdLocalState': kxdRenderLocalState(payload); break;
+            case 'kxdLocalProgress': kxdOnLocalProgress(payload); break;
+            case 'kxdLocalFinished': kxdOnLocalFinished(payload); break;
             case 'snipeStatus': handleSnipeStatus(payload); break;
             case 'snipeFound': handleSnipeFound(payload); break;
             case 'snipeJoinResult': handleSnipeJoinResult(payload); break;
