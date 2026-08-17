@@ -2710,8 +2710,8 @@
   "import.avatars": "アバター",
   "import.title.worlds": "ワールドをインポート",
   "import.title.avatars": "アバターをインポート",
-  "import.desc.worlds": "ファイル内の各グループを、お気に入りのワールドグループに割り当ててください。スキップのままのグループはインポートされません。",
-  "import.desc.avatars": "ファイル内の各グループを、お気に入りのアバターグループに割り当ててください。スキップのままのグループはインポートされません。",
+  "import.desc.worlds": "ファイル内の各グループを、お気に入りのワールドグループに割り当ててください。スキップのままのグループはインポートされません。 対応ファイル: CSV、JSON、TXT。ID は自動で検出されます。",
+  "import.desc.avatars": "ファイル内の各グループを、お気に入りのアバターグループに割り当ててください。スキップのままのグループはインポートされません。 対応ファイル: CSV、JSON、TXT。ID は自動で検出されます。",
   "import.start": "インポート",
   "import.skip": "スキップ",
   "import.untitled": "無題",
@@ -3298,5 +3298,6 @@
   "action_flow.prompt.rename_title": "フロー名を変更",
   "action_flow.prompt.delete_title": "フローを削除",
   "kikitan.api_key.missing": "Groq の API キーを入力してください。",
-  "kikitan.google_api_key.missing": "Google の API キーを入力してください。"
+  "kikitan.google_api_key.missing": "Google の API キーを入力してください。",
+  "import.skipped": "削除済みまたは非公開の項目を {count} 件スキップしました。"
 }

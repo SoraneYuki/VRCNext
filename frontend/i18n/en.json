@@ -2782,8 +2782,8 @@
   "import.avatars": "Avatars",
   "import.title.worlds": "Import Worlds",
   "import.title.avatars": "Import Avatars",
-  "import.desc.worlds": "Assign each group from the file to one of your favorite world groups. Groups left on Skip are not imported.",
-  "import.desc.avatars": "Assign each group from the file to one of your favorite avatar groups. Groups left on Skip are not imported.",
+  "import.desc.worlds": "Assign each group from the file to one of your favorite world groups. Groups left on Skip are not imported. Supported files: CSV, JSON and TXT. IDs are detected automatically.",
+  "import.desc.avatars": "Assign each group from the file to one of your favorite avatar groups. Groups left on Skip are not imported. Supported files: CSV, JSON and TXT. IDs are detected automatically.",
   "import.start": "Import",
   "import.skip": "Skip",
   "import.untitled": "Untitled",
@@ -3346,5 +3346,6 @@
   "action_flow.prompt.rename_title": "Rename Flow",
   "action_flow.prompt.delete_title": "Delete Flow",
   "kikitan.api_key.missing": "Please enter your Groq API key.",
-  "kikitan.google_api_key.missing": "Please enter your Google API key."
+  "kikitan.google_api_key.missing": "Please enter your Google API key.",
+  "import.skipped": "Skipped {count} deleted or private entries."
 }

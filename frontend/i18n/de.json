@@ -2726,8 +2726,8 @@
   "import.avatars": "Avatare",
   "import.title.worlds": "Welten importieren",
   "import.title.avatars": "Avatare importieren",
-  "import.desc.worlds": "Weise jede Gruppe aus der Datei einer deiner Favoriten-Weltgruppen zu. Gruppen auf Überspringen werden nicht importiert.",
-  "import.desc.avatars": "Weise jede Gruppe aus der Datei einer deiner Favoriten-Avatargruppen zu. Gruppen auf Überspringen werden nicht importiert.",
+  "import.desc.worlds": "Weise jede Gruppe aus der Datei einer deiner Favoriten-Weltgruppen zu. Gruppen auf Überspringen werden nicht importiert. Unterstützte Dateien: CSV, JSON und TXT. IDs werden automatisch erkannt.",
+  "import.desc.avatars": "Weise jede Gruppe aus der Datei einer deiner Favoriten-Avatargruppen zu. Gruppen auf Überspringen werden nicht importiert. Unterstützte Dateien: CSV, JSON und TXT. IDs werden automatisch erkannt.",
   "import.start": "Importieren",
   "import.skip": "Überspringen",
   "import.untitled": "Ohne Titel",
@@ -3310,5 +3310,6 @@
   "action_flow.prompt.rename_title": "Flow umbenennen",
   "action_flow.prompt.delete_title": "Flow löschen",
   "kikitan.api_key.missing": "Bitte gib deinen Groq-API-Schlüssel ein.",
-  "kikitan.google_api_key.missing": "Bitte gib deinen Google-API-Schlüssel ein."
+  "kikitan.google_api_key.missing": "Bitte gib deinen Google-API-Schlüssel ein.",
+  "import.skipped": "{count} gelöschte oder private Einträge übersprungen."
 }

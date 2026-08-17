@@ -2711,8 +2711,8 @@
   "import.avatars": "Avatars",
   "import.title.worlds": "Importer des mondes",
   "import.title.avatars": "Importer des avatars",
-  "import.desc.worlds": "Attribue chaque groupe du fichier à l'un de tes groupes de mondes favoris. Les groupes laissés sur Ignorer ne sont pas importés.",
-  "import.desc.avatars": "Attribue chaque groupe du fichier à l'un de tes groupes d'avatars favoris. Les groupes laissés sur Ignorer ne sont pas importés.",
+  "import.desc.worlds": "Attribue chaque groupe du fichier à l'un de tes groupes de mondes favoris. Les groupes laissés sur Ignorer ne sont pas importés. Fichiers pris en charge : CSV, JSON et TXT. Les identifiants sont détectés automatiquement.",
+  "import.desc.avatars": "Attribue chaque groupe du fichier à l'un de tes groupes d'avatars favoris. Les groupes laissés sur Ignorer ne sont pas importés. Fichiers pris en charge : CSV, JSON et TXT. Les identifiants sont détectés automatiquement.",
   "import.start": "Importer",
   "import.skip": "Ignorer",
   "import.untitled": "Sans titre",
@@ -3299,5 +3299,6 @@
   "action_flow.prompt.rename_title": "Renommer le flux",
   "action_flow.prompt.delete_title": "Supprimer le flux",
   "kikitan.api_key.missing": "Veuillez saisir votre clé API Groq.",
-  "kikitan.google_api_key.missing": "Veuillez saisir votre clé API Google."
+  "kikitan.google_api_key.missing": "Veuillez saisir votre clé API Google.",
+  "import.skipped": "{count} entrées supprimées ou privées ignorées."
 }

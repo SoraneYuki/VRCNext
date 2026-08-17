@@ -1,4 +1,13 @@
-**2026.42.5**
+**2026.42.6**
+
+**Avatar And World Imports**
+
+* Imports now accept **JSON** and **TXT** files next to CSV.
+* Avatar and world IDs are detected anywhere in the file, including inside links, so exports from other tools usually work as they are.
+* Group names are picked up automatically where possible: headings in a text file, object keys or name fields in a JSON. Everything else lands in one untitled group.
+* You still assign every group to one of your favorite groups yourself before importing, and anything left on Skip is ignored.
+* Deleted and private avatars and worlds are now checked before importing and skipped, so your favorites no longer fill up with unusable "Unnamed / Private" entries. Your own private uploads are still imported.
+* The result message now tells you how many entries were skipped.
 
 **Kikitan XD 2.0**
 

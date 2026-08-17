@@ -2765,8 +2765,8 @@
   "import.avatars": "角色",
   "import.title.worlds": "匯入世界",
   "import.title.avatars": "匯入角色",
-  "import.desc.worlds": "將檔案中的每個分組分配到你的收藏世界分組。設為跳過的分組不會被匯入。",
-  "import.desc.avatars": "將檔案中的每個分組分配到你的收藏角色分組。設為跳過的分組不會被匯入。",
+  "import.desc.worlds": "將檔案中的每個分組分配到你的收藏世界分組。設為跳過的分組不會被匯入。 支援的檔案：CSV、JSON 和 TXT。ID 會自動辨識。",
+  "import.desc.avatars": "將檔案中的每個分組分配到你的收藏角色分組。設為跳過的分組不會被匯入。 支援的檔案：CSV、JSON 和 TXT。ID 會自動辨識。",
   "import.start": "匯入",
   "import.skip": "跳過",
   "import.untitled": "未命名",
@@ -3346,5 +3346,6 @@
   "action_flow.prompt.rename_title": "重新命名流程",
   "action_flow.prompt.delete_title": "刪除流程",
   "kikitan.api_key.missing": "請輸入你的 Groq API 金鑰。",
-  "kikitan.google_api_key.missing": "請輸入你的 Google API 金鑰。"
+  "kikitan.google_api_key.missing": "請輸入你的 Google API 金鑰。",
+  "import.skipped": "已略過 {count} 個已刪除或非公開的項目。"
 }
