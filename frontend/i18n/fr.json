@@ -2654,7 +2654,7 @@
   "settings.accounts.badge.active": "ACTIF",
   "settings.accounts.badge.logged_out": "DÉCONNECTÉ",
   "settings.accounts.badge.profile": "PROFIL DE JEU {n}",
-  "settings.accounts.remove_confirm": "Retirer ce compte de la liste ? Son fichier de base de données reste sur le disque et peut être relié à nouveau en rajoutant le même compte.",
+  "settings.accounts.remove_confirm": "Supprimer {name} de la liste ? Son fichier de base de données reste sur le disque et peut être relié à nouveau en rajoutant le même compte.",
   "settings.accounts.add_error_required": "Nom d'utilisateur et mot de passe requis",
   "settings.accounts.add_error_duplicate": "Compte déjà ajouté",
   "settings.accounts.add_error_login_failed": "Connexion échouée",
@@ -3290,5 +3290,14 @@
   "kikitan.local.download": "Télécharger",
   "kikitan.local.uninstall": "Désinstaller",
   "kikitan.local.uninstall_confirm": "Supprimer {name} du disque ?",
-  "kikitan.local.uninstall_title": "Supprimer le modèle"
+  "kikitan.local.uninstall_title": "Supprimer le modèle",
+  "settings.accounts.remove_title": "Supprimer le compte",
+  "vrc_config.confirm_delete_title": "Supprimer le cache d'assets",
+  "action_flow.condition.prompt.title": "Nouvelle condition",
+  "action_flow.condition.confirm.title": "Supprimer la condition",
+  "action_flow.prompt.flow_name_title": "Nouveau flux",
+  "action_flow.prompt.rename_title": "Renommer le flux",
+  "action_flow.prompt.delete_title": "Supprimer le flux",
+  "kikitan.api_key.missing": "Veuillez saisir votre clé API Groq.",
+  "kikitan.google_api_key.missing": "Veuillez saisir votre clé API Google."
 }

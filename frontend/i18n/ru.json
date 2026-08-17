@@ -2618,7 +2618,7 @@
   "settings.accounts.badge.active": "Активный",
   "settings.accounts.badge.logged_out": "Вышел",
   "settings.accounts.badge.profile": "Игровой профиль {n}",
-  "settings.accounts.remove_confirm": "Удалить аккаунт?",
+  "settings.accounts.remove_confirm": "Удалить {name} из списка? Файл базы данных останется на диске, и его можно снова привязать, добавив тот же аккаунт.",
   "settings.accounts.add_error_required": "Все поля обязательны",
   "settings.accounts.add_error_duplicate": "Аккаунт уже существует",
   "settings.accounts.add_error_login_failed": "Ошибка входа",
@@ -3312,5 +3312,14 @@
   "kikitan.local.download": "Скачать",
   "kikitan.local.uninstall": "Удалить",
   "kikitan.local.uninstall_confirm": "Удалить {name} с диска?",
-  "kikitan.local.uninstall_title": "Удалить модель"
+  "kikitan.local.uninstall_title": "Удалить модель",
+  "settings.accounts.remove_title": "Удалить аккаунт",
+  "vrc_config.confirm_delete_title": "Удалить кэш ассетов",
+  "action_flow.condition.prompt.title": "Новое условие",
+  "action_flow.condition.confirm.title": "Удалить условие",
+  "action_flow.prompt.flow_name_title": "Новый поток",
+  "action_flow.prompt.rename_title": "Переименовать поток",
+  "action_flow.prompt.delete_title": "Удалить поток",
+  "kikitan.api_key.missing": "Введите ваш API-ключ Groq.",
+  "kikitan.google_api_key.missing": "Введите ваш API-ключ Google."
 }

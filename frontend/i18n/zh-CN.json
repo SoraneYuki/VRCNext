@@ -2654,7 +2654,7 @@
   "settings.accounts.badge.active": "活动",
   "settings.accounts.badge.logged_out": "已退出",
   "settings.accounts.badge.profile": "游戏配置 {n}",
-  "settings.accounts.remove_confirm": "从列表中移除此账户？其数据库文件保留在磁盘上，可通过重新添加同一账户重新链接。",
+  "settings.accounts.remove_confirm": "要将 {name} 从列表中移除吗？其数据库文件会保留在磁盘上，再次添加同一账号即可重新关联。",
   "settings.accounts.add_error_required": "需要用户名和密码",
   "settings.accounts.add_error_duplicate": "账户已添加",
   "settings.accounts.add_error_login_failed": "登录失败",
@@ -3290,5 +3290,14 @@
   "kikitan.local.download": "下载",
   "kikitan.local.uninstall": "卸载",
   "kikitan.local.uninstall_confirm": "要从磁盘中移除 {name} 吗？",
-  "kikitan.local.uninstall_title": "移除模型"
+  "kikitan.local.uninstall_title": "移除模型",
+  "settings.accounts.remove_title": "移除账号",
+  "vrc_config.confirm_delete_title": "删除资源缓存",
+  "action_flow.condition.prompt.title": "新建条件",
+  "action_flow.condition.confirm.title": "移除条件",
+  "action_flow.prompt.flow_name_title": "新建流程",
+  "action_flow.prompt.rename_title": "重命名流程",
+  "action_flow.prompt.delete_title": "删除流程",
+  "kikitan.api_key.missing": "请输入你的 Groq API 密钥。",
+  "kikitan.google_api_key.missing": "请输入你的 Google API 密钥。"
 }

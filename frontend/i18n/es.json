@@ -2654,7 +2654,7 @@
   "settings.accounts.badge.active": "ACTIVA",
   "settings.accounts.badge.logged_out": "DESCONECTADA",
   "settings.accounts.badge.profile": "PERFIL DE JUEGO {n}",
-  "settings.accounts.remove_confirm": "¿Eliminar esta cuenta de la lista? Su archivo de base de datos permanece en el disco y puede volver a vincularse añadiendo la misma cuenta de nuevo.",
+  "settings.accounts.remove_confirm": "¿Eliminar {name} de la lista? Su archivo de base de datos permanece en el disco y puede volver a vincularse añadiendo la misma cuenta de nuevo.",
   "settings.accounts.add_error_required": "Usuario y contraseña requeridos",
   "settings.accounts.add_error_duplicate": "La cuenta ya fue añadida",
   "settings.accounts.add_error_login_failed": "Inicio de sesión fallido",
@@ -3290,5 +3290,14 @@
   "kikitan.local.download": "Descargar",
   "kikitan.local.uninstall": "Desinstalar",
   "kikitan.local.uninstall_confirm": "¿Eliminar {name} del disco?",
-  "kikitan.local.uninstall_title": "Eliminar modelo"
+  "kikitan.local.uninstall_title": "Eliminar modelo",
+  "settings.accounts.remove_title": "Eliminar cuenta",
+  "vrc_config.confirm_delete_title": "Eliminar caché de assets",
+  "action_flow.condition.prompt.title": "Nueva condición",
+  "action_flow.condition.confirm.title": "Eliminar condición",
+  "action_flow.prompt.flow_name_title": "Nuevo flujo",
+  "action_flow.prompt.rename_title": "Renombrar flujo",
+  "action_flow.prompt.delete_title": "Eliminar flujo",
+  "kikitan.api_key.missing": "Introduce tu clave de API de Groq.",
+  "kikitan.google_api_key.missing": "Introduce tu clave de API de Google."
 }

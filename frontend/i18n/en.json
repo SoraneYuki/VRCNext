@@ -2725,7 +2725,7 @@
   "settings.accounts.badge.active": "ACTIVE",
   "settings.accounts.badge.logged_out": "LOGGED OUT",
   "settings.accounts.badge.profile": "GAME PROFILE {n}",
-  "settings.accounts.remove_confirm": "Remove this account from the list? Its database file stays on disk and can be re-linked by adding the same account again.",
+  "settings.accounts.remove_confirm": "Remove {name} from the list? Its database file stays on disk and can be re-linked by adding the same account again.",
   "settings.accounts.add_error_required": "Username and password required",
   "settings.accounts.add_error_duplicate": "Account already added",
   "settings.accounts.add_error_login_failed": "Login failed",
@@ -3337,5 +3337,14 @@
   "avatars.status.private": "Private",
   "audio.system_default": "System default",
   "audio.unavailable": "(Unavailable)",
-  "audio.unresolved": "(Unresolved)"
+  "audio.unresolved": "(Unresolved)",
+  "settings.accounts.remove_title": "Remove Account",
+  "vrc_config.confirm_delete_title": "Delete Asset Cache",
+  "action_flow.condition.prompt.title": "New Condition",
+  "action_flow.condition.confirm.title": "Remove Condition",
+  "action_flow.prompt.flow_name_title": "New Flow",
+  "action_flow.prompt.rename_title": "Rename Flow",
+  "action_flow.prompt.delete_title": "Delete Flow",
+  "kikitan.api_key.missing": "Please enter your Groq API key.",
+  "kikitan.google_api_key.missing": "Please enter your Google API key."
 }

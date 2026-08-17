@@ -2653,7 +2653,7 @@
   "settings.accounts.badge.active": "アクティブ",
   "settings.accounts.badge.logged_out": "ログアウト",
   "settings.accounts.badge.profile": "ゲームプロファイル {n}",
-  "settings.accounts.remove_confirm": "このアカウントをリストから削除しますか？データベースファイルはディスクに残り、同じアカウントを再度追加することで再リンクできます。",
+  "settings.accounts.remove_confirm": "{name} を一覧から削除しますか？データベースファイルはディスクに残り、同じアカウントを再度追加すれば再びリンクできます。",
   "settings.accounts.add_error_required": "ユーザー名とパスワードが必要です",
   "settings.accounts.add_error_duplicate": "アカウントは既に追加されています",
   "settings.accounts.add_error_login_failed": "ログインに失敗しました",
@@ -3289,5 +3289,14 @@
   "kikitan.local.download": "ダウンロード",
   "kikitan.local.uninstall": "削除",
   "kikitan.local.uninstall_confirm": "{name} をディスクから削除しますか？",
-  "kikitan.local.uninstall_title": "モデルを削除"
+  "kikitan.local.uninstall_title": "モデルを削除",
+  "settings.accounts.remove_title": "アカウントを削除",
+  "vrc_config.confirm_delete_title": "アセットキャッシュを削除",
+  "action_flow.condition.prompt.title": "新しい条件",
+  "action_flow.condition.confirm.title": "条件を削除",
+  "action_flow.prompt.flow_name_title": "新しいフロー",
+  "action_flow.prompt.rename_title": "フロー名を変更",
+  "action_flow.prompt.delete_title": "フローを削除",
+  "kikitan.api_key.missing": "Groq の API キーを入力してください。",
+  "kikitan.google_api_key.missing": "Google の API キーを入力してください。"
 }

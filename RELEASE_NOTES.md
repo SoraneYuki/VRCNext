@@ -1,6 +1,6 @@
-**2026.42.4**
+**2026.42.5**
 
-**Kikitan XD**
+**Kikitan XD 2.0**
 
 * Added **Local Models**. Kikitan can now run fully on your PC without an API key or rate limits.
 * Added a model manager for downloading and removing **Whisper** speech models and **Qwen2.5** translation models.
@@ -12,3 +12,10 @@
 * Updated the Groq translation model to **qwen/qwen3.6-27b**.
 * Redesigned the Kikitan layout and moved **Personality** into the new **Settings** section.
 * Added chatbox notifications on finals so other players know that you said something.
+
+**Interface**
+* Replaced the remaining browser popups with proper VRCN modals. Removing an account, deleting the VRChat asset cache, and creating, renaming or deleting Action Flows and conditions now use the same in-app dialogs as the rest of VRCNext.
+
+**Fixed Bugs**
+* Fixed Kikitan XD not working anymore with old groq models.
+* Fixed an bug where some uninstall/Deletion modals are missing.

@@ -2669,7 +2669,7 @@
   "settings.accounts.badge.active": "AKTIV",
   "settings.accounts.badge.logged_out": "AUSGELOGGT",
   "settings.accounts.badge.profile": "SPIEL-PROFIL {n}",
-  "settings.accounts.remove_confirm": "Diesen Account aus der Liste entfernen? Die Datenbank-Datei bleibt auf der Festplatte und kann durch erneutes Hinzufügen desselben Accounts wieder verbunden werden.",
+  "settings.accounts.remove_confirm": "{name} aus der Liste entfernen? Die Datenbankdatei bleibt auf der Festplatte und kann durch erneutes Hinzufügen desselben Kontos wieder verknüpft werden.",
   "settings.accounts.add_error_required": "Benutzername und Passwort erforderlich",
   "settings.accounts.add_error_duplicate": "Account wurde bereits hinzugefügt",
   "settings.accounts.add_error_login_failed": "Login fehlgeschlagen",
@@ -3301,5 +3301,14 @@
   "kikitan.local.download": "Herunterladen",
   "kikitan.local.uninstall": "Entfernen",
   "kikitan.local.uninstall_confirm": "{name} von der Festplatte entfernen?",
-  "kikitan.local.uninstall_title": "Modell entfernen"
+  "kikitan.local.uninstall_title": "Modell entfernen",
+  "settings.accounts.remove_title": "Konto entfernen",
+  "vrc_config.confirm_delete_title": "Asset-Cache löschen",
+  "action_flow.condition.prompt.title": "Neue Bedingung",
+  "action_flow.condition.confirm.title": "Bedingung entfernen",
+  "action_flow.prompt.flow_name_title": "Neuer Flow",
+  "action_flow.prompt.rename_title": "Flow umbenennen",
+  "action_flow.prompt.delete_title": "Flow löschen",
+  "kikitan.api_key.missing": "Bitte gib deinen Groq-API-Schlüssel ein.",
+  "kikitan.google_api_key.missing": "Bitte gib deinen Google-API-Schlüssel ein."
 }
