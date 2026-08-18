@@ -74,6 +74,15 @@
     grid-template-columns: minmax(0, 1fr) !important;
 }
 
+.wm-window.wm-sized > .modal-overlay > .modal-box > #myInstanceContent {
+    height: 100% !important;
+}
+
+.wm-window.wm-sized .mi-layout {
+    height: 100% !important;
+    max-height: none !important;
+}
+
 .wm-resize {
     position: absolute;
     z-index: 20;

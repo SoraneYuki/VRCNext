@@ -48,6 +48,12 @@ const WM_TYPES = {
         render: 'renderEventDetail', pairId: true,
         icon: 'event', label: () => _wmT('nav.modal.event', 'Event'),
     },
+    instance: {
+        overlay: 'modalMyInstance', content: 'myInstanceContent',
+        open: '_reopenCachedInstance', close: 'closeMyInstanceDetail',
+        state: '_miWmState',
+        icon: 'sensors', label: () => _wmT('nav.modal.instance', 'Instance'),
+    },
 };
 
 let _wmWindows   = [];
@@ -309,9 +315,13 @@ function _wmCenter(win) {
     const box = _wmLayerBox();
     if (!box || !win.el) return;
     const { w, h } = _wmSizeOf(win);
-    const off = Math.max(0, _wmWindows.indexOf(win)) % 6 * 26;
+    const off = (win.cascade || 0) * 26;
     _wmMoveTo(win, (box.w - w) / 2 + off, (box.h - h) / 2 + off);
     _wmClampInto(win, box);
+}
+
+function _wmRecenter(win) {
+    if (win && win.el && !win.userPlaced) _wmCenter(win);
 }
 
 function _wmCreate(type) {
@@ -333,6 +343,7 @@ function _wmCreate(type) {
         stack: [], idx: -1,
         minimized: false, state: null,
         x: 0, y: 0, w: 0, h: 0,
+        cascade: _wmWindows.length % 6, userPlaced: false,
     };
     el._wmWin = win;
 
@@ -348,6 +359,11 @@ function _wmCreate(type) {
     win.observer = new MutationObserver(() => _wmApplyChrome(win));
     win.observer.observe(el, { childList: true, subtree: true });
 
+    if (typeof ResizeObserver === 'function') {
+        win.sizeObserver = new ResizeObserver(() => _wmRecenter(win));
+        win.sizeObserver.observe(el);
+    }
+
     layer.appendChild(el);
     _wmWindows.push(win);
     return win;
@@ -355,6 +371,7 @@ function _wmCreate(type) {
 
 function _wmDestroy(win) {
     if (win.observer) { win.observer.disconnect(); win.observer = null; }
+    if (win.sizeObserver) { win.sizeObserver.disconnect(); win.sizeObserver = null; }
     if (win.el && win.el.parentNode) win.el.parentNode.removeChild(win.el);
     win.el = null;
     win.body = null;
@@ -434,6 +451,7 @@ function _wmResizeMove(e) {
     const box = _wmLayerBox();
     if (!box) return;
 
+    win.userPlaced = true;
     const dx = e.clientX - r.sx;
     const dy = e.clientY - r.sy;
     let x = r.x, y = r.y, w = r.w, h = r.h;
@@ -486,6 +504,7 @@ function _wmDragMove(e) {
     const { w, h } = _wmSizeOf(win);
     const maxX = Math.max(0, box.w - w);
     const maxY = Math.max(0, box.h - h);
+    win.userPlaced = true;
     _wmMoveTo(win,
         Math.min(maxX, Math.max(0, e.clientX - _wmDrag.dx)),
         Math.min(maxY, Math.max(0, e.clientY - box.top - _wmDrag.dy)));
@@ -603,6 +622,20 @@ function wmSetLabel(win, label) {
 
 function wmOpen(type, id, label, id2) {
     if (!_wmEnabled || !WM_TYPES[type]) return false;
+
+    const existing = _wmFindByEntity(type, id, id2);
+    if (existing) {
+        if (existing.minimized) wmRestore(existing);
+        else wmFocus(existing);
+        const name = existing.label || label || WM_TYPES[type].label();
+        if (typeof showToast === 'function') {
+            showToast(false, typeof tf === 'function'
+                ? tf('wm.already_open', { name }, name + ' is already open')
+                : name + ' is already open');
+        }
+        return true;
+    }
+
     if (_wmWindows.length >= WM_MAX) {
         if (typeof showToast === 'function') {
             showToast(false, _wmT('wm.limit_reached', 'Maximum of 12 windows reached'));
@@ -700,6 +733,7 @@ function _wmWrapRender(type) {
             const r = orig.call(this, payload, ...rest);
             wmSetLabel(win, payload.displayName || payload.name || payload.title || '');
             _wmApplyChrome(win);
+            _wmRecenter(win);
             return r;
         });
     };

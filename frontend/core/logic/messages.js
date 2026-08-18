@@ -304,6 +304,7 @@ window.external.receiveMessage(rawMsg => {
                 if (typeof filterAllFriendsIfLive === 'function') filterAllFriendsIfLive();
                 if (typeof updateUserItemWorld === 'function') updateUserItemWorld(payload);
                 if (typeof patchFriendDetailLive === 'function') patchFriendDetailLive(payload);
+                if (typeof scheduleRenderDashboardFriendSections === 'function') scheduleRenderDashboardFriendSections();
                 break;
             }
             case 'vrcFriends':
