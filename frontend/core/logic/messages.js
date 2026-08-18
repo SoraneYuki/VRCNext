@@ -136,6 +136,9 @@ window.external.receiveMessage(rawMsg => {
             case 'debugImgCacheState':
                 if (typeof setImgCacheDebug === 'function') setImgCacheDebug(payload.enabled);
                 break;
+            case 'debugAvatarLookupState':
+                window.avatarLookupDebug = !!payload.enabled;
+                break;
             case 'toast': showToast(payload.ok, payload.msg); break;
             case 'vrcConfigData':
                 if (typeof _vrcCfgApplyData === 'function') _vrcCfgApplyData(payload || {});

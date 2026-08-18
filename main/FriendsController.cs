@@ -482,9 +482,19 @@ public class FriendsController
                 var fileId = msg["fileId"]?.ToString() ?? "";
                 var openModal = msg["openModal"]?.Value<bool>() ?? false;
                 var forUserId = msg["userId"]?.ToString() ?? "";
+                var source = msg["source"]?.ToString() ?? "";
                 if (!string.IsNullOrEmpty(fileId))
                 {
-                    var (avtrId, avtrData) = await _core.Avatars.GetAvatarIdByFileIdAsync(fileId);
+                    var (avtrId, avtrData) = string.IsNullOrEmpty(source)
+                        ? await _core.Avatars.GetAvatarIdByFileIdAsync(fileId)
+                        : await _core.Avatars.ResolveByFileIdSourceAsync(source, fileId);
+                    if (!string.IsNullOrEmpty(source))
+                    {
+                        var label = source switch { "avtrdb" => "Avtrdb", "icu" => "ICU", "vrcndb" => "VRCNDb", _ => source };
+                        _core.SendToJS("log", string.IsNullOrEmpty(avtrId)
+                            ? new { msg = $"[{label}] no match for {fileId}", color = "warn" }
+                            : new { msg = $"[{label}] {fileId} -> {avtrId}", color = "ok" });
+                    }
                     string avatarName = "", avatarImage = "", avatarAuthor = "";
                     if (!string.IsNullOrEmpty(avtrId))
                     {
@@ -521,6 +531,7 @@ public class FriendsController
                 if (idsToken is JArray idsArr && idsArr.Count > 0)
                 {
                     var ids = idsArr.Select(t => t.ToString()).Where(s => !string.IsNullOrEmpty(s)).ToList();
+                    var source = msg["source"]?.ToString() ?? "";
                     _ = Task.Run(async () =>
                     {
                         foreach (var uid in ids)
@@ -559,7 +570,17 @@ public class FriendsController
 
                                 string avtrId = "";
                                 if (!string.IsNullOrEmpty(fileId))
-                                    avtrId = (await _core.Avatars.GetAvatarIdByFileIdAsync(fileId)).id ?? "";
+                                    avtrId = (string.IsNullOrEmpty(source)
+                                        ? await _core.Avatars.GetAvatarIdByFileIdAsync(fileId)
+                                        : await _core.Avatars.ResolveByFileIdSourceAsync(source, fileId)).id ?? "";
+                                if (!string.IsNullOrEmpty(source))
+                                {
+                                    var label = source switch { "avtrdb" => "Avtrdb", "icu" => "ICU", "vrcndb" => "VRCNDb", _ => source };
+                                    var what = string.IsNullOrEmpty(fileId) ? uid : fileId;
+                                    _core.SendToJS("log", string.IsNullOrEmpty(avtrId)
+                                        ? new { msg = $"[{label}] no match for {what}", color = "warn" }
+                                        : new { msg = $"[{label}] {what} -> {avtrId}", color = "ok" });
+                                }
                                 _core.SendToJS("vrcInstanceAvatarFound", new { userId = uid, avatarId = avtrId });
                             }
                             catch
