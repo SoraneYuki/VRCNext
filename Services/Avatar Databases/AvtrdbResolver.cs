@@ -7,6 +7,7 @@ public sealed class AvtrdbResolver
 {
     public const int MaxBatch = 80;
 
+    public const string HiddenAvatarFileId = "file_0e8c4e32-7444-44ea-ade4-313c010d4bae";
     private const string Endpoint     = "https://api.avtrdb.com/v3/avatar/resolve";
     private const string RobotAvatar  = "avtr_c38a1615-5bf5-42b4-84eb-a8b6c37cbd11";
     private const int    MinIntervalMs = 1000;

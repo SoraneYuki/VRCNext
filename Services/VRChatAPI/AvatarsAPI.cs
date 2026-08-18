@@ -385,6 +385,7 @@ public class AvatarsAPI(VRChatApiService ctx)
 
     public async Task<(string? id, JObject? data)> GetAvatarIdByFileIdAsync(string fileId)
     {
+        if (fileId == AvtrdbResolver.HiddenAvatarFileId) return (null, null);
         try
         {
             var res = MapResolved(await _avtrdbResolver.ResolveAsync(fileId));

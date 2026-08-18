@@ -171,10 +171,12 @@ function closeFriendDetail(fromNav = false) {
 
 
 
+const ROBOT_AVATAR_ID = 'avtr_c38a1615-5bf5-42b4-84eb-a8b6c37cbd11';
 function _applyAvatarSection(payload) {
     const section = document.getElementById('fdAvatarSection');
     if (!section || !payload?.avatarId) return;
-    const avImg = currentFriendDetail?.currentAvatarImageUrl || '';
+    if (payload.avatarId === ROBOT_AVATAR_ID) { section.style.display = 'none'; return; }
+    const avImg = payload.avatarImage || currentFriendDetail?.currentAvatarImageUrl || '';
     const avIcon = avImg
         ? `<img class="fd-group-icon" src="${esc(imgThumb(avImg, 96))}" onerror="this.style.display='none'">`
         : `<div class="fd-group-icon fd-group-icon-empty"><span class="msi" style="font-size:18px;">checkroom</span></div>`;
@@ -1092,7 +1094,7 @@ function renderFriendDetail(d) {
     const _avatarKey = avatarFileId || avatarId;
     const ca = d.cachedAvatar;
     if (ca?.avatarId && ca.fileId === avatarFileId) {
-        _fdLastAvatarPayload = { avatarId: ca.avatarId, avatarName: ca.name, avatarAuthor: ca.authorName };
+        _fdLastAvatarPayload = { avatarId: ca.avatarId, avatarName: ca.name, avatarAuthor: ca.authorName, avatarImage: ca.imageUrl || '' };
         _applyAvatarSection(_fdLastAvatarPayload);
         _fdLoadedAvatarKey = _avatarKey;
     } else if (_fdLastAvatarPayload) {
