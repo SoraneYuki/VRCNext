@@ -253,7 +253,7 @@
                         <div class="tb-dropdown">
                             <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://wiki.vrcnext.com'})"><span class="msi">article</span><span data-i18n="tb.help.wiki">Wiki</span></div>
                             <div class="tb-dd-sep"></div>
-                            <div class="tb-dd-item" data-keep-modal onclick="document.getElementById('modalKeybinds').style.display='flex'"><span class="msi">keyboard</span><span data-i18n="tb.help.show_keybinds">Show Keybinds</span></div>
+                            <div class="tb-dd-item" data-keep-modal onclick="document.getElementById('modalKeybinds').style.display='flex'; if (typeof wmSyncKeybindHelp === 'function') wmSyncKeybindHelp();"><span class="msi">keyboard</span><span data-i18n="tb.help.show_keybinds">Show Keybinds</span></div>
                             <div class="tb-dd-item" onclick="toggleHelpPanel()"><span class="msi">info</span><span data-i18n="tb.help.explain_tab">Explain this Tab</span></div>
                             <div class="tb-dd-sep"></div>
                             <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://discord.gg/dHsrWJzNS9'})"><span class="msi">forum</span><span data-i18n="tb.help.join_discord">Join Discord</span></div>

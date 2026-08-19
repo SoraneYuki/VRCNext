@@ -2189,6 +2189,7 @@ public class AuthController
             VRCNext.Services.WindowsFixes.SetEnabled(_core.Settings.MediaFixEnabled);
 
             _core.Settings.MultiTaskMode = data["multiTaskMode"]?.Value<bool>() ?? false;
+            _core.Settings.TilingManager = data["tilingManager"]?.Value<bool>() ?? true;
 
             // Database optimization (requires restart to take effect)
             _core.Settings.DbOptimize           = data["dbOptimize"]?.Value<bool>() ?? true;

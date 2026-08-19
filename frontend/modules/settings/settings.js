@@ -291,6 +291,7 @@ function saveSettings() {
             memoryTrimEnabled: document.getElementById('setMemoryTrimEnabled').checked,
             mediaFixEnabled: document.getElementById('setMediaFixEnabled')?.checked ?? true,
             multiTaskMode: document.getElementById('setMultiTaskMode')?.checked ?? false,
+            tilingManager: document.getElementById('setTilingManager')?.checked ?? true,
             dbOptimize: document.getElementById('setDbOptimize').checked,
             dbOptimizeMaxEntries: Math.max(500, Math.min(250000, parseInt(document.getElementById('setDbOptimizeMaxEntries').value) || 500)),
             autoUpdate: document.getElementById('setAutoUpdate').checked,
@@ -899,6 +900,11 @@ function loadSettingsToUI(s) {
     { const _mtEl = document.getElementById('setMultiTaskMode'); if (_mtEl) _mtEl.checked = multiTaskMode; }
     if (typeof wmSetEnabled === 'function') wmSetEnabled(multiTaskMode);
 
+    const tilingManager = s.TilingManager ?? s.tilingManager ?? true;
+    { const _tmEl = document.getElementById('setTilingManager'); if (_tmEl) _tmEl.checked = tilingManager; }
+    if (typeof wmSetTiling === 'function') wmSetTiling(tilingManager);
+    updateTilingManagerToggle();
+
     // Database optimization
     const dbOptimize           = s.DbOptimize ?? s.dbOptimize ?? true;
     const dbOptimizeMaxEntries = Math.max(500, Math.min(250000, s.DbOptimizeMaxEntries ?? s.dbOptimizeMaxEntries ?? 500));
@@ -1055,6 +1061,20 @@ function onPerfSettingChange() {
 function onMultiTaskModeChange(el) {
     if (typeof wmSetEnabled === 'function') wmSetEnabled(!!el.checked);
     autoSave();
+    updateTilingManagerToggle();
+}
+
+function onTilingManagerChange(el) {
+    if (typeof wmSetTiling === 'function') wmSetTiling(!!el.checked);
+    autoSave();
+}
+
+function updateTilingManagerToggle() {
+    const enabled = document.getElementById('setMultiTaskMode')?.checked ?? false;
+    const row  = document.getElementById('tilingManagerRow');
+    const desc = document.getElementById('tilingManagerDesc');
+    if (row)  row.classList.toggle('disabled', !enabled);
+    if (desc) desc.classList.toggle('disabled', !enabled);
 }
 
 function onSearchDebounceMsChange() {

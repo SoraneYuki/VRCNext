@@ -16,6 +16,17 @@
 
 .wm-window.wm-minimized { display: none; }
 
+.wm-window.wm-tiling:not(.wm-dragging):not(.wm-resizing) {
+    transition: left .22s cubic-bezier(.2, 0, 0, 1),
+                top .22s cubic-bezier(.2, 0, 0, 1),
+                width .22s cubic-bezier(.2, 0, 0, 1),
+                height .22s cubic-bezier(.2, 0, 0, 1);
+    will-change: left, top, width, height;
+}
+@media (prefers-reduced-motion: reduce) {
+    .wm-window.wm-tiling { transition: none !important; }
+}
+
 .wm-window.wm-dragging,
 .wm-window.wm-dragging * { cursor: grabbing !important; user-select: none; }
 

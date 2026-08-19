@@ -285,6 +285,112 @@ function _wmRenderCrumbs(win, bar) {
     });
 }
 
+const WM_TILE_MS = 220;
+const WM_ARROW_DIRS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
+
+let _wmTiling     = true;
+let _wmHeldArrows = [];
+
+function wmSetTiling(on) {
+    _wmTiling = !!on;
+}
+
+function wmTilingEnabled() {
+    return _wmTiling;
+}
+
+function wmIsEnabled() {
+    return _wmEnabled;
+}
+
+function wmSyncKeybindHelp() {
+    const rows = _wmDocQSA.call(document, '.kb-tiling');
+    const show = _wmEnabled && _wmTiling;
+    for (let i = 0; i < rows.length; i++) rows[i].style.display = show ? '' : 'none';
+}
+
+function _wmIsTypingTarget(el) {
+    if (!el || !el.tagName) return false;
+    const tag = el.tagName.toUpperCase();
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+    return !!el.isContentEditable;
+}
+
+function _wmHoldArrow(dir) {
+    _wmHeldArrows = _wmHeldArrows.filter(d => d !== dir);
+    _wmHeldArrows.push(dir);
+}
+
+function _wmReleaseArrow(dir) {
+    _wmHeldArrows = _wmHeldArrows.filter(d => d !== dir);
+}
+
+function _wmChordDir() {
+    let h = null, v = null;
+    for (let i = _wmHeldArrows.length - 1; i >= 0; i--) {
+        const d = _wmHeldArrows[i];
+        if (!h && (d === 'left' || d === 'right')) h = d;
+        if (!v && (d === 'up'   || d === 'down'))  v = d;
+    }
+    if (h && v) return v + '-' + h;
+    return h || v;
+}
+
+function _wmTileRect(dir, box) {
+    const halfW  = Math.max(WM_MIN_W, Math.round(box.w / 2));
+    const halfH  = Math.max(WM_MIN_H, Math.round(box.h / 2));
+    const fullW  = Math.max(WM_MIN_W, box.w);
+    const fullH  = Math.max(WM_MIN_H, box.h);
+    const right  = Math.max(0, box.w - halfW);
+    const bottom = Math.max(0, box.h - halfH);
+    switch (dir) {
+        case 'left':       return { x: 0,     y: 0,      w: halfW, h: fullH };
+        case 'right':      return { x: right, y: 0,      w: halfW, h: fullH };
+        case 'up':         return { x: 0,     y: 0,      w: fullW, h: halfH };
+        case 'down':       return { x: 0,     y: bottom, w: fullW, h: halfH };
+        case 'up-left':    return { x: 0,     y: 0,      w: halfW, h: halfH };
+        case 'up-right':   return { x: right, y: 0,      w: halfW, h: halfH };
+        case 'down-left':  return { x: 0,     y: bottom, w: halfW, h: halfH };
+        case 'down-right': return { x: right, y: bottom, w: halfW, h: halfH };
+        case 'max':        return { x: 0,     y: 0,      w: fullW, h: fullH };
+    }
+    return null;
+}
+
+function _wmTileAnimate(win) {
+    if (!win.el) return;
+    win.el.classList.add('wm-tiling');
+    if (win.tileAnim) clearTimeout(win.tileAnim);
+    win.tileAnim = setTimeout(() => {
+        win.tileAnim = null;
+        if (win.el) win.el.classList.remove('wm-tiling');
+    }, WM_TILE_MS + 80);
+}
+
+function _wmTileAnimStop(win) {
+    if (!win) return;
+    if (win.tileAnim) clearTimeout(win.tileAnim);
+    win.tileAnim = null;
+    if (win.el) win.el.classList.remove('wm-tiling');
+}
+
+function wmTile(win, dir, animate) {
+    if (!win || !win.el || win.minimized) return false;
+    const box = _wmLayerBox();
+    if (!box) return false;
+    const rect = _wmTileRect(dir, box);
+    if (!rect) return false;
+
+    win.userPlaced = true;
+    win.tile = dir;
+    if (animate === false) _wmTileAnimStop(win);
+    else _wmTileAnimate(win);
+    _wmApplySize(win, rect.w, rect.h);
+    _wmMoveTo(win, rect.x, rect.y);
+    return true;
+}
+
+
 function _wmMoveTo(win, x, y) {
     win.x = Math.round(x);
     win.y = Math.round(y);
@@ -400,7 +506,8 @@ function wmRestore(win) {
     if (!win || !win.el) return;
     win.minimized = false;
     win.el.classList.remove('wm-minimized');
-    _wmClampInto(win);
+    if (win.tile) wmTile(win, win.tile, false);
+    else _wmClampInto(win);
     _wmSyncDock();
     wmFocus(win);
 }
@@ -441,6 +548,7 @@ function _wmResizeStart(win, dir, e) {
     wmFocus(win);
     if (!win.w || !win.h) _wmApplySize(win, win.el.offsetWidth, win.el.offsetHeight);
     _wmResize = { win, dir, sx: e.clientX, sy: e.clientY, x: win.x, y: win.y, w: win.w, h: win.h };
+    _wmTileAnimStop(win);
     win.el.classList.add('wm-resizing');
 }
 
@@ -452,6 +560,7 @@ function _wmResizeMove(e) {
     if (!box) return;
 
     win.userPlaced = true;
+    win.tile = null;
     const dx = e.clientX - r.sx;
     const dy = e.clientY - r.sy;
     let x = r.x, y = r.y, w = r.w, h = r.h;
@@ -491,6 +600,7 @@ function _wmDragStart(win, e) {
         dx: e.clientX - win.x,
         dy: e.clientY - win.y - (layer ? layer.getBoundingClientRect().top : 0),
     };
+    _wmTileAnimStop(win);
     win.el.classList.add('wm-dragging');
     e.preventDefault();
 }
@@ -505,6 +615,7 @@ function _wmDragMove(e) {
     const maxX = Math.max(0, box.w - w);
     const maxY = Math.max(0, box.h - h);
     win.userPlaced = true;
+    win.tile = null;
     _wmMoveTo(win,
         Math.min(maxX, Math.max(0, e.clientX - _wmDrag.dx)),
         Math.min(maxY, Math.max(0, e.clientY - box.top - _wmDrag.dy)));
@@ -529,11 +640,23 @@ function wmReflow() {
         _wmReflowPending = false;
         const box = _wmLayerBox();
         if (!box) return;
-        _wmWindows.forEach(win => { if (win.el) _wmClampInto(win, box); });
+        _wmWindows.forEach(win => {
+            if (!win.el) return;
+            if (win.tile) wmTile(win, win.tile, false);
+            else _wmClampInto(win, box);
+        });
     });
 }
 
 window.addEventListener('resize', wmReflow);
+
+function _wmWatchLayer() {
+    if (typeof ResizeObserver !== 'function') return;
+    const layer = _wmRawGetById.call(document, 'wmLayer');
+    if (!layer) { document.addEventListener('DOMContentLoaded', _wmWatchLayer, { once: true }); return; }
+    new ResizeObserver(wmReflow).observe(layer);
+}
+_wmWatchLayer();
 
 function _wmSyncDock() {
     const dock = _wmRawGetById.call(document, 'wmDock');
@@ -677,8 +800,38 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && _wmCurrent()) {
         e.stopPropagation();
         wmClose(_wmCurrent());
+        return;
     }
+
+    if (!_wmEnabled || !_wmTiling) return;
+    if (!e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+    if (_wmIsTypingTarget(e.target)) return;
+    const tileWin = _wmCurrent();
+    if (!tileWin) return;
+
+    let done = true;
+    const arrow = WM_ARROW_DIRS[e.key];
+    if (arrow) {
+        _wmHoldArrow(arrow);
+        done = wmTile(tileWin, _wmChordDir());
+    } else if (e.key === 'M' || e.key === 'm') {
+        wmMinimize(tileWin);
+    } else if (e.key === 'F' || e.key === 'f') {
+        wmTile(tileWin, 'max');
+    } else {
+        done = false;
+    }
+    if (done) { e.preventDefault(); e.stopPropagation(); }
 }, true);
+
+document.addEventListener('keyup', e => {
+    _wmShift = e.shiftKey;
+    const arrow = WM_ARROW_DIRS[e.key];
+    if (arrow) _wmReleaseArrow(arrow);
+    else if (e.key === 'Shift') _wmHeldArrows = [];
+}, true);
+
+window.addEventListener('blur', () => { _wmHeldArrows = []; });
 
 document.addEventListener('focusin', e => {
     const host = e.target.closest ? e.target.closest('.wm-window') : null;

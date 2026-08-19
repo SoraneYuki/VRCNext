@@ -2293,7 +2293,6 @@
   "settings.search_debounce.label": "搜索索引防抖速度",
   "settings.search_debounce.desc": "搜索索引防抖决定了从最后一次按键到开始搜索数据库或特定条目所需的毫秒数。默认值为500ms，对几乎所有用户都适用。如果你有超过1000个好友，500ms是完美的选择。如果你有超过2500个好友，建议使用750ms。",
   "settings.search_debounce.warning": "不要将此值更改为低于500ms，尤其是在你有大量好友列表、许多群组、许多保存的Avatar和世界的情况下！",
-  "settings.experimental.title": "实验性功能",
   "settings.experimental.multitask.label": "多任务模式",
   "settings.experimental.multitask.desc": "启用后，你可以同时打开最多 12 个群组、资料、活动、世界、模型或实例窗口。在任何会打开窗口的位置按 SHIFT + 鼠标左键，即可以多任务模式打开。你可以通过标题栏拖动窗口、在角落调整大小，并将其最小化到底部的停靠栏。建议仅在应用最大化时使用，因为在小窗口中浏览会非常困难。",
   "settings.experimental.multitask.warning": "这是实验性功能，可能存在问题。",
@@ -3306,5 +3305,15 @@
   "action_flow.prompt.delete_title": "删除流程",
   "kikitan.api_key.missing": "请输入你的 Groq API 密钥。",
   "kikitan.google_api_key.missing": "请输入你的 Google API 密钥。",
-  "import.skipped": "已跳过 {count} 个已删除或非公开的条目。"
+  "import.skipped": "已跳过 {count} 个已删除或非公开的条目。",
+  "settings.multitasking.title": "多任务",
+  "settings.multitasking.tiling.label": "平铺管理器",
+  "settings.multitasking.tiling.desc": "启用后，你可以使用快捷键操作平铺管理器。点击任务栏 > 帮助 > 快捷键，即可查看平铺的快捷键。",
+  "keybinds.modal.tile_left": "窗口靠左贴合",
+  "keybinds.modal.tile_right": "窗口靠右贴合",
+  "keybinds.modal.tile_up": "窗口靠上贴合",
+  "keybinds.modal.tile_down": "窗口靠下贴合",
+  "keybinds.modal.tile_corner": "窗口贴合到角落",
+  "keybinds.modal.tile_min": "最小化窗口",
+  "keybinds.modal.tile_max": "最大化窗口"
 }

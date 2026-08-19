@@ -2344,7 +2344,6 @@
   "settings.search_debounce.label": "搜尋索引防抖速度",
   "settings.search_debounce.desc": "搜尋索引防抖決定了從最後一次按鍵到開始搜尋數據庫或特定條目所需的毫秒數。預設值為500ms，對幾乎所有玩家都適用。如果你有超過1000個好友，500ms是完美的選擇。如果你有超過2500個好友，建議使用750ms。",
   "settings.search_debounce.warning": "不要將此值更改為低於500ms，尤其是在你有大量好友列表、許多群組、許多儲存的Avatar和世界的情況下！",
-  "settings.experimental.title": "實驗性功能",
   "settings.experimental.multitask.label": "多工模式",
   "settings.experimental.multitask.desc": "啟用後，你可以同時開啟最多 12 個社群、個人檔案、活動、世界、模型或執行個體視窗。在任何會開啟視窗的位置按 SHIFT + 滑鼠左鍵，即可以多工模式開啟。你可以透過標題列拖曳視窗、在角落調整大小，並將其最小化到底部的工作列。建議僅在應用程式最大化時使用，因為在小視窗中瀏覽會非常困難。",
   "settings.experimental.multitask.warning": "這是實驗性功能，可能會有錯誤。",
@@ -3353,5 +3352,15 @@
   "action_flow.prompt.delete_title": "刪除流程",
   "kikitan.api_key.missing": "請輸入你的 Groq API 金鑰。",
   "kikitan.google_api_key.missing": "請輸入你的 Google API 金鑰。",
-  "import.skipped": "已略過 {count} 個已刪除或非公開的項目。"
+  "import.skipped": "已略過 {count} 個已刪除或非公開的項目。",
+  "settings.multitasking.title": "多工",
+  "settings.multitasking.tiling.label": "並排管理員",
+  "settings.multitasking.tiling.desc": "啟用後，你可以使用快速鍵操作並排管理員。點擊工作列 > 說明 > 快速鍵，即可查看並排的快速鍵。",
+  "keybinds.modal.tile_left": "視窗靠左貼齊",
+  "keybinds.modal.tile_right": "視窗靠右貼齊",
+  "keybinds.modal.tile_up": "視窗靠上貼齊",
+  "keybinds.modal.tile_down": "視窗靠下貼齊",
+  "keybinds.modal.tile_corner": "視窗貼齊到角落",
+  "keybinds.modal.tile_min": "最小化視窗",
+  "keybinds.modal.tile_max": "最大化視窗"
 }

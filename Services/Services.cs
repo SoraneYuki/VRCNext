@@ -609,6 +609,8 @@ public class AppSettings
 
     public bool MultiTaskMode { get; set; } = false;
 
+    public bool TilingManager { get; set; } = true;
+
     // Database optimization — load limited entries into RAM at startup
     public bool DbOptimize           { get; set; } = true;
     public int  DbOptimizeMaxEntries { get; set; } = 500;

@@ -2348,7 +2348,6 @@
   "settings.search_debounce.label": "Search Index Debounce Speed",
   "settings.search_debounce.desc": "Search Index Debounce determines how many milliseconds it takes until it starts searching the database or certain entries after your last key press. Default is 500ms which works fine for almost every user. If you have more than 1000 Friends, 500ms is perfect. If you have more than 2500 Friends, it is recommended to use 750ms.",
   "settings.search_debounce.warning": "Do not change this to a value below 500ms, especially when you have a large friends list, many groups, many saved avatars and worlds!",
-  "settings.experimental.title": "Experimental Features",
   "settings.experimental.multitask.label": "Multi-Task Mode",
   "settings.experimental.multitask.desc": "When enabled you can open up to 12 Group, Profile, Event, World, Avatar or Instance modals at the same time. Press SHIFT + Left Mouse on anything that opens a modal to open it in Multi-Task mode. You can drag a window by its title bar, resize it at the corners and minimize it into the dock at the bottom. It is recommended to only use this while the app is maximized, since navigating gets very hard in a small window.",
   "settings.experimental.multitask.warning": "This is an experimental feature, expect bugs.",
@@ -3353,5 +3352,15 @@
   "action_flow.prompt.delete_title": "Delete Flow",
   "kikitan.api_key.missing": "Please enter your Groq API key.",
   "kikitan.google_api_key.missing": "Please enter your Google API key.",
-  "import.skipped": "Skipped {count} deleted or private entries."
+  "import.skipped": "Skipped {count} deleted or private entries.",
+  "settings.multitasking.title": "Multi-Tasking",
+  "settings.multitasking.tiling.label": "Tiling Manager",
+  "settings.multitasking.tiling.desc": "When enabled you can use keybinds to use the tile manager. Click on taskbar > help > Keybinds to see the keybinds for tiling.",
+  "keybinds.modal.tile_left": "Snap Window Left",
+  "keybinds.modal.tile_right": "Snap Window Right",
+  "keybinds.modal.tile_up": "Snap Window Up",
+  "keybinds.modal.tile_down": "Snap Window Down",
+  "keybinds.modal.tile_corner": "Snap Window to a Corner",
+  "keybinds.modal.tile_min": "Minimize Window",
+  "keybinds.modal.tile_max": "Maximize Window"
 }

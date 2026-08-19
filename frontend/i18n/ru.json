@@ -2274,7 +2274,6 @@
   "settings.search_debounce.label": "Debounce",
   "settings.search_debounce.desc": "Задержка перед поиском",
   "settings.search_debounce.warning": "Меньше = быстрее, но больше нагрузка",
-  "settings.experimental.title": "Экспериментальные функции",
   "settings.experimental.multitask.label": "Режим многозадачности",
   "settings.experimental.multitask.desc": "Когда включено, можно открыть до 12 окон групп, профилей, событий, миров, аватаров или инстансов одновременно. Нажмите SHIFT + левую кнопку мыши на любом элементе, открывающем окно, чтобы открыть его в режиме многозадачности. Окно можно перетаскивать за заголовок, изменять размер за углы и сворачивать в панель снизу. Рекомендуется использовать это только при развёрнутом окне приложения, так как в маленьком окне навигация становится очень неудобной.",
   "settings.experimental.multitask.warning": "Это экспериментальная функция, возможны ошибки.",
@@ -3328,5 +3327,15 @@
   "action_flow.prompt.delete_title": "Удалить поток",
   "kikitan.api_key.missing": "Введите ваш API-ключ Groq.",
   "kikitan.google_api_key.missing": "Введите ваш API-ключ Google.",
-  "import.skipped": "Пропущено {count} удалённых или приватных записей."
+  "import.skipped": "Пропущено {count} удалённых или приватных записей.",
+  "settings.multitasking.title": "Многозадачность",
+  "settings.multitasking.tiling.label": "Менеджер плиток",
+  "settings.multitasking.tiling.desc": "Когда включено, вы можете управлять менеджером плиток с помощью сочетаний клавиш. Нажмите на панели задач: справка > Сочетания клавиш, чтобы увидеть сочетания клавиш для плиточного режима.",
+  "keybinds.modal.tile_left": "Прикрепить окно влево",
+  "keybinds.modal.tile_right": "Прикрепить окно вправо",
+  "keybinds.modal.tile_up": "Прикрепить окно вверх",
+  "keybinds.modal.tile_down": "Прикрепить окно вниз",
+  "keybinds.modal.tile_corner": "Прикрепить окно в угол",
+  "keybinds.modal.tile_min": "Свернуть окно",
+  "keybinds.modal.tile_max": "Развернуть окно"
 }
