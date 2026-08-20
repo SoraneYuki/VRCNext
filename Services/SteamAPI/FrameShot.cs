@@ -41,6 +41,12 @@ namespace VRCNext.Services
         public event Action? OnVRQuit;
         public event Action<string>? OnPhotoSaved;
 
+        private bool _emitPrimed;
+        private bool _emitConnected;
+        private bool _emitFraming;
+        private bool _emitLeftController;
+        private bool _emitRightController;
+
         // OpenVR
         private CVRSystem? _vrSystem;
         private bool _ownedInit;
@@ -402,6 +408,7 @@ namespace VRCNext.Services
             if (_running) return;
             _cts     = new CancellationTokenSource();
             _running = true;
+            _emitPrimed = false;
             _pollTask = PollLoopAsync(_cts.Token);
             StartVrserverMonitor(_cts.Token);
         }
@@ -1731,12 +1738,28 @@ namespace VRCNext.Services
 
         private void EmitState()
         {
+            var leftController  = _leftIdx  != OpenVR.k_unTrackedDeviceIndexInvalid;
+            var rightController = _rightIdx != OpenVR.k_unTrackedDeviceIndexInvalid;
+
+            if (_emitPrimed
+                && _emitConnected == IsConnected
+                && _emitFraming == IsFraming
+                && _emitLeftController == leftController
+                && _emitRightController == rightController)
+                return;
+
+            _emitPrimed = true;
+            _emitConnected = IsConnected;
+            _emitFraming = IsFraming;
+            _emitLeftController = leftController;
+            _emitRightController = rightController;
+
             OnStateUpdate?.Invoke(new
             {
                 connected      = IsConnected,
                 framing        = IsFraming,
-                leftController = _leftIdx  != OpenVR.k_unTrackedDeviceIndexInvalid,
-                rightController = _rightIdx != OpenVR.k_unTrackedDeviceIndexInvalid,
+                leftController = leftController,
+                rightController = rightController,
                 error = (string?)null,
             });
         }

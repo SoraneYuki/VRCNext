@@ -1248,6 +1248,29 @@ public class InstanceController
 #endif
     }
 
+    private void NotifyFriendLeftInstance(string userId, string displayName)
+    {
+#if WINDOWS
+        if (_core.VrOverlay == null) return;
+        if (!string.IsNullOrEmpty(_core.CurrentVrcUserId) && userId == _core.CurrentVrcUserId) return;
+        if (_core.LogWatcher.SelfLeftRoom) return;
+        if (!_friends.TryGetNameImage(userId, out var fi)) return;
+
+        var name = !string.IsNullOrEmpty(fi.name) ? fi.name : displayName;
+        var text = "Left your instance";
+        var time = VRCNext.Services.Helpers.DateTimeHelper.FormatTime(DateTime.Now);
+
+        try
+        {
+            _core.VrOverlay.AddNotification("friend_left", name, text, time, fi.image, userId, "");
+            _core.VrOverlay.EnqueueToast("friend_left", name, text, time, fi.image,
+                                         _friends.IsFavorited(userId));
+            _core.SpeakToast?.Invoke("friend_left", name, text);
+        }
+        catch { }
+#endif
+    }
+
     public void HandlePlayerJoinedOnUiThread(string userId, string displayName)
     {
         // Skip events for the local player; VRChat logs OnPlayerJoined for self too
@@ -1475,7 +1498,7 @@ public class InstanceController
         }
     }
 
-    public void HandlePlayerLeftOnUiThread(string userId)
+    public void HandlePlayerLeftOnUiThread(string userId, string displayName = "")
     {
         if (string.IsNullOrEmpty(userId)) return;
         if (!_playerLeftTimes.TryGetValue(userId, out var leftList))
@@ -1484,6 +1507,8 @@ public class InstanceController
             _playerLeftTimes[userId] = leftList;
         }
         leftList.Add(DateTime.UtcNow.ToString("o"));
+
+        NotifyFriendLeftInstance(userId, displayName);
 
         if (_pendingInstanceEventId != null)
         {

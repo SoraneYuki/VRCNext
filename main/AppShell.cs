@@ -388,12 +388,32 @@ public partial class AppShell
 #endif
 
         int uptimeTick = 0;
+        int vfMeterPct  = -1;
+        int kxdMeterPct = -1;
+        static int MeterPct(float level) =>
+            (int)MathF.Round(Math.Clamp(level, 0f, 1f) * 100f, MidpointRounding.AwayFromZero);
         _uptimeTimer2 = new System.Threading.Timer(_ =>
         {
             if (_vfCtrl.IsRunning)
-                SendToJS("vfMeter", new { level = _vfCtrl.MeterLevel });
+            {
+                var pct = MeterPct(_vfCtrl.MeterLevel);
+                if (pct != vfMeterPct)
+                {
+                    vfMeterPct = pct;
+                    SendToJS("vfMeter", new { level = pct / 100f });
+                }
+            }
+            else vfMeterPct = -1;
             if (_kxdCtrl.IsRunning)
-                SendToJS("kxdMeter", new { level = _kxdCtrl.MeterLevel });
+            {
+                var pct = MeterPct(_kxdCtrl.MeterLevel);
+                if (pct != kxdMeterPct)
+                {
+                    kxdMeterPct = pct;
+                    SendToJS("kxdMeter", new { level = pct / 100f });
+                }
+            }
+            else kxdMeterPct = -1;
             if (Interlocked.Increment(ref uptimeTick) % 10 == 0 && _relayCtrl.IsRunning)
                 SendToJS("uptimeTick", (DateTime.Now - _relayCtrl.RelayStart).ToString(@"hh\:mm\:ss"));
         }, null, 100, 100);

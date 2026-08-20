@@ -1,6 +1,11 @@
-**2026.43.2**
+**2026.43.5**
 
-**Multi-Task Mode**
+**VR Overlay**
+* Added a **Friend leaves your instance** notification under **Overlay Notifications**, with its own Show and TTS toggles. Leaving a world yourself does not count as your friends leaving.
+* Added an **Invite Request** notification under **Overlay Notifications**, shown when someone asks you for an invite. Also has Show and TTS toggles.
 
-* Added a **Tiling Manager** that lets you arrange Multi-Task windows using keybinds.
-* See **Settings > Advanced** and **Taskbar > Help > Keybinds** for available controls.
+**Fixed Bugs**
+* Fixed a memory leak in **Space Flight** and **FrameShot** that could cause several GB of extra memory usage during long sessions.
+* Space Flight and FrameShot now correctly restore their status after a UI reload.
+* Reduced unnecessary microphone meter updates in **Voice Fight** and **Kikitan XD**.
+* Fixed the **Kikitan XD** noise gate slider briefly resetting the meter to zero.

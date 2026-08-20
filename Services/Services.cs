@@ -532,6 +532,8 @@ public class AppSettings
     public bool       VroToastInvite       { get; set; } = true;
     public bool       VroToastGroupInv     { get; set; } = true;
     public bool       VroToastJoined       { get; set; } = true;
+    public bool       VroToastLeft         { get; set; } = true;
+    public bool       VroToastReqInvite    { get; set; } = true;
     public bool       VroToastTtsOnline     { get; set; } = false;
     public bool       VroToastTtsOffline    { get; set; } = false;
     public bool       VroToastTtsGps        { get; set; } = false;
@@ -542,6 +544,8 @@ public class AppSettings
     public bool       VroToastTtsInvite     { get; set; } = false;
     public bool       VroToastTtsGroupInv   { get; set; } = false;
     public bool       VroToastTtsJoined     { get; set; } = false;
+    public bool       VroToastTtsLeft       { get; set; } = false;
+    public bool       VroToastTtsReqInvite  { get; set; } = false;
     public int        VroTtsDevice         { get; set; } = -1;
     public string     VroTtsDeviceName     { get; set; } = "";
     public string     VroTtsDeviceId       { get; set; } = "";

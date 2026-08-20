@@ -730,7 +730,7 @@ public class AuthController
             {
                 // End the player's time session immediately on leave
                 if (!string.IsNullOrEmpty(uid)) _core.TimeEngine.OnPlayerLeft(uid);
-                if (!string.IsNullOrEmpty(uid)) _instance.HandlePlayerLeftOnUiThread(uid);
+                if (!string.IsNullOrEmpty(uid)) _instance.HandlePlayerLeftOnUiThread(uid, name);
                 _instance.PushCurrentInstanceFromCache();
             }
             catch (Exception ex) { CrashHandler.WriteEntry("LogWatcher.PlayerLeft", ex); }
@@ -1948,7 +1948,11 @@ public class AuthController
             _core.Settings.VroToastTtsInvite = data["vroToastTtsInvite"]?.Value<bool>() ?? false;
             _core.Settings.VroToastTtsGroupInv = data["vroToastTtsGroupInv"]?.Value<bool>() ?? false;
             _core.Settings.VroToastTtsJoined = data["vroToastTtsJoined"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsLeft = data["vroToastTtsLeft"]?.Value<bool>() ?? false;
+            _core.Settings.VroToastTtsReqInvite = data["vroToastTtsReqInvite"]?.Value<bool>() ?? false;
             _core.Settings.VroToastJoined = data["vroToastJoined"]?.Value<bool>() ?? true;
+            _core.Settings.VroToastLeft = data["vroToastLeft"]?.Value<bool>() ?? true;
+            _core.Settings.VroToastReqInvite = data["vroToastReqInvite"]?.Value<bool>() ?? true;
             if (VRCNext.Services.Helpers.AudioDeviceManager.TryReadSelectionFromMessage(data["vroTtsDeviceId"], data["vroTtsDeviceName"]?.ToString(), false, _core.Settings.VroTtsDeviceName, out var vroTtsId, out var vroTtsName))
             {
                 _core.Settings.VroTtsDeviceId = vroTtsId;
