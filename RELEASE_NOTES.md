@@ -26,3 +26,5 @@ When enabled you can switch between Friends, Favorites and Groups. If this setti
 * Space Flight and FrameShot now correctly restore their status after a UI reload.
 * Reduced unnecessary microphone meter updates in **Voice Fight** and **Kikitan XD**.
 * Fixed the **Kikitan XD** noise gate slider briefly resetting the meter to zero.
+* Fixed a startup error where two **Media Library** scans could run at the same time and corrupt the photo size cache.
+* Fixed backend messages getting lost when they were sent before the app window finished initializing.

@@ -22,8 +22,9 @@ public class PhotosController
     private List<LibFileEntry> _libFileCache = new();
     private int _libFileCacheTotal = 0;
     private bool _libCacheReady = false;
+    private int _libScanRunning;
     private readonly MediaLibraryStore _media;
-    private readonly Dictionary<string, (int W, int H)> _dimCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (int W, int H)> _dimCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> _ratingCache;
     private bool _ratingsScanned = false;
     private readonly List<WebhookService.PostRecord> _postHistory = new();
@@ -760,6 +761,7 @@ public class PhotosController
             return;
         }
 
+        if (Interlocked.Exchange(ref _libScanRunning, 1) == 1) return;
         _libCacheReady = false;
         Task.Run(() =>
         {
@@ -803,6 +805,7 @@ public class PhotosController
             {
                 _core.SendToJS("log", new { msg = $"Library scan error: {ex.Message}", color = "err" });
             }
+            finally { Interlocked.Exchange(ref _libScanRunning, 0); }
         });
     }
 

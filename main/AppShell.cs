@@ -523,6 +523,7 @@ public partial class AppShell
 #if WINDOWS
             .SetBrowserControlInitParameters(BuildChromiumFlags(_settings))
 #endif
+            .RegisterWindowCreatedHandler((_, _) => _windowReady.TrySetResult())
             .RegisterWebMessageReceivedHandler((_, message) => { _ = OnWebMessage(message); });
         if (File.Exists(iconPath)) windowBuilder.SetIconFile(iconPath);
 #if WINDOWS
@@ -926,9 +927,11 @@ public partial class AppShell
     private string? _pendingFriendsJson;
     private int _friendsMarkerQueued;
     private long _lastFriendsPayloadBytes;
+    private readonly TaskCompletionSource _windowReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private async Task RunJsDispatcherAsync()
     {
+        await _windowReady.Task;
         await foreach (var msg in _jsQueue.Reader.ReadAllAsync())
         {
             var toSend = msg;
