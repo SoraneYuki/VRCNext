@@ -1,9 +1,10 @@
 **2026.43.5**
 
 **System Tray**
-* Redesigned the system tray menu to match the new sidebar look. Profile, status list, launch
-buttons and Close VRCN now sit on their own rounded cards, the avatar is square with a status
-badge, and Desktop / VR Mode share a segmented control.
+* Redesigned the tray menu to match the new sidebar and made it about 25% more compact.
+* The tray now shows your full, localized status, such as **"Ask Me - sleeping"**.
+* Improved sharpness on scaled/high-DPI displays.
+* The tray menu now opens directly where you right-click the tray icon.
 
 **Design Refactor**
 * Changed some of the base theme colors.
