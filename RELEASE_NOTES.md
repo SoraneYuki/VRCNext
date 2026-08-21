@@ -1,5 +1,10 @@
 **2026.43.5**
 
+**System Tray**
+* Redesigned the system tray menu to match the new sidebar look. Profile, status list, launch
+buttons and Close VRCN now sit on their own rounded cards, the avatar is square with a status
+badge, and Desktop / VR Mode share a segmented control.
+
 **Design Refactor**
 * Changed some of the base theme colors.
 
