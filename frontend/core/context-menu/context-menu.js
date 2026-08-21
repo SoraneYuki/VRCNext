@@ -1,4 +1,4 @@
-/* === Context Menu Service ===
+﻿/* === Context Menu Service ===
  * External, self-contained right-click menu with submenu support.
  * Uses event delegation; no modifications to other JS files needed.
  * Entity IDs are extracted from existing onclick attributes via regex.
@@ -625,7 +625,7 @@
             const url  = photoPane.dataset.url  || '';
             const type = photoPane.dataset.type || 'image';
             const name = photoPane.dataset.name || '';
-            if (path) return buildPhotoDetailItems(path, url, type, name);
+            if (path) return buildPhotoDetailItems(path, url, type, name, _photoClickSpot(photoPane, e));
         }
 
         const libCard = el.closest('.lib-card, .dash-photo-item');
@@ -926,6 +926,29 @@
                 const n = parseInt(btn.dataset.rval, 10);
                 if (typeof setPhotoRatingValue === 'function') setPhotoRatingValue(path, n);
                 hideMenu();
+            });
+            btn.addEventListener('mouseenter', () => clearTimeout(submenuTimer));
+        });
+        positionSubmenu(parentBtn);
+    }
+
+    function showLibraryTagSubmenu(path, parentBtn) {
+        const catalog = (typeof MEDIA_TAG_CATALOG !== 'undefined') ? MEDIA_TAG_CATALOG : [];
+        const active = (typeof getMediaTags === 'function') ? getMediaTags(path) : [];
+        submenu.innerHTML = catalog.map(tag => {
+            const on = active.includes(tag);
+            const label = (typeof mediaTagLabel === 'function') ? mediaTagLabel(tag) : tag;
+            return `<button class="vn-ctx-item" data-mtag="${esc(tag)}">
+                <span class="msi" style="font-size:14px;">label</span>
+                <span class="vn-ctx-label">${esc(label)}</span>
+                ${on ? '<span class="msi vn-ctx-check">check</span>' : ''}
+            </button>`;
+        }).join('');
+        submenu.querySelectorAll('[data-mtag]').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                if (typeof toggleMediaTag === 'function') toggleMediaTag(path, btn.dataset.mtag);
+                showLibraryTagSubmenu(path, parentBtn);
             });
             btn.addEventListener('mouseenter', () => clearTimeout(submenuTimer));
         });
@@ -1494,6 +1517,9 @@
         if (!window._isLinuxUi && (type === 'image' || type === 'gif')) {
             items.push({ icon: 'favorite', label: cm('library.rating', 'Rating'), submenuFn: btn => showLibraryRatingSubmenu(path, btn) });
         }
+        if (typeof MEDIA_TAG_CATALOG !== 'undefined') {
+            items.push({ icon: 'sell', label: cm('library.tags', 'Tags'), submenuFn: btn => showLibraryTagSubmenu(path, btn) });
+        }
         items.push(isHidden
             ? { icon: 'visibility', label: cm('library.unhide', 'Unhide'), action: () => toggleHidden(path) }
             : { icon: 'visibility_off', label: cm('library.hide', 'Hide'), action: () => toggleHidden(path) }
@@ -1503,11 +1529,24 @@
         return items;
     }
 
-    function buildPhotoDetailItems(path, url, type, name) {
+    // Viewport position of the right click; the library maps it into image space.
+    function _photoClickSpot(pane, e) {
+        const img = pane.querySelector('.photo-detail-img');
+        if (!img || img.style.display === 'none') return null;
+        return { clientX: e.clientX, clientY: e.clientY };
+    }
+
+    function buildPhotoDetailItems(path, url, type, name, spot) {
         const isFav = (typeof favorites !== 'undefined') && favorites.has(path);
-        const items = [
+        const items = [];
+        if (spot && (type === 'image' || type === 'gif') && typeof openUserTagPicker === 'function') {
+            items.push({ icon: 'person_check', label: cm('library.create_user_tag', 'Create User Tag'),
+                         action: () => openUserTagPicker(path, spot.clientX, spot.clientY) });
+            items.push('sep');
+        }
+        items.push(
             { icon: 'content_copy', label: cm('library.copy', 'Copy to Clipboard'), action: () => copyToClipboard(url, path, type) },
-        ];
+        );
         if (type === 'image' || type === 'gif' || type === 'video') {
             items.push({ icon: 'wallpaper',  label: cm('library.set_background',  'Set as Background'),        action: () => setLibItemAsDashBg(path, url) });
         }
@@ -1523,6 +1562,9 @@
         );
         if (!window._isLinuxUi && (type === 'image' || type === 'gif')) {
             items.push({ icon: 'favorite', label: cm('library.rating', 'Rating'), submenuFn: btn => showLibraryRatingSubmenu(path, btn) });
+        }
+        if (typeof MEDIA_TAG_CATALOG !== 'undefined') {
+            items.push({ icon: 'sell', label: cm('library.tags', 'Tags'), submenuFn: btn => showLibraryTagSubmenu(path, btn) });
         }
         items.push('sep');
         items.push({ icon: 'delete', label: cm('library.delete', 'Delete'), danger: true, action: () => showDeleteModal(path, name) });

@@ -1,4 +1,4 @@
-                <div class="settings-layout">
+﻿                <div class="settings-layout">
                     <nav class="settings-nav">
                         <div class="search-bar-row settings-search" id="settingsSearchWrap">
                             <span class="msi search-ico">search</span>
@@ -414,6 +414,8 @@
                         <div class="set-desc" data-i18n="settings.sidebar.preview_collapsed_desc">Shows a friend's profile as a small preview when you hover over them while the friends sidebar is collapsed.</div>
                         <div class="sf-toggle-row"><span data-i18n="settings.sidebar.preview_open">Show Preview Profile when sidebar is open</span><label class="toggle"><input type="checkbox" id="setFriendsSidebarPreviewOpen" onchange="settings.friendsSidebarPreviewOpen=this.checked;autoSave();"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="set-desc" data-i18n="settings.sidebar.preview_open_desc">Shows the profile preview even when the sidebar is open. You have to hover over the profile image for at least 1.5 seconds; it will not appear when hovering any other part of the friend entry.</div>
+                        <div class="sf-toggle-row"><span data-i18n="settings.sidebar.separate_favorites">Separate Friends and Favorite Friends</span><label class="toggle"><input type="checkbox" id="setSeparateFavoriteFriends" onchange="settings.separateFavoriteFriends=this.checked;autoSave();if(typeof applyFriendsSidebarFavTabs==='function')applyFriendsSidebarFavTabs();"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                        <div class="set-desc" data-i18n="settings.sidebar.separate_favorites_desc">When enabled you can switch between Friends, Favorites and Groups. If this setting is disabled you will only see Friends and Groups, and your favorite friends stay inside the normal Friends tab as usual.</div>
                     </div>
 
                     <!-- NAVIGATION SIDEBAR -->

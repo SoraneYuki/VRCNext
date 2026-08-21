@@ -135,6 +135,7 @@ public class VRChatLogWatcher : IDisposable
     public int PlayerCount { get { lock (_lock) return _players.Count; } }
     public string? CurrentWorldId => _currentWorldId;
     public string? CurrentLocation => _currentLocation;
+    public bool SelfLeftRoom { get; private set; }
 
     public string GetDiagnostics()
     {
@@ -408,6 +409,7 @@ public class VRChatLogWatcher : IDisposable
                 _currentWorldId = colon >= 0 ? _currentLocation.Substring(0, colon) : _currentLocation;
                 WorldJoinedAt = ParseLogTimestamp(line);
                 lock (_lock) { _players.Clear(); _pastLefts.Clear(); _playerEventLog.Clear(); }
+                SelfLeftRoom = false;
                 _totalRoomEvents++;
                 if (!catchUp)
                 {
@@ -424,6 +426,7 @@ public class VRChatLogWatcher : IDisposable
             {
                 PendingWorldName = m.Groups[1].Value.Trim();
                 lock (_lock) { _players.Clear(); _pastLefts.Clear(); _playerEventLog.Clear(); }
+                SelfLeftRoom = false;
                 _totalRoomEvents++;
                 if (!catchUp) Log($"LogWatcher: 🌍 {PendingWorldName}");
                 EmitGameLog(catchUp, "gl_world_join", ParseLogTimestamp(line), PendingWorldName, _currentWorldId ?? "");
@@ -457,6 +460,12 @@ public class VRChatLogWatcher : IDisposable
                 }
                 return;
             }
+        }
+
+        if (line.Contains("OnLeftRoom"))
+        {
+            SelfLeftRoom = true;
+            return;
         }
 
         if (line.Contains("OnPlayerLeft"))

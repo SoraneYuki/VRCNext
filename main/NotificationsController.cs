@@ -144,6 +144,14 @@ public class NotificationsController
                 _ = GetHiddenNotificationsAsync();
                 break;
 
+            case "vrcClearNotifications":
+                _ = Task.Run(async () =>
+                {
+                    await _core.Notifications.ClearNotificationsAsync();
+                    await GetNotificationsAsync();
+                });
+                break;
+
             case "vrcAcceptNotification":
             {
                 var anId   = msg["notifId"]?.ToString();
@@ -826,6 +834,7 @@ public class NotificationsController
         {
             "friendRequest" => "notif_friendreq",
             "invite"        => "notif_invite",
+            "requestInvite" => "notif_requestinvite",
             "group.invite"  => "notif_groupinvite",
             _               => null,
         };
@@ -866,6 +875,10 @@ public class NotificationsController
             notifData = det?["worldId"]?.ToString() ?? "";
             evText = "World Invite";
         }
+        else if (nType == "requestInvite")
+        {
+            evText = det?["requestMessage"]?.ToString() ?? "";
+        }
         else if (nType == "group.invite")
         {
             notifData = det?["groupId"]?.ToString()
@@ -890,7 +903,7 @@ public class NotificationsController
                 // --- Resolve image (VRChat CDN images are public, no auth needed) ---
                 if (string.IsNullOrEmpty(capturedImg) && _core.VrcApi.IsLoggedIn)
                 {
-                    if (nType is "friendRequest" or "invite" && !string.IsNullOrEmpty(senderId))
+                    if (nType is "friendRequest" or "invite" or "requestInvite" && !string.IsNullOrEmpty(senderId))
                     {
                         var profile = await _core.Users.GetUserAsync(senderId);
                         if (profile != null)

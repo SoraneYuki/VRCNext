@@ -191,6 +191,9 @@ window.external.receiveMessage(rawMsg => {
             case 'libraryWorldIds': applyLibraryWorldIds(payload); break;
             case 'libraryAuthors': applyLibraryAuthors(payload); break;
             case 'libraryRatings': if (typeof onLibraryRatings === 'function') onLibraryRatings(payload); break;
+            case 'mediaTagsData': if (typeof onMediaTagsData === 'function') onMediaTagsData(payload); break;
+            case 'mediaTagsUpdated': if (typeof onMediaTagsUpdated === 'function') onMediaTagsUpdated(payload); break;
+            case 'mediaUserTagsUpdated': if (typeof onMediaUserTagsUpdated === 'function') onMediaUserTagsUpdated(payload); break;
             case 'photoRating':
             case 'photoRatingSet':
                 if (typeof onPhotoRating === 'function') onPhotoRating(payload);

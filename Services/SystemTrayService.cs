@@ -15,6 +15,25 @@ namespace VRCNext;
 public class SystemTrayService : IDisposable
 {
     [DllImport("user32.dll")] private static extern bool DestroyIcon(IntPtr hIcon);
+    [DllImport("user32.dll")] private static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
+    [DllImport("user32.dll")] private static extern IntPtr MonitorFromPoint(POINT pt, uint flags);
+    [DllImport("user32.dll")] private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO info);
+    [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT pt);
+    [DllImport("shcore.dll")] private static extern int GetDpiForMonitor(IntPtr hMonitor, int dpiType, out uint dpiX, out uint dpiY);
+
+    private static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = new(-4);
+    private const uint MONITOR_DEFAULTTONEAREST = 2;
+
+    [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X; public int Y; }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MONITORINFO
+    {
+        public int cbSize;
+        public RECT rcMonitor;
+        public RECT rcWork;
+        public uint dwFlags;
+    }
+    [StructLayout(LayoutKind.Sequential)] private struct RECT { public int Left, Top, Right, Bottom; }
 
     private Thread? _trayThread;
     private NotifyIcon? _trayIcon;
@@ -284,16 +303,61 @@ public class SystemTrayService : IDisposable
             }
 
             bool showPlayBtns = !(IsVrcRunning?.Invoke() ?? false);
-            _popup = new TrayPopupForm(name, status, statusDesc, avatar, theme, this, showPlayBtns);
 
-            // Position above the system tray (bottom-right of the working area)
-            var screen = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1920, 1080);
-            var x = screen.Right - _popup.Width - 12;
-            var y = screen.Bottom - _popup.Height - 12;
-            _popup.Location = new Point(x, y);
-            _popup.Show();
-            _popup.Activate();
+            IntPtr prevCtx = IntPtr.Zero;
+            try { prevCtx = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2); }
+            catch { }
+
+            try
+            {
+                var (work, dpi, cursor) = GetTrayMonitorMetrics();
+                _popup = new TrayPopupForm(name, status, statusDesc, avatar, theme, this, showPlayBtns, dpi);
+
+                int gap = (int)Math.Round(6 * dpi / 96f);
+                int x = cursor.X - _popup.Width;
+                if (x < work.Left) x = cursor.X;
+                int y = cursor.Y - _popup.Height - gap;
+                if (y < work.Top) y = cursor.Y + gap;
+
+                x = Math.Max(work.Left, Math.Min(x, work.Right - _popup.Width));
+                y = Math.Max(work.Top, Math.Min(y, work.Bottom - _popup.Height));
+
+                _popup.Location = new Point(x, y);
+                _popup.Show();
+                _popup.Activate();
+            }
+            finally
+            {
+                if (prevCtx != IntPtr.Zero)
+                {
+                    try { SetThreadDpiAwarenessContext(prevCtx); } catch { }
+                }
+            }
         }, null);
+    }
+
+    private static (Rectangle work, uint dpi, Point cursor) GetTrayMonitorMetrics()
+    {
+        var fallback = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1920, 1080);
+        var fallbackCursor = new Point(fallback.Right, fallback.Bottom);
+        try
+        {
+            if (!GetCursorPos(out var pt)) return (fallback, 96, fallbackCursor);
+            var cursor = new Point(pt.X, pt.Y);
+
+            var hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+            if (hMon == IntPtr.Zero) return (fallback, 96, cursor);
+
+            var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+            if (!GetMonitorInfo(hMon, ref mi)) return (fallback, 96, cursor);
+            var work = Rectangle.FromLTRB(mi.rcWork.Left, mi.rcWork.Top, mi.rcWork.Right, mi.rcWork.Bottom);
+
+            uint dpi = 96;
+            try { if (GetDpiForMonitor(hMon, 0, out var dx, out _) == 0 && dx > 0) dpi = dx; }
+            catch { }
+            return (work, dpi, cursor);
+        }
+        catch { return (fallback, 96, fallbackCursor); }
     }
 
     internal void RequestStatusChange(string newStatus)
@@ -418,7 +482,9 @@ public class SystemTrayService : IDisposable
     internal struct TrayTheme
     {
         public Color BgBase;
+        public Color BgSide;
         public Color BgCard;
+        public Color TabCardBg;
         public Color BgHover;
         public Color Tx1;
         public Color Tx2;
@@ -436,9 +502,11 @@ public class SystemTrayService : IDisposable
         /// <summary>Default "midnight" theme</summary>
         public static readonly TrayTheme Default = new()
         {
-            BgBase  = ParseHex("#080C15"),
-            BgCard  = ParseHex("#0F1628"),
-            BgHover = ParseHex("#141E37"),
+            BgBase    = ParseHex("#080C15"),
+            BgSide    = ParseHex("#0A0E18"),
+            BgCard    = ParseHex("#0F1628"),
+            TabCardBg = ParseHex("#0F1628"),
+            BgHover   = ParseHex("#141E37"),
             Tx1     = ParseHex("#DCE4F5"),
             Tx2     = ParseHex("#788CAF"),
             Brd     = ParseHex("#1C2841"),
@@ -452,6 +520,10 @@ public class SystemTrayService : IDisposable
             if (c.TryGetValue("bg-base",  out var v)) t.BgBase  = ParseHex(v);
             if (c.TryGetValue("bg-card",  out v))     t.BgCard  = ParseHex(v);
             if (c.TryGetValue("bg-hover", out v))     t.BgHover = ParseHex(v);
+            t.BgSide = c.TryGetValue("bg-side", out v) ? ParseHex(v) : t.BgBase;
+            t.TabCardBg = c.TryGetValue("tab-card-bg", out v) ? ParseHex(v)
+                        : c.TryGetValue("bg-input", out v)    ? ParseHex(v)
+                        : t.BgCard;
             if (c.TryGetValue("tx1",      out v))     t.Tx1     = ParseHex(v);
             if (c.TryGetValue("tx2",      out v))     t.Tx2     = ParseHex(v);
             if (c.TryGetValue("brd",      out v))     t.Brd     = ParseHex(v);
@@ -471,10 +543,10 @@ public class SystemTrayService : IDisposable
             return Color.FromArgb(255, 20, 20, 36);
         }
 
-        public Color CloseHover => Color.FromArgb(255,
-            Math.Min(255, Err.R / 4 + BgBase.R),
-            Math.Min(255, Err.G / 8 + BgBase.G),
-            Math.Min(255, Err.B / 8 + BgBase.B));
+        public static Color Mix(Color color, Color surface, double amount) => Color.FromArgb(255,
+            (int)Math.Round(surface.R + (color.R - surface.R) * amount),
+            (int)Math.Round(surface.G + (color.G - surface.G) * amount),
+            (int)Math.Round(surface.B + (color.B - surface.B) * amount));
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -490,24 +562,64 @@ public class SystemTrayService : IDisposable
         private readonly SystemTrayService _owner;
         private readonly TrayTheme _theme;
 
-        // Layout constants
-        private const int FormWidth = 280;
-        private const int Pad = 14;
-        private const int AvatarSize = 44;
-        private const int BtnHeight = 34;
-        private const int BtnGap = 2;
-        private const int SepGap = 8;
-        private const int Corner = 12;
+        private const int DesignWidth      = 264;
+        private const int DesignPad        = 9;
+        private const int DesignCardGap    = 7;
+        private const int DesignCardPad    = 4;
+        private const int DesignCardCorner = 12;
+        private const int DesignRowCorner  = 8;
+        private const int DesignRowHeight  = 32;
+        private const int DesignRowGap     = 2;
+        private const int DesignCardInset  = 12;
+        private const int DesignAvatarSize = 38;
+        private const int DesignAvatarRad  = 10;
+        private const int DesignSegPad     = 3;
+        private const int DesignSegCorner  = 9;
+        private const int DesignSegBtnRad  = 7;
+        private const int DesignCorner     = 14;
+
+        private readonly float _scale;
+        private readonly int FormWidth, Pad, CardGap, CardPad, CardCorner, RowCorner,
+                             RowHeight, RowGap, CardInset, AvatarSize, AvatarRad,
+                             SegPad, SegCorner, SegBtnRad, Corner;
+
+        private int S(double designUnits) => (int)Math.Round(designUnits * _scale);
+        private Font PxFont(double designPx, FontStyle style = FontStyle.Regular) =>
+            new("Segoe UI", (float)(designPx * _scale), style, GraphicsUnit.Pixel);
+
+        private Bitmap? _avatarScaled;
+        private object? _avatarScaledKey;
 
         private readonly (string key, string label, Color color)[] _statusOpts;
         // _btnRects: 0-3 = status, 4 = Desktop btn, 5 = VR btn, 6 = close
         private readonly Rectangle[] _btnRects;
         private readonly bool _showPlayBtns;
         private int _hoverIdx = -1;
-        private int _profileSectionBottom;
 
-        public TrayPopupForm(string name, string status, string statusDesc, Image? avatar, TrayTheme theme, SystemTrayService owner, bool showPlayBtns)
+        private Rectangle _profileCard;
+        private Rectangle _statusCard;
+        private Rectangle _segTrack;
+        private Rectangle _closeCard;
+
+        public TrayPopupForm(string name, string status, string statusDesc, Image? avatar, TrayTheme theme, SystemTrayService owner, bool showPlayBtns, uint dpi)
         {
+            _scale     = Math.Max(1f, dpi / 96f);
+            FormWidth  = S(DesignWidth);
+            Pad        = S(DesignPad);
+            CardGap    = S(DesignCardGap);
+            CardPad    = S(DesignCardPad);
+            CardCorner = S(DesignCardCorner);
+            RowCorner  = S(DesignRowCorner);
+            RowHeight  = S(DesignRowHeight);
+            RowGap     = S(DesignRowGap);
+            CardInset  = S(DesignCardInset);
+            AvatarSize = S(DesignAvatarSize);
+            AvatarRad  = S(DesignAvatarRad);
+            SegPad     = S(DesignSegPad);
+            SegCorner  = S(DesignSegCorner);
+            SegBtnRad  = S(DesignSegBtnRad);
+            Corner     = S(DesignCorner);
+
             _name = name;
             _status = status;
             _statusDesc = statusDesc;
@@ -530,19 +642,54 @@ public class SystemTrayService : IDisposable
             StartPosition = FormStartPosition.Manual;
             ShowInTaskbar = false;
             TopMost = true;
-            BackColor = _theme.BgBase;
+            BackColor = _theme.BgSide;
             DoubleBuffered = true;
+            AutoScaleMode = AutoScaleMode.None;
 
-            // Calc height
-            int profileH = Pad + Math.Max(AvatarSize, 38) + Pad;
-            int btnsH = SepGap + _statusOpts.Length * (BtnHeight + BtnGap) + SepGap;
-            // play row: sep + SepGap + BtnHeight + SepGap + 1(sep before close)
-            int playH = _showPlayBtns ? (1 + SepGap + BtnHeight + SepGap + 1) : 0;
-            int closeH = SepGap + BtnHeight + Pad;
-            int totalH = profileH + 1 + btnsH + playH + closeH;
-
-            Size = new Size(FormWidth, totalH);
+            Size = new Size(FormWidth, BuildLayout());
             Region = RoundedRegion(Width, Height, Corner);
+        }
+
+        private int BuildLayout()
+        {
+            int cardW = FormWidth - Pad * 2;
+            int y = Pad;
+
+            _profileCard = new Rectangle(Pad, y, cardW, CardInset * 2 + AvatarSize);
+            y += _profileCard.Height + CardGap;
+
+            int statusH = CardPad * 2 + _statusOpts.Length * RowHeight + (_statusOpts.Length - 1) * RowGap;
+            _statusCard = new Rectangle(Pad, y, cardW, statusH);
+            int ry = _statusCard.Y + CardPad;
+            for (int i = 0; i < _statusOpts.Length; i++)
+            {
+                _btnRects[i] = new Rectangle(_statusCard.X + CardPad, ry, cardW - CardPad * 2, RowHeight);
+                ry += RowHeight + RowGap;
+            }
+            y += _statusCard.Height + CardGap;
+
+            if (_showPlayBtns)
+            {
+                _segTrack = new Rectangle(Pad, y, cardW, RowHeight - 2 + SegPad * 2);
+                int segW = (_segTrack.Width - SegPad * 3) / 2;
+                int segY = _segTrack.Y + SegPad;
+                int segH = _segTrack.Height - SegPad * 2;
+                _btnRects[4] = new Rectangle(_segTrack.X + SegPad, segY, segW, segH);
+                _btnRects[5] = new Rectangle(_segTrack.Right - SegPad - segW, segY, segW, segH);
+                y += _segTrack.Height + CardGap;
+            }
+            else
+            {
+                _segTrack = Rectangle.Empty;
+                _btnRects[4] = Rectangle.Empty;
+                _btnRects[5] = Rectangle.Empty;
+            }
+
+            _closeCard = new Rectangle(Pad, y, cardW, CardPad * 2 + RowHeight);
+            _btnRects[6] = new Rectangle(_closeCard.X + CardPad, _closeCard.Y + CardPad, cardW - CardPad * 2, RowHeight);
+            y += _closeCard.Height + Pad;
+
+            return y;
         }
 
         /// <summary>Update displayed status without closing the popup.</summary>
@@ -586,6 +733,91 @@ public class SystemTrayService : IDisposable
             return p;
         }
 
+        private Bitmap? GetScaledAvatar(Image source, Size size)
+        {
+            if (size.Width <= 0 || size.Height <= 0) return null;
+            var key = (source.Width, source.Height, source.GetHashCode(), size.Width, size.Height);
+            if (_avatarScaled != null && Equals(_avatarScaledKey, key)) return _avatarScaled;
+
+            try
+            {
+                var bmp = new Bitmap(size.Width, size.Height, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+                using (var bg = Graphics.FromImage(bmp))
+                {
+                    bg.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    bg.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    bg.CompositingQuality = CompositingQuality.HighQuality;
+                    bg.SmoothingMode = SmoothingMode.AntiAlias;
+                    using var attrs = new System.Drawing.Imaging.ImageAttributes();
+                    attrs.SetWrapMode(WrapMode.TileFlipXY);
+                    bg.DrawImage(source, new Rectangle(Point.Empty, size), 0, 0, source.Width, source.Height,
+                                 GraphicsUnit.Pixel, attrs);
+                }
+                _avatarScaled?.Dispose();
+                _avatarScaled = bmp;
+                _avatarScaledKey = key;
+                return bmp;
+            }
+            catch { return null; }
+        }
+
+        private void DrawDesktopGlyph(Graphics g, Pen pen, Rectangle host)
+        {
+            int w = S(18), h = S(13);
+            int x = host.X + (host.Width - w) / 2;
+            int y = host.Y + (host.Height - h - S(4)) / 2;
+
+            using (var screen = RoundedRect(new Rectangle(x, y, w, h), S(2)))
+                g.DrawPath(pen, screen);
+
+            int cx = x + w / 2;
+            g.DrawLine(pen, cx, y + h, cx, y + h + S(3));
+            g.DrawLine(pen, cx - S(5), y + h + S(3), cx + S(5), y + h + S(3));
+        }
+
+        private void DrawVrGlyph(Graphics g, Pen pen, Rectangle host)
+        {
+            int w = S(20), h = S(12);
+            int x = host.X + (host.Width - w) / 2;
+            int y = host.Y + (host.Height - h) / 2;
+
+            var body = new Rectangle(x, y, w, h);
+            using (var shell = RoundedRect(body, S(4)))
+                g.DrawPath(pen, shell);
+
+            int noseW = S(7), noseH = S(5);
+            g.DrawArc(pen, body.X + (w - noseW) / 2, body.Bottom - noseH, noseW, noseH * 2, 180, 180);
+
+            g.DrawLine(pen, body.X - S(3), y + h / 2, body.X, y + h / 2);
+            g.DrawLine(pen, body.Right, y + h / 2, body.Right + S(3), y + h / 2);
+        }
+
+        private void DrawCheckGlyph(Graphics g, Color color, Rectangle host)
+        {
+            using var pen = new Pen(color, Math.Max(1.4f, 1.7f * _scale))
+            {
+                StartCap = LineCap.Round,
+                EndCap = LineCap.Round,
+                LineJoin = LineJoin.Round,
+            };
+            int w = S(10), h = S(7);
+            int x = host.X + (host.Width - w) / 2;
+            int y = host.Y + (host.Height - h) / 2;
+            g.DrawLines(pen, new[]
+            {
+                new Point(x, y + h - S(3)),
+                new Point(x + S(4), y + h),
+                new Point(x + w, y),
+            });
+        }
+
+        private static void FillRounded(Graphics g, Rectangle r, int radius, Color color)
+        {
+            using var b = new SolidBrush(color);
+            using var p = RoundedRect(r, radius);
+            g.FillPath(b, p);
+        }
+
         // Status helpers.
 
         private static Color StatusColor(string s) => s switch
@@ -597,13 +829,13 @@ public class SystemTrayService : IDisposable
             _ => TrayTheme.StatusOffline,
         };
 
-        private static string StatusLabel(string s) => s switch
+        private string StatusLabel(string s) => s switch
         {
-            "join me" => "Join Me",
-            "active" or "online" => "Online",
-            "ask me" or "look me" => "Ask Me",
-            "busy" or "do not disturb" => "Do Not Disturb",
-            _ => "Offline",
+            "join me" => _owner.T("tray.status.join_me", "Join Me"),
+            "active" or "online" => _owner.T("tray.status.online", "Online"),
+            "ask me" or "look me" => _owner.T("tray.status.ask_me", "Ask Me"),
+            "busy" or "do not disturb" => _owner.T("tray.status.do_not_disturb", "Do Not Disturb"),
+            _ => _owner.T("status.offline", "Offline"),
         };
 
         // Paint.
@@ -612,18 +844,23 @@ public class SystemTrayService : IDisposable
         {
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            g.CompositingQuality = CompositingQuality.HighQuality;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-            // Fill background (needed for rounded corners)
-            using (var bgBrush = new SolidBrush(_theme.BgBase))
+            using (var bgBrush = new SolidBrush(_theme.BgSide))
                 g.FillRectangle(bgBrush, ClientRectangle);
 
-            int y = Pad;
+            using var noWrap = new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
+            using var centered = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            using var rowText = new StringFormat { LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
 
-            // Profile section.
-            var avRect = new Rectangle(Pad, y, AvatarSize, AvatarSize);
+            var profileSurface = _hoverIdx == -2 ? _theme.BgHover : _theme.TabCardBg;
+            FillRounded(g, _profileCard, CardCorner, profileSurface);
 
-            // Try to get latest avatar from service
+            var avRect = new Rectangle(_profileCard.X + CardInset, _profileCard.Y + CardInset, AvatarSize, AvatarSize);
+
             Image? liveAvatar = null;
             lock (_owner._dataLock)
             {
@@ -632,176 +869,127 @@ public class SystemTrayService : IDisposable
             }
             var drawAvatar = liveAvatar ?? _avatar;
 
-            if (drawAvatar != null)
+            using (var avClip = RoundedRect(avRect, AvatarRad))
             {
-                using var clip = new GraphicsPath();
-                clip.AddEllipse(avRect);
-                var saved = g.Clip;
-                g.SetClip(clip);
-                g.DrawImage(drawAvatar, avRect);
-                g.Clip = saved;
-                using var pen = new Pen(_theme.Brd, 2);
-                g.DrawEllipse(pen, avRect);
+                var scaled = drawAvatar != null ? GetScaledAvatar(drawAvatar, avRect.Size) : null;
                 liveAvatar?.Dispose();
-            }
-            else
-            {
-                using var bg = new SolidBrush(_theme.BgCard);
-                g.FillEllipse(bg, avRect);
-                if (!string.IsNullOrEmpty(_name))
+
+                if (scaled != null)
                 {
-                    using var f = new Font("Segoe UI", 15, FontStyle.Bold);
-                    using var b = new SolidBrush(_theme.Tx2);
-                    var ch = _name[0].ToString().ToUpper();
-                    var sz = g.MeasureString(ch, f);
-                    g.DrawString(ch, f, b,
-                        avRect.X + (avRect.Width - sz.Width) / 2,
-                        avRect.Y + (avRect.Height - sz.Height) / 2);
+                    var saved = g.Clip;
+                    g.SetClip(avClip);
+                    g.DrawImage(scaled, avRect);
+                    g.Clip = saved;
+                }
+                else
+                {
+                    using var bg = new SolidBrush(_theme.BgHover);
+                    g.FillPath(bg, avClip);
+                    if (!string.IsNullOrEmpty(_name))
+                    {
+                        using var f = PxFont(17, FontStyle.Bold);
+                        using var b = new SolidBrush(_theme.Tx2);
+                        g.DrawString(_name[0].ToString().ToUpper(), f, b, avRect, centered);
+                    }
                 }
             }
 
-            int tx = Pad + AvatarSize + 10;
-            int tw = FormWidth - tx - Pad;
+            var stColor = StatusColor(_status);
+            int badgeSz = S(12), ringW = S(2);
+            var badge = new Rectangle(avRect.Right - badgeSz + ringW, avRect.Bottom - badgeSz + ringW, badgeSz, badgeSz);
+            using (var ring = new SolidBrush(profileSurface))
+                g.FillEllipse(ring, badge);
+            using (var db = new SolidBrush(stColor))
+                g.FillEllipse(db, badge.X + ringW, badge.Y + ringW, badge.Width - ringW * 2, badge.Height - ringW * 2);
 
-            // Display name
-            using (var nf = new Font("Segoe UI", 11, FontStyle.Bold))
+            int tx = avRect.Right + S(10);
+            int tw = _profileCard.Right - CardInset - tx;
+
+            using (var nf = PxFont(14, FontStyle.Bold))
             using (var nb = new SolidBrush(_theme.Tx1))
             {
                 var nameStr = string.IsNullOrEmpty(_name) ? "VRCNext" : _name;
-                g.DrawString(nameStr, nf, nb,
-                    new RectangleF(tx, y + 2, tw, 20),
-                    new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap });
+                g.DrawString(nameStr, nf, nb, new RectangleF(tx, avRect.Y + S(2), tw, S(18)), noWrap);
             }
 
-            // Status dot + text
-            var stColor = StatusColor(_status);
-            int dotY = y + 26;
-            using (var db = new SolidBrush(stColor))
-                g.FillEllipse(db, tx, dotY + 2, 8, 8);
-
-            using (var sf = new Font("Segoe UI", 9))
+            using (var sf = PxFont(11.5))
             using (var sb = new SolidBrush(_theme.Tx2))
             {
-                var stText = !string.IsNullOrEmpty(_statusDesc) ? _statusDesc : StatusLabel(_status);
-                g.DrawString(stText, sf, sb,
-                    new RectangleF(tx + 12, dotY, tw - 12, 16),
-                    new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap });
+                var stLabel = StatusLabel(_status);
+                var stText = string.IsNullOrEmpty(_statusDesc) ? stLabel : $"{stLabel} - {_statusDesc}";
+                g.DrawString(stText, sf, sb, new RectangleF(tx, avRect.Y + S(20), tw, S(16)), noWrap);
             }
 
-            y += Math.Max(AvatarSize, 38) + Pad;
-            _profileSectionBottom = y;
+            FillRounded(g, _statusCard, CardCorner, _theme.TabCardBg);
 
-            // Separator.
-            using (var sp = new Pen(_theme.Brd))
-                g.DrawLine(sp, Pad, y, FormWidth - Pad, y);
-            y += 1 + SepGap;
-
-            // Status buttons.
             for (int i = 0; i < _statusOpts.Length; i++)
             {
                 var (key, label, color) = _statusOpts[i];
-                var br = new Rectangle(Pad / 2, y, FormWidth - Pad, BtnHeight);
-                _btnRects[i] = br;
-
+                var br = _btnRects[i];
                 bool hovered = _hoverIdx == i;
                 bool current = _status == key;
 
-                if (hovered || current)
-                {
-                    using var hb = new SolidBrush(hovered ? _theme.BgHover : _theme.BgCard);
-                    using var hp = RoundedRect(br, 6);
-                    g.FillPath(hb, hp);
-                }
-
-                // Dot
-                using (var db = new SolidBrush(color))
-                    g.FillEllipse(db, br.X + 12, br.Y + (BtnHeight - 10) / 2, 10, 10);
-
-                // Label
-                using var lf = new Font("Segoe UI", 10, current ? FontStyle.Bold : FontStyle.Regular);
-                using var lb = new SolidBrush(_theme.Tx1);
-                g.DrawString(label, lf, lb, br.X + 30, br.Y + (BtnHeight - 18) / 2);
-
-                // Checkmark for current status
                 if (current)
-                {
-                    using var cf = new Font("Segoe UI", 10);
-                    using var cb = new SolidBrush(color);
-                    g.DrawString("\u2713", cf, cb, br.Right - 26, br.Y + (BtnHeight - 18) / 2);
-                }
+                    FillRounded(g, br, RowCorner, TrayTheme.Mix(_theme.Accent, _theme.TabCardBg, hovered ? 0.22 : 0.12));
+                else if (hovered)
+                    FillRounded(g, br, RowCorner, _theme.BgHover);
 
-                y += BtnHeight + BtnGap;
+                int dotSz = S(9);
+                using (var db = new SolidBrush(color))
+                    g.FillEllipse(db, br.X + S(12), br.Y + (RowHeight - dotSz) / 2, dotSz, dotSz);
+
+                using var lf = PxFont(13, current ? FontStyle.Bold : FontStyle.Regular);
+                using var lb = new SolidBrush(current ? _theme.Tx1 : _theme.Tx2);
+                g.DrawString(label, lf, lb, new RectangleF(br.X + S(29), br.Y, br.Width - S(56), br.Height), rowText);
+
+                if (current)
+                    DrawCheckGlyph(g, color, new Rectangle(br.Right - S(27), br.Y, S(21), br.Height));
             }
-            y += SepGap;
 
-            // Separator (after status buttons).
-            y -= BtnGap;
-            using (var sp = new Pen(_theme.Brd))
-                g.DrawLine(sp, Pad, y, FormWidth - Pad, y);
-            y += 1;
-
-            // Play Desktop / Play in VR buttons (only when VRChat is not running).
             if (_showPlayBtns)
             {
-                y += SepGap;
-                const int PlayGap = 4;
-                int halfW = (FormWidth - Pad - PlayGap) / 2;
-                var dr = new Rectangle(Pad / 2, y, halfW, BtnHeight);
-                var vr = new Rectangle(Pad / 2 + halfW + PlayGap, y, halfW, BtnHeight);
-                _btnRects[4] = dr;
-                _btnRects[5] = vr;
+                FillRounded(g, _segTrack, SegCorner, TrayTheme.Mix(_theme.Accent, _theme.BgSide, 0.10));
 
-                var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                foreach (var (rect, idx, key, fallback) in new[]
+                for (int idx = 4; idx <= 5; idx++)
                 {
-                    (dr, 4, "notifications.launch.play_desktop", "Desktop"),
-                    (vr, 5, "notifications.launch.play_vr",      "VR Mode"),
-                })
-                {
+                    var rect = _btnRects[idx];
                     bool hov = _hoverIdx == idx;
-                    using var hb = new SolidBrush(hov ? _theme.BgHover : _theme.BgCard);
-                    using var hp = RoundedRect(rect, 6);
-                    g.FillPath(hb, hp);
-                    using var pf = new Font("Segoe UI", 9, hov ? FontStyle.Bold : FontStyle.Regular);
-                    using var pb = new SolidBrush(hov ? _theme.Tx1 : _theme.Tx2);
-                    g.DrawString(_owner.T(key, fallback), pf, pb, rect, sf);
+                    if (hov)
+                        FillRounded(g, rect, SegBtnRad, TrayTheme.Mix(_theme.Accent, _theme.BgSide, 0.26));
+
+                    using var pen = new Pen(hov ? _theme.Tx1 : _theme.Tx2, Math.Max(1f, 1.4f * _scale))
+                    {
+                        StartCap = LineCap.Round,
+                        EndCap = LineCap.Round,
+                        LineJoin = LineJoin.Round,
+                    };
+                    if (idx == 4) DrawDesktopGlyph(g, pen, rect);
+                    else DrawVrGlyph(g, pen, rect);
                 }
-                sf.Dispose();
-
-                y += BtnHeight + SepGap;
-                using (var sp2 = new Pen(_theme.Brd))
-                    g.DrawLine(sp2, Pad, y, FormWidth - Pad, y);
-                y += 1;
             }
 
-            y += SepGap;
+            FillRounded(g, _closeCard, CardCorner, _theme.TabCardBg);
 
-            // Close button.
-            var cr = new Rectangle(Pad / 2, y, FormWidth - Pad, BtnHeight);
-            _btnRects[6] = cr;
+            bool closeHov = _hoverIdx == 6;
+            var cr = _btnRects[6];
+            if (closeHov)
+                FillRounded(g, cr, RowCorner, TrayTheme.Mix(_theme.Err, _theme.TabCardBg, 0.14));
 
-            if (_hoverIdx == 6)
+            var closeCol = closeHov ? _theme.Err : _theme.Tx2;
+            using (var cp = new Pen(closeCol, 1.5f * _scale))
             {
-                using var hb = new SolidBrush(_theme.CloseHover);
-                using var hp = RoundedRect(cr, 6);
-                g.FillPath(hb, hp);
+                int cx = cr.X + S(15), cy = cr.Y + RowHeight / 2, arm = S(4);
+                g.DrawLine(cp, cx - arm, cy - arm, cx + arm, cy + arm);
+                g.DrawLine(cp, cx + arm, cy - arm, cx - arm, cy + arm);
             }
 
-            var closeCol = _hoverIdx == 6 ? _theme.Err : _theme.Tx1;
-            // X icon
-            using (var cp = new Pen(closeCol, 1.8f))
-            {
-                int cx = cr.X + 15, cy = cr.Y + BtnHeight / 2;
-                g.DrawLine(cp, cx - 4, cy - 4, cx + 4, cy + 4);
-                g.DrawLine(cp, cx + 4, cy - 4, cx - 4, cy + 4);
-            }
-
-            using (var cf = new Font("Segoe UI", 10))
+            using (var cf = PxFont(13))
             using (var cb = new SolidBrush(closeCol))
-                g.DrawString(_owner.T("tray.close_vrcn", "Close VRCN"), cf, cb, cr.X + 30, cr.Y + (BtnHeight - 18) / 2);
+                g.DrawString(_owner.T("tray.close_vrcn", "Close VRCN"), cf, cb,
+                    new RectangleF(cr.X + S(29), cr.Y, cr.Width - S(40), cr.Height), rowText);
 
             // Outer border.
-            using var borderPen = new Pen(_theme.Brd, 1);
+            using var borderPen = new Pen(_theme.Brd, _scale);
             using var borderPath = RoundedRect(new Rectangle(0, 0, Width - 1, Height - 1), Corner);
             g.DrawPath(borderPen, borderPath);
         }
@@ -815,7 +1003,7 @@ public class SystemTrayService : IDisposable
             _hoverIdx = HitTest(e.Location);
             if (_hoverIdx != old)
             {
-                Cursor = _hoverIdx >= 0 ? Cursors.Hand : Cursors.Default;
+                Cursor = _hoverIdx != -1 ? Cursors.Hand : Cursors.Default;
                 Invalidate();
             }
         }
@@ -848,8 +1036,7 @@ public class SystemTrayService : IDisposable
                 if ((i == 4 || i == 5) && !_showPlayBtns) continue;
                 if (_btnRects[i].Contains(p)) return i;
             }
-            // Profile section click → show window
-            if (p.Y < _profileSectionBottom)
+            if (_profileCard.Contains(p))
                 return -2; // special: profile area
             return -1;
         }
@@ -875,7 +1062,10 @@ public class SystemTrayService : IDisposable
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+            {
                 _avatar?.Dispose();
+                _avatarScaled?.Dispose();
+            }
             base.Dispose(disposing);
         }
 

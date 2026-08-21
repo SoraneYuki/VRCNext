@@ -1,4 +1,4 @@
-/* === People Module === */
+﻿/* === People Module === */
 
 /* Tab layout — flex column so paginator sticks to bottom like Timeline */
 #tab3.active {
@@ -71,17 +71,12 @@
 /* Same-location instance cards */
 .sloc-inst-card {
     position: relative;
-    border-radius: 10px;
+    background: var(--tab-card-bg, var(--bg-input));
+    border: 0;
+    border-radius: 12px;
     overflow: hidden;
-    margin-bottom: 4px;
-}
-.sloc-inst-bg {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    filter: brightness(0.15);
-    z-index: 0;
+    margin-bottom: 6px;
+    padding: 0 2px 2px;
 }
 .sloc-inst-content {
     position: relative;
@@ -94,7 +89,7 @@
     font-size: calc(10px + var(--fs-off, 0px));
     font-weight: 700;
     color: var(--tx2);
-    padding: 8px 8px 10px;
+    padding: 8px 8px 6px;
     letter-spacing: .04em;
     overflow: hidden;
 }
@@ -110,7 +105,7 @@
     font-weight: 400;
 }
 .sloc-inst-card .vrc-friend-card:hover {
-    background: rgba(255,255,255,.08);
+    background: var(--bg-hover);
 }
 
 /* Sidebar login box */

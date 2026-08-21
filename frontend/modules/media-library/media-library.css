@@ -1,4 +1,4 @@
-/* === Media Library Module === */
+﻿/* === Media Library Module === */
 
 .lib-is-select { min-width: 130px; max-width: 200px; }
 
@@ -372,6 +372,8 @@
 
 /* === Photo Detail Modal (image left, info right) === */
 /* Compound selector beats single-class .modal-overlay rule defined later in modals.css */
+#userTagPickerModal { z-index: 10025; }
+
 .modal-overlay.photo-detail-overlay {
     z-index: 10015;
     display: flex;
@@ -614,13 +616,15 @@
     width: 340px;
     flex-shrink: 0;
     padding: 24px 24px 22px;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     border-left: 1px solid var(--brd);
     display: flex;
     flex-direction: column;
     gap: 14px;
     min-height: 0;
 }
+.photo-detail-info-pane > * { flex-shrink: 0; }
 
 .photo-detail-name {
     margin: 0;
@@ -688,11 +692,9 @@
 
 
 .photo-detail-players-card {
-    flex: 1;
-    min-height: 0;
+    flex: none;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .photo-detail-players-card > .fd-group-rep-label {
@@ -701,11 +703,10 @@
 
 /* Compound selector beats .tl-players-grid rule loaded later in timeline-modal.css */
 .tl-players-grid.photo-detail-players-grid {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
+    flex: none;
+    overflow: visible;
+    max-height: none;
     margin-top: 0;
-    padding-right: 4px;
 }
 
 
@@ -719,4 +720,102 @@
         border-left: none;
         border-top: 1px solid var(--brd);
     }
+}
+
+.pd-usertag-layer {
+    position: absolute;
+    pointer-events: none;
+    z-index: 4;
+}
+.pd-usertag {
+    position: absolute;
+    padding: 14px;
+    pointer-events: auto;
+}
+.pd-ut-frame {
+    --utc: rgba(255,255,255,.5);
+    --utt: 2px;
+    --utl: 13px;
+    display: block;
+    width: 46px;
+    height: 46px;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,.7));
+    background:
+        linear-gradient(var(--utc) 0 0) 0    0    / var(--utl) var(--utt) no-repeat,
+        linear-gradient(var(--utc) 0 0) 0    0    / var(--utt) var(--utl) no-repeat,
+        linear-gradient(var(--utc) 0 0) 100% 0    / var(--utl) var(--utt) no-repeat,
+        linear-gradient(var(--utc) 0 0) 100% 0    / var(--utt) var(--utl) no-repeat,
+        linear-gradient(var(--utc) 0 0) 0    100% / var(--utl) var(--utt) no-repeat,
+        linear-gradient(var(--utc) 0 0) 0    100% / var(--utt) var(--utl) no-repeat,
+        linear-gradient(var(--utc) 0 0) 100% 100% / var(--utl) var(--utt) no-repeat,
+        linear-gradient(var(--utc) 0 0) 100% 100% / var(--utt) var(--utl) no-repeat;
+}
+.pd-usertag:hover .pd-ut-frame,
+.pd-usertag:focus-within .pd-ut-frame { --utc: var(--accent-lt, var(--accent)); }
+
+.pd-ut-chip {
+    position: absolute;
+    top: calc(100% - 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px 4px 4px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.72);
+    backdrop-filter: blur(6px);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity .12s ease;
+}
+.pd-usertag:hover .pd-ut-chip,
+.pd-usertag:focus-within .pd-ut-chip { opacity: 1; }
+.pd-ut-av {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg-hover);
+    flex-shrink: 0;
+}
+.pd-ut-av-letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + var(--fs-off, 0px));
+    font-weight: 700;
+    color: var(--tx2);
+}
+.pd-ut-name {
+    font-size: calc(11px + var(--fs-off, 0px));
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+}
+.pd-ut-remove {
+    font-size: calc(14px + var(--fs-off, 0px));
+    color: rgba(255,255,255,.6);
+    cursor: pointer;
+}
+.pd-ut-remove:hover { color: var(--err); }
+.pd-ut-card-remove {
+    margin-left: auto;
+    font-size: calc(15px + var(--fs-off, 0px));
+    color: var(--tx3);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.pd-ut-card-remove:hover { color: var(--err); }
+
+.pd-tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+}
+.vrcn-badge.pd-tag-badge {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent-lt, var(--accent));
 }

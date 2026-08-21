@@ -388,12 +388,32 @@ public partial class AppShell
 #endif
 
         int uptimeTick = 0;
+        int vfMeterPct  = -1;
+        int kxdMeterPct = -1;
+        static int MeterPct(float level) =>
+            (int)MathF.Round(Math.Clamp(level, 0f, 1f) * 100f, MidpointRounding.AwayFromZero);
         _uptimeTimer2 = new System.Threading.Timer(_ =>
         {
             if (_vfCtrl.IsRunning)
-                SendToJS("vfMeter", new { level = _vfCtrl.MeterLevel });
+            {
+                var pct = MeterPct(_vfCtrl.MeterLevel);
+                if (pct != vfMeterPct)
+                {
+                    vfMeterPct = pct;
+                    SendToJS("vfMeter", new { level = pct / 100f });
+                }
+            }
+            else vfMeterPct = -1;
             if (_kxdCtrl.IsRunning)
-                SendToJS("kxdMeter", new { level = _kxdCtrl.MeterLevel });
+            {
+                var pct = MeterPct(_kxdCtrl.MeterLevel);
+                if (pct != kxdMeterPct)
+                {
+                    kxdMeterPct = pct;
+                    SendToJS("kxdMeter", new { level = pct / 100f });
+                }
+            }
+            else kxdMeterPct = -1;
             if (Interlocked.Increment(ref uptimeTick) % 10 == 0 && _relayCtrl.IsRunning)
                 SendToJS("uptimeTick", (DateTime.Now - _relayCtrl.RelayStart).ToString(@"hh\:mm\:ss"));
         }, null, 100, 100);
@@ -503,6 +523,7 @@ public partial class AppShell
 #if WINDOWS
             .SetBrowserControlInitParameters(BuildChromiumFlags(_settings))
 #endif
+            .RegisterWindowCreatedHandler((_, _) => _windowReady.TrySetResult())
             .RegisterWebMessageReceivedHandler((_, message) => { _ = OnWebMessage(message); });
         if (File.Exists(iconPath)) windowBuilder.SetIconFile(iconPath);
 #if WINDOWS
@@ -906,9 +927,11 @@ public partial class AppShell
     private string? _pendingFriendsJson;
     private int _friendsMarkerQueued;
     private long _lastFriendsPayloadBytes;
+    private readonly TaskCompletionSource _windowReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private async Task RunJsDispatcherAsync()
     {
+        await _windowReady.Task;
         await foreach (var msg in _jsQueue.Reader.ReadAllAsync())
         {
             var toSend = msg;
@@ -1191,8 +1214,9 @@ public partial class AppShell
                 else
                 {
                     var imgThumbSize = ParseImgThumbSize(ctx.Request.Url?.Query);
-                    if (imgThumbSize > 0) await ServeImgCacheThumbAsync(ctx, file, imgThumbSize);
-                    else await ServeFileAsync(ctx, file);
+                    var imgCache     = ImgCacheControlFor(ctx.Request.Url?.Query);
+                    if (imgThumbSize > 0) await ServeImgCacheThumbAsync(ctx, file, imgThumbSize, imgCache);
+                    else await ServeFileAsync(ctx, file, imgCache);
                 }
             }
             else if (path.StartsWith("/vrcphotos/"))
@@ -1305,9 +1329,10 @@ public partial class AppShell
         }
     }
 
-    private static async Task ServeFileAsync(System.Net.HttpListenerContext ctx, string file)
+    private static async Task ServeFileAsync(System.Net.HttpListenerContext ctx, string file, string? cacheControl = null)
     {
         if (!File.Exists(file)) { ctx.Response.StatusCode = 404; return; }
+        if (cacheControl != null) ctx.Response.Headers["Cache-Control"] = cacheControl;
         ctx.Response.ContentType = Path.GetExtension(file).ToLower() switch {
             ".jpg" or ".jpeg" => "image/jpeg",
             ".png"  => "image/png",
@@ -1384,6 +1409,16 @@ public partial class AppShell
     private static readonly SemaphoreSlim _thumbSem = new(2, 2);
     private static int _thumbGenCount = 0;
 
+    private const string ImgCacheControl = "public, max-age=31536000, immutable";
+
+    private static string? ImgCacheControlFor(string? query)
+    {
+        if (string.IsNullOrEmpty(query)) return null;
+        return query.Contains("?v=", StringComparison.Ordinal) || query.Contains("&v=", StringComparison.Ordinal)
+            ? ImgCacheControl
+            : null;
+    }
+
     private static int ParseImgThumbSize(string? query)
     {
         if (string.IsNullOrEmpty(query)) return 0;
@@ -1392,13 +1427,13 @@ public partial class AppShell
         return int.TryParse(m.Groups[1].Value, out var s) && (s == 64 || s == 96 || s == 128 || s == 256) ? s : 64;
     }
 
-    private static async Task ServeImgCacheThumbAsync(System.Net.HttpListenerContext ctx, string file, int maxSize)
+    private static async Task ServeImgCacheThumbAsync(System.Net.HttpListenerContext ctx, string file, int maxSize, string? cacheControl = null)
     {
         if (!File.Exists(file)) { ctx.Response.StatusCode = 404; return; }
         var ext = Path.GetExtension(file).ToLowerInvariant();
         if (ext is not (".jpg" or ".jpeg" or ".png" or ".webp" or ".gif"))
         {
-            await ServeFileAsync(ctx, file);
+            await ServeFileAsync(ctx, file, cacheControl);
             return;
         }
         var keepAlpha = ext is ".png" or ".webp" or ".gif";
@@ -1419,7 +1454,7 @@ public partial class AppShell
             }
             finally { _thumbSem.Release(); }
         }
-        await ServeFileAsync(ctx, thumbPath);
+        await ServeFileAsync(ctx, thumbPath, cacheControl);
     }
 
     private static bool TryGenerateImgThumbSkia(string srcFile, string tmpPath, int maxSize, bool keepAlpha)

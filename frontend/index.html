@@ -359,8 +359,9 @@
 
         <!-- Notification panel -->
         <div class="notif-panel" id="notifPanel" style="display:none;">
-            <div class="notif-panel-header"><span style="font-weight:700;font-size:calc(13px + var(--fs-off, 0px));" data-i18n="common.notifications">Notifications</span><div style="display:flex;gap:6px;align-items:center;"><div class="vrcn-mini-pill-group" id="notifPillGroup"><div class="vrcn-mini-pill-indicator" id="notifPillIndicator"></div><button class="vrcn-mini-pill active" id="notifTabCurrent" onclick="setNotifTab('current')" data-i18n="notifications.tab.current">Current</button><button class="vrcn-mini-pill" id="notifTabHidden" onclick="setNotifTab('hidden')" data-i18n="notifications.tab.hidden">Hidden</button></div><button class="vrcn-icon-button" onclick="refreshNotifications()" title="Refresh" data-i18n-title="common.refresh"><span class="msi" style="font-size:16px;">refresh</span></button></div></div>
+            <div class="notif-panel-header"><span style="font-weight:700;font-size:calc(13px + var(--fs-off, 0px));" data-i18n="common.notifications">Notifications</span><div style="display:flex;gap:6px;align-items:center;"><div class="vrcn-mini-pill-group" id="notifPillGroup"><div class="vrcn-mini-pill-indicator" id="notifPillIndicator"></div><button class="vrcn-mini-pill active" id="notifTabCurrent" onclick="setNotifTab('current')" data-i18n="notifications.tab.current">Current</button><button class="vrcn-mini-pill" id="notifTabHidden" onclick="setNotifTab('hidden')" data-i18n="notifications.tab.hidden">Hidden</button></div><button class="vrcn-icon-button" id="notifClearAllBtn" onclick="clearAllNotifications()" title="Clear all notifications" data-i18n-title="notifications.actions.clear_all"><span class="msi" style="font-size:16px;">delete_sweep</span></button><button class="vrcn-icon-button" onclick="refreshNotifications()" title="Refresh" data-i18n-title="common.refresh"><span class="msi" style="font-size:16px;">refresh</span></button></div></div>
             <div class="notif-panel-list" id="notifList"><div class="empty-msg" data-i18n="notifications.empty">No notifications</div></div>
+            <button class="notif-view-more" onclick="openNotificationsTimeline()"><span class="msi">history</span><span data-i18n="notifications.view_more">View all notifications</span></button>
         </div>
         <!-- Help panel -->
         <div class="notif-panel help-panel" id="helpPanel" style="display:none;">
@@ -452,10 +453,17 @@
             <div id="vrcProfileArea"></div>
             <div id="vrcInstanceArea"></div>
             <button id="vrcLoginCollapsed" class="nav-btn vrc-login-collapsed-btn" onclick="if(rsidebarCollapsed)toggleRsidebar()" title="Login to VRChat" data-i18n-title="profiles.friends.login_to_vrchat"><span class="msi vrc-login-collapsed-icon">error</span></button>
-            <div id="vrcFriendSearch" class="vrc-friend-search" style="display:none;">
-                <button class="nav-btn vrc-fs-icon-btn" onclick="if(rsidebarCollapsed)toggleRsidebar()"><span class="msi vrc-fs-icon">search</span></button>
-                <input type="text" id="vrcFriendSearchInput" class="vrcn-input" placeholder="Search friends..." data-i18n-placeholder="profiles.friends.search_placeholder" oninput="_dbFilterFriends()">
-                <button id="vrcFriendRefreshBtn" class="vrcn-button vrc-fs-refresh-btn" onclick="refreshVrcFriendsAndGroups()" title="Refresh friends &amp; group instances" data-i18n-title="profiles.friends.refresh"><span class="msi">refresh</span></button>
+            <div class="vrc-fs-card" id="vrcFriendControls" style="display:none;">
+                <div id="vrcFriendSearch" class="vrc-friend-search">
+                    <button class="nav-btn vrc-fs-icon-btn" onclick="if(rsidebarCollapsed)toggleRsidebar()"><span class="msi vrc-fs-icon">search</span></button>
+                    <input type="text" id="vrcFriendSearchInput" class="vrcn-input" placeholder="Search friends..." data-i18n-placeholder="profiles.friends.search_placeholder" oninput="_dbFilterFriends()">
+                    <button id="vrcFriendRefreshBtn" class="vrcn-button vrc-fs-refresh-btn" onclick="refreshVrcFriendsAndGroups()" title="Refresh friends &amp; group instances" data-i18n-title="profiles.friends.refresh"><span class="msi">refresh</span></button>
+                </div>
+                <div class="fd-tabs vrc-fs-tabs" id="vrcFriendTabs">
+                    <button type="button" class="fd-tab vrc-fs-tab active" id="vrcFriendTabFriends" onclick="setFriendsSidebarTab('friends')" title="Friends" data-i18n-title="search.section.friends"><span class="msi">group</span><span class="vrcn-badge fd-tab-badge" id="vrcFriendTabFriendsCount">0</span></button>
+                    <button type="button" class="fd-tab vrc-fs-tab" id="vrcFriendTabFavorites" style="display:none;" onclick="setFriendsSidebarTab('favorites')" title="Favorites" data-i18n-title="profiles.people.filters.favorites"><span class="msi">favorite</span><span class="vrcn-badge fd-tab-badge" id="vrcFriendTabFavoritesCount">0</span></button>
+                    <button type="button" class="fd-tab vrc-fs-tab" id="vrcFriendTabGroups" onclick="setFriendsSidebarTab('groups')" title="Groups" data-i18n-title="nav.groups"><span class="msi">groups</span><span class="vrcn-badge fd-tab-badge" id="vrcFriendTabGroupsCount">0</span></button>
+                </div>
             </div>
             <div id="vrcFriendsList">
                 <div class="vrc-login-box" id="vrcLoginPrompt">

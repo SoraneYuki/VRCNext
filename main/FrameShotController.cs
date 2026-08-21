@@ -12,12 +12,21 @@ public class FrameShotController : IDisposable
     private readonly VROverlayController _vroCtrl;
     private readonly PhotosController _photos;
     private VRSubprocessHost? _fsWiredHost;
+    private JObject? _fsLastState;
 
 #if WINDOWS
     public bool IsConnected => _core.VrOverlay?.FsConnected ?? false;
 #else
     public bool IsConnected => false;
 #endif
+
+    public void ResendState()
+    {
+#if WINDOWS
+        if (_core.VrOverlay?.FsConnected != true) return;
+        if (_fsLastState != null) _core.SendToJS("fsUpdate", _fsLastState);
+#endif
+    }
 
     private uint FsBtn(uint legacy, uint index) => _core.Settings.VrInputMode == 1 ? index : legacy;
 
@@ -42,7 +51,11 @@ public class FrameShotController : IDisposable
         {
             _fsWiredHost = h;
 
-            h.OnFsUpdate += d => _core.SendToJS("fsUpdate", d);
+            h.OnFsUpdate += d =>
+            {
+                _fsLastState = d;
+                _core.SendToJS("fsUpdate", d);
+            };
 
             h.OnFsDevices += devices =>
             {
@@ -296,5 +309,6 @@ public class FrameShotController : IDisposable
     public void Dispose()
     {
         _fsWiredHost = null;
+        _fsLastState = null;
     }
 }

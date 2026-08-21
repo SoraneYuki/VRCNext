@@ -10,6 +10,7 @@ public class SpaceFlightController : IDisposable
     private readonly CoreLibrary _core;
     private readonly VROverlayController _vroCtrl;
     private VRSubprocessHost? _sfWiredHost;
+    private JObject? _sfLastState;
 
 #if WINDOWS
     public bool IsConnected => _core.VrOverlay?.SfConnected ?? false;
@@ -37,7 +38,11 @@ public class SpaceFlightController : IDisposable
         {
             _sfWiredHost = h;
 
-            h.OnSfUpdate += d => _core.SendToJS("sfUpdate", d);
+            h.OnSfUpdate += d =>
+            {
+                _sfLastState = d;
+                _core.SendToJS("sfUpdate", d);
+            };
 
             h.OnSfQuit += () =>
             {
@@ -120,6 +125,14 @@ public class SpaceFlightController : IDisposable
         }
     }
 
+    public void ResendState()
+    {
+#if WINDOWS
+        if (_core.VrOverlay?.SfConnected != true) return;
+        if (_sfLastState != null) _core.SendToJS("sfUpdate", _sfLastState);
+#endif
+    }
+
     private uint SfBtn(uint legacy, uint index) => _core.Settings.VrInputMode == 1 ? index : legacy;
 
     public void Toggle()
@@ -159,5 +172,6 @@ public class SpaceFlightController : IDisposable
     public void Dispose()
     {
         _sfWiredHost = null;
+        _sfLastState = null;
     }
 }

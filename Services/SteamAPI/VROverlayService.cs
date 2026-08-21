@@ -224,6 +224,8 @@ namespace VRCNext.Services
         private bool  _toastInvite     = true;
         private bool  _toastGroupInv   = true;
         private bool  _toastJoined     = true;
+        private bool  _toastLeft       = true;
+        private bool  _toastReqInvite  = true;
 
         // Toast animation state
         private record ToastItem(string EvType, string FriendName, string EvText, string Time, string ImageUrl, string FriendId = "");
@@ -428,7 +430,8 @@ namespace VRCNext.Services
             bool online, bool offline,
             bool gps, bool status, bool statusDesc, bool bio,
             int durationSec = 8, int stackSize = 2,
-            bool friendReq = true, bool invite = true, bool groupInv = true, bool joined = true)
+            bool friendReq = true, bool invite = true, bool groupInv = true, bool joined = true,
+            bool left = true, bool reqInvite = true)
         {
             bool wasEnabled = _toastEnabled;
             _toastEnabled    = enabled;
@@ -446,6 +449,8 @@ namespace VRCNext.Services
             _toastInvite     = invite;
             _toastGroupInv   = groupInv;
             _toastJoined     = joined;
+            _toastLeft       = left;
+            _toastReqInvite  = reqInvite;
             _toastVisibleMs  = Math.Clamp(durationSec, 2, 10) * 1000.0;
             int newStack     = Math.Clamp(stackSize, 1, MAX_STACK);
 
@@ -492,6 +497,8 @@ namespace VRCNext.Services
             "notif_invite"       => _toastInvite,
             "notif_groupinvite"  => _toastGroupInv,
             "friend_joined"      => _toastJoined,
+            "friend_left"        => _toastLeft,
+            "notif_requestinvite" => _toastReqInvite,
             "notif_actionflow"   => true,
             _                    => false,
         };
@@ -4828,6 +4835,7 @@ namespace VRCNext.Services
             "notif_friendreq"    => "Has sent you a friend request",
             "notif_invite"       => string.IsNullOrWhiteSpace(evText) ? "Invited you" : "Invited you to \"" + evText + "\"",
             "notif_groupinvite"  => string.IsNullOrWhiteSpace(evText) ? "Invited you to a group" : "Invited you to the group \"" + evText + "\"",
+            "notif_requestinvite" => string.IsNullOrWhiteSpace(evText) ? "Wants an invite" : "Wants an invite: \"" + evText + "\"",
             _                    => evText ?? "",
         };
 
@@ -4844,6 +4852,7 @@ namespace VRCNext.Services
             "notif_friendreq"    => _theme.Ok,
             "notif_invite"       => _theme.Accent,
             "notif_groupinvite"  => _theme.Warn,
+            "notif_requestinvite" => _theme.Accent,
             _                    => _theme.Tx2,
         };
 

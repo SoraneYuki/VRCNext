@@ -4,6 +4,7 @@ let kxdRunning = false;
 let _kxdDevicesPayload = null;
 let _kxdSavedTtsVoice = '';
 let kxdNoiseGatePct = 10;
+let kxdLastMeterLevel = 0;
 let _kxdPendingConnect = false;
 let _kxdBlockWords = [];
 let _kxdBlockSentences = [];
@@ -368,13 +369,14 @@ function populateKxdDevices(p) {
         if (slider) slider.value = kxdNoiseGatePct;
         const label = document.getElementById('kxdGateVal');
         if (label) label.textContent = kxdNoiseGatePct + '%';
-        updateKxdMeter(0);
+        updateKxdMeter(kxdLastMeterLevel);
     }
 
     kxdUpdateTranslateVisibility();
 }
 
 function updateKxdMeter(level) {
+    kxdLastMeterLevel = level;
     const bar = document.getElementById('kxdMeterBar');
     if (!bar) return;
     const pct = Math.round(Math.min(1, Math.max(0, level)) * 100);
@@ -390,7 +392,7 @@ function kxdSetNoiseGate(val) {
     kxdNoiseGatePct = parseInt(val, 10) || 0;
     const label = document.getElementById('kxdGateVal');
     if (label) label.textContent = kxdNoiseGatePct + '%';
-    updateKxdMeter(0); // refresh gate mark position
+    updateKxdMeter(kxdLastMeterLevel); // refresh gate mark position
     kxdSaveSettings();
 }
 

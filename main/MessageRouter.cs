@@ -465,6 +465,8 @@ public partial class AppShell
                     SendToJS("log", new { msg = $"[LOAD] {AppSettings.LoadDebugInfo}", color = "sec" });
                     SendToJS("log", new { msg = $"[STARTUP] Webhooks: {string.Join(", ", _settings.Webhooks.Select((w,i) => $"#{i+1} \"{w.Name}\" url={w.Url?.Length ?? 0}ch {(w.Enabled?"ON":"off")}"))}", color = "sec" });
                     _authCtrl.HandleReady();
+                    _sfCtrl.ResendState();
+                    _fsCtrl.ResendState();
                     FlushPendingDeepLink();
                     // Check for crash report from previous session — show modal after UI is ready
                     _ = Task.Run(async () =>
@@ -580,6 +582,10 @@ public partial class AppShell
                 case "getPhotoRating":
                 case "setPhotoRating":
                 case "scanLibraryRatings":
+                case "getMediaTags":
+                case "setMediaTags":
+                case "setMediaUserTag":
+                case "removeMediaUserTag":
                     await _photos.HandleMessage(action, msg);
                     break;
 
@@ -2979,6 +2985,7 @@ public partial class AppShell
                 // Notifications delegated to NotificationsController
                 case "vrcGetNotifications":
                 case "vrcGetHiddenNotifications":
+                case "vrcClearNotifications":
                 case "vrcAcceptNotification":
                 case "vrcHideNotification":
                 case "vrcGetRespondMessages":

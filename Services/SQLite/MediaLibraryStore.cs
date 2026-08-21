@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 
 namespace VRCNext.Services;
@@ -21,6 +21,15 @@ public class MediaLibraryStore : IDisposable
         public string AuthorId    { get; set; } = "";
         public bool   Favorited   { get; set; }
         public int    Rating      { get; set; }
+    }
+
+    public class UserTagRow
+    {
+        public string Path        { get; set; } = "";
+        public string UserId      { get; set; } = "";
+        public string DisplayName { get; set; } = "";
+        public double X           { get; set; }
+        public double Y           { get; set; }
     }
 
     private readonly SqliteConnection _db;
@@ -74,11 +83,33 @@ public class MediaLibraryStore : IDisposable
         )";
         m.ExecuteNonQuery();
 
+        using var tg = _db.CreateCommand();
+        tg.CommandText = @"CREATE TABLE IF NOT EXISTS media_tags (
+            path TEXT NOT NULL,
+            tag  TEXT NOT NULL,
+            PRIMARY KEY (path, tag)
+        )";
+        tg.ExecuteNonQuery();
+
+        using var ut = _db.CreateCommand();
+        ut.CommandText = @"CREATE TABLE IF NOT EXISTS media_user_tags (
+            path         TEXT NOT NULL,
+            user_id      TEXT NOT NULL,
+            display_name TEXT NOT NULL DEFAULT '',
+            pos_x        REAL NOT NULL DEFAULT 0,
+            pos_y        REAL NOT NULL DEFAULT 0,
+            created_at   TEXT NOT NULL DEFAULT '',
+            PRIMARY KEY (path, user_id)
+        )";
+        ut.ExecuteNonQuery();
+
         foreach (var sql in new[]
         {
             "CREATE INDEX IF NOT EXISTS idx_up_favorited ON user_photos(favorited)",
             "CREATE INDEX IF NOT EXISTS idx_up_rating    ON user_photos(rating)",
             "CREATE INDEX IF NOT EXISTS idx_up_created   ON user_photos(created_at DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_mt_tag       ON media_tags(tag)",
+            "CREATE INDEX IF NOT EXISTS idx_mut_user     ON media_user_tags(user_id)",
         })
         {
             using var idx = _db.CreateCommand();
@@ -380,12 +411,149 @@ public class MediaLibraryStore : IDisposable
             if (_disposed) return;
             try
             {
-                using var cmd = _db.CreateCommand();
-                cmd.CommandText = "DELETE FROM user_photos WHERE path=$p";
-                cmd.Parameters.AddWithValue("$p", path);
-                cmd.ExecuteNonQuery();
+                foreach (var sql in new[]
+                {
+                    "DELETE FROM user_photos WHERE path=$p",
+                    "DELETE FROM media_tags WHERE path=$p",
+                    "DELETE FROM media_user_tags WHERE path=$p",
+                })
+                {
+                    using var cmd = _db.CreateCommand();
+                    cmd.CommandText = sql;
+                    cmd.Parameters.AddWithValue("$p", path);
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch (Exception ex) { CrashHandler.WriteEntry("MediaLibraryStore.Delete", ex); }
+        }
+    }
+
+    public Dictionary<string, List<string>> GetAllTags()
+    {
+        var map = new Dictionary<string, List<string>>();
+        lock (_lock)
+        {
+            if (_disposed) return map;
+            try
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "SELECT path,tag FROM media_tags";
+                using var r = cmd.ExecuteReader();
+                while (r.Read())
+                {
+                    var path = r.GetString(0);
+                    if (!map.TryGetValue(path, out var tags)) map[path] = tags = new List<string>();
+                    tags.Add(r.GetString(1));
+                }
+            }
+            catch (Exception ex) { CrashHandler.WriteEntry("MediaLibraryStore.GetAllTags", ex); }
+        }
+        return map;
+    }
+
+    public void SetTags(string path, IEnumerable<string> tags)
+    {
+        lock (_lock)
+        {
+            if (_disposed) return;
+            try
+            {
+                using var tx = _db.BeginTransaction();
+
+                using (var del = _db.CreateCommand())
+                {
+                    del.Transaction = tx;
+                    del.CommandText = "DELETE FROM media_tags WHERE path=$p";
+                    del.Parameters.AddWithValue("$p", path);
+                    del.ExecuteNonQuery();
+                }
+
+                using (var ins = _db.CreateCommand())
+                {
+                    ins.Transaction = tx;
+                    ins.CommandText = "INSERT OR IGNORE INTO media_tags(path,tag) VALUES($p,$t)";
+                    ins.Parameters.AddWithValue("$p", path);
+                    var pT = ins.Parameters.Add("$t", SqliteType.Text);
+                    foreach (var tag in tags)
+                    {
+                        if (string.IsNullOrWhiteSpace(tag)) continue;
+                        pT.Value = tag;
+                        ins.ExecuteNonQuery();
+                    }
+                }
+
+                tx.Commit();
+            }
+            catch (Exception ex) { CrashHandler.WriteEntry("MediaLibraryStore.SetTags", ex); }
+        }
+    }
+
+    public List<UserTagRow> GetAllUserTags()
+    {
+        var list = new List<UserTagRow>();
+        lock (_lock)
+        {
+            if (_disposed) return list;
+            try
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "SELECT path,user_id,display_name,pos_x,pos_y FROM media_user_tags";
+                using var r = cmd.ExecuteReader();
+                while (r.Read())
+                {
+                    list.Add(new UserTagRow
+                    {
+                        Path        = r.GetString(0),
+                        UserId      = r.GetString(1),
+                        DisplayName = r.GetString(2),
+                        X           = r.GetDouble(3),
+                        Y           = r.GetDouble(4),
+                    });
+                }
+            }
+            catch (Exception ex) { CrashHandler.WriteEntry("MediaLibraryStore.GetAllUserTags", ex); }
+        }
+        return list;
+    }
+
+    public void SetUserTag(string path, string userId, string displayName, double x, double y)
+    {
+        lock (_lock)
+        {
+            if (_disposed) return;
+            try
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = @"INSERT INTO media_user_tags(path,user_id,display_name,pos_x,pos_y,created_at)
+                    VALUES($p,$u,$d,$x,$y,$c)
+                    ON CONFLICT(path,user_id) DO UPDATE SET
+                        display_name=excluded.display_name, pos_x=excluded.pos_x, pos_y=excluded.pos_y";
+                cmd.Parameters.AddWithValue("$p", path);
+                cmd.Parameters.AddWithValue("$u", userId);
+                cmd.Parameters.AddWithValue("$d", displayName ?? "");
+                cmd.Parameters.AddWithValue("$x", x);
+                cmd.Parameters.AddWithValue("$y", y);
+                cmd.Parameters.AddWithValue("$c", DateTime.UtcNow.ToString("o"));
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex) { CrashHandler.WriteEntry("MediaLibraryStore.SetUserTag", ex); }
+        }
+    }
+
+    public void RemoveUserTag(string path, string userId)
+    {
+        lock (_lock)
+        {
+            if (_disposed) return;
+            try
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "DELETE FROM media_user_tags WHERE path=$p AND user_id=$u";
+                cmd.Parameters.AddWithValue("$p", path);
+                cmd.Parameters.AddWithValue("$u", userId);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex) { CrashHandler.WriteEntry("MediaLibraryStore.RemoveUserTag", ex); }
         }
     }
 

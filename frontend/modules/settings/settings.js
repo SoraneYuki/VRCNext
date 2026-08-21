@@ -126,6 +126,7 @@ function saveSettings() {
             friendsSidebarLocationOnly: document.getElementById('setFriendsSidebarLocationOnly')?.checked ?? true,
             friendsSidebarPreviewCollapsed: document.getElementById('setFriendsSidebarPreviewCollapsed')?.checked ?? true,
             friendsSidebarPreviewOpen: document.getElementById('setFriendsSidebarPreviewOpen')?.checked ?? false,
+            separateFavoriteFriends: document.getElementById('setSeparateFavoriteFriends')?.checked ?? false,
             peopleAlwaysStats: document.getElementById('setPeopleAlwaysStats')?.checked ?? false,
             modernFolderLayout: document.getElementById('setModernFolderLayout')?.checked ?? true,
             navSidebarHoverText: document.getElementById('setNavSidebarHoverText')?.checked ?? true,
@@ -248,6 +249,10 @@ function saveSettings() {
             vroToastTtsGroupInv:     !!document.getElementById('vroToastGroupInvTts')?.checked,
             vroToastTtsJoined:       !!document.getElementById('vroToastJoinedTts')?.checked,
             vroToastJoined:          !!document.getElementById('vroToastJoined')?.checked,
+            vroToastTtsLeft:         !!document.getElementById('vroToastLeftTts')?.checked,
+            vroToastLeft:            !!document.getElementById('vroToastLeft')?.checked,
+            vroToastTtsReqInvite:    !!document.getElementById('vroToastReqInviteTts')?.checked,
+            vroToastReqInvite:       !!document.getElementById('vroToastReqInvite')?.checked,
             vroTtsVoice:        document.getElementById('vroTtsVoice')?.value || '',
             vroTtsEngine:       document.getElementById('vroTtsEngine')?.value || 'sapi',
             vroTtsLang:         document.getElementById('vroTtsLang')?.value || '',
@@ -481,6 +486,10 @@ function loadSettingsToUI(s) {
     settings.friendsSidebarPreviewOpen = s.FriendsSidebarPreviewOpen ?? s.friendsSidebarPreviewOpen ?? false;
     const _fspoEl = document.getElementById('setFriendsSidebarPreviewOpen');
     if (_fspoEl) _fspoEl.checked = settings.friendsSidebarPreviewOpen;
+    settings.separateFavoriteFriends = s.SeparateFavoriteFriends ?? s.separateFavoriteFriends ?? false;
+    const _sffEl = document.getElementById('setSeparateFavoriteFriends');
+    if (_sffEl) _sffEl.checked = settings.separateFavoriteFriends;
+    if (typeof applyFriendsSidebarFavTabs === 'function') applyFriendsSidebarFavTabs();
     settings.peopleAlwaysStats = s.PeopleAlwaysStats ?? s.peopleAlwaysStats ?? false;
     const _pasEl = document.getElementById('setPeopleAlwaysStats');
     if (_pasEl) _pasEl.checked = settings.peopleAlwaysStats;
@@ -829,7 +838,11 @@ function loadSettingsToUI(s) {
         vroToastTtsInvite: s.VroToastTtsInvite ?? s.vroToastTtsInvite ?? false,
         vroToastTtsGroupInv: s.VroToastTtsGroupInv ?? s.vroToastTtsGroupInv ?? false,
         vroToastTtsJoined: s.VroToastTtsJoined ?? s.vroToastTtsJoined ?? false,
+        vroToastTtsLeft: s.VroToastTtsLeft ?? s.vroToastTtsLeft ?? false,
+        vroToastTtsReqInvite: s.VroToastTtsReqInvite ?? s.vroToastTtsReqInvite ?? false,
         vroToastJoined:     s.VroToastJoined     ?? s.vroToastJoined     ?? true,
+        vroToastLeft:       s.VroToastLeft       ?? s.vroToastLeft       ?? true,
+        vroToastReqInvite:  s.VroToastReqInvite  ?? s.vroToastReqInvite  ?? true,
         vroTtsDeviceId:     s.VroTtsDeviceId     ?? s.vroTtsDeviceId     ?? '',
         vroTtsDeviceName:   s.VroTtsDeviceName   ?? s.vroTtsDeviceName   ?? '',
         vroTtsVoice:        s.VroTtsVoice        ?? s.vroTtsVoice        ?? '',

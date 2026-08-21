@@ -36,6 +36,15 @@ namespace VRCNext.Services
         private readonly Action<string> _log;
         private Action<object>? _onUpdate;
 
+        private bool _emitPrimed;
+        private bool _emitConnected;
+        private bool _emitDragging;
+        private float _emitOffsetX;
+        private float _emitOffsetY;
+        private float _emitOffsetZ;
+        private bool _emitLeftController;
+        private bool _emitRightController;
+
         private bool _leftDragging;
         private bool _rightDragging;
         private Vector3 _leftRawAnchor;
@@ -264,6 +273,7 @@ namespace VRCNext.Services
             if (_running) return;
             _cts = new CancellationTokenSource();
             _running = true;
+            _emitPrimed = false;
             StartVrserverMonitor(_cts.Token);
             _ = PollLoopAsync(_cts.Token);
         }
@@ -609,15 +619,40 @@ namespace VRCNext.Services
 
         private void EmitState()
         {
+            var offsetX = MathF.Round(OffsetX, 3);
+            var offsetY = MathF.Round(OffsetY, 3);
+            var offsetZ = MathF.Round(OffsetZ, 3);
+            var leftController = _leftIdx != OpenVR.k_unTrackedDeviceIndexInvalid;
+            var rightController = _rightIdx != OpenVR.k_unTrackedDeviceIndexInvalid;
+
+            if (_emitPrimed
+                && _emitConnected == IsConnected
+                && _emitDragging == IsDragging
+                && _emitOffsetX.Equals(offsetX)
+                && _emitOffsetY.Equals(offsetY)
+                && _emitOffsetZ.Equals(offsetZ)
+                && _emitLeftController == leftController
+                && _emitRightController == rightController)
+                return;
+
+            _emitPrimed = true;
+            _emitConnected = IsConnected;
+            _emitDragging = IsDragging;
+            _emitOffsetX = offsetX;
+            _emitOffsetY = offsetY;
+            _emitOffsetZ = offsetZ;
+            _emitLeftController = leftController;
+            _emitRightController = rightController;
+
             _onUpdate?.Invoke(new
             {
                 connected = IsConnected,
                 dragging = IsDragging,
-                offsetX = MathF.Round(OffsetX, 3),
-                offsetY = MathF.Round(OffsetY, 3),
-                offsetZ = MathF.Round(OffsetZ, 3),
-                leftController = _leftIdx != OpenVR.k_unTrackedDeviceIndexInvalid,
-                rightController = _rightIdx != OpenVR.k_unTrackedDeviceIndexInvalid,
+                offsetX = offsetX,
+                offsetY = offsetY,
+                offsetZ = offsetZ,
+                leftController = leftController,
+                rightController = rightController,
                 error = (string?)null
             });
         }
