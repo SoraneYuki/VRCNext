@@ -1,4 +1,4 @@
-**2026.43.5**
+**2026.44.0**
 
 **Media Library**
 * Added **Tags** for photos and videos, including categories like Funny, Romantic, Meme, Friends, Games and more. Tags can be added from the photo modal or right click menu.
