@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Newtonsoft.Json.Linq;
 
 namespace VRCNext.Services;
@@ -87,6 +87,19 @@ public class NotificationsAPI(VRChatApiService ctx)
             return resp.IsSuccessStatusCode;
         }
         catch (Exception ex) { ctx.Log($"HideNotification exception: {ex.Message}"); return false; }
+    }
+
+    public async Task<bool> ClearNotificationsAsync()
+    {
+        if (!ctx.IsLoggedIn) return false;
+        try
+        {
+            var content = new StringContent("{}", Encoding.UTF8, "application/json");
+            var resp = await ctx._http.PutAsync($"{VRChatApiService.BASE}/auth/user/notifications/clear", content);
+            ctx.Log($"ClearNotifications: {(int)resp.StatusCode}");
+            return resp.IsSuccessStatusCode;
+        }
+        catch (Exception ex) { ctx.Log($"ClearNotifications exception: {ex.Message}"); return false; }
     }
 
     public async Task<bool> MarkNotificationReadAsync(string notifId)

@@ -55,6 +55,19 @@ function refreshNotifications() {
     sendToCS({ action: _notifTab === 'hidden' ? 'vrcGetHiddenNotifications' : 'vrcGetNotifications' });
 }
 
+function clearAllNotifications() {
+    if (!notifications.length) return;
+    renderNotifications([]);
+    sendToCS({ action: 'vrcClearNotifications' });
+}
+
+function openNotificationsTimeline() {
+    if (notifPanelOpen) toggleNotifPanel();
+    showTab(12);
+    if (typeof setTlMode === 'function') setTlMode('personal');
+    if (typeof setTlFilter === 'function') setTlFilter('notification');
+}
+
 function getNotificationTypeMeta(type) {
     switch (type) {
         case 'friendRequest': return { icon: 'person_add', label: t('notifications.types.friend_request', 'Friend Request') };
@@ -133,6 +146,9 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
     if (unseen > 0) { badge.textContent = unseen; badge.style.display = ''; }
     else badge.style.display = 'none';
 
+    const clearBtn = document.getElementById('notifClearAllBtn');
+    if (clearBtn) clearBtn.style.display = (_notifTab === 'hidden' || notifications.length === 0) ? 'none' : '';
+
     const el = document.getElementById('notifList');
     if (notifications.length === 0) {
         el.innerHTML = `<div class="empty-msg">${t('notifications.empty', 'No notifications')}</div>`;
@@ -167,6 +183,7 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
         })();
 
         let titleHtml;
+        let subHtml = '';
         let bodyHtml = '';
         if (n._v2 && n._title) {
             const isGroupNotif = typeof n.type === 'string' && n.type.startsWith('group.');
@@ -184,37 +201,45 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
                 ? `<strong style="cursor:pointer;" onclick="toggleNotifPanel();openInstanceDetailFromData({location:'${jsq(location)}',worldId:'${jsq(wid)}',worldName:'${jsq(det.worldName||'')}',instanceType:'${jsq(instanceType)}'})">${worldName}</strong>`
                 : `<strong>${worldName}</strong>`;
             const msg = det.inviteMessage || '';
-            titleHtml = `${senderLink} <span style="color:var(--tx2);font-weight:400;">${t('notifications.title.invited_you_to', 'invited you to')}</span> ${worldLink}`;
+            titleHtml = senderLink || esc(label);
+            subHtml = `${t('notifications.title.invited_you_to', 'invited you to')} ${worldLink}`;
             if (msg) bodyHtml = `<div class="notif-msg">${esc(msg)}</div>`;
         } else if (n.type === 'requestInvite') {
             const msg = det.requestMessage || '';
-            titleHtml = `${senderLink} <span style="color:var(--tx2);font-weight:400;">${t('notifications.title.wants_invite', 'wants an invite')}</span>`;
+            titleHtml = senderLink || esc(label);
+            subHtml = t('notifications.title.wants_invite', 'wants an invite');
             if (msg) bodyHtml = `<div class="notif-msg">${esc(msg)}</div>`;
         } else if (n.type === 'boop') {
-            titleHtml = `${senderLink} <span style="color:var(--tx2);font-weight:400;">${t('notifications.title.booped_you', 'booped you')}</span>`;
+            titleHtml = senderLink || esc(label);
+            subHtml = t('notifications.title.booped_you', 'booped you');
+        } else if (n.type === 'friendRequest') {
+            titleHtml = senderLink || esc(label);
+            subHtml = t('notifications.title.friend_request_received', 'sent you a friend request');
+            if (n.message) bodyHtml = `<div class="notif-msg">${esc(n.message)}</div>`;
         } else if (n.type === 'inviteResponse' || n.type === 'requestInviteResponse') {
-            titleHtml = senderLink
-                ? tf('notifications.title.from', { label: esc(label), sender: senderLink }, '{label} from {sender}')
-                : esc(label);
+            titleHtml = senderLink || esc(label);
             const msg = det.responseMessage || det.requestMessage || det.inviteMessage || n.message || '';
             if (msg) bodyHtml = `<div class="notif-msg">${esc(msg)}</div>`;
         } else {
-            titleHtml = senderLink
-                ? tf('notifications.title.from', { label: esc(label), sender: senderLink }, '{label} from {sender}')
-                : esc(label);
+            titleHtml = senderLink || esc(label);
             if (n.message) bodyHtml = `<div class="notif-msg">${esc(n.message)}</div>`;
         }
+        const actionsHtml = [
+            canAccept ? `<button class="vrcn-notify-button primary notif-accept-btn" onclick="acceptNotif('${nid}',this)"><span class="msi">check</span> ${t('notifications.actions.accept', 'Accept')}</button>` : '',
+            canAnswer ? `<button class="vrcn-notify-button notif-answer-btn" onclick="openNotifRespondModal('${nid}')" title="${t('notifications.actions.answer_tooltip', 'Decline with a message or image')}"><span class="msi">reply</span> ${t('notifications.actions.answer', 'Answer')}</button>` : '',
+            (!noDecline && (canAccept || !n.seen)) ? `<button class="vrcn-notify-button danger notif-decline-btn" onclick="declineNotif('${nid}',this)" title="${t('notifications.actions.decline', 'Decline')}"><span class="msi">close</span></button>` : '',
+        ].join('');
+        const typeBadge = `<span class="vrcn-badge notif-type-badge"><span class="msi">${icon}</span>${esc(label)}</span>`;
         return `<div class="notif-item ${n.seen && !canAccept ? 'notif-seen' : ''}" data-notif-id="${nid}">
             ${avatarHtml}
             <div class="notif-body">
                 <div class="notif-title" style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;">${titleHtml}</div>
+                ${subHtml ? `<div class="notif-sub">${subHtml}</div>` : ''}
                 ${bodyHtml}
-                <div class="notif-time">${time}</div>
             </div>
-            <div class="notif-actions">
-                ${canAccept ? `<button class="vrcn-notify-button primary notif-accept-btn" onclick="acceptNotif('${nid}',this)"><span class="msi">check</span> ${t('notifications.actions.accept', 'Accept')}</button>` : ''}
-                ${canAnswer ? `<button class="vrcn-notify-button notif-answer-btn" onclick="openNotifRespondModal('${nid}')" title="${t('notifications.actions.answer_tooltip', 'Decline with a message or image')}"><span class="msi">reply</span> ${t('notifications.actions.answer', 'Answer')}</button>` : ''}
-                ${(!noDecline && (canAccept || !n.seen)) ? `<button class="vrcn-notify-button danger notif-decline-btn" onclick="declineNotif('${nid}',this)" title="${t('notifications.actions.decline', 'Decline')}"><span class="msi">close</span></button>` : ''}
+            <div class="notif-side">
+                <div class="notif-meta">${typeBadge}${time ? `<span class="notif-time">${time}</span>` : ''}</div>
+                ${actionsHtml ? `<div class="notif-actions">${actionsHtml}</div>` : ''}
             </div>
         </div>`;
     }).join('');

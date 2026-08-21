@@ -1644,6 +1644,8 @@
   "notifications.tab.current": "目前",
   "notifications.tab.hidden": "已隱藏",
   "notifications.empty": "暫無通知",
+  "notifications.actions.clear_all": "清除所有通知",
+  "notifications.view_more": "查看所有通知",
   "notifications.unknown_world": "未知世界",
   "notifications.actions.accept": "接受",
   "notifications.actions.decline": "拒絕",

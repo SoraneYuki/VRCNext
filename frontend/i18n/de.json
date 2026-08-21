@@ -1594,6 +1594,8 @@
   "notifications.tab.current": "Aktuell",
   "notifications.tab.hidden": "Versteckt",
   "notifications.empty": "Keine Benachrichtigungen",
+  "notifications.actions.clear_all": "Alle Benachrichtigungen löschen",
+  "notifications.view_more": "Alle Benachrichtigungen anzeigen",
   "notifications.unknown_world": "unbekannte Welt",
   "notifications.actions.accept": "Annehmen",
   "notifications.actions.decline": "Ablehnen",

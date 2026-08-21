@@ -1584,6 +1584,8 @@
   "notifications.tab.current": "Текущие",
   "notifications.tab.hidden": "Скрытые",
   "notifications.empty": "Нет уведомлений",
+  "notifications.actions.clear_all": "Очистить все уведомления",
+  "notifications.view_more": "Показать все уведомления",
   "notifications.unknown_world": "Неизвестный мир",
   "notifications.actions.accept": "Принять",
   "notifications.actions.decline": "Отклонить",

@@ -1579,6 +1579,8 @@
   "notifications.tab.current": "現在",
   "notifications.tab.hidden": "非表示",
   "notifications.empty": "通知はありません",
+  "notifications.actions.clear_all": "すべての通知を消去",
+  "notifications.view_more": "すべての通知を表示",
   "notifications.unknown_world": "不明なワールド",
   "notifications.actions.accept": "承認",
   "notifications.actions.decline": "拒否",

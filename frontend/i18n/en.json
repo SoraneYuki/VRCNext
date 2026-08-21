@@ -1648,6 +1648,8 @@
   "notifications.tab.current": "Current",
   "notifications.tab.hidden": "Hidden",
   "notifications.empty": "No notifications",
+  "notifications.actions.clear_all": "Clear all notifications",
+  "notifications.view_more": "View all notifications",
   "notifications.unknown_world": "unknown world",
   "notifications.actions.accept": "Accept",
   "notifications.actions.decline": "Decline",

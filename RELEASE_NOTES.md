@@ -1,5 +1,14 @@
 **2026.43.5**
 
+**Notifications**
+* The notification center is about 50% wider, so titles and messages have room to breathe and
+message text can wrap over two lines.
+* Every notification now shows its type as a badge, for example **Friend Request** or
+**Group Announcement**, next to the time it arrived.
+* Added a **Clear all notifications** button next to Refresh, the same action the VRChat website
+uses. It only shows up when the current list actually has notifications.
+* Added **View all notifications** at the bottom, which opens Timeline > Personal > Notifications.
+
 **System Tray**
 * Redesigned the tray menu to match the new sidebar and made it about 25% more compact.
 * The tray now shows your full, localized status, such as **"Ask Me - sleeping"**.

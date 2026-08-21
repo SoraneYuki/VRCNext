@@ -2981,6 +2981,7 @@ public partial class AppShell
                 // Notifications delegated to NotificationsController
                 case "vrcGetNotifications":
                 case "vrcGetHiddenNotifications":
+                case "vrcClearNotifications":
                 case "vrcAcceptNotification":
                 case "vrcHideNotification":
                 case "vrcGetRespondMessages":

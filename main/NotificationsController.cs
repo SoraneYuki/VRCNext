@@ -144,6 +144,14 @@ public class NotificationsController
                 _ = GetHiddenNotificationsAsync();
                 break;
 
+            case "vrcClearNotifications":
+                _ = Task.Run(async () =>
+                {
+                    await _core.Notifications.ClearNotificationsAsync();
+                    await GetNotificationsAsync();
+                });
+                break;
+
             case "vrcAcceptNotification":
             {
                 var anId   = msg["notifId"]?.ToString();
