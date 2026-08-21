@@ -1908,6 +1908,7 @@ public class AuthController
             _core.Settings.FriendsSidebarLocationOnly = data["friendsSidebarLocationOnly"]?.Value<bool>() ?? true;
             _core.Settings.FriendsSidebarPreviewCollapsed = data["friendsSidebarPreviewCollapsed"]?.Value<bool>() ?? true;
             _core.Settings.FriendsSidebarPreviewOpen = data["friendsSidebarPreviewOpen"]?.Value<bool>() ?? false;
+            _core.Settings.SeparateFavoriteFriends = data["separateFavoriteFriends"]?.Value<bool>() ?? false;
             _core.Settings.PeopleAlwaysStats = data["peopleAlwaysStats"]?.Value<bool>() ?? false;
             _core.Settings.ModernFolderLayout = data["modernFolderLayout"]?.Value<bool>() ?? true;
             _core.Settings.NavSidebarHoverText = data["navSidebarHoverText"]?.Value<bool>() ?? true;

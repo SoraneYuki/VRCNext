@@ -67,6 +67,44 @@ function _friendLocLineInner(f, presenceType, statusText, locationText) {
     return `${esc(statusText)} &middot; ${esc(locationText)}`;
 }
 
+function _sepFavTabs() {
+    return (typeof settings !== 'undefined') && settings.separateFavoriteFriends === true;
+}
+
+function applyFriendsSidebarFavTabs() {
+    if (!_sepFavTabs() && friendsSidebarTab === 'favorites') { setFriendsSidebarTab('friends'); return; }
+    _updateFriendTabCounts();
+    if (typeof vrcFriendsData !== 'undefined') renderVrcFriends(vrcFriendsData);
+}
+
+function _favGameFriends() {
+    const favIds = new Set((favFriendsData || []).map(f => f.favoriteId));
+    if (!favIds.size) return [];
+    return (vrcFriendsData || []).filter(f => favIds.has(f.id) && f.presence === 'game');
+}
+
+function _updateFriendTabCounts() {
+    const fc = document.getElementById('vrcFriendTabFriendsCount');
+    const vc = document.getElementById('vrcFriendTabFavoritesCount');
+    const gc = document.getElementById('vrcFriendTabGroupsCount');
+    if (fc) fc.textContent = (vrcFriendsData || []).length;
+    if (vc) vc.textContent = _favGameFriends().length;
+    const vb = document.getElementById('vrcFriendTabFavorites');
+    if (vb) vb.style.display = _sepFavTabs() ? '' : 'none';
+    if (gc) gc.textContent = (_sidebarGroupInstances || []).length;
+    const _tab = (friendsSidebarTab === 'favorites' && !_sepFavTabs()) ? 'friends' : friendsSidebarTab;
+    document.getElementById('vrcFriendTabFriends')?.classList.toggle('active', _tab === 'friends');
+    document.getElementById('vrcFriendTabFavorites')?.classList.toggle('active', _tab === 'favorites');
+    document.getElementById('vrcFriendTabGroups')?.classList.toggle('active', _tab === 'groups');
+}
+
+function setFriendsSidebarTab(tab) {
+    friendsSidebarTab = (tab === 'groups' || tab === 'favorites') ? tab : 'friends';
+    try { localStorage.setItem('friendsSidebarTab', friendsSidebarTab); } catch {}
+    _updateFriendTabCounts();
+    renderVrcFriends(vrcFriendsData);
+}
+
 function toggleRsidebar() {
     rsidebarCollapsed = !rsidebarCollapsed;
     localStorage.setItem('vrcnext_rsidebar', rsidebarCollapsed ? '1' : '0');
@@ -111,7 +149,12 @@ function renderVrcFriends(friends, counts) {
     if (lp) lp.style.display = 'none';
     document.getElementById('vrcFriendRefreshBtn')?.classList.remove('spinning');
     vrcFriendsData = friends || [];
+    friends = vrcFriendsData;
     if (typeof _renderLibIconSelects === 'function') _renderLibIconSelects();
+    const _favSeparate = _sepFavTabs();
+    const _activeTab = (rsidebarCollapsed || (friendsSidebarTab === 'favorites' && !_favSeparate)) ? 'friends' : friendsSidebarTab;
+    const _favInline = _activeTab === 'friends' && (!_favSeparate || rsidebarCollapsed);
+    _updateFriendTabCounts();
 
     // Lazy-load group instances once on first render
     if (_sidebarGroupInstances === null && !window._groupInstInFlight) {
@@ -143,10 +186,10 @@ function renderVrcFriends(friends, counts) {
         }
     }
 
-    const searchBar = document.getElementById('vrcFriendSearch');
-    if (searchBar) searchBar.style.display = vrcFriendsData.length > 0 ? '' : 'none';
+    const controls = document.getElementById('vrcFriendControls');
+    if (controls) controls.style.display = vrcFriendsData.length > 0 ? '' : 'none';
 
-    if (!friends || !friends.length) {
+    if (_activeTab === 'friends' && !friends.length) {
         setHtmlIfChanged(el, `<div class="vrc-section-label">${getFriendSectionLabel('onlineZero', 0)}</div><div style="padding:16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('dashboard.friends.empty', 'No friends online')}</div>`);
         return;
     }
@@ -181,7 +224,8 @@ function renderVrcFriends(friends, counts) {
     };
 
     // Same Location — only shown when sidebar is expanded
-    if (!rsidebarCollapsed) {
+    const _slocIds = new Set();
+    if (_activeTab === 'friends' && !rsidebarCollapsed) {
         const _instGroups = {};
         gameFriends.filter(f => f.location && f.location.startsWith('wrld_')).forEach(f => {
             const locBase = f.location.split('~')[0];
@@ -196,11 +240,11 @@ function renderVrcFriends(friends, counts) {
             h += `<div class="${_slNavCls}vrc-section-label vrc-offline-toggle" onclick="toggleFriendSection('samelocation')" style="cursor:pointer;"><span class="ni msi">location_on</span><span class="nl">${tf('profiles.friends.sections.same_location', { count: _slTotal }, 'IN INSTANCE - {count}')}</span><span class="nav-group-arrow msi nl" id="samelocationChevron">${_slChev}</span></div>`;
             h += `<div id="samelocationFriendsSection" class="friend-section-items${friendSectionCollapsed.samelocation ? ' collapsed' : ''}">`;
             _sharedInst.forEach(([locBase, list]) => {
+                list.forEach(f => _slocIds.add(f.id));
                 const _wid = locBase.split(':')[0];
                 const _iid = locBase.split(':')[1] || '';
                 const _wc = (typeof dashWorldCache !== 'undefined' && dashWorldCache[_wid]) || null;
                 const _wname = _wc?.name || '';
-                const _wthumb = _wc?.thumbnailImageUrl || _wc?.imageUrl || '';
                 const _grpLabel = _wname
                     ? `${_wname}${_iid ? ' · #' + _iid : ''}`
                     : (_iid ? '#' + _iid : _wid);
@@ -208,7 +252,6 @@ function renderVrcFriends(friends, counts) {
                 const { cls: _iCls, label: _iLabel } = getInstanceBadge(_iType);
                 const _badgeHtml = `<span class="vrcn-badge ${_iCls}">${esc(_iLabel)}</span>`;
                 h += `<div class="sloc-inst-card">`;
-                if (_wthumb) h += `<div class="sloc-inst-bg" style="background-image:url('${cssUrl(imgThumb(_wthumb, 256))}')"></div>`;
                 h += `<div class="sloc-inst-content">`;
                 h += `<div class="sloc-inst-label">${esc(_grpLabel)} <span class="sloc-inst-count">${list.length}</span>${_badgeHtml}</div>`;
                 list.forEach(f => { h += renderCard(f, 'game'); });
@@ -233,7 +276,12 @@ function renderVrcFriends(friends, counts) {
     const _favOther = [];
     _favByGroup.forEach((list, gn) => { if (!_favKnown.has(gn)) _favOther.push(...list); });
 
-    if (!rsidebarCollapsed && _favSubs.length > 1) {
+    if (_activeTab === 'favorites' && !favFriends.length) {
+        setHtmlIfChanged(el, `<div style="padding:16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('sidebar.favorites.empty', 'No favorite friends online')}</div>`);
+        return;
+    }
+
+    if ((_activeTab === 'favorites' || _favInline) && !rsidebarCollapsed && _favSubs.length > 1) {
         const _fvChev = friendSectionCollapsed.favorites ? 'expand_more' : 'expand_less';
         const _fvActive = !friendSectionCollapsed.favorites ? ' active' : '';
         h += `<div class="vrc-section-label vrc-offline-toggle${_fvActive}" id="favoritesSectionLabel" onclick="toggleFriendSection('favorites')" style="cursor:pointer;"><span class="ni msi">favorite</span><span class="nl">${getFriendSectionLabel('favorites', favFriends.length)}</span><span class="nav-group-arrow msi nl" id="favoritesChevron">${_fvChev}</span></div>`;
@@ -255,12 +303,16 @@ function renderVrcFriends(friends, counts) {
         if (_favOther.length) _favSub('fav__other', t('sidebar.favorites.other', 'Other'), '', _favOther);
 
         h += `</div>`;
-    } else {
+    } else if (_activeTab === 'favorites' || _favInline) {
         appendSection('favorites', favFriends.length, favFriends.slice(0, 100), f => f.presence);
     }
 
-    // Group Instances section (expanded sidebar only, same as Same Location)
-    if (!rsidebarCollapsed && _sidebarGroupInstances !== null && _sidebarGroupInstances.length > 0) {
+    // Group Instances section (Groups tab)
+    if (_activeTab === 'groups') {
+        if (!_sidebarGroupInstances || !_sidebarGroupInstances.length) {
+            setHtmlIfChanged(el, `<div style="padding:16px;text-align:center;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('sidebar.groups.empty', 'No group instances')}</div>`);
+            return;
+        }
         const _giByGroup = {};
         _sidebarGroupInstances.forEach(inst => {
             const gid = inst.groupId || '';
@@ -299,10 +351,12 @@ function renderVrcFriends(friends, counts) {
         }
     }
 
-    const ingameFriends = gameFriends.filter(f => !favIds.has(f.id));
-    appendSection('ingame', ingameFriends.length, ingameFriends.slice(0, 100), 'game');
-    appendSection('web', wc, webFriends.slice(0, 100), 'web');
-    appendSection('offline', oc, offlineFriends.slice(0, 100), 'offline');
+    if (_activeTab === 'friends') {
+        const ingameFriends = gameFriends.filter(f => !_slocIds.has(f.id) && !(_favInline && favIds.has(f.id)));
+        appendSection('ingame', ingameFriends.length, ingameFriends.slice(0, 100), 'game');
+        appendSection('web', wc, webFriends.slice(0, 100), 'web');
+        appendSection('offline', oc, offlineFriends.slice(0, 100), 'offline');
+    }
 
     setHtmlIfChanged(el, h);
     // Only apply search filter if there is an active query
@@ -313,7 +367,8 @@ function renderVrcFriends(friends, counts) {
 function onSidebarGroupInstances(instances) {
     _sidebarGroupInstances = instances || [];
     document.getElementById('vrcFriendRefreshBtn')?.classList.remove('spinning');
-    if (vrcFriendsData && vrcFriendsData.length) renderVrcFriends(vrcFriendsData);
+    _updateFriendTabCounts();
+    if (friendsSidebarTab === 'groups' || (vrcFriendsData && vrcFriendsData.length)) renderVrcFriends(vrcFriendsData);
 }
 
 // Manual refresh button next to the friends search: refreshes the friends list
@@ -342,6 +397,8 @@ function filterFriendsList() {
     const el = document.getElementById('vrcFriendsList');
     if (!el) return;
     const q = (document.getElementById('vrcFriendSearchInput')?.value || '').toLowerCase().trim();
+
+    if (q && friendsSidebarTab !== 'friends') { setFriendsSidebarTab('friends'); return; }
 
     if (!q) {
         // No search active — re-render normal capped sections

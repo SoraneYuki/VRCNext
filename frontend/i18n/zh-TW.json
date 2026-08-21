@@ -2375,6 +2375,8 @@
   "settings.sidebar.preview_collapsed_desc": "當好友側邊欄摺疊時，將滑鼠懸停在好友上會以小預覽形式顯示其數據。",
   "settings.sidebar.preview_open": "側邊欄展開時也顯示預覽數據",
   "settings.sidebar.preview_open_desc": "即使側邊欄展開也顯示數據預覽。你需要將滑鼠懸停在大頭貼上至少 1.5 秒；懸停在好友條目的其他部分時不會顯示。",
+  "settings.sidebar.separate_favorites": "分開顯示好友與收藏好友",
+  "settings.sidebar.separate_favorites_desc": "啟用後，你可以在好友、收藏與社群之間切換。關閉此設定時只會顯示好友與社群，收藏的好友會像以往一樣留在一般好友分頁中。",
   "settings.navsidebar.title": "導航側邊欄",
   "settings.navsidebar.hover_text": "摺疊導航時顯示懸停文字",
   "settings.navsidebar.hover_text_desc": "啟用後，導航側邊欄在摺疊時會顯示懸停文字。這讓導航更方便，尤其是當你想知道正懸停在哪個選單項上時特別有用。",

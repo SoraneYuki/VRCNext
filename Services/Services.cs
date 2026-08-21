@@ -272,6 +272,7 @@ public class AppSettings
     public bool FriendsSidebarLocationOnly { get; set; } = true;
     public bool FriendsSidebarPreviewCollapsed { get; set; } = true;
     public bool FriendsSidebarPreviewOpen { get; set; } = false;
+    public bool SeparateFavoriteFriends { get; set; } = false;
     public bool PeopleAlwaysStats { get; set; } = false;
     public bool ModernFolderLayout { get; set; } = true;
     public bool NavSidebarHoverText { get; set; } = true;

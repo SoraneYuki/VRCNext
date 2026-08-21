@@ -2324,6 +2324,8 @@
   "settings.sidebar.preview_collapsed_desc": "Muestra el perfil de un amigo como una pequeña vista previa al pasar el ratón sobre él mientras la barra lateral de amigos está contraída.",
   "settings.sidebar.preview_open": "Mostrar perfil de vista previa con la barra abierta",
   "settings.sidebar.preview_open_desc": "Muestra la vista previa del perfil incluso con la barra lateral abierta. Debes pasar el ratón sobre la imagen de perfil durante al menos 1,5 segundos; no aparecerá al pasar sobre otra parte de la entrada del amigo.",
+  "settings.sidebar.separate_favorites": "Separar amigos y amigos favoritos",
+  "settings.sidebar.separate_favorites_desc": "Cuando está activado puedes cambiar entre Amigos, Favoritos y Grupos. Si esta opción está desactivada solo verás Amigos y Grupos, y tus amigos favoritos permanecen en la pestaña de Amigos como siempre.",
   "settings.navsidebar.title": "Barra de navegación",
   "settings.navsidebar.hover_text": "Mostrar texto al pasar el ratón en navegación contraída",
   "settings.navsidebar.hover_text_desc": "Cuando está activado, la barra de navegación muestra un texto al pasar el ratón cuando está contraída. Esto facilita la navegación y es especialmente útil cuando quieres saber sobre qué entrada del menú estás pasando el ratón.",

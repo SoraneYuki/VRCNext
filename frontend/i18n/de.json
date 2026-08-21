@@ -2339,6 +2339,8 @@
   "settings.sidebar.preview_collapsed_desc": "Zeigt das Profil eines Freundes als kleine Vorschau, wenn du bei eingeklappter Freundesleiste darüber fährst.",
   "settings.sidebar.preview_open": "Vorschau-Profil bei offener Leiste anzeigen",
   "settings.sidebar.preview_open_desc": "Zeigt die Profilvorschau auch bei geöffneter Leiste. Du musst mindestens 1,5 Sekunden über das Profilbild fahren; sie erscheint nicht, wenn du über einen anderen Teil des Eintrags fährst.",
+  "settings.sidebar.separate_favorites": "Freunde und Lieblingsfreunde trennen",
+  "settings.sidebar.separate_favorites_desc": "Wenn aktiviert, kannst du zwischen Freunde, Favoriten und Gruppen wechseln. Ist die Einstellung deaktiviert, siehst du nur Freunde und Gruppen, und deine Lieblingsfreunde bleiben wie gewohnt im normalen Freunde-Tab.",
   "settings.navsidebar.title": "Navigations-Sidebar",
   "settings.navsidebar.hover_text": "Hover-Text bei eingeklappter Navigation anzeigen",
   "settings.navsidebar.hover_text_desc": "Wenn aktiviert, zeigt die Navigations-Sidebar im eingeklappten Zustand einen Hover-Text an. Das erleichtert die Navigation und ist besonders nützlich, wenn du wissen willst, über welchem Menüeintrag du gerade bist.",

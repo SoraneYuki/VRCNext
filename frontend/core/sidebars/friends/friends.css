@@ -1,4 +1,4 @@
-.rsidebar {
+﻿.rsidebar {
     width: var(--rsidebar-w);
     min-width: var(--rsidebar-w);
     background: transparent;
@@ -289,6 +289,68 @@
 .vrc-fs-refresh-btn.spinning .msi { animation: vrc-fs-spin .6s linear infinite; }
 @keyframes vrc-fs-spin { to { transform: rotate(360deg); } }
 .rsidebar.collapsed #vrcFriendRefreshBtn { display: none; }
+
+.vrc-fs-card {
+    background: var(--tab-card-bg, var(--bg-input));
+    border: 0;
+    border-radius: 12px;
+    padding: 5px;
+    margin-bottom: 8px;
+}
+
+.rsidebar:not(.collapsed) .vrc-profile,
+.rsidebar:not(.collapsed) .inst-card {
+    background: var(--tab-card-bg, var(--bg-input));
+    border: 0;
+    border-radius: 12px;
+}
+.rsidebar:not(.collapsed) .vrc-profile:hover { background: var(--bg-hover); }
+.rsidebar:not(.collapsed) .inst-header-fade {
+    background: linear-gradient(to top, var(--tab-card-bg, var(--bg-card)) 0%, transparent 60%);
+}
+
+.rsidebar:not(.collapsed) .vrc-section-label {
+    padding: 7px 8px;
+    margin-top: 2px;
+    letter-spacing: .5px;
+    transition: color .15s;
+}
+.rsidebar:not(.collapsed) .vrc-section-label:first-child { margin-top: 0; }
+.rsidebar:not(.collapsed) .vrc-offline-toggle:hover { color: var(--tx2); }
+.rsidebar:not(.collapsed) .vrc-section-label.active { color: var(--tx2); }
+.vrc-fs-card .vrc-friend-search {
+    padding: 0;
+    margin-bottom: 5px;
+}
+.vrc-fs-tabs.fd-tabs {
+    gap: 2px;
+    margin-bottom: 0;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-radius: 9px;
+    padding: 2px;
+}
+.vrc-fs-tab.fd-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 0;
+    padding: 5px 6px;
+    border-radius: 7px;
+    font-size: calc(11px + var(--fs-off, 0px));
+}
+.vrc-fs-tab .msi { font-size: 15px; flex-shrink: 0; }
+.vrc-fs-tab .fd-tab-badge { margin-left: 0; flex-shrink: 0; }
+
+.rsidebar.collapsed .vrc-fs-card {
+    display: block !important;
+    padding: 0;
+    margin-bottom: 0;
+    border: 0;
+    background: none;
+}
+.rsidebar.collapsed .vrc-fs-card .vrc-friend-search { margin-bottom: 0; }
+.rsidebar.collapsed #vrcFriendTabs { display: none !important; }
 
 .rsidebar.collapsed .vrc-fs-icon:hover {
     color: var(--tx1);

@@ -126,6 +126,7 @@ function saveSettings() {
             friendsSidebarLocationOnly: document.getElementById('setFriendsSidebarLocationOnly')?.checked ?? true,
             friendsSidebarPreviewCollapsed: document.getElementById('setFriendsSidebarPreviewCollapsed')?.checked ?? true,
             friendsSidebarPreviewOpen: document.getElementById('setFriendsSidebarPreviewOpen')?.checked ?? false,
+            separateFavoriteFriends: document.getElementById('setSeparateFavoriteFriends')?.checked ?? false,
             peopleAlwaysStats: document.getElementById('setPeopleAlwaysStats')?.checked ?? false,
             modernFolderLayout: document.getElementById('setModernFolderLayout')?.checked ?? true,
             navSidebarHoverText: document.getElementById('setNavSidebarHoverText')?.checked ?? true,
@@ -485,6 +486,10 @@ function loadSettingsToUI(s) {
     settings.friendsSidebarPreviewOpen = s.FriendsSidebarPreviewOpen ?? s.friendsSidebarPreviewOpen ?? false;
     const _fspoEl = document.getElementById('setFriendsSidebarPreviewOpen');
     if (_fspoEl) _fspoEl.checked = settings.friendsSidebarPreviewOpen;
+    settings.separateFavoriteFriends = s.SeparateFavoriteFriends ?? s.separateFavoriteFriends ?? false;
+    const _sffEl = document.getElementById('setSeparateFavoriteFriends');
+    if (_sffEl) _sffEl.checked = settings.separateFavoriteFriends;
+    if (typeof applyFriendsSidebarFavTabs === 'function') applyFriendsSidebarFavTabs();
     settings.peopleAlwaysStats = s.PeopleAlwaysStats ?? s.peopleAlwaysStats ?? false;
     const _pasEl = document.getElementById('setPeopleAlwaysStats');
     if (_pasEl) _pasEl.checked = settings.peopleAlwaysStats;

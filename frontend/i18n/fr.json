@@ -2324,6 +2324,8 @@
   "settings.sidebar.preview_collapsed_desc": "Affiche le profil d'un ami sous forme de petit aperçu lorsque vous le survolez pendant que la barre latérale des amis est réduite.",
   "settings.sidebar.preview_open": "Afficher l'aperçu du profil quand la barre est ouverte",
   "settings.sidebar.preview_open_desc": "Affiche l'aperçu du profil même lorsque la barre latérale est ouverte. Vous devez survoler l'image de profil pendant au moins 1,5 seconde ; il n'apparaîtra pas en survolant une autre partie de l'entrée.",
+  "settings.sidebar.separate_favorites": "Séparer les amis et les amis favoris",
+  "settings.sidebar.separate_favorites_desc": "Lorsque cette option est activée, vous pouvez basculer entre Amis, Favoris et Groupes. Si elle est désactivée, vous ne verrez que Amis et Groupes, et vos amis favoris restent dans l'onglet Amis comme d'habitude.",
   "settings.navsidebar.title": "Barre de navigation",
   "settings.navsidebar.hover_text": "Afficher le texte au survol quand la navigation est réduite",
   "settings.navsidebar.hover_text_desc": "Lorsque cette option est activée, la barre de navigation affiche un texte au survol quand elle est réduite. Cela facilite la navigation et est particulièrement utile pour savoir quelle entrée du menu vous survolez.",

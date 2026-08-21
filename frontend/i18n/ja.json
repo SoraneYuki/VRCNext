@@ -2323,6 +2323,8 @@
   "settings.sidebar.preview_collapsed_desc": "フレンドサイドバーが折りたたまれているときにフレンドにカーソルを合わせると、プロフィールが小さなプレビューで表示されます。",
   "settings.sidebar.preview_open": "サイドバーが開いているときもプレビュープロフィールを表示",
   "settings.sidebar.preview_open_desc": "サイドバーが開いているときもプロフィールプレビューを表示します。プロフィール画像に1.5秒以上カーソルを合わせる必要があり、他の部分にカーソルを合わせても表示されません。",
+  "settings.sidebar.separate_favorites": "フレンドとお気に入りフレンドを分ける",
+  "settings.sidebar.separate_favorites_desc": "有効にすると、フレンド・お気に入り・グループを切り替えられます。無効の場合はフレンドとグループのみが表示され、お気に入りのフレンドはこれまでどおり通常のフレンドタブ内に表示されます。",
   "settings.navsidebar.title": "ナビゲーションサイドバー",
   "settings.navsidebar.hover_text": "折りたたみナビゲーションでホバーテキストを表示",
   "settings.navsidebar.hover_text_desc": "有効にすると、ナビゲーションサイドバーが折りたたまれているときにホバーテキストを表示します。ナビゲーションが楽になり、どのメニュー項目にカーソルを合わせているか知りたいときに特に便利です。",

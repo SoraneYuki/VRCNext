@@ -2379,6 +2379,8 @@
   "settings.sidebar.preview_collapsed_desc": "Shows a friend's profile as a small preview when you hover over them while the friends sidebar is collapsed.",
   "settings.sidebar.preview_open": "Show Preview Profile when sidebar is open",
   "settings.sidebar.preview_open_desc": "Shows the profile preview even when the sidebar is open. You have to hover over the profile image for at least 1.5 seconds; it will not appear when hovering any other part of the friend entry.",
+  "settings.sidebar.separate_favorites": "Separate Friends and Favorite Friends",
+  "settings.sidebar.separate_favorites_desc": "When enabled you can switch between Friends, Favorites and Groups. If this setting is disabled you will only see Friends and Groups, and your favorite friends stay inside the normal Friends tab as usual.",
   "settings.navsidebar.title": "Navigation Sidebar",
   "settings.navsidebar.hover_text": "Show Hover Text on Collapsed Navigation",
   "settings.navsidebar.hover_text_desc": "When enabled, the navigation sidebar shows a hover text when collapsed. This makes it easier to navigate and is especially useful when you want to know which menu entry you are hovering over.",

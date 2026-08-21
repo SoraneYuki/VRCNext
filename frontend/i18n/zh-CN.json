@@ -2324,6 +2324,8 @@
   "settings.sidebar.preview_collapsed_desc": "当好友侧边栏折叠时，将鼠标悬停在好友上会以小预览形式显示其资料。",
   "settings.sidebar.preview_open": "侧边栏展开时也显示预览资料",
   "settings.sidebar.preview_open_desc": "即使侧边栏展开也显示资料预览。你需要将鼠标悬停在头像上至少 1.5 秒；悬停在好友条目的其他部分时不会显示。",
+  "settings.sidebar.separate_favorites": "分开显示好友和收藏好友",
+  "settings.sidebar.separate_favorites_desc": "启用后，你可以在好友、收藏和群组之间切换。关闭此设置时只会显示好友和群组，收藏的好友会像以前一样留在普通好友标签中。",
   "settings.navsidebar.title": "导航侧边栏",
   "settings.navsidebar.hover_text": "折叠导航时显示悬停文本",
   "settings.navsidebar.hover_text_desc": "启用后，导航侧边栏在折叠时会显示悬停文本。这让导航更方便，尤其是当你想知道正悬停在哪个菜单项上时特别有用。",
