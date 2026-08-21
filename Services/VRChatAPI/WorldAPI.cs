@@ -135,7 +135,7 @@ public class WorldAPI
         lock (_diskCache)
         {
             _saveScheduled = false;
-            try { new CacheHandler().Save(CacheHandler.KeyWorldMeta, new JArray(_diskCache.Values.OfType<object>().ToArray())); }
+            try { new CacheHandler().Save(CacheHandler.KeyWorldMeta, _diskCache.Values.ToList()); }
             catch { }
         }
     }
@@ -146,7 +146,7 @@ public class WorldAPI
         {
             var toRemove = _loadedIds.Where(k => !_usedFromCache.Contains(k) && _diskCache.ContainsKey(k)).ToList();
             foreach (var k in toRemove) { _diskCache.Remove(k); _loadedIds.Remove(k); }
-            try { new CacheHandler().Save(CacheHandler.KeyWorldMeta, new JArray(_diskCache.Values.OfType<object>().ToArray())); }
+            try { new CacheHandler().Save(CacheHandler.KeyWorldMeta, _diskCache.Values.ToList()); }
             catch { }
             OnCacheLog?.Invoke($"Used {_usedFromCache.Count} cached world entries");
             OnCacheLog?.Invoke($"Freed {toRemove.Count} cached World entries");
@@ -177,6 +177,10 @@ public class WorldAPI
         }
     }
 
+    // Parents the world to a private one-element array so Json.NET clones it on Add instead of adopting it..
+    // therwise the cached instance pins every container it was ever added to.
+    private static void PreventAdoption(JObject world) => _ = new JArray(world);
+
     private async Task<JObject?> FetchWorldAsync(string worldId)
     {
         try
@@ -186,6 +190,7 @@ public class WorldAPI
             if (resp.IsSuccessStatusCode)
             {
                 var world = JObject.Parse(body);
+                PreventAdoption(world);
                 StoreCachedWorld(worldId, world);
                 PersistWorld(worldId, world);
                 return world;
@@ -215,6 +220,7 @@ public class WorldAPI
             if (resp.IsSuccessStatusCode)
             {
                 var world = JObject.Parse(body);
+                PreventAdoption(world);
                 StoreCachedWorld(worldId, world);
                 PersistWorld(worldId, world);
                 return (world, 200);

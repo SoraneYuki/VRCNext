@@ -1211,8 +1211,9 @@ public partial class AppShell
                 else
                 {
                     var imgThumbSize = ParseImgThumbSize(ctx.Request.Url?.Query);
-                    if (imgThumbSize > 0) await ServeImgCacheThumbAsync(ctx, file, imgThumbSize);
-                    else await ServeFileAsync(ctx, file);
+                    var imgCache     = ImgCacheControlFor(ctx.Request.Url?.Query);
+                    if (imgThumbSize > 0) await ServeImgCacheThumbAsync(ctx, file, imgThumbSize, imgCache);
+                    else await ServeFileAsync(ctx, file, imgCache);
                 }
             }
             else if (path.StartsWith("/vrcphotos/"))
@@ -1325,9 +1326,10 @@ public partial class AppShell
         }
     }
 
-    private static async Task ServeFileAsync(System.Net.HttpListenerContext ctx, string file)
+    private static async Task ServeFileAsync(System.Net.HttpListenerContext ctx, string file, string? cacheControl = null)
     {
         if (!File.Exists(file)) { ctx.Response.StatusCode = 404; return; }
+        if (cacheControl != null) ctx.Response.Headers["Cache-Control"] = cacheControl;
         ctx.Response.ContentType = Path.GetExtension(file).ToLower() switch {
             ".jpg" or ".jpeg" => "image/jpeg",
             ".png"  => "image/png",
@@ -1404,6 +1406,16 @@ public partial class AppShell
     private static readonly SemaphoreSlim _thumbSem = new(2, 2);
     private static int _thumbGenCount = 0;
 
+    private const string ImgCacheControl = "public, max-age=31536000, immutable";
+
+    private static string? ImgCacheControlFor(string? query)
+    {
+        if (string.IsNullOrEmpty(query)) return null;
+        return query.Contains("?v=", StringComparison.Ordinal) || query.Contains("&v=", StringComparison.Ordinal)
+            ? ImgCacheControl
+            : null;
+    }
+
     private static int ParseImgThumbSize(string? query)
     {
         if (string.IsNullOrEmpty(query)) return 0;
@@ -1412,13 +1424,13 @@ public partial class AppShell
         return int.TryParse(m.Groups[1].Value, out var s) && (s == 64 || s == 96 || s == 128 || s == 256) ? s : 64;
     }
 
-    private static async Task ServeImgCacheThumbAsync(System.Net.HttpListenerContext ctx, string file, int maxSize)
+    private static async Task ServeImgCacheThumbAsync(System.Net.HttpListenerContext ctx, string file, int maxSize, string? cacheControl = null)
     {
         if (!File.Exists(file)) { ctx.Response.StatusCode = 404; return; }
         var ext = Path.GetExtension(file).ToLowerInvariant();
         if (ext is not (".jpg" or ".jpeg" or ".png" or ".webp" or ".gif"))
         {
-            await ServeFileAsync(ctx, file);
+            await ServeFileAsync(ctx, file, cacheControl);
             return;
         }
         var keepAlpha = ext is ".png" or ".webp" or ".gif";
@@ -1439,7 +1451,7 @@ public partial class AppShell
             }
             finally { _thumbSem.Release(); }
         }
-        await ServeFileAsync(ctx, thumbPath);
+        await ServeFileAsync(ctx, thumbPath, cacheControl);
     }
 
     private static bool TryGenerateImgThumbSkia(string srcFile, string tmpPath, int maxSize, bool keepAlpha)
