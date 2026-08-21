@@ -582,6 +582,10 @@ public partial class AppShell
                 case "getPhotoRating":
                 case "setPhotoRating":
                 case "scanLibraryRatings":
+                case "getMediaTags":
+                case "setMediaTags":
+                case "setMediaUserTag":
+                case "removeMediaUserTag":
                     await _photos.HandleMessage(action, msg);
                     break;
 

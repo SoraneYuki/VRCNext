@@ -16,6 +16,9 @@ let _libWorldFilter  = '__all__';
 let _libEditMode     = false;
 let _libEditSelected = new Set();
 let _libRatingFilter = '__all__';
+let _libTagFilter     = '__all__';
+let _libUserTagFilter = '__all__';
+let _mediaTagsRequested = false;
 let _ratingsScanRequested = false;
 let _libRatingsRenderTimer = null;
 
@@ -38,8 +41,92 @@ function destroyLibrary() {
     _libFolderPath   = null;
     _libFriendFilter = '__all__';
     _libWorldFilter  = '__all__';
+    _libTagFilter     = '__all__';
+    _libUserTagFilter = '__all__';
     if (_libEditMode) _exitLibEditModeUi();
     _renderLibIconSelects();
+}
+
+// Tags / user tags.
+function mediaTagLabel(tag) {
+    return t('library.tags.' + tag, tag.charAt(0).toUpperCase() + tag.slice(1));
+}
+
+function getMediaTags(path) {
+    return (path && mediaTags.get(path)) || [];
+}
+
+function getMediaUserTags(path) {
+    return (path && mediaUserTags.get(path)) || [];
+}
+
+function _libRefilter() {
+    _renderLibIconSelects();
+    if (document.getElementById('libFolderFilter')) filterLibrary(true);
+}
+
+function requestMediaTags(force = false) {
+    if (_mediaTagsRequested && !force) return;
+    _mediaTagsRequested = true;
+    sendToCS({ action: 'getMediaTags' });
+}
+
+function onMediaTagsData(payload) {
+    mediaTags = new Map(Object.entries(payload?.tags || {}));
+    mediaUserTags = new Map(Object.entries(payload?.userTags || {}));
+    _libRefilter();
+    _photoRefreshTagUi();
+}
+
+function onMediaTagsUpdated(payload) {
+    const path = payload?.path || '';
+    if (!path) return;
+    const tags = payload.tags || [];
+    if (tags.length) mediaTags.set(path, tags);
+    else mediaTags.delete(path);
+    _libRefilter();
+    _photoRefreshTagUi();
+}
+
+function onMediaUserTagsUpdated(payload) {
+    const path = payload?.path || '';
+    if (!path) return;
+    const list = payload.userTags || [];
+    if (list.length) mediaUserTags.set(path, list);
+    else mediaUserTags.delete(path);
+    _libRefilter();
+    _photoRefreshTagUi();
+}
+
+function _libEditTargets(path) {
+    if (!_libEditMode || _libEditSelected.size === 0) return [path];
+    if (document.getElementById('photoDetailModal')) return [path];
+    const sel = [..._libEditSelected];
+    return sel.includes(path) ? sel : [path];
+}
+
+function toggleMediaTag(path, tag) {
+    if (!path || !MEDIA_TAG_CATALOG.includes(tag)) return;
+    const add = !getMediaTags(path).includes(tag);
+    _libEditTargets(path).forEach(p => {
+        const current = getMediaTags(p);
+        if (add === current.includes(tag)) return;
+        const next = add ? [...current, tag] : current.filter(x => x !== tag);
+        if (next.length) mediaTags.set(p, next);
+        else mediaTags.delete(p);
+        sendToCS({ action: 'setMediaTags', path: p, tags: next });
+    });
+    _photoRefreshTagUi();
+    _libRefilter();
+}
+
+function _photoRefreshTagUi() {
+    const modal = document.getElementById('photoDetailModal');
+    const x = _photoState.item;
+    if (!modal || !x) return;
+    const infoPane = modal.querySelector('.photo-detail-info-pane');
+    if (infoPane && !x.remote) infoPane.innerHTML = _photoBuildInfoPaneContent(x);
+    _photoRenderUserTags();
 }
 
 // Data loading.
@@ -60,6 +147,7 @@ function refreshLibrary() {
             }
         }
     } catch {}
+    requestMediaTags();
     sendToCS({ action: 'scanLibrary' });
 }
 
@@ -101,6 +189,7 @@ function renderLibrary(data) {
     } catch {}
 
     _resolveWorldIds(files);
+    requestMediaTags();
     filterLibrary();
     _renderLibIconSelects();
     if (typeof navUpdateBadges === 'function') navUpdateBadges();
@@ -126,6 +215,8 @@ function appendLibraryPage(data) {
     if (tf !== 'all')                   more = more.filter(x => x.type === tf);
     if (_libFriendFilter !== '__all__') more = more.filter(x => (x.players || []).some(p => p.userId === _libFriendFilter));
     if (_libWorldFilter !== '__all__')  more = more.filter(x => x.worldId === _libWorldFilter);
+    if (_libTagFilter !== '__all__')    more = more.filter(x => getMediaTags(x.path).includes(_libTagFilter));
+    if (_libUserTagFilter !== '__all__') more = more.filter(x => getMediaUserTags(x.path).some(u => u.userId === _libUserTagFilter));
     more.forEach(f => _libFiltered.push(f));
     _libFiltered.sort((a, b) => new Date(b.modified) - new Date(a.modified));
 
@@ -284,6 +375,8 @@ function filterLibrary(keepPage = false) {
     if (typeFilter !== 'all')          f = f.filter(x => x.type === typeFilter);
     if (_libFriendFilter !== '__all__') f = f.filter(x => (x.players || []).some(p => p.userId === _libFriendFilter));
     if (_libWorldFilter !== '__all__')  f = f.filter(x => x.worldId === _libWorldFilter);
+    if (_libTagFilter !== '__all__')    f = f.filter(x => getMediaTags(x.path).includes(_libTagFilter));
+    if (_libUserTagFilter !== '__all__') f = f.filter(x => getMediaUserTags(x.path).some(u => u.userId === _libUserTagFilter));
     f.sort((a, b) => new Date(b.modified) - new Date(a.modified));
 
     _libFiltered = f;
@@ -304,16 +397,20 @@ function filterLibrary(keepPage = false) {
 }
 
 function resetLibFilters() {
-    _libFriendFilter = '__all__';
-    _libWorldFilter  = '__all__';
-    _libRatingFilter = '__all__';
+    _libFriendFilter  = '__all__';
+    _libWorldFilter   = '__all__';
+    _libRatingFilter  = '__all__';
+    _libTagFilter     = '__all__';
+    _libUserTagFilter = '__all__';
     _renderLibIconSelects();
     filterLibrary();
 }
 
 function _updateLibResetBtn() {
     const btn = document.getElementById('libResetFiltersBtn');
-    if (btn) btn.style.display = (_libFriendFilter !== '__all__' || _libWorldFilter !== '__all__' || _libRatingFilter !== '__all__') ? '' : 'none';
+    const active = _libFriendFilter !== '__all__' || _libWorldFilter !== '__all__'
+        || _libRatingFilter !== '__all__' || _libTagFilter !== '__all__' || _libUserTagFilter !== '__all__';
+    if (btn) btn.style.display = active ? '' : 'none';
 }
 
 function _renderLibIconSelects() {
@@ -337,20 +434,72 @@ function _renderLibIconSelects() {
         false,
         function(val) { _libWorldFilter = val; _renderLibIconSelects(); filterLibrary(); }
     );
+    _renderLibIconSelect(
+        'libTagFilterWrap',
+        _buildTagItems(),
+        _libTagFilter,
+        t('library.filters.all_tags', 'All Tags'),
+        'sell',
+        false,
+        function(val) { _libTagFilter = val; _renderLibIconSelects(); filterLibrary(); },
+        { alwaysShow: true }
+    );
+    _renderLibIconSelect(
+        'libUserTagFilterWrap',
+        _buildUserTagItems(),
+        _libUserTagFilter,
+        t('library.filters.all_user_tags', 'All User Tags'),
+        'person_check',
+        true,
+        function(val) { _libUserTagFilter = val; _renderLibIconSelects(); filterLibrary(); }
+    );
 }
 
-function _libCrossFilterBase(excludeFriend, excludeWorld, excludeRating) {
+function _libCrossFilterBase(excludeFriend, excludeWorld, excludeRating, excludeTag, excludeUserTag) {
     let base = libraryFiles;
     if (showFavOnly)                                     base = base.filter(x => favorites.has(x.path));
     if (!excludeRating && _libRatingFilter !== '__all__') base = base.filter(x => (photoRatings.get(x.path) || 0) === Number(_libRatingFilter));
     if (!excludeFriend && _libFriendFilter !== '__all__') base = base.filter(x => (x.players || []).some(p => p.userId === _libFriendFilter));
     if (!excludeWorld && _libWorldFilter !== '__all__')   base = base.filter(x => x.worldId === _libWorldFilter);
+    if (!excludeTag && _libTagFilter !== '__all__')       base = base.filter(x => getMediaTags(x.path).includes(_libTagFilter));
+    if (!excludeUserTag && _libUserTagFilter !== '__all__') base = base.filter(x => getMediaUserTags(x.path).some(u => u.userId === _libUserTagFilter));
     return base;
+}
+
+function _buildTagItems() {
+    const base = _libCrossFilterBase(false, false, false, true, false);
+    const counts = {};
+    base.forEach(x => getMediaTags(x.path).forEach(tag => { counts[tag] = (counts[tag] || 0) + 1; }));
+    return MEDIA_TAG_CATALOG
+        .map((tag, i) => ({ value: tag, label: mediaTagLabel(tag), thumb: '', count: counts[tag] || 0, round: false, _i: i }))
+        .sort((a, b) => (b.count - a.count) || (a._i - b._i));
+}
+
+function _buildUserTagItems() {
+    const base = _libCrossFilterBase(false, false, false, false, true);
+    const map = {};
+    base.forEach(x => {
+        getMediaUserTags(x.path).forEach(u => {
+            if (!u.userId) return;
+            if (!map[u.userId]) {
+                const fr = (typeof vrcFriendsData !== 'undefined') ? vrcFriendsData.find(f => f.id === u.userId) : null;
+                map[u.userId] = {
+                    value: u.userId,
+                    label: fr?.displayName || u.displayName || u.userId,
+                    thumb: fr?.image || '',
+                    count: 0,
+                    round: true,
+                };
+            }
+            map[u.userId].count++;
+        });
+    });
+    return Object.values(map).sort((a, b) => b.count - a.count);
 }
 
 function _buildRatingCounts() {
     const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    _libCrossFilterBase(false, false, true).forEach(x => {
+    _libCrossFilterBase(false, false, true, false, false).forEach(x => {
         const r = photoRatings.get(x.path) || 0;
         if (r >= 1 && r <= 5) counts[r]++;
     });
@@ -358,7 +507,7 @@ function _buildRatingCounts() {
 }
 
 function _buildFriendItems() {
-    const base = _libCrossFilterBase(true, false);
+    const base = _libCrossFilterBase(true, false, false, false, false);
     const map = {};
     base.forEach(x => {
         (x.players || []).forEach(p => {
@@ -375,7 +524,7 @@ function _buildFriendItems() {
 }
 
 function _buildWorldItems() {
-    const base = _libCrossFilterBase(false, true);
+    const base = _libCrossFilterBase(false, true, false, false, false);
     const map = {};
     base.forEach(x => {
         if (!x.worldId) return;
@@ -458,10 +607,10 @@ function _renderLibRatingSelect() {
     if (wasOpen) open();
 }
 
-function _renderLibIconSelect(wrapperId, items, currentVal, allLabel, allIcon, round, onSelect) {
+function _renderLibIconSelect(wrapperId, items, currentVal, allLabel, allIcon, round, onSelect, opts) {
     const container = document.getElementById(wrapperId);
     if (!container) return;
-    if (!items.length) { container.innerHTML = ''; return; }
+    if (!items.length && !opts?.alwaysShow) { container.innerHTML = ''; return; }
 
     const selItem  = currentVal !== '__all__' ? items.find(i => i.value === currentVal) : null;
     const selLabel = selItem ? selItem.label : allLabel;
@@ -980,6 +1129,7 @@ async function setLibItemAsDashBg(path, url) {
 // Photo detail modal — image on the left, info card on the right.
 // Accepts: number (libraryFiles index), string (file path → looked up in libraryFiles), or item object.
 const _photoState = { scale: 1, rotation: 0, tx: 0, ty: 0, item: null, drag: null, revealed: false, shownPath: '', navOwned: false };
+let _photoResizeHandler = null;
 let _photoKeyHandler = null;
 const _photoNavCache = {};
 
@@ -991,6 +1141,7 @@ function openPhotoDetail(target) {
     if (!x) return;
 
     if (x.path) _photoNavCache[x.path] = x;
+    if (x.path && !x.remote) requestMediaTags();
 
     _photoState.item = x;
     _photoState.scale = 1;
@@ -1050,6 +1201,7 @@ function _photoCreateModal(x) {
             <div class="photo-detail-img-pane">
                 <img class="photo-detail-img" alt="" draggable="false" style="display:none;" onerror="this.style.display='none'">
                 <video class="photo-detail-video" playsinline style="display:none;"></video>
+                <div class="pd-usertag-layer"></div>
                 <div class="pd-blur-hint"><span class="msi">visibility_off</span><span>${esc(t('library.detail.click_to_reveal', 'Click to reveal'))}</span></div>
                 <div class="pd-video-controls-mount"></div>
                 <div class="photo-detail-toolbar-mount"></div>
@@ -1075,6 +1227,9 @@ function _photoCreateModal(x) {
     };
     document.addEventListener('keydown', ok);
     _photoKeyHandler = ok;
+
+    _photoResizeHandler = () => _photoRenderUserTags();
+    window.addEventListener('resize', _photoResizeHandler);
 }
 
 function _photoRenderContent(modal, x) {
@@ -1154,6 +1309,19 @@ function _photoRenderContent(modal, x) {
 
     const infoPane = modal.querySelector('.photo-detail-info-pane');
     if (infoPane) infoPane.innerHTML = x.remote ? '' : _photoBuildInfoPaneContent(x);
+
+    if (imgEl && !isVid) {
+        if (!imgEl._pdTagLoadHooked) {
+            imgEl.addEventListener('load', () => _photoRenderUserTags());
+            imgEl._pdTagLoadHooked = true;
+        }
+        if (window.ResizeObserver && !imgEl._pdTagRO) {
+            imgEl._pdTagRO = new ResizeObserver(() => _photoRenderUserTags());
+            imgEl._pdTagRO.observe(imgEl);
+        }
+    }
+    _photoRenderUserTags();
+    requestAnimationFrame(() => _photoRenderUserTags());
 }
 
 function _photoBuildVideoControls() {
@@ -1276,6 +1444,11 @@ function _photoBuildInfoPaneContent(x) {
         }
     }
 
+    const mTags = x.path ? getMediaTags(x.path) : [];
+    const tagsValue = mTags.length
+        ? mTags.map(tag => `<span class="vrcn-badge pd-tag-badge">${esc(mediaTagLabel(tag))}</span>`).join('')
+        : `<span style="color:var(--tx3);">${esc(t('library.detail.no_tags', 'None'))}</span>`;
+
     const infoRows = [
         _tlMr(esc(t('library.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('library.detail.time', 'Time')), esc(timeStr)),
@@ -1284,6 +1457,7 @@ function _photoBuildInfoPaneContent(x) {
         resStr ? _tlMr(esc(t('library.detail.resolution', 'Resolution')), esc(resStr)) : '',
         authorRow,
         isFav ? _tlMr(esc(t('library.detail.favorited', 'Favorited')), favBadge) : '',
+        (x.path && !x.remote) ? _tlMr(esc(t('library.detail.tags', 'Tags')), `<span class="pd-tag-row">${tagsValue}</span>`) : '',
     ].filter(Boolean).join('');
 
     let playersHtml = '';
@@ -1311,7 +1485,29 @@ function _photoBuildInfoPaneContent(x) {
     return `<h2 class="photo-detail-name">${esc(x.name)}</h2>
         ${_tlInfoCard(esc(t('library.detail.info', 'Info')), infoRows)}
         ${_photoBuildRatingCard(x)}
+        ${_photoBuildUserTagsCard(x)}
         ${playersHtml}`;
+}
+
+function _photoBuildUserTagsCard(x) {
+    if (!x.path || x.remote) return '';
+    const list = getMediaUserTags(x.path);
+    if (!list.length) return '';
+    const rows = list.map(u => {
+        const fr = (typeof vrcFriendsData !== 'undefined') ? vrcFriendsData.find(f => f.id === u.userId) : null;
+        const name = fr?.displayName || u.displayName || u.userId;
+        const av = fr?.image
+            ? `<div class="tl-player-card-av" style="background-image:url('${cssUrl(imgThumb(fr.image, 64))}')"></div>`
+            : `<div class="tl-player-card-av">${esc((name || '?')[0].toUpperCase())}</div>`;
+        return `<div class="tl-player-card clickable" onclick="navOpenModal('friend','${jsq(u.userId)}','${jsq(name)}')">${av}
+            <div class="tl-player-card-info"><div class="tl-player-card-name"><span>${esc(name)}</span></div></div>
+            <span class="msi pd-ut-card-remove" title="${esc(t('library.user_tags.remove', 'Remove Tag'))}" onclick="event.stopPropagation();removeMediaUserTag('${jsq(x.path)}','${jsq(u.userId)}')">close</span>
+        </div>`;
+    }).join('');
+    return `<div class="fd-info-card">
+        <div class="fd-group-rep-label">${tf('library.user_tags.card_title', { count: list.length }, 'TAGGED USERS ({count})')}</div>
+        <div class="tl-players-grid photo-detail-players-grid">${rows}</div>
+    </div>`;
 }
 
 function _photoBuildRatingCard(x) {
@@ -1334,12 +1530,15 @@ function setPhotoRatingClick(path, n) {
 }
 
 function setPhotoRatingValue(path, stars) {
-    photoRatings.set(path, stars);
-    sendToCS({ action: 'setPhotoRating', path, stars });
+    const targets = _libEditTargets(path);
+    targets.forEach(p => {
+        photoRatings.set(p, stars);
+        sendToCS({ action: 'setPhotoRating', path: p, stars });
+    });
     _photoRefreshInfoPaneIfShowing(path);
     _renderLibRatingSelect();
     if (_libRatingFilter !== '__all__') filterLibrary(true);
-    else _libUpdateCardMeta(path);
+    else targets.forEach(p => _libUpdateCardMeta(p));
 }
 
 function _libUpdateCardMeta(path) {
@@ -1384,9 +1583,12 @@ function closePhotoDetail(fromNav = false) {
     const m = document.getElementById('photoDetailModal');
     if (!m) { if (clearNav) navClear(); return; }
     if (_photoKeyHandler) { document.removeEventListener('keydown', _photoKeyHandler); _photoKeyHandler = null; }
+    if (_photoResizeHandler) { window.removeEventListener('resize', _photoResizeHandler); _photoResizeHandler = null; }
     document.removeEventListener('mousemove', _photoOnMouseMove);
     document.removeEventListener('mouseup',   _photoOnMouseUp);
     _photoState.drag = null;
+    const tagImg = m.querySelector('.photo-detail-img');
+    if (tagImg?._pdTagRO) { try { tagImg._pdTagRO.disconnect(); } catch {} tagImg._pdTagRO = null; }
     const vid = m.querySelector('.photo-detail-video');
     if (vid) { try { vid.pause(); } catch {} if (vid._pdCleanup) vid._pdCleanup(); vid.removeAttribute('src'); }
     m.querySelectorAll('img').forEach(img => { img.src = PLACEHOLDER; });
@@ -1402,6 +1604,169 @@ function _photoApplyTransform() {
     if (!img) return;
     const s = _photoState;
     img.style.transform = `translate(${s.tx}px, ${s.ty}px) scale(${s.scale}) rotate(${s.rotation}deg)`;
+    _photoRenderUserTags();
+}
+
+// The tag layer mirrors the image's untransformed layout box and reuses the very
+// same CSS transform, so markers stay pinned to their pixels through zoom, pan and
+// rotation without measuring the transformed bounding box.
+function _photoRenderUserTags() {
+    const modal = document.getElementById('photoDetailModal');
+    const layer = modal?.querySelector('.pd-usertag-layer');
+    if (!layer) return;
+
+    const x = _photoState.item;
+    const img = modal.querySelector('.photo-detail-img');
+    const tags = (x && x.path && !x.remote) ? getMediaUserTags(x.path) : [];
+
+    if (!tags.length || !img || img.style.display === 'none' || !img.offsetWidth || !img.offsetHeight) {
+        layer.innerHTML = '';
+        layer.style.display = 'none';
+        return;
+    }
+
+    const s = _photoState;
+    layer.style.display = '';
+    layer.style.left      = img.offsetLeft   + 'px';
+    layer.style.top       = img.offsetTop    + 'px';
+    layer.style.width     = img.offsetWidth  + 'px';
+    layer.style.height    = img.offsetHeight + 'px';
+    layer.style.transform = `translate(${s.tx}px, ${s.ty}px) scale(${s.scale}) rotate(${s.rotation}deg)`;
+
+    // Counter the layer transform so the marker keeps its screen size and stays upright.
+    const counter = `translate(-50%, -50%) rotate(${-s.rotation}deg) scale(${1 / s.scale})`;
+
+    layer.innerHTML = tags.map(u => {
+        const fr = (typeof vrcFriendsData !== 'undefined') ? vrcFriendsData.find(f => f.id === u.userId) : null;
+        const name = fr?.displayName || u.displayName || u.userId;
+        const av = fr?.image
+            ? `<span class="pd-ut-av" style="background-image:url('${cssUrl(imgThumb(fr.image, 64))}')"></span>`
+            : `<span class="pd-ut-av pd-ut-av-letter">${esc((name || '?')[0].toUpperCase())}</span>`;
+        return `<div class="pd-usertag" style="left:${(u.x * 100).toFixed(3)}%;top:${(u.y * 100).toFixed(3)}%;transform:${counter};">
+            <span class="pd-ut-frame"></span>
+            <div class="pd-ut-chip">
+                ${av}
+                <span class="pd-ut-name" onclick="event.stopPropagation();navOpenModal('friend','${jsq(u.userId)}','${jsq(name)}')">${esc(name)}</span>
+                <span class="msi pd-ut-remove" title="${esc(t('library.user_tags.remove', 'Remove Tag'))}" onclick="event.stopPropagation();removeMediaUserTag('${jsq(x.path)}','${jsq(u.userId)}')">close</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// Inverse of the image transform: viewport point -> 0..1 inside the picture.
+function _photoPointToImage(clientX, clientY) {
+    const modal = document.getElementById('photoDetailModal');
+    const img = modal?.querySelector('.photo-detail-img');
+    const pane = modal?.querySelector('.photo-detail-img-pane');
+    if (!img || !pane || !img.offsetWidth || !img.offsetHeight) return null;
+
+    const pr = pane.getBoundingClientRect();
+    const s = _photoState;
+    const cx = img.offsetLeft + img.offsetWidth  / 2 + s.tx;
+    const cy = img.offsetTop  + img.offsetHeight / 2 + s.ty;
+
+    const dx = ((clientX - pr.left) - cx) / s.scale;
+    const dy = ((clientY - pr.top)  - cy) / s.scale;
+
+    const rad = -(s.rotation || 0) * Math.PI / 180;
+    const rx = dx * Math.cos(rad) - dy * Math.sin(rad);
+    const ry = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+    return {
+        x: (rx + img.offsetWidth  / 2) / img.offsetWidth,
+        y: (ry + img.offsetHeight / 2) / img.offsetHeight,
+    };
+}
+
+function removeMediaUserTag(path, userId) {
+    if (!path || !userId) return;
+    const list = getMediaUserTags(path).filter(u => u.userId !== userId);
+    if (list.length) mediaUserTags.set(path, list);
+    else mediaUserTags.delete(path);
+    sendToCS({ action: 'removeMediaUserTag', path, userId });
+    _photoRefreshTagUi();
+    _libRefilter();
+}
+
+// Called from the photo detail context menu. sx/sy are 0..1 inside the visible
+// image box; they get converted to unrotated image space before storing.
+let _userTagDraft = null;
+let _userTagFilter = '';
+
+function openUserTagPicker(path, clientX, clientY) {
+    if (!path) return;
+    const pos = _photoPointToImage(clientX, clientY);
+    if (!pos || pos.x < 0 || pos.x > 1 || pos.y < 0 || pos.y > 1) return;
+    _userTagDraft = { path, x: pos.x, y: pos.y };
+    _userTagFilter = '';
+    _renderUserTagPicker();
+}
+
+function closeUserTagPicker() {
+    document.getElementById('userTagPickerModal')?.remove();
+    _userTagDraft = null;
+}
+
+function filterUserTagPicker(value) {
+    _userTagFilter = value || '';
+    _renderUserTagPickerList();
+}
+
+function _renderUserTagPicker() {
+    closeUserTagPickerKeepDraft();
+    const o = document.createElement('div');
+    o.className = 'modal-overlay';
+    o.id = 'userTagPickerModal';
+    o.onclick = e => { if (e.target === o) closeUserTagPicker(); };
+    o.innerHTML = `<div class="modal-box inv-box">
+        ${renderModalBar(t('library.user_tags.pick_title', 'Tag a Friend'), [modalCloseAction('closeUserTagPicker()')], { flush: true })}
+        <div class="inv-search-wrap">
+            <span class="msi inv-search-icon">search</span>
+            <input type="text" id="userTagSearch" class="inv-search-input" placeholder="${esc(t('invite.multi.search_placeholder', 'Search friends...'))}" oninput="filterUserTagPicker(this.value)">
+        </div>
+        <div id="userTagPickerList" class="inv-list"></div>
+    </div>`;
+    document.body.appendChild(o);
+    _renderUserTagPickerList();
+    setTimeout(() => document.getElementById('userTagSearch')?.focus(), 30);
+}
+
+function closeUserTagPickerKeepDraft() {
+    document.getElementById('userTagPickerModal')?.remove();
+}
+
+function _renderUserTagPickerList() {
+    const el = document.getElementById('userTagPickerList');
+    if (!el) return;
+    const q = _userTagFilter.toLowerCase().trim();
+    const tagged = new Set(getMediaUserTags(_userTagDraft?.path || '').map(u => u.userId));
+    const friends = (typeof vrcFriendsData !== 'undefined' ? vrcFriendsData : [])
+        .filter(f => !q || (f.displayName || '').toLowerCase().includes(q))
+        .slice(0, 100);
+
+    if (!friends.length) {
+        el.innerHTML = `<div class="inv-empty">${esc(t('profiles.people.no_results', 'No results'))}</div>`;
+        return;
+    }
+
+    el.innerHTML = friends.map(f => {
+        const already = tagged.has(f.id);
+        const trailing = already
+            ? `<span class="msi" style="margin-left:auto;flex-shrink:0;font-size:15px;color:var(--accent);">check</span>` : '';
+        return renderUserItem(f, `confirmUserTag('${jsq(f.id)}','${jsq(f.displayName || '')}')`, { trailing });
+    }).join('');
+}
+
+function confirmUserTag(userId, displayName) {
+    const draft = _userTagDraft;
+    if (!draft || !userId) return;
+    const list = getMediaUserTags(draft.path).filter(u => u.userId !== userId);
+    list.push({ userId, displayName, x: draft.x, y: draft.y });
+    mediaUserTags.set(draft.path, list);
+    sendToCS({ action: 'setMediaUserTag', path: draft.path, userId, displayName, x: draft.x, y: draft.y });
+    closeUserTagPicker();
+    _photoRefreshTagUi();
+    _libRefilter();
 }
 
 function photoZoom(factor) {

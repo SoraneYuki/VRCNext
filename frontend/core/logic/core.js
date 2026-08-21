@@ -69,6 +69,10 @@ function fmtTimeSeconds(d) {
 let relayOn = false, settings = { webhooks: [{}, {}, {}, {}], folders: [], extraExe: [] }, postedFiles = [], selectedFolderIdx = -1;
 let favorites = new Set(), showFavOnly = false, libraryFiles = [];
 let photoRatings = new Map();
+const MEDIA_TAG_CATALOG = ['funny', 'romantic', 'lovely', 'sad', 'extreme', 'meme', 'funky', 'dancing',
+                           'friends', 'group', 'relationship', 'sports', 'activities', 'games', 'sleeping', 'misc'];
+let mediaTags = new Map();
+let mediaUserTags = new Map();
 let _prevTab = 0;
 let _lazyUnloadDelay = 0; // Lazy Unload Timer. not tested yet
 let _lazyUnloadTimer = null;

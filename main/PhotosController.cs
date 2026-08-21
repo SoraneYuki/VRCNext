@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using VRCNext.Services;
 using VRCNext.Services.Helpers;
 #if WINDOWS
@@ -427,6 +427,47 @@ public class PhotosController
                     }
                 }
                 break;
+
+            case "getMediaTags":
+                SendMediaTags();
+                break;
+
+            case "setMediaTags":
+            {
+                var tagPath = msg["path"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(tagPath)) break;
+                var tagList = (msg["tags"] as JArray)?
+                    .Select(x => x?.ToString() ?? "")
+                    .Where(x => MediaTagCatalog.Contains(x))
+                    .Distinct()
+                    .ToList() ?? new List<string>();
+                _media.SetTags(tagPath, tagList);
+                _core.SendToJS("mediaTagsUpdated", new { path = tagPath, tags = tagList });
+                break;
+            }
+
+            case "setMediaUserTag":
+            {
+                var utPath = msg["path"]?.ToString() ?? "";
+                var utUser = msg["userId"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(utPath) || string.IsNullOrEmpty(utUser)) break;
+                var utName = msg["displayName"]?.ToString() ?? "";
+                var utX    = Math.Clamp(msg["x"]?.Value<double>() ?? 0, 0, 1);
+                var utY    = Math.Clamp(msg["y"]?.Value<double>() ?? 0, 0, 1);
+                _media.SetUserTag(utPath, utUser, utName, utX, utY);
+                SendUserTagsFor(utPath);
+                break;
+            }
+
+            case "removeMediaUserTag":
+            {
+                var rmPath = msg["path"]?.ToString() ?? "";
+                var rmUser = msg["userId"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(rmPath) || string.IsNullOrEmpty(rmUser)) break;
+                _media.RemoveUserTag(rmPath, rmUser);
+                SendUserTagsFor(rmPath);
+                break;
+            }
 
             case "addFavorite":
                 var favPath = msg["path"]?.ToString();
@@ -1004,6 +1045,44 @@ public class PhotosController
 #endif
 
     // Keep old paginated builder for loadLibraryPage compatibility
+    public static readonly string[] MediaTagCatalog =
+    {
+        "funny", "romantic", "lovely", "sad", "extreme", "meme", "funky", "dancing",
+        "friends", "group", "relationship", "sports", "activities", "games", "sleeping", "misc",
+    };
+
+    private void SendMediaTags()
+    {
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                var tags = _media.GetAllTags()
+                    .ToDictionary(kv => kv.Key, kv => kv.Value.Where(MediaTagCatalog.Contains).ToList());
+                var userTags = _media.GetAllUserTags()
+                    .GroupBy(r => r.Path)
+                    .ToDictionary(g => g.Key, g => g.Select(r => (object)new
+                    {
+                        userId      = r.UserId,
+                        displayName = r.DisplayName,
+                        x           = r.X,
+                        y           = r.Y,
+                    }).ToList());
+                _core.SendToJS("mediaTagsData", new { tags, userTags, catalog = MediaTagCatalog });
+            }
+            catch (Exception ex) { CrashHandler.WriteEntry("PhotosController.SendMediaTags", ex); }
+        });
+    }
+
+    private void SendUserTagsFor(string path)
+    {
+        var list = _media.GetAllUserTags()
+            .Where(r => string.Equals(r.Path, path, StringComparison.OrdinalIgnoreCase))
+            .Select(r => (object)new { userId = r.UserId, displayName = r.DisplayName, x = r.X, y = r.Y })
+            .ToList();
+        _core.SendToJS("mediaUserTagsUpdated", new { path, userTags = list });
+    }
+
     private List<object> BuildLibraryItems(int offset, int count)
         => BuildLibraryItemsFast().Skip(offset).Take(count).ToList();
 
