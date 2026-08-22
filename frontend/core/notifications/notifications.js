@@ -130,6 +130,15 @@ function formatInstanceTimer(joinedAt, now) {
     return t('instance.timer.less_than_minute', '<1m');
 }
 
+function _notifTypeToneClass(type) {
+    if (type === 'friendRequest') return 'nt-friend';
+    if (typeof type === 'string' && (type.startsWith('moderation.') || type === 'votetokick')) return 'nt-alert';
+    if (typeof type === 'string' && type.startsWith('group.')) return 'nt-group';
+    if (type === 'invite' || type === 'requestInvite' || type === 'inviteResponse'
+        || type === 'requestInviteResponse' || type === 'invite.instance.contentGated') return 'nt-invite';
+    return 'nt-default';
+}
+
 function _resolveNotifImage(n) {
     if (n._image) return n._image;
     if (n.senderUserId && typeof vrcFriendsData !== 'undefined') {
@@ -145,6 +154,12 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
     const badge = document.getElementById('notifBadge');
     if (unseen > 0) { badge.textContent = unseen; badge.style.display = ''; }
     else badge.style.display = 'none';
+
+    const headCount = document.getElementById('notifHeadCount');
+    if (headCount) {
+        headCount.textContent = notifications.length;
+        headCount.style.display = notifications.length > 0 ? '' : 'none';
+    }
 
     const clearBtn = document.getElementById('notifClearAllBtn');
     if (clearBtn) clearBtn.style.display = (_notifTab === 'hidden' || notifications.length === 0) ? 'none' : '';
@@ -170,8 +185,8 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
         const hasImg = nImg && nImg.length > 5;
         const initial = (n.senderUsername || '?')[0].toUpperCase();
         const avatarHtml = hasImg
-            ? `<div class="notif-avatar" style="background-image:url('${cssUrl(imgThumb(nImg, 64))}')"><span class="msi notif-avatar-badge">${icon}</span></div>`
-            : `<span class="msi notif-icon" style="font-size:18px;">${icon}</span>`;
+            ? `<div class="notif-avatar" style="background-image:url('${cssUrl(imgThumb(nImg, 64))}')"></div>`
+            : `<div class="notif-avatar notif-avatar-ph">${n.senderUsername ? esc(initial) : `<span class="msi">${icon}</span>`}</div>`;
 
         const _notifGroupId = (() => {
             const d = (n._data && typeof n._data === 'string')
@@ -229,16 +244,21 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
             canAnswer ? `<button class="vrcn-notify-button notif-answer-btn" onclick="openNotifRespondModal('${nid}')" title="${t('notifications.actions.answer_tooltip', 'Decline with a message or image')}"><span class="msi">reply</span> ${t('notifications.actions.answer', 'Answer')}</button>` : '',
             (!noDecline && (canAccept || !n.seen)) ? `<button class="vrcn-notify-button danger notif-decline-btn" onclick="declineNotif('${nid}',this)" title="${t('notifications.actions.decline', 'Decline')}"><span class="msi">close</span></button>` : '',
         ].join('');
-        const typeBadge = `<span class="vrcn-badge notif-type-badge"><span class="msi">${icon}</span>${esc(label)}</span>`;
+        const msgHtml = subHtml
+            ? `${titleHtml} <span class="notif-msg-sub">${subHtml}</span>`
+            : titleHtml;
         return `<div class="notif-item ${n.seen && !canAccept ? 'notif-seen' : ''}" data-notif-id="${nid}">
-            ${avatarHtml}
-            <div class="notif-body">
-                <div class="notif-title" style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;">${titleHtml}</div>
-                ${subHtml ? `<div class="notif-sub">${subHtml}</div>` : ''}
-                ${bodyHtml}
+            <div class="notif-item-body">
+                ${avatarHtml}
+                <div class="notif-item-text">
+                    <div class="notif-type ${_notifTypeToneClass(n.type)}">${esc(label)}</div>
+                    <div class="notif-msg-main">${msgHtml}</div>
+                    ${bodyHtml}
+                </div>
             </div>
-            <div class="notif-side">
-                <div class="notif-meta">${typeBadge}${time ? `<span class="notif-time">${time}</span>` : ''}</div>
+            <div class="notif-item-sep"></div>
+            <div class="notif-foot">
+                <span class="notif-time">${esc(time)}</span>
                 ${actionsHtml ? `<div class="notif-actions">${actionsHtml}</div>` : ''}
             </div>
         </div>`;

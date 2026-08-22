@@ -219,6 +219,12 @@ function renderChatPanel() {
     const list = document.getElementById('chatPanelList');
     if (!list) return;
 
+    const headCount = document.getElementById('chatHeadCount');
+    if (headCount) {
+        headCount.textContent = _chatInbox.size;
+        headCount.style.display = _chatInbox.size > 0 ? '' : 'none';
+    }
+
     if (_chatInbox.size === 0) {
         list.innerHTML = `<div class="empty-msg">${esc(t('messages.empty', 'No messages'))}</div>`;
         return;
