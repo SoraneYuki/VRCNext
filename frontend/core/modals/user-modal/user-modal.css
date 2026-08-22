@@ -1,4 +1,4 @@
-/* === User Modal (Friend/Profile Detail) === */
+﻿/* === User Modal (Friend/Profile Detail) === */
 
 #modalFriendDetail .search-bar-row .vn-select .vn-select-trigger,
 #modalMyProfile .search-bar-row .vn-select .vn-select-trigger,
@@ -484,3 +484,18 @@
 
 @keyframes fd-action-spin { to { transform: rotate(360deg); } }
 .fd-action-btn .msi.fd-action-spin { animation: fd-action-spin 0.8s linear infinite; }
+
+
+.fd-mutuals-bar .fd-mutuals-pills {
+    flex-shrink: 0;
+    margin-bottom: 0;
+    height: 32px;
+}
+.fd-mutuals-bar .fd-mutual-pill {
+    flex: 0 0 auto;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}

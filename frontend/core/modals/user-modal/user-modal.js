@@ -35,6 +35,44 @@ function setFdGroupsSort(v) { _fdGroupsSortMode = v; window._fdGroupsPage = 0; w
 function setFdMutualsSort(v) { _fdMutualsSortMode = v; window._fdMutualsPage = 0; filterFdMutuals(); }
 function setFdMutualsGroupsSort(v) { _fdMutualsGroupsSortMode = v; window._fdMutualsGroupsPage = 0; filterFdMutualsGroups(); }
 
+function setFdMutualsSortValue(v) {
+    if (_fdMutualsActivePill === 'groups') setFdMutualsGroupsSort(v);
+    else setFdMutualsSort(v);
+}
+
+let _fdMutualsActivePill = 'friends';
+
+function _fdMutualsSortOptions(pill) {
+    const alpha = `<option value="alpha">${esc(t('profiles.sort.alphabetical', 'Alphabetical'))}</option>`;
+    return pill === 'groups'
+        ? alpha + `<option value="members">${esc(t('profiles.sort.members', 'Members'))}</option>`
+        : alpha + `<option value="favorites">${esc(t('profiles.sort.favorites', 'Favorites'))}</option>`;
+}
+
+function _fdMutualsRebuildSort(pill) {
+    const sel = document.getElementById('fdMutualsSort');
+    if (!sel) return;
+
+    const wrap = sel.closest('.vn-select');
+    if (wrap && wrap.parentNode) {
+        wrap.parentNode.insertBefore(sel, wrap);
+        wrap.remove();
+    }
+    sel._vnSelect = false;
+    sel.style.display = '';
+    sel.style.flexShrink = '0';
+
+    sel.innerHTML = _fdMutualsSortOptions(pill);
+    sel.value = pill === 'groups' ? _fdMutualsGroupsSortMode : _fdMutualsSortMode;
+    if (!sel.value) sel.value = 'alpha';
+
+    if (typeof initVnSelect === 'function') initVnSelect(sel);
+
+    const hasList = !!document.getElementById(pill === 'groups' ? 'fdMutualsGroupsSearch' : 'fdMutualsSearch');
+    const newWrap = sel.closest('.vn-select') || sel;
+    newWrap.style.display = hasList ? '' : 'none';
+}
+
 const _fdBioTransReqs = {};
 
 function fdTranslateBio(btn) {
@@ -430,10 +468,23 @@ function switchFdContentPill(pill, btn) {
 }
 
 function switchFdMutualsPill(pill, btn) {
+    const isFriends = pill === 'friends';
+    _fdMutualsActivePill = isFriends ? 'friends' : 'groups';
     const friendsEl = document.getElementById('fdMutualsFriends');
     const groupsEl  = document.getElementById('fdMutualsGroups');
-    if (friendsEl) friendsEl.style.display = pill === 'friends' ? '' : 'none';
-    if (groupsEl)  groupsEl.style.display  = pill === 'groups'  ? '' : 'none';
+    if (friendsEl) friendsEl.style.display = isFriends ? '' : 'none';
+    if (groupsEl)  groupsEl.style.display  = isFriends ? 'none' : '';
+
+    const show = (id, on) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        (el.closest('.vn-select') || el).style.display = on ? '' : 'none';
+    };
+    show('fdMutualsSearch',       isFriends);
+    show('fdMutualsGroupsSearch', !isFriends);
+    show('fdMutualsSearchIco',    !!document.getElementById(isFriends ? 'fdMutualsSearch' : 'fdMutualsGroupsSearch'));
+    _fdMutualsRebuildSort(_fdMutualsActivePill);
+
     document.querySelectorAll('.fd-mutual-pill').forEach(p => p.classList.remove('active'));
     if (btn) btn.classList.add('active');
 }
@@ -840,15 +891,7 @@ function renderFriendDetail(d) {
             </span>
         </div>`;
     } else {
-        mutualsFriendsHtml = `<div class="search-bar-row" style="margin-bottom:6px;">
-            <span class="msi search-ico">search</span>
-            <input id="fdMutualsSearch" type="text" class="vrcn-input" placeholder="${esc(t('profiles.mutuals.search_placeholder', 'Search users by name...'))}" style="background:var(--bg-input);" oninput="_dbFdMutuals()">
-            <select id="fdMutualsSort" class="vrcn-dropdown" style="flex-shrink:0;" onchange="setFdMutualsSort(this.value)">
-                <option value="alpha">${esc(t('profiles.sort.alphabetical', 'Alphabetical'))}</option>
-                <option value="favorites">${esc(t('profiles.sort.favorites', 'Favorites'))}</option>
-            </select>
-        </div>`;
-        mutualsFriendsHtml += '<div id="fdMutualsGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;column-gap:6px;"></div>';
+        mutualsFriendsHtml = '<div id="fdMutualsGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;column-gap:6px;"></div>';
         mutualsFriendsHtml += '<div id="fdMutualsPageBar" class="mini-paginator"></div>';
     }
 
@@ -859,23 +902,29 @@ function renderFriendDetail(d) {
             ${t('profiles.mutuals.no_groups', 'No mutual groups found.')}
         </div>`;
     } else {
-        mutualsGroupsHtml = `<div class="search-bar-row" style="margin-bottom:6px;">
-            <span class="msi search-ico">search</span>
-            <input id="fdMutualsGroupsSearch" type="text" class="vrcn-input" placeholder="${esc(t('profiles.mutuals.groups_search_placeholder', 'Search groups by name...'))}" style="background:var(--bg-input);" oninput="_dbFdMutualsGroups()">
-            <select id="fdMutualsGroupsSort" class="vrcn-dropdown" style="flex-shrink:0;" onchange="setFdMutualsGroupsSort(this.value)">
-                <option value="alpha">${esc(t('profiles.sort.alphabetical', 'Alphabetical'))}</option>
-                <option value="members">${esc(t('profiles.sort.members', 'Members'))}</option>
-            </select>
-        </div>`;
-        mutualsGroupsHtml += '<div id="fdMutualsGroupsGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;"></div>';
+        mutualsGroupsHtml = '<div id="fdMutualsGroupsGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;"></div>';
         mutualsGroupsHtml += '<div id="fdMutualsGroupsPageBar" class="mini-paginator"></div>';
     }
 
+    _fdMutualsActivePill   = 'friends';
+    const hasMutualSearch  = !d.mutualsOptedOut && allMutuals.length > 0;
+    const hasGroupSearch   = allMutualGroups.length > 0;
+    const mutualsSearchBar = `<div class="search-bar-row fd-mutuals-bar" style="margin-bottom:6px;">
+            <span class="msi search-ico" id="fdMutualsSearchIco"${hasMutualSearch ? '' : ' style="display:none;"'}>search</span>
+            ${hasMutualSearch ? `<input id="fdMutualsSearch" type="text" class="vrcn-input" placeholder="${esc(t('profiles.mutuals.search_placeholder', 'Search users by name...'))}" style="background:var(--bg-input);" oninput="_dbFdMutuals()">` : ''}
+            ${hasGroupSearch ? `<input id="fdMutualsGroupsSearch" type="text" class="vrcn-input" placeholder="${esc(t('profiles.mutuals.groups_search_placeholder', 'Search groups by name...'))}" style="background:var(--bg-input);display:none;" oninput="_dbFdMutualsGroups()">` : ''}
+            ${(!hasMutualSearch && !hasGroupSearch) ? '<span style="flex:1;"></span>' : ''}
+            <div class="fd-content-pills fd-mutuals-pills">
+                <button class="fd-tab fd-mutual-pill active" onclick="switchFdMutualsPill('friends',this)">${t('profiles.mutuals.pill_friends_label', 'Friends')} <span class="vrcn-badge fd-tab-badge">${allMutuals.length}</span></button>
+                <button class="fd-tab fd-mutual-pill" onclick="switchFdMutualsPill('groups',this)">${t('profiles.mutuals.pill_groups_label', 'Groups')} <span class="vrcn-badge fd-tab-badge">${allMutualGroups.length}</span></button>
+            </div>
+            ${(hasMutualSearch || hasGroupSearch) ? `<select id="fdMutualsSort" class="vrcn-dropdown" style="flex-shrink:0;${hasMutualSearch ? '' : 'display:none;'}" onchange="setFdMutualsSortValue(this.value)">
+                ${_fdMutualsSortOptions('friends')}
+            </select>` : ''}
+        </div>`;
+
     const mutualsContent = `
-        <div class="fd-content-pills">
-            <button class="fd-tab fd-mutual-pill active" onclick="switchFdMutualsPill('friends',this)">${t('profiles.mutuals.pill_friends_label', 'Friends')} <span class="vrcn-badge fd-tab-badge">${allMutuals.length}</span></button>
-            <button class="fd-tab fd-mutual-pill" onclick="switchFdMutualsPill('groups',this)">${t('profiles.mutuals.pill_groups_label', 'Groups')} <span class="vrcn-badge fd-tab-badge">${allMutualGroups.length}</span></button>
-        </div>
+        ${mutualsSearchBar}
         <div id="fdMutualsFriends">${mutualsFriendsHtml}</div>
         <div id="fdMutualsGroups" style="display:none;">${mutualsGroupsHtml}</div>`;
 
