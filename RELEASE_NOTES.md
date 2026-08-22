@@ -16,3 +16,6 @@ and the sort dropdown now sit in one row.
 
 **Design**
 * Small color adjustments on all themes.
+
+**Fixed Bugs**
+* Fixed friends sidebar searchbar card seperation.
