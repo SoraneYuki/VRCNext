@@ -120,6 +120,18 @@ function getNotificationTime(createdAt) {
     return fmtShortDate(dt) + ' ' + fmtTime(dt);
 }
 
+function getNotificationAge(createdAt) {
+    if (!createdAt) return '';
+    const dt = new Date(createdAt);
+    if (isNaN(dt)) return '';
+    const diff = Date.now() - dt.getTime();
+    if (diff < 60000)     return t('profiles.last_seen.just_now', 'Just now');
+    if (diff < 3600000)   return tf('profiles.last_seen.minutes_ago', { count: Math.floor(diff / 60000) }, '{count}m ago');
+    if (diff < 86400000)  return tf('profiles.last_seen.hours_ago', { count: Math.floor(diff / 3600000) }, '{count}h ago');
+    if (diff < 604800000) return tf('profiles.last_seen.days_ago', { count: Math.floor(diff / 86400000) }, '{count}d ago');
+    return fmtShortDate(dt);
+}
+
 function formatInstanceTimer(joinedAt, now) {
     if (!joinedAt) return '';
     const seconds = Math.max(0, Math.floor((now - joinedAt) / 1000));
@@ -128,6 +140,13 @@ function formatInstanceTimer(joinedAt, now) {
     if (hours > 0) return tf('instance.timer.hours_minutes', { hours, minutes }, '{hours}h {minutes}m');
     if (minutes > 0) return tf('instance.timer.minutes', { minutes }, '{minutes}m');
     return t('instance.timer.less_than_minute', '<1m');
+}
+
+function _notifBtnBusy(btn) {
+    btn.disabled = true;
+    const ico = btn.querySelector('.msi');
+    if (ico) ico.textContent = 'hourglass_empty';
+    else btn.textContent = '...';
 }
 
 function _notifTypeToneClass(type) {
@@ -155,12 +174,6 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
     if (unseen > 0) { badge.textContent = unseen; badge.style.display = ''; }
     else badge.style.display = 'none';
 
-    const headCount = document.getElementById('notifHeadCount');
-    if (headCount) {
-        headCount.textContent = notifications.length;
-        headCount.style.display = notifications.length > 0 ? '' : 'none';
-    }
-
     const clearBtn = document.getElementById('notifClearAllBtn');
     if (clearBtn) clearBtn.style.display = (_notifTab === 'hidden' || notifications.length === 0) ? 'none' : '';
 
@@ -172,6 +185,7 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
     el.innerHTML = notifications.map(n => {
         const { icon, label } = getNotificationTypeMeta(n.type);
         const time = getNotificationTime(n.created_at);
+        const age  = getNotificationAge(n.created_at);
         const canAccept = ['friendRequest', 'invite', 'requestInvite', 'group.invite', 'group.joinRequest'].includes(n.type);
         const canAnswer = (n.type === 'invite' || n.type === 'requestInvite');
         const nid = esc(n.id);
@@ -184,9 +198,13 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
         const nImg = _resolveNotifImage(n);
         const hasImg = nImg && nImg.length > 5;
         const initial = (n.senderUsername || '?')[0].toUpperCase();
+        const toneCls   = _notifTypeToneClass(n.type);
+        const typeBadge = `<span class="msi notif-avatar-badge ${toneCls}" title="${esc(label)}">${icon}</span>`;
         const avatarHtml = hasImg
-            ? `<div class="notif-avatar" style="background-image:url('${cssUrl(imgThumb(nImg, 64))}')"></div>`
-            : `<div class="notif-avatar notif-avatar-ph">${n.senderUsername ? esc(initial) : `<span class="msi">${icon}</span>`}</div>`;
+            ? `<div class="notif-avatar" style="background-image:url('${cssUrl(imgThumb(nImg, 64))}')">${typeBadge}</div>`
+            : n.senderUsername
+                ? `<div class="notif-avatar notif-avatar-ph">${esc(initial)}${typeBadge}</div>`
+                : `<div class="notif-avatar notif-avatar-ph ${toneCls}" title="${esc(label)}"><span class="msi notif-avatar-icon">${icon}</span></div>`;
 
         const _notifGroupId = (() => {
             const d = (n._data && typeof n._data === 'string')
@@ -240,33 +258,31 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
             if (n.message) bodyHtml = `<div class="notif-msg">${esc(n.message)}</div>`;
         }
         const actionsHtml = [
-            canAccept ? `<button class="vrcn-notify-button primary notif-accept-btn" onclick="acceptNotif('${nid}',this)"><span class="msi">check</span> ${t('notifications.actions.accept', 'Accept')}</button>` : '',
-            canAnswer ? `<button class="vrcn-notify-button notif-answer-btn" onclick="openNotifRespondModal('${nid}')" title="${t('notifications.actions.answer_tooltip', 'Decline with a message or image')}"><span class="msi">reply</span> ${t('notifications.actions.answer', 'Answer')}</button>` : '',
-            (!noDecline && (canAccept || !n.seen)) ? `<button class="vrcn-notify-button danger notif-decline-btn" onclick="declineNotif('${nid}',this)" title="${t('notifications.actions.decline', 'Decline')}"><span class="msi">close</span></button>` : '',
+            canAccept ? `<button class="notif-act notif-act-accept notif-accept-btn" onclick="acceptNotif('${nid}',this)" title="${esc(t('notifications.actions.accept', 'Accept'))}"><span class="msi">check</span></button>` : '',
+            canAnswer ? `<button class="notif-act notif-act-answer notif-answer-btn" onclick="openNotifRespondModal('${nid}')" title="${esc(t('notifications.actions.answer_tooltip', 'Decline with a message or image'))}"><span class="msi">reply</span></button>` : '',
+            (!noDecline && (canAccept || !n.seen)) ? `<button class="notif-act notif-act-dismiss notif-decline-btn" onclick="declineNotif('${nid}',this)" title="${esc(t('notifications.actions.decline', 'Decline'))}"><span class="msi">close</span></button>` : '',
         ].join('');
         const msgHtml = subHtml
             ? `${titleHtml} <span class="notif-msg-sub">${subHtml}</span>`
             : titleHtml;
         return `<div class="notif-item ${n.seen && !canAccept ? 'notif-seen' : ''}" data-notif-id="${nid}">
-            <div class="notif-item-body">
-                ${avatarHtml}
-                <div class="notif-item-text">
-                    <div class="notif-type ${_notifTypeToneClass(n.type)}">${esc(label)}</div>
+            ${avatarHtml}
+            <div class="notif-item-text">
+                <div class="notif-msg-col">
                     <div class="notif-msg-main">${msgHtml}</div>
                     ${bodyHtml}
                 </div>
-            </div>
-            <div class="notif-item-sep"></div>
-            <div class="notif-foot">
-                <span class="notif-time">${esc(time)}</span>
-                ${actionsHtml ? `<div class="notif-actions">${actionsHtml}</div>` : ''}
+                <div class="notif-meta-right">
+                    <span class="notif-time" title="${esc(time)}">${esc(age)}</span>
+                    ${actionsHtml ? `<div class="notif-actions">${actionsHtml}</div>` : ''}
+                </div>
             </div>
         </div>`;
     }).join('');
 }
 
 function acceptNotif(notifId, btn) {
-    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+    if (btn) _notifBtnBusy(btn);
     const n = notifications.find(x => x.id === notifId);
     const det = typeof n?.details === 'string' ? (() => { try { return JSON.parse(n.details); } catch { return {}; } })() : (n?.details || {});
     sendToCS({ action: 'vrcAcceptNotification', notifId, type: n?.type, details: det,
@@ -439,7 +455,7 @@ function closeLaunchModal() {
 }
 
 function declineNotif(notifId, btn) {
-    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+    if (btn) _notifBtnBusy(btn);
     const n = notifications.find(x => x.id === notifId);
     const det = typeof n?.details === 'string' ? (() => { try { return JSON.parse(n.details); } catch { return {}; } })() : (n?.details || {});
     sendToCS({ action: 'vrcHideNotification', notifId,
