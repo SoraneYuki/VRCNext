@@ -106,7 +106,9 @@
 }
 
 .notif-panel-header {
-    padding: 14px 16px;
+    padding: 10px 16px;
+    min-height: 52px;
+    box-sizing: border-box;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -144,7 +146,7 @@
 .notif-panel-list > * { flex-shrink: 0; }
 
 #notifPanel {
-    width: 630px;
+    width: 525px;
     max-height: 560px;
 }
 #notifPanel .notif-panel-list { max-height: 460px; }
@@ -195,17 +197,25 @@
     gap: 5px;
 }
 
-.notif-type {
-    font-size: calc(10px + var(--fs-off, 0px));
-    font-weight: 700;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--tx3);
+.notif-avatar-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 19px;
+    height: 19px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--tab-card-bg, var(--bg-input));
+    box-shadow: 0 0 0 1px var(--brd);
+    font-size: calc(12px + var(--fs-off, 0px));
+    color: var(--tx2);
 }
-.notif-type.nt-invite  { color: var(--accent-lt, var(--accent)); }
-.notif-type.nt-friend  { color: var(--ok); }
-.notif-type.nt-group   { color: var(--warn); }
-.notif-type.nt-alert   { color: var(--err); }
+.notif-avatar-badge.nt-invite  { color: var(--accent-lt, var(--accent)); }
+.notif-avatar-badge.nt-friend  { color: var(--ok); }
+.notif-avatar-badge.nt-group   { color: var(--warn); }
+.notif-avatar-badge.nt-alert   { color: var(--err); }
 
 .notif-msg-main {
     font-size: calc(13px + var(--fs-off, 0px));
@@ -255,7 +265,11 @@
     font-size: calc(15px + var(--fs-off, 0px));
     font-weight: 700;
 }
-.notif-avatar-ph .msi { font-size: calc(19px + var(--fs-off, 0px)); }
+.notif-avatar-icon { font-size: calc(19px + var(--fs-off, 0px)); }
+.notif-avatar-ph.nt-invite .notif-avatar-icon  { color: var(--accent-lt, var(--accent)); }
+.notif-avatar-ph.nt-friend .notif-avatar-icon  { color: var(--ok); }
+.notif-avatar-ph.nt-group  .notif-avatar-icon  { color: var(--warn); }
+.notif-avatar-ph.nt-alert  .notif-avatar-icon  { color: var(--err); }
 
 .notif-msg {
     font-size: calc(11px + var(--fs-off, 0px));
@@ -271,6 +285,7 @@
     font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
     flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
 }
 
 .notif-actions {

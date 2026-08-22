@@ -130,6 +130,13 @@ function formatInstanceTimer(joinedAt, now) {
     return t('instance.timer.less_than_minute', '<1m');
 }
 
+function _notifBtnBusy(btn) {
+    btn.disabled = true;
+    const ico = btn.querySelector('.msi');
+    if (ico) ico.textContent = 'hourglass_empty';
+    else btn.textContent = '...';
+}
+
 function _notifTypeToneClass(type) {
     if (type === 'friendRequest') return 'nt-friend';
     if (typeof type === 'string' && (type.startsWith('moderation.') || type === 'votetokick')) return 'nt-alert';
@@ -184,9 +191,13 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
         const nImg = _resolveNotifImage(n);
         const hasImg = nImg && nImg.length > 5;
         const initial = (n.senderUsername || '?')[0].toUpperCase();
+        const toneCls  = _notifTypeToneClass(n.type);
+        const typeBadge = `<span class="msi notif-avatar-badge ${toneCls}" title="${esc(label)}">${icon}</span>`;
         const avatarHtml = hasImg
-            ? `<div class="notif-avatar" style="background-image:url('${cssUrl(imgThumb(nImg, 64))}')"></div>`
-            : `<div class="notif-avatar notif-avatar-ph">${n.senderUsername ? esc(initial) : `<span class="msi">${icon}</span>`}</div>`;
+            ? `<div class="notif-avatar" style="background-image:url('${cssUrl(imgThumb(nImg, 64))}')">${typeBadge}</div>`
+            : n.senderUsername
+                ? `<div class="notif-avatar notif-avatar-ph">${esc(initial)}${typeBadge}</div>`
+                : `<div class="notif-avatar notif-avatar-ph ${toneCls}" title="${esc(label)}"><span class="msi notif-avatar-icon">${icon}</span></div>`;
 
         const _notifGroupId = (() => {
             const d = (n._data && typeof n._data === 'string')
@@ -251,7 +262,6 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
             <div class="notif-item-body">
                 ${avatarHtml}
                 <div class="notif-item-text">
-                    <div class="notif-type ${_notifTypeToneClass(n.type)}">${esc(label)}</div>
                     <div class="notif-msg-main">${msgHtml}</div>
                     ${bodyHtml}
                 </div>
@@ -266,7 +276,7 @@ function renderNotifications(list, noDecline = _notifNoDecline) {
 }
 
 function acceptNotif(notifId, btn) {
-    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+    if (btn) _notifBtnBusy(btn);
     const n = notifications.find(x => x.id === notifId);
     const det = typeof n?.details === 'string' ? (() => { try { return JSON.parse(n.details); } catch { return {}; } })() : (n?.details || {});
     sendToCS({ action: 'vrcAcceptNotification', notifId, type: n?.type, details: det,
@@ -439,7 +449,7 @@ function closeLaunchModal() {
 }
 
 function declineNotif(notifId, btn) {
-    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+    if (btn) _notifBtnBusy(btn);
     const n = notifications.find(x => x.id === notifId);
     const det = typeof n?.details === 'string' ? (() => { try { return JSON.parse(n.details); } catch { return {}; } })() : (n?.details || {});
     sendToCS({ action: 'vrcHideNotification', notifId,
