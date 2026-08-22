@@ -1,4 +1,7 @@
 {
+  "_language": "Korean",
+  "_code": "ko",
+  "_author": "roshikey",
   "nav.dashboard": "대시보드",
   "nav.worlds": "월드",
   "nav.groups": "그룹",
