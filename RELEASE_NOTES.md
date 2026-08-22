@@ -1,5 +1,9 @@
 **2026.44.1**
 
+**Translations**
+* Korean Translation by @roshikeymusica
+* Update Traditional Chinese localization by @SoraneYuki
+
 **User Profiles**
 * **Friends** and **Groups** moved into the search bar of Shared Connections, so search, both tabs
 and the sort dropdown now sit in one row.
