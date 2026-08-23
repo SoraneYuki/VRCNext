@@ -1,4 +1,5 @@
 {
+  "_meta": { "code": "ko", "name": "한국어", "locale": "ko-KR", "flag": "🇰🇷", "order": 55 },
   "nav.dashboard": "대시보드",
   "nav.worlds": "월드",
   "nav.groups": "그룹",
@@ -3393,5 +3394,5 @@
   "keybinds.modal.tile_down": "창을 아래쪽으로 스냅",
   "keybinds.modal.tile_corner": "창을 모서리로 스냅",
   "keybinds.modal.tile_min": "최소화",
-  "keybinds.modal.tile_max": "최대화",
+  "keybinds.modal.tile_max": "최대화"
 }

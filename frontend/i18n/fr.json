@@ -1,4 +1,5 @@
 {
+  "_meta": { "code": "fr", "name": "Français", "locale": "fr-FR", "flag": "🇫🇷", "order": 40 },
   "nav.dashboard": "Tableau de bord",
   "nav.worlds": "Mondes",
   "nav.groups": "Groupes",

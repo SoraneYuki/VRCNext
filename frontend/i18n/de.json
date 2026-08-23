@@ -1,4 +1,5 @@
 {
+  "_meta": { "code": "de", "name": "Deutsch", "locale": "de-DE", "flag": "🇩🇪", "order": 20 },
   "nav.dashboard": "Dashboard",
   "nav.worlds": "Welten",
   "nav.groups": "Gruppen",

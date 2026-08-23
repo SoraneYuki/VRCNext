@@ -7,6 +7,7 @@ window.external.receiveMessage(rawMsg => {
         try { window.__afOnWebsocketEvent(type, payload); } catch (e) { console.error('[ActionFlow] ws hook', e); }
     }
     switch (type) {
+            case 'availableLanguages': handleAvailableLanguages(payload); break;
             case 'openDeepLink':
                 if (payload && typeof msgrContentOpen === 'function') msgrContentOpen(payload.id, payload.prefix);
                 break;

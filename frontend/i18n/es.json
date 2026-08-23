@@ -1,4 +1,5 @@
 {
+  "_meta": { "code": "es", "name": "Español", "locale": "es-ES", "flag": "🇪🇸", "order": 30 },
   "nav.dashboard": "Panel",
   "nav.worlds": "Mundos",
   "nav.groups": "Grupos",

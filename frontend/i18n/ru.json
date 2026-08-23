@@ -1,7 +1,5 @@
 {
-  "_language": "Russian",
-  "_code": "ru",
-  "_author": "NeSi0",
+  "_meta": { "code": "ru", "name": "Русский", "locale": "ru-RU", "flag": "🇷🇺", "order": 80 },
   "nav.dashboard": "Панель управления",
   "nav.worlds": "Миры",
   "nav.groups": "Группы",

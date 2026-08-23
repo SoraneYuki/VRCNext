@@ -5,8 +5,8 @@ var totalPages = 10;
 var isLoggedIn = false;
 var loggedInName = '';
 var vrc2faType = 'totp';
-var selectedLanguage = 'en';
-var _setupTr = {};
+let selectedLanguage = 'en';
+let _setupTr = {};
 
 var PAGE_VRCPLUS   = 6;
 var PAGE_SIDEBAR   = 7;
@@ -18,22 +18,22 @@ function t(key, fallback) {
 
 function applySetupTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n');
-        var v = _setupTr[key];
+        const key = el.getAttribute('data-i18n');
+        const v = _setupTr[key];
         if (v) el.textContent = v;
     });
     document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n-html');
-        var v = _setupTr[key];
+        const key = el.getAttribute('data-i18n-html');
+        const v = _setupTr[key];
         if (v) el.innerHTML = v;
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n-placeholder');
-        var v = _setupTr[key];
+        const key = el.getAttribute('data-i18n-placeholder');
+        const v = _setupTr[key];
         if (v) el.placeholder = v;
     });
     // Update nav buttons
-    var nextBtn = document.getElementById('btnNext');
+    const nextBtn = document.getElementById('btnNext');
     if (nextBtn) {
         if (currentPage === totalPages - 1) {
             nextBtn.innerHTML = '<span class="msi" style="font-size:16px;vertical-align:middle;">check_circle</span> ' + t('setup.nav.finish', 'Finish Setup');
@@ -42,7 +42,7 @@ function applySetupTranslations() {
         }
     }
     // Update 2FA modal
-    var tfaMsg = document.getElementById('tfaMsg');
+    const tfaMsg = document.getElementById('tfaMsg');
     if (tfaMsg) {
         tfaMsg.textContent = vrc2faType === 'emailotp'
             ? t('setup.tfa.msg_email', 'Enter the 6-digit code sent to your email.')
@@ -50,14 +50,20 @@ function applySetupTranslations() {
     }
 }
 
-var SETUP_LANGUAGES = [
-    { key: 'en',    flag: '\uD83C\uDDFA\uD83C\uDDF8', label: 'English' },
-    { key: 'de',    flag: '\uD83C\uDDE9\uD83C\uDDEA', label: 'Deutsch' },
-    { key: 'fr',    flag: '\uD83C\uDDEB\uD83C\uDDF7', label: 'Fran\u00E7ais' },
-    { key: 'es',    flag: '\uD83C\uDDEA\uD83C\uDDF8', label: 'Espa\u00F1ol' },
-    { key: 'ja',    flag: '\uD83C\uDDEF\uD83C\uDDF5', label: '\u65E5\u672C\u8A9E' },
-    { key: 'zh-cn', flag: '\uD83C\uDDE8\uD83C\uDDF3', label: '\u7B80\u4F53\u4E2D\u6587' },
-];
+let SETUP_LANGUAGES = [];
+
+function handleSetupLanguages(languages) {
+    if (!Array.isArray(languages) || languages.length === 0) return;
+    SETUP_LANGUAGES = languages.map(language => ({
+        key: language.code,
+        flag: language.flag || '🌐',
+        label: language.name || language.code,
+    }));
+    const selected = SETUP_LANGUAGES.find(language =>
+        language.key.toLowerCase() === String(selectedLanguage).toLowerCase());
+    selectedLanguage = selected?.key || SETUP_LANGUAGES[0].key;
+    renderSetupLangGrid();
+}
 
 // Communication helper
 function sendToCS(obj) {
@@ -70,14 +76,20 @@ function savePrefs(prefs) {
 
 // Language grid
 function renderSetupLangGrid() {
-    var grid = document.getElementById('setupLangGrid');
+    const grid = document.getElementById('setupLangGrid');
     if (!grid) return;
-    grid.innerHTML = SETUP_LANGUAGES.map(function(l) {
-        return '<button class="lang-chip' + (selectedLanguage === l.key ? ' active' : '') + '" onclick="selectSetupLang(\'' + l.key + '\')">'
-            + '<span class="lang-flag">' + l.flag + '</span>'
-            + l.label
-            + '</button>';
-    }).join('');
+    const buttons = SETUP_LANGUAGES.map(language => {
+        const button = document.createElement('button');
+        button.className = `lang-chip${selectedLanguage === language.key ? ' active' : ''}`;
+        button.addEventListener('click', () => selectSetupLang(language.key));
+
+        const flag = document.createElement('span');
+        flag.className = 'lang-flag';
+        flag.textContent = language.flag;
+        button.append(flag, document.createTextNode(language.label));
+        return button;
+    });
+    grid.replaceChildren(...buttons);
 }
 
 function selectSetupLang(key) {
@@ -249,11 +261,16 @@ function esc(s) {
 
 // Message handler (C# to JS)
 function onBackendMessage(e) {
-    var d = e.data;
+    const d = e.data;
     if (!d || !d.type) return;
-    var type = d.type, p = d.payload;
+    const type = d.type;
+    const p = d.payload;
 
     switch (type) {
+        case 'availableLanguages':
+            handleSetupLanguages(p);
+            break;
+
         case 'translationData':
             if (p && p.translations) {
                 _setupTr = p.translations;

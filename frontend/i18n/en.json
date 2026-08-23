@@ -1,4 +1,5 @@
 {
+  "_meta": { "code": "en", "name": "English", "locale": "en-US", "flag": "🇺🇸", "order": 10 },
   "nav.dashboard": "Dashboard",
   "nav.worlds": "Worlds",
   "nav.groups": "Groups",

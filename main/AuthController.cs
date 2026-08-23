@@ -214,6 +214,7 @@ public class AuthController
 
             case "setupReady":
                 _core.SendToJS("setPlatform", new { isLinux = !OperatingSystem.IsWindows() });
+                SendAvailableLanguages();
                 var detectedPath = _core.Settings.VrcPath;
                 if (string.IsNullOrWhiteSpace(detectedPath) || !File.Exists(detectedPath))
                     detectedPath = DetectVrcLaunchExe();
@@ -616,6 +617,7 @@ public class AuthController
     public void HandleReady()
     {
         _readyAt = DateTime.UtcNow;
+        SendAvailableLanguages();
         SendTranslation(_core.Settings.Language);
         _core.SendToJS("loadSettings", _core.Settings);
         _core.SendToJS("dateTimeFormat", new
@@ -2268,22 +2270,65 @@ public class AuthController
         }
     }
 
+    private static string I18nDirectory =>
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "i18n");
+
+    private static List<object> GetAvailableLanguages()
+    {
+        var languages = new List<(string Code, string Name, string Locale, string Flag, int Order)>();
+        if (!Directory.Exists(I18nDirectory)) return [];
+
+        foreach (var path in Directory.EnumerateFiles(I18nDirectory, "*.json"))
+        {
+            try
+            {
+                var fileCode = Path.GetFileNameWithoutExtension(path);
+                var json = JObject.Parse(File.ReadAllText(path));
+                var meta = json["_meta"] as JObject;
+                var code = meta?["code"]?.ToString() ?? fileCode;
+                if (!string.Equals(code, fileCode, StringComparison.OrdinalIgnoreCase)) continue;
+
+                languages.Add((
+                    fileCode,
+                    meta?["name"]?.ToString() ?? fileCode,
+                    meta?["locale"]?.ToString() ?? fileCode,
+                    meta?["flag"]?.ToString() ?? "🌐",
+                    meta?["order"]?.Value<int?>() ?? 999
+                ));
+            }
+            catch { }
+        }
+
+        return languages
+            .OrderBy(language => language.Order)
+            .ThenBy(language => language.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Select(language => (object)new
+            {
+                code = language.Code,
+                name = language.Name,
+                locale = language.Locale,
+                flag = language.Flag,
+                order = language.Order,
+            })
+            .ToList();
+    }
+
     private static string NormalizeLanguage(string? language)
     {
-        return (language ?? string.Empty).Trim().ToLowerInvariant() switch
+        var requested = (language ?? string.Empty).Trim().Replace('_', '-');
+        if (Directory.Exists(I18nDirectory))
         {
-            "de" => "de",
-            "es" => "es",
-            "fr" => "fr",
-            "ja" => "ja",
-            "zh-cn" => "zh-CN",
-            "zh_cn" => "zh-CN",
-            "zh-tw" => "zh-TW",
-            "zh_tw" => "zh-TW",
-            "ru"    => "ru",
-            "ko"  => "ko",
-            _ => "en"
-        };
+            var match = Directory.EnumerateFiles(I18nDirectory, "*.json")
+                .Select(Path.GetFileNameWithoutExtension)
+                .FirstOrDefault(code => string.Equals(code, requested, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrEmpty(match)) return match;
+        }
+        return "en";
+    }
+
+    private void SendAvailableLanguages()
+    {
+        _core.SendToJS("availableLanguages", GetAvailableLanguages());
     }
 
     private void SendTranslation(string? requestedLanguage)
@@ -2291,15 +2336,37 @@ public class AuthController
         try
         {
             var language = NormalizeLanguage(requestedLanguage);
-            var i18nDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "i18n");
+            var i18nDir = I18nDirectory;
             var path = Path.Combine(i18nDir, $"{language}.json");
             var fallbackPath = Path.Combine(i18nDir, "en.json");
-            var json = File.Exists(path)
-                ? File.ReadAllText(path)
-                : File.Exists(fallbackPath)
-                    ? File.ReadAllText(fallbackPath)
-                    : "{}";
-            var translations = JObject.Parse(json);
+
+            var translations = File.Exists(fallbackPath)
+                ? JObject.Parse(File.ReadAllText(fallbackPath))
+                : new JObject();
+            foreach (var property in translations.Properties()
+                         .Where(property => property.Name.StartsWith('_')).ToList())
+                property.Remove();
+
+            if (!string.Equals(language, "en", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var localized = JObject.Parse(File.ReadAllText(path));
+                    foreach (var property in localized.Properties())
+                    {
+                        if (property.Name.StartsWith('_')) continue;
+                        if (property.Value.Type != JTokenType.String) continue;
+                        if (string.IsNullOrWhiteSpace(property.Value.Value<string>())) continue;
+                        translations[property.Name] = property.Value.DeepClone();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    language = "en";
+                    _core.SendToJS("log", new { msg = $"Translation fallback to English: {ex.Message}", color = "warn" });
+                }
+            }
+
             _core.SendToJS("translationData", new { language, translations });
         }
         catch (Exception ex)

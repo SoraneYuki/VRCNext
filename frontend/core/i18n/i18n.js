@@ -1,21 +1,23 @@
 ﻿let currentLanguage = 'en';
 let i18nBundle = {};
 
-const UI_LANGUAGES = {
-    en: { label: 'English', flag: '\uD83C\uDDFA\uD83C\uDDF8', locale: 'en-US' },
-    de: { label: 'Deutsch', flag: '\uD83C\uDDE9\uD83C\uDDEA', locale: 'de-DE' },
-    es: { label: 'Espa\u00F1ol', flag: '\uD83C\uDDEA\uD83C\uDDF8', locale: 'es-ES' },
-    fr: { label: 'Fran\u00E7ais', flag: '\uD83C\uDDEB\uD83C\uDDF7', locale: 'fr-FR' },
-    ja: { label: '\u65E5\u672C\u8A9E', flag: '\uD83C\uDDEF\uD83C\uDDF5', locale: 'ja-JP' },
-    'zh-cn': { label: '\u7B80\u4F53\u4E2D\u6587', flag: '\uD83C\uDDE8\uD83C\uDDF3', locale: 'zh-CN' },
-    'zh-tw': { label: '\u7E41\u9AD4\u4E2D\u6587(\u53F0\u7063)', flag: '\uD83C\uDDF9\uD83C\uDDFC', locale: 'zh-TW' },
-    ru: { label: '\u0420\u0443\u0441\u0441\u043A\u0438\u0439', flag: '\uD83C\uDDF7\uD83C\uDDFA', locale: 'ru-RU' },
-    ko: { label: '\uD55C\uAD6D\uC5B4', flag: '\uD83C\uDDF0\uD83C\uDDF7', locale: 'ko-KR' }
-};
+let UI_LANGUAGES = {};
 
 function normalizeUiLanguage(language) {
     const normalized = String(language || '').trim().toLowerCase();
-    return UI_LANGUAGES[normalized] ? normalized : 'en';
+    return Object.keys(UI_LANGUAGES).find(key => key.toLowerCase() === normalized) || 'en';
+}
+
+function handleAvailableLanguages(languages) {
+    if (!Array.isArray(languages) || languages.length === 0) return;
+    UI_LANGUAGES = Object.fromEntries(languages.map(language => [language.code, {
+        label: language.name || language.code,
+        locale: language.locale || language.code,
+        flag: language.flag || '🌐',
+        order: language.order ?? 999,
+    }]));
+    currentLanguage = normalizeUiLanguage(currentLanguage);
+    renderLanguageChips();
 }
 
 function t(key, fallback = '') {
@@ -123,9 +125,19 @@ function applyTranslationRerenders() {
 function renderLanguageChips() {
     const el = document.getElementById('languageGrid');
     if (!el) return;
-    el.innerHTML = Object.entries(UI_LANGUAGES).map(([key, meta]) =>
-        `<button class="theme-chip${currentLanguage === key ? ' active' : ''}" onclick="selectLanguage('${key}')"><span class="theme-flag" aria-hidden="true">${meta.flag}</span>${t(`language.${key}`, meta.label)}</button>`
-    ).join('');
+    const buttons = Object.entries(UI_LANGUAGES).map(([key, meta]) => {
+        const button = document.createElement('button');
+        button.className = `theme-chip${currentLanguage === key ? ' active' : ''}`;
+        button.addEventListener('click', () => selectLanguage(key));
+
+        const flag = document.createElement('span');
+        flag.className = 'theme-flag';
+        flag.setAttribute('aria-hidden', 'true');
+        flag.textContent = meta.flag;
+        button.append(flag, document.createTextNode(meta.label));
+        return button;
+    });
+    el.replaceChildren(...buttons);
 }
 
 function selectLanguage(language) {
