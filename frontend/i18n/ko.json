@@ -1,4 +1,7 @@
 {
+  "_language": "Korean",
+  "_code": "ko",
+  "_author": "roshikey",
   "nav.dashboard": "대시보드",
   "nav.worlds": "월드",
   "nav.groups": "그룹",
@@ -1392,7 +1395,7 @@
   "dashboard.welcome.greeting.33": "나데나데 무더기에 파묻혀봐요, {name}님!",
   "dashboard.welcome.greeting.34": "귀여움을 뿅뿅 내뿜을 시간이에요, {name}님!",
   "dashboard.welcome.greeting.35": "주의를 끌 시간이에요, {name}님!",
-  "dashboard.welcome.greeting.36": "누군가가 가장 좋아하는 미소녀가 될 준비 되셨나요, {name}님?",
+  "dashboard.welcome.greeting.36": "누군가의 미소녀가 될 준비 되셨나요, {name}님?",
   "dashboard.welcome.greeting.37": "관심 끌기 전문가가 오신다, {name}님!",
   "dashboard.news.full_article": "전체 아티클",
   "dashboard.news.loading_article": "아티클 로딩 중...",
@@ -3394,4 +3397,5 @@
   "keybinds.modal.tile_corner": "창을 모서리로 스냅",
   "keybinds.modal.tile_min": "최소화",
   "keybinds.modal.tile_max": "최대화",
+  "_generated": "2026-08-23T08:38:58.8226076Z"
 }
