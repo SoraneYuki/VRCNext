@@ -1635,6 +1635,8 @@ function onWorldDeleteResult(data) {
     if (data.ok) {
         showToast(true, t('worlds.detail.toast.deleted', 'World deleted'));
         closeWorldSearchDetail();
+        if (typeof _myWorldsData !== 'undefined') _myWorldsData = _myWorldsData.filter(w => w.id !== data.worldId);
+        if (typeof renderWorldsListView === 'function') renderWorldsListView();
         sendToCS({ action: 'vrcGetMyWorlds' });
     } else {
         showToast(false, data.error || t('worlds.detail.toast.delete_failed', 'Delete failed'));

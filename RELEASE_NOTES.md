@@ -1,4 +1,4 @@
-**2026.44.8**
+**2026.44.9**
 
 **FrameShot**
 * FrameShot now scans the framed area for **QR codes** while you hold the frame. When one is found the
@@ -90,3 +90,4 @@ and the sort dropdown now sit in one row.
 * **Close with VRChat** no longer closes copies of a startup app that you started manually yourself.
 * Tool auto-start no longer depends on the **Start always with VRChat** setting, which only applies to external startup apps as described.
 * Fixed edit pen position on own profiles.
+* Fixed an bug that caused FFC cache to not refresh avatars that were deleted/added to the my avatar section.

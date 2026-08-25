@@ -517,7 +517,10 @@ function onAvatarDeleteResult(data) {
     if (data.ok) {
         showToast(true, t('avatars.detail.toast.deleted', 'Avatar deleted'));
         closeAvatarDetail();
-        sendToCS({ action: 'vrcGetAvatars', filter: 'own' });
+        if (typeof avatarsData !== 'undefined') avatarsData = avatarsData.filter(a => a.id !== data.avatarId);
+        if (typeof avatarFavData !== 'undefined') avatarFavData = avatarFavData.filter(a => a.id !== data.avatarId);
+        if (typeof renderAvatarsListView === 'function') renderAvatarsListView();
+        else if (typeof filterOwnAvatars === 'function') filterOwnAvatars();
     } else {
         showToast(false, data.error || t('avatars.detail.toast.delete_failed', 'Delete failed'));
     }

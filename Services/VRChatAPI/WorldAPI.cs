@@ -246,7 +246,14 @@ public class WorldAPI
         {
             var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/worlds?user=me&releaseStatus=all&n=100&sort=updated");
             ctx.Log($"GetMyWorlds: {(int)resp.StatusCode}");
-            if (resp.IsSuccessStatusCode) return JArray.Parse(await resp.Content.ReadAsStringAsync());
+            if (resp.IsSuccessStatusCode)
+            {
+                var arr = JArray.Parse(await resp.Content.ReadAsStringAsync());
+                var visible = new JArray();
+                foreach (var w in arr.OfType<JObject>())
+                    if (!AvatarsAPI.IsHidden(w)) visible.Add(w);
+                return visible;
+            }
         }
         catch (Exception ex) { ctx.Log($"GetMyWorlds exception: {ex.Message}"); }
         return new JArray();

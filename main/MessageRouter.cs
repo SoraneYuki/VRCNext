@@ -2003,7 +2003,12 @@ public partial class AppShell
                         _ = Task.Run(async () =>
                         {
                             var (ok, error) = await _core.Avatars.DeleteAvatarAsync(delAvId);
-                            if (ok) ModalCacheHelper.Invalidate(delAvId);
+                            if (ok)
+                            {
+                                ModalCacheHelper.Invalidate(delAvId);
+                                RemoveFromCachedList(CacheHandler.KeyAvatars, "avatars", delAvId);
+                                await _authCtrl.FetchAndCacheAvatarsAsync();
+                            }
                             Invoke(() => SendToJS("vrcAvatarDeleteResult", new { ok, error, avatarId = delAvId }));
                         });
                     break;
@@ -3937,6 +3942,27 @@ public partial class AppShell
             if (c.HasIos)   compat.Add("ios");
             a["compatibility"] = compat;
         }
+    }
+
+    private void RemoveFromCachedList(string cacheKey, string arrayProp, string entityId)
+    {
+        try
+        {
+            if (!_settings.FfcEnabled) return;
+            if (_cache.LoadRaw(cacheKey) is not JObject root) return;
+            if (root[arrayProp] is not JArray arr) return;
+            var kept = new JArray();
+            bool removed = false;
+            foreach (var item in arr.OfType<JObject>())
+            {
+                if (item["id"]?.ToString() == entityId) { removed = true; continue; }
+                kept.Add(item);
+            }
+            if (!removed) return;
+            root[arrayProp] = kept;
+            _cache.Save(cacheKey, root);
+        }
+        catch { }
     }
 
     internal static void EnrichWorldDatesFromCache(UnifiedTimeEngine engine, JObject w, string worldId)

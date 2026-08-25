@@ -70,7 +70,7 @@ public class AvatarsAPI(VRChatApiService ctx)
                 if (!resp.IsSuccessStatusCode) break;
                 var arr = JArray.Parse(await resp.Content.ReadAsStringAsync());
                 if (arr.Count == 0) break;
-                all.AddRange(arr.Cast<JObject>());
+                all.AddRange(arr.Cast<JObject>().Where(a => !IsHidden(a)));
                 if (arr.Count < 50) break;
                 await Task.Delay(300);
             }
@@ -79,6 +79,9 @@ public class AvatarsAPI(VRChatApiService ctx)
         catch (Exception ex) { ctx.Log($"GetOwnAvatars exception: {ex.Message}"); }
         return all;
     }
+
+    internal static bool IsHidden(JObject item)
+        => string.Equals(item?["releaseStatus"]?.ToString(), "hidden", StringComparison.OrdinalIgnoreCase);
 
     public async Task<List<JObject>> GetFavoriteAvatarsByGroupAsync(string groupTag, int max = 100)
     {
