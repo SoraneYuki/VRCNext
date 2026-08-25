@@ -267,6 +267,12 @@ function _plGridId() {
     }[peopleFilter] || '';
 }
 
+function _plKeepScroll(gridId, render) {
+    const el = document.getElementById(gridId);
+    if (!el || !_peopleListMode() || typeof lvKeepScroll !== 'function') { render(); return; }
+    lvKeepScroll(el, render);
+}
+
 function _plLiveRerender() {
     const tab = document.getElementById('tab3');
     if (!tab || !tab.classList.contains('active')) return;
@@ -692,7 +698,7 @@ function filterAllFriendsIfLive() {
         if (!t3 || !t3.classList.contains('active')) return;
         if (peopleFilter !== 'all' || _peopleAllPage !== 0) return;
         if ((document.getElementById('allFriendSearchInput')?.value || '').trim()) return;
-        filterAllFriends();
+        _plKeepScroll('allFriendsGrid', filterAllFriends);
     }, ALL_FRIENDS_LIVE_MS);
 }
 
@@ -1052,7 +1058,7 @@ function renderFavFriendCard(f) {
 let _favFriendsDirty = false;
 function filterFavFriendsIfVisible() {
     const tab = document.getElementById('tab3');
-    if (tab && tab.classList.contains('active')) filterFavFriends();
+    if (tab && tab.classList.contains('active')) _plKeepScroll('favFriendsGrid', filterFavFriends);
     else _favFriendsDirty = true;
 }
 

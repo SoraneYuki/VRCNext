@@ -99,6 +99,10 @@ now found anywhere in the clipboard, so an API URL like `.../api/1/users/usr_xxx
 in the middle of a sentence, or a bare ID all open the right thing.
 * Direct Access can open **events** now, from a link carrying both a group and a calendar ID, and it
 recognises instance links in the plain `wrld_xxx:12345~region(eu)` form, not just as a launch URL.
+* In the **People** tab list view, any live update (a friend coming online, a profile detail arriving)
+threw the horizontal scroll position back to the left, so scrolling right to read the far columns was
+pointless. Favorites and All Friends keep their scroll position on live updates now, the same way the
+Instance list already did.
 * Edit mode worked in Large Grid and Compact Grid only. Turning it on in **List View** silently threw you
 back to grid. Selection now works in the list too, with a checkmark in the first column and the row
 highlighted, the same way the timeline does it. Applies to Worlds, Avatars, Groups and People.
