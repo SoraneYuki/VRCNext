@@ -83,6 +83,50 @@ public class NotificationsController
                 break;
             }
 
+            case "vrcGetMessageTemplates":
+            {
+                var tplPool = NormalizeMessagePool(msg["pool"]?.ToString());
+                _ = Task.Run(async () =>
+                {
+                    var uid = _core.VrcApi.CurrentUserId;
+                    if (string.IsNullOrEmpty(uid))
+                    {
+                        _core.SendToJS("vrcMessageTemplates", new { pool = tplPool, messages = new JArray(), error = "Not logged in" });
+                        return;
+                    }
+                    var msgs = await _core.Invite.GetInviteMessagesAsync(uid, tplPool);
+                    _core.SendToJS("vrcMessageTemplates", new
+                    {
+                        pool = tplPool,
+                        messages = msgs ?? new JArray(),
+                        error = msgs == null ? "Could not load templates" : "",
+                    });
+                });
+                break;
+            }
+
+            case "vrcUpdateMessageTemplate":
+            {
+                var tplPool = NormalizeMessagePool(msg["pool"]?.ToString());
+                var tplSlot = msg["slot"]?.Value<int>() ?? -1;
+                var tplText = msg["message"]?.ToString() ?? "";
+                if (tplSlot < 0 || string.IsNullOrWhiteSpace(tplText))
+                {
+                    _core.SendToJS("vrcMessageTemplateResult", new { pool = tplPool, slot = tplSlot, ok = false, cooldown = 0 });
+                    break;
+                }
+                _ = Task.Run(async () =>
+                {
+                    var uid = _core.VrcApi.CurrentUserId;
+                    if (string.IsNullOrEmpty(uid)) return;
+                    var (ok, arr, cooldown) = await _core.Invite.UpdateInviteMessageAsync(uid, tplSlot, tplText, tplPool);
+                    _core.SendToJS("vrcMessageTemplateResult", new { pool = tplPool, slot = tplSlot, ok, cooldown });
+                    if (ok && arr != null)
+                        _core.SendToJS("vrcMessageTemplates", new { pool = tplPool, messages = arr, error = "" });
+                });
+                break;
+            }
+
             case "vrcUpdateRespondMessage":
             {
                 var notifType = msg["notifType"]?.ToString() ?? "invite";
@@ -947,4 +991,15 @@ public class NotificationsController
 
     // Photino compatibility shim
     private static void Invoke(Action action) => action();
+
+    private static string NormalizeMessagePool(string? pool)
+    {
+        return pool switch
+        {
+            "response"        => "response",
+            "request"         => "request",
+            "requestResponse" => "requestResponse",
+            _                 => "message",
+        };
+    }
 }

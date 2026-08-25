@@ -217,3 +217,140 @@ function vrcLaSave() {
     document.getElementById('modalVrcLaunchOptions').style.display = 'none';
 }
 
+/* === Message Templates === */
+
+const MT_POOLS = ['message', 'response', 'request', 'requestResponse'];
+const MT_TAB_IDS = {
+    message: 'mtTabMessage',
+    response: 'mtTabResponse',
+    request: 'mtTabRequest',
+    requestResponse: 'mtTabRequestResponse',
+};
+
+let _mtPool = 'message';
+let _mtCache = {};
+let _mtEditSlot = -1;
+let _mtSavingSlot = -1;
+
+function openMessageTemplatesModal() {
+    const overlay = document.getElementById('modalMessageTemplates');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    _mtEditSlot = -1;
+    mtSetPool(_mtPool);
+}
+
+function closeMessageTemplatesModal() {
+    const overlay = document.getElementById('modalMessageTemplates');
+    if (overlay) overlay.style.display = 'none';
+    _mtEditSlot = -1;
+}
+
+function mtSetPool(pool) {
+    if (!MT_POOLS.includes(pool)) pool = 'message';
+    _mtPool = pool;
+    _mtEditSlot = -1;
+    MT_POOLS.forEach(p => {
+        document.getElementById(MT_TAB_IDS[p])?.classList.toggle('active', p === pool);
+    });
+    if (_mtCache[pool]) mtRender();
+    else mtLoad(pool);
+}
+
+function mtLoad(pool, force) {
+    pool = pool || _mtPool;
+    if (force) delete _mtCache[pool];
+    const list = document.getElementById('mtList');
+    if (list) list.innerHTML = `<div class="mt-empty">${t('msg_tpl.loading', 'Loading templates...')}</div>`;
+    sendToCS({ action: 'vrcGetMessageTemplates', pool });
+}
+
+function onMessageTemplates(payload) {
+    const pool = payload?.pool || 'message';
+    _mtCache[pool] = payload.messages || [];
+    if (payload.error) showToast(false, payload.error);
+    if (pool === _mtPool) mtRender();
+}
+
+function onMessageTemplateResult(payload) {
+    _mtSavingSlot = -1;
+    if (payload?.ok) {
+        showToast(true, t('msg_tpl.saved', 'Template saved'));
+        _mtEditSlot = -1;
+        return;
+    }
+    const cooldown = payload?.cooldown ?? 0;
+    showToast(false, cooldown > 0
+        ? tf('msg_tpl.cooldown_error', { minutes: cooldown }, 'Slot is on cooldown for {minutes} more minutes')
+        : t('msg_tpl.save_failed', 'Could not save template'));
+    mtRender();
+}
+
+function mtRender() {
+    const list = document.getElementById('mtList');
+    if (!list) return;
+    const rows = (_mtCache[_mtPool] || []).slice().sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0));
+
+    if (!rows.length) {
+        list.innerHTML = `<div class="mt-empty">${t('msg_tpl.empty', 'No templates found.')}</div>`;
+        return;
+    }
+
+    list.innerHTML = rows.map(row => {
+        const slot = row.slot ?? 0;
+        const text = row.message || '';
+        const cd = row.remainingCooldownMinutes ?? 0;
+        const locked = cd > 0 || row.canBeUpdated === false;
+
+        if (slot === _mtEditSlot) {
+            return `<div class="mt-row mt-row-edit">
+                <div class="mt-slot">${slot}</div>
+                <div class="mt-body">
+                    <input type="text" id="mtInput" class="vrcn-edit-field" maxlength="64" value="${esc(text)}"
+                        onkeydown="if(event.key==='Enter'){mtSave(${slot});}else if(event.key==='Escape'){mtCancelEdit();}">
+                    <div class="myp-edit-actions">
+                        <button class="vrcn-button" onclick="mtCancelEdit()">${esc(t('common.cancel', 'Cancel'))}</button>
+                        <button class="vrcn-button vrcn-btn-primary" onclick="mtSave(${slot})">${esc(t('common.save', 'Save'))}</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        const cdBadge = cd > 0
+            ? `<span class="vrcn-badge mt-cd"><span class="msi" style="font-size:11px;">schedule</span> ${tf('msg_tpl.cooldown', { minutes: cd }, '{minutes}m')}</span>`
+            : '';
+        const editBtn = locked
+            ? `<button class="myp-edit-btn" disabled title="${esc(t('msg_tpl.locked', 'On cooldown'))}"><span class="msi" style="font-size:14px;">lock</span></button>`
+            : `<button class="myp-edit-btn" onclick="mtStartEdit(${slot})" title="${esc(t('common.edit', 'Edit'))}"><span class="msi" style="font-size:14px;">edit</span></button>`;
+
+        return `<div class="mt-row${locked ? ' mt-row-locked' : ''}">
+            <div class="mt-slot">${slot}</div>
+            <div class="mt-body">
+                <div class="mt-text">${text ? esc(text) : `<span class="mt-text-empty">${esc(t('msg_tpl.slot_empty', 'Empty slot'))}</span>`}</div>
+            </div>
+            ${cdBadge}
+            ${editBtn}
+        </div>`;
+    }).join('');
+}
+
+function mtStartEdit(slot) {
+    _mtEditSlot = slot;
+    mtRender();
+    const input = document.getElementById('mtInput');
+    if (input) { input.focus(); input.select(); }
+}
+
+function mtCancelEdit() {
+    _mtEditSlot = -1;
+    mtRender();
+}
+
+function mtSave(slot) {
+    const input = document.getElementById('mtInput');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) { showToast(false, t('msg_tpl.empty_error', 'Message cannot be empty')); return; }
+    _mtSavingSlot = slot;
+    sendToCS({ action: 'vrcUpdateMessageTemplate', pool: _mtPool, slot, message: text });
+}

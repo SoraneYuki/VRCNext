@@ -1193,6 +1193,12 @@ case 'vrcNews':
                 break;
             case 'invUploadResult': handleInvUploadResult(payload); break;
             case 'invPrintUploadResult': handleInvPrintUploadResult(payload); break;
+            case 'vrcMessageTemplates':
+                if (typeof onMessageTemplates === 'function') onMessageTemplates(payload);
+                break;
+            case 'vrcMessageTemplateResult':
+                if (typeof onMessageTemplateResult === 'function') onMessageTemplateResult(payload);
+                break;
             case 'invDeleteResult': handleInvDeleteResult(payload); break;
             case 'invPrintDeleteResult': handleInvPrintDeleteResult(payload); break;
             case 'invInventory': handleInvInventoryResult(payload); break;

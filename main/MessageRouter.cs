@@ -3146,6 +3146,8 @@ public partial class AppShell
                 case "vrcHideNotification":
                 case "vrcGetRespondMessages":
                 case "vrcUpdateRespondMessage":
+                case "vrcGetMessageTemplates":
+                case "vrcUpdateMessageTemplate":
                 case "vrcRespondToNotification":
                 case "vrcRespondToNotificationWithPhoto":
                     await _notifications.HandleMessage(action, msg);

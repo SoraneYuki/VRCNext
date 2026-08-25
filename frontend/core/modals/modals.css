@@ -532,3 +532,37 @@ html.modal-refreshing .fd-refresh-spin { animation: modal-refresh-spin 0.8s line
 .vrc-cfg-path .vrcn-button { flex-shrink: 0; }
 .vrc-cfg-field .sf-toggle-row { height: 100%; align-items: center; }
 
+.mt-list { display: flex; flex-direction: column; gap: 6px; max-height: 420px; overflow-y: auto; }
+.mt-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--brd);
+    border-radius: 8px;
+}
+.mt-row-locked { opacity: .75; }
+.mt-row-edit { align-items: flex-start; }
+.mt-slot {
+    width: 26px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: calc(11px + var(--fs-off, 0px));
+    font-weight: 600;
+    color: var(--tx3);
+}
+.mt-body { flex: 1; min-width: 0; }
+.mt-text {
+    font-size: calc(12px + var(--fs-off, 0px));
+    color: var(--tx1);
+    word-break: break-word;
+}
+.mt-text-empty { color: var(--tx3); font-style: italic; }
+.mt-cd { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
+.mt-empty {
+    padding: 24px 0;
+    text-align: center;
+    font-size: calc(12px + var(--fs-off, 0px));
+    color: var(--tx3);
+}

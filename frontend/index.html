@@ -187,6 +187,7 @@
                                 <div class="tb-dd-sub-drop">
                                     <button class="tb-dd-item" data-keep-modal onclick="openVrcConfigModal()"><span class="msi">tune</span><span data-i18n="tb.vrchat.config">VRChat Config</span></button>
                                     <button class="tb-dd-item" data-keep-modal onclick="openVrcLaunchOptionsModal()"><span class="msi">terminal</span><span data-i18n="tb.vrchat.launch_options">VRChat Launch Options</span></button>
+                                    <button class="tb-dd-item" data-keep-modal onclick="openMessageTemplatesModal()"><span class="msi">edit_note</span><span data-i18n="tb.vrchat.message_templates">Message Templates</span></button>
                                 </div>
                             </div>
                             <div class="tb-dd-submenu">
@@ -632,6 +633,7 @@
 
     <!-- VRChat Launch Options Modal -->
     <div class="modal-overlay" id="modalVrcLaunchOptions" style="display:none;" onclick="if(event.target===this)this.style.display='none'"></div>
+    <div class="modal-overlay" id="modalMessageTemplates" style="display:none;" onclick="if(event.target===this)closeMessageTemplatesModal()"></div>
 
     <!-- Notification Toast (top-right, action feedback) -->
     <div id="notifToastArea" class="notif-toast-area"></div>
@@ -771,6 +773,7 @@
             modalFriendPicker:  'core/modals/friend-picker/friend-picker.html',
             modalVrcConfig:        'core/modals/vrc-tools-modal/vrc-config-modal.html',
             modalVrcLaunchOptions: 'core/modals/vrc-tools-modal/vrc-launch-options-modal.html',
+            modalMessageTemplates: 'core/modals/vrc-tools-modal/message-templates-modal.html',
             dashLayoutModal:    'modules/dashboard/dash-layout.html',
             avFavPickerPanel:   'modules/avatars/fav-picker.html',
             themeEditorPanel:   'modules/settings/theme-editor.html',
