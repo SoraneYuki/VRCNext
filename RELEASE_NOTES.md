@@ -93,6 +93,11 @@ and the sort dropdown now sit in one row.
 **Design**
 * Small color adjustments on all themes.
 
+**Inventory**
+* #65 You can **upload prints** now. The Prints tab got an Upload button that runs through the same
+picker and preview as the other inventory uploads. If you are in a world at the time, the print is
+tagged with that world, and the capture time is set on upload.
+
 **Fixed Bugs**
 * Direct Access (Ctrl+D and the context menu) only recognised a handful of link shapes. A VRChat ID is
 now found anywhere in the clipboard, so an API URL like `.../api/1/users/usr_xxx/groups`, an ID pasted

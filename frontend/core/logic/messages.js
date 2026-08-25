@@ -1192,6 +1192,7 @@ case 'vrcNews':
                 else renderInvFetchError(payload.error);
                 break;
             case 'invUploadResult': handleInvUploadResult(payload); break;
+            case 'invPrintUploadResult': handleInvPrintUploadResult(payload); break;
             case 'invDeleteResult': handleInvDeleteResult(payload); break;
             case 'invPrintDeleteResult': handleInvPrintDeleteResult(payload); break;
             case 'invInventory': handleInvInventoryResult(payload); break;

@@ -3384,6 +3384,39 @@ public partial class AppShell
                     break;
                 }
 
+                case "invUploadPrint":
+                {
+                    var printData      = msg["data"]?.ToString()      ?? "";
+                    var printNote      = msg["note"]?.ToString()      ?? "";
+                    var printWorldId   = msg["worldId"]?.ToString()   ?? "";
+                    var printWorldName = msg["worldName"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(printData))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var raw = printData.Contains(",") ? printData.Split(',')[1] : printData;
+                                var bytes = Convert.FromBase64String(raw);
+                                var (ok, print, error) = await _core.Inventory.UploadPrintAsync(
+                                    bytes, printNote, DateTime.UtcNow, printWorldId, printWorldName);
+                                if (ok) _cache.Delete(CacheHandler.KeyInventory);
+                                Invoke(() => SendToJS("invPrintUploadResult", new
+                                {
+                                    success = ok,
+                                    error,
+                                    printId = print?["id"]?.ToString() ?? "",
+                                }));
+                            }
+                            catch (Exception ex)
+                            {
+                                Invoke(() => SendToJS("invPrintUploadResult", new { success = false, error = ex.Message, printId = "" }));
+                            }
+                        });
+                    }
+                    break;
+                }
+
                 case "invGetPrints":
                 {
                     var printUserId = _vrcApi.CurrentUserId;

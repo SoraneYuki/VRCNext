@@ -39,7 +39,7 @@ const INV_TABS = {
     },
     prints: {
         tag: null,
-        canUpload: false,
+        canUpload: true,
         icon: 'print',
         get label() { return t('inventory.tabs.prints', 'Prints'); },
         get hint() { return t('inventory.hint.prints', 'In-game prints from VRChat'); }
@@ -487,4 +487,16 @@ function formatFileSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function handleInvPrintUploadResult(payload) {
+    if (payload.success) {
+        if (typeof closeInvUploadModal === 'function') closeInvUploadModal();
+        showToast(true, t('inventory.upload.print_done', 'Print uploaded'));
+        invPrintsCache = [];
+        if (activeInvTab === 'prints') refreshInventory(true);
+        return;
+    }
+    if (typeof iuHandleUploadDone === 'function') iuHandleUploadDone(false, null);
+    showToast(false, payload.error || t('inventory.upload.print_failed', 'Print upload failed'));
 }
