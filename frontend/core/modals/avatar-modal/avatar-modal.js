@@ -231,6 +231,7 @@ function renderAvatarDetail(a) {
         { icon: _avIsFav ? 'favorite' : 'favorite_border', iconClass: _avIsFav ? 'fd-action-fav' : '', title: avatarFavoriteActionLabel(_avIsFav), onclick: `openAvFavPicker('${aid}',this)` },
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetAvatarDetail',avatarId:'${aid}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/avatar/${esc(a.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
+        isOwn ? { icon: 'delete', title: t('avatars.detail.actions.delete', 'Delete Avatar'), onclick: `confirmDeleteAvatar('${aid}','${jsq(a.name || '')}')`, dangerSolid: true } : null,
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeAvatarDetail()` },
     ]);
     const _avNameAuthor = `<div id="avfNameView" style="display:flex;align-items:center;gap:6px;">
@@ -498,4 +499,26 @@ function _avWmState(s) {
     _avGalleryImages = s.galleryImages ?? [];
     _avSavingField   = s.savingField   ?? '';
     _avVisState      = s.visState      ?? 'public';
+}
+
+function confirmDeleteAvatar(avatarId, avatarName) {
+    vrcnConfirmDelete({
+        id: 'avatarDeleteModal',
+        title: t('avatars.detail.actions.delete', 'Delete Avatar'),
+        icon: 'delete',
+        message: tf('avatars.detail.delete_confirm', { name: avatarName || avatarId },
+            'Delete "{name}"? The avatar is hidden and its files are removed. This cannot be undone.'),
+        confirmLabel: t('common.delete', 'Delete'),
+        onConfirm: () => sendToCS({ action: 'vrcDeleteAvatar', avatarId }),
+    });
+}
+
+function onAvatarDeleteResult(data) {
+    if (data.ok) {
+        showToast(true, t('avatars.detail.toast.deleted', 'Avatar deleted'));
+        closeAvatarDetail();
+        sendToCS({ action: 'vrcGetAvatars', filter: 'own' });
+    } else {
+        showToast(false, data.error || t('avatars.detail.toast.delete_failed', 'Delete failed'));
+    }
 }

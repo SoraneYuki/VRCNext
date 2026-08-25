@@ -1,4 +1,4 @@
-**2026.44.6**
+**2026.44.8**
 
 **FrameShot**
 * FrameShot now scans the framed area for **QR codes** while you hold the frame. When one is found the
@@ -27,6 +27,12 @@ language, and several languages (German among them) define it as empty, which si
 actions in a bar at the bottom of the tab.
 * Added **Bulk Leave**: leave every selected group at once. A confirmation dialog lists the groups
 first, since leaving cannot be undone.
+
+**World, Avatar and Group Modals**
+* Added **Delete World**, **Delete Avatar** and **Delete Group**. The action sits in the modal header
+and its icon is shown in red so it never gets mixed up with the ones next to it.
+* Delete Group is only offered to the group owner, the other two only for content you uploaded yourself.
+* Every one of them asks first, in a dialog that names what is about to be deleted.
 
 **Worlds Tab**
 * Your own worlds can be edited straight from the world modal, the same way avatars already work:

@@ -1996,6 +1996,45 @@ public partial class AppShell
                     break;
                 }
 
+                case "vrcDeleteAvatar":
+                {
+                    var delAvId = msg["avatarId"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(delAvId))
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, error) = await _core.Avatars.DeleteAvatarAsync(delAvId);
+                            if (ok) ModalCacheHelper.Invalidate(delAvId);
+                            Invoke(() => SendToJS("vrcAvatarDeleteResult", new { ok, error, avatarId = delAvId }));
+                        });
+                    break;
+                }
+
+                case "vrcDeleteWorld":
+                {
+                    var delWId = msg["worldId"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(delWId))
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, error) = await _core.World.DeleteWorldAsync(delWId);
+                            if (ok) ModalCacheHelper.Invalidate(delWId);
+                            Invoke(() => SendToJS("vrcWorldDeleteResult", new { ok, error, worldId = delWId }));
+                        });
+                    break;
+                }
+
+                case "vrcDeleteGroup":
+                {
+                    var delGId = msg["groupId"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(delGId))
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, error) = await _core.Groups.DeleteGroupAsync(delGId);
+                            if (ok) ModalCacheHelper.Invalidate(delGId);
+                            Invoke(() => SendToJS("vrcGroupDeleteResult", new { ok, error, groupId = delGId }));
+                        });
+                    break;
+                }
+
                 case "vrcUpdateWorld":
                 {
                     var wuId   = msg["worldId"]?.ToString()               ?? "";

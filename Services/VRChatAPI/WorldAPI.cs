@@ -417,4 +417,18 @@ public class WorldAPI
     public Task<(bool ok, string imageUrl, string error)> UploadWorldMainImageAsync(
         string worldId, string existingImageUrl, byte[] imageBytes)
         => FilesAPI.ReplaceEntityImageAsync(ctx, "worlds", worldId, existingImageUrl, imageBytes);
+
+    public async Task<(bool ok, string error)> DeleteWorldAsync(string worldId)
+    {
+        if (!ctx.IsLoggedIn) return (false, "Not logged in");
+        try
+        {
+            var resp = await ctx._http.DeleteAsync($"{VRChatApiService.BASE}/worlds/{worldId}");
+            var body = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"DeleteWorld {worldId}: {(int)resp.StatusCode}");
+            if (resp.IsSuccessStatusCode) return (true, "");
+            return (false, VRChatApiService.TryGetApiError(body) ?? $"API error {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"DeleteWorld exception: {ex.Message}"); return (false, ex.Message); }
+    }
 }

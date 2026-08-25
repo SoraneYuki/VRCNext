@@ -885,6 +885,15 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcWorldImageResult':
                 if (typeof onWorldImageResult === 'function') onWorldImageResult(payload);
                 break;
+            case 'vrcAvatarDeleteResult':
+                if (typeof onAvatarDeleteResult === 'function') onAvatarDeleteResult(payload);
+                break;
+            case 'vrcWorldDeleteResult':
+                if (typeof onWorldDeleteResult === 'function') onWorldDeleteResult(payload);
+                break;
+            case 'vrcGroupDeleteResult':
+                if (typeof onGroupDeleteResult === 'function') onGroupDeleteResult(payload);
+                break;
             case 'vrcOnlineCount':
                 _dashOnlineCount = payload.count || 0;
                 updateDashSub();

@@ -101,6 +101,7 @@ function renderGroupDetail(g) {
     window._gdMemberRoleIds = {};
     const el = document.getElementById('detailModalContent');
     const canEdit = g.canEdit === true;
+    const isGroupOwner = !!(g.ownerId && typeof currentVrcUser !== 'undefined' && currentVrcUser && g.ownerId === currentVrcUser.id);
     const gidJs  = jsq(g.id);
     const banner = g.bannerUrl || g.iconUrl || 'fallback_cover.png';
 
@@ -128,6 +129,7 @@ function renderGroupDetail(g) {
         (g.isJoined && canPost)   ? { icon: 'post_add',   title: t('groups.actions.post', 'Post'),     onclick: `openGroupPostModal('${gidJs}')` } : null,
         (g.isJoined && canEvent)  ? { icon: 'event',      title: t('groups.actions.events', 'Events'), onclick: `openGroupEventModal('${gidJs}')` } : null,
         _gdMoreDropdown(g, gidJs),
+        isGroupOwner ? { icon: 'delete', title: t('groups.actions.delete_group', 'Delete Group'), onclick: `confirmDeleteGroup('${gidJs}','${jsq(g.name || '')}')`, dangerSolid: true } : null,
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetGroup',groupId:'${gidJs}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/group/${esc(g.id)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeGroupDetail()` },
@@ -2140,4 +2142,26 @@ function _gdWmState(s) {
     window._gdLogsLoaded           = s.logsLoaded     ?? false;
     window._gdLogsOffset           = s.logsOffset     ?? 0;
     window._gdLogRows              = s.logRows        ?? null;
+}
+
+function confirmDeleteGroup(groupId, groupName) {
+    vrcnConfirmDelete({
+        id: 'groupDeleteModal',
+        title: t('groups.actions.delete_group', 'Delete Group'),
+        icon: 'delete',
+        message: tf('groups.actions.delete_confirm', { name: groupName || groupId },
+            'Delete the group "{name}"? Every member loses access and this cannot be undone.'),
+        confirmLabel: t('common.delete', 'Delete'),
+        onConfirm: () => sendToCS({ action: 'vrcDeleteGroup', groupId }),
+    });
+}
+
+function onGroupDeleteResult(data) {
+    if (data.ok) {
+        showToast(true, t('groups.actions.toast.deleted', 'Group deleted'));
+        closeGroupDetail();
+        if (typeof loadMyGroups === 'function') loadMyGroups();
+    } else {
+        showToast(false, data.error || t('groups.actions.toast.delete_failed', 'Delete failed'));
+    }
 }

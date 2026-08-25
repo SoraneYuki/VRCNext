@@ -502,4 +502,18 @@ public class AvatarsAPI(VRChatApiService ctx)
     public Task<(bool ok, string imageUrl, string error)> UploadAvatarMainImageAsync(
         string avatarId, string existingImageUrl, byte[] imageBytes)
         => FilesAPI.ReplaceEntityImageAsync(ctx, "avatars", avatarId, existingImageUrl, imageBytes);
+
+    public async Task<(bool ok, string error)> DeleteAvatarAsync(string avatarId)
+    {
+        if (!ctx.IsLoggedIn) return (false, "Not logged in");
+        try
+        {
+            var resp = await ctx._http.DeleteAsync($"{VRChatApiService.BASE}/avatars/{avatarId}");
+            var body = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"DeleteAvatar {avatarId}: {(int)resp.StatusCode}");
+            if (resp.IsSuccessStatusCode) return (true, "");
+            return (false, VRChatApiService.TryGetApiError(body) ?? $"API error {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"DeleteAvatar exception: {ex.Message}"); return (false, ex.Message); }
+    }
 }

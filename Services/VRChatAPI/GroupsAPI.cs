@@ -575,4 +575,18 @@ public class GroupsAPI(VRChatApiService ctx)
         catch (Exception ex) { ctx.Log($"GetGroupInstances exception: {ex.Message}"); }
         return new JArray();
     }
+
+    public async Task<(bool ok, string error)> DeleteGroupAsync(string groupId)
+    {
+        if (!ctx.IsLoggedIn) return (false, "Not logged in");
+        try
+        {
+            var resp = await ctx._http.DeleteAsync($"{VRChatApiService.BASE}/groups/{groupId}");
+            var body = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"DeleteGroup {groupId}: {(int)resp.StatusCode}");
+            if (resp.IsSuccessStatusCode) return (true, "");
+            return (false, VRChatApiService.TryGetApiError(body) ?? $"API error {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"DeleteGroup exception: {ex.Message}"); return (false, ex.Message); }
+    }
 }

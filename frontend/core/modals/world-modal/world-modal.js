@@ -267,6 +267,7 @@ function renderWorldSearchDetail(w) {
     const wdHeaderActions = renderModalActions([
         { icon: 'refresh', iconClass: 'fd-refresh-spin', title: t('common.refresh', 'Refresh'), onclick: `triggerModalRefresh({action:'vrcGetWorldDetail',worldId:'${jsq(wid)}',force:true})` },
         { icon: 'link_2', title: t('common.share', 'Share'), onclick: `navigator.clipboard.writeText('https://vrchat.com/home/world/${esc(wid)}').then(()=>showToast(true,t('common.link_copied','Link copied!')))` },
+        isOwnWorld ? { icon: 'delete', title: t('worlds.detail.actions.delete', 'Delete World'), onclick: `confirmDeleteWorld('${jsq(wid)}','${jsq(w.name || '')}')`, dangerSolid: true } : null,
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeWorldSearchDetail()` },
     ]);
 
@@ -1615,5 +1616,27 @@ function onWorldImageResult(data) {
         }
     } else {
         showToast(false, data.error || t('worlds.detail.toast.image_update_failed', 'Image update failed'));
+    }
+}
+
+function confirmDeleteWorld(worldId, worldName) {
+    vrcnConfirmDelete({
+        id: 'worldDeleteModal',
+        title: t('worlds.detail.actions.delete', 'Delete World'),
+        icon: 'delete',
+        message: tf('worlds.detail.delete_confirm', { name: worldName || worldId },
+            'Delete "{name}"? The world is hidden and its files are removed. This cannot be undone.'),
+        confirmLabel: t('common.delete', 'Delete'),
+        onConfirm: () => sendToCS({ action: 'vrcDeleteWorld', worldId }),
+    });
+}
+
+function onWorldDeleteResult(data) {
+    if (data.ok) {
+        showToast(true, t('worlds.detail.toast.deleted', 'World deleted'));
+        closeWorldSearchDetail();
+        sendToCS({ action: 'vrcGetMyWorlds' });
+    } else {
+        showToast(false, data.error || t('worlds.detail.toast.delete_failed', 'Delete failed'));
     }
 }
