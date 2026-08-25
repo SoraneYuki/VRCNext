@@ -514,6 +514,7 @@ function confirmDeleteAvatar(avatarId, avatarName) {
 }
 
 function onAvatarDeleteResult(data) {
+    if (typeof avBulkDeleteConsume === 'function' && avBulkDeleteConsume(!!data.ok)) return;
     if (data.ok) {
         showToast(true, t('avatars.detail.toast.deleted', 'Avatar deleted'));
         closeAvatarDetail();

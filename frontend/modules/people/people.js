@@ -623,7 +623,7 @@ function buildPeopleListHtml(friends) {
             ? `<span class="${dotKind} ${dotCls}"></span><span class="pl-status-txt">${esc(statusTxt)}</span>`
             : '';
 
-        rows += tlTableRow('friendsList', ` onclick="openFriendDetail('${uid}')"`, {
+        rows += tlTableRow('friendsList', ` data-uid="${esc(f.id || '')}" onclick="openFriendDetail('${uid}')"`, {
             profile:   `<td class="pl-profile">${av}</td>`,
             name:      `<td class="pl-name">${esc(f.displayName || '')}</td>`,
             rank:      `<td>${rank ? `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>` : ''}</td>`,
@@ -721,9 +721,10 @@ function filterAllFriends() {
         return;
     }
     el.classList.toggle('search-grid', !listMode);
-    el.innerHTML = (listMode && !_favFriendEditMode)
+    el.innerHTML = listMode
         ? buildPeopleListHtml(slice)
         : slice.map(f => renderPeopleFriendCard(f)).join('');
+    if (listMode) lvEditDecorateList(el, 'people');
     plSetPaginator('peopleAllPaginatorBar', listMode
         ? plPaginator(page, totalPages, 'peopleAllGoPage', all.length)
         : buildPaginator(page, totalPages, 'peopleAllGoPage',
@@ -1072,13 +1073,14 @@ function filterFavFriends() {
         if (_favFriendEditMode) updateFriendEditBar();
         return;
     }
-    if (favListMode && !_favFriendEditMode) {
+    if (favListMode) {
         const sorted = _plSort(friends);
         const totalPages = Math.ceil(sorted.length / peopleListPageSize) || 1;
         if (_peopleFavPage >= totalPages) _peopleFavPage = totalPages - 1;
         if (_peopleFavPage < 0) _peopleFavPage = 0;
         const slice = sorted.slice(_peopleFavPage * peopleListPageSize, (_peopleFavPage + 1) * peopleListPageSize);
         el.innerHTML = buildPeopleListHtml(slice);
+        lvEditDecorateList(el, 'people');
         plSetPaginator('peopleFavPaginatorBar', plPaginator(_peopleFavPage, totalPages, 'peopleFavGoPage', sorted.length));
         return;
     }
@@ -1422,3 +1424,10 @@ function friendEditRemoveSelected() {
     exitFriendEditMode();
 }
 
+lvEditRegister('people', {
+    attr: 'data-uid',
+    isActive: () => _favFriendEditMode,
+    isSelected: id => _favFriendEditSelected.has(id),
+    toggle: id => { if (_favFriendEditSelected.has(id)) _favFriendEditSelected.delete(id); else _favFriendEditSelected.add(id); },
+    onChange: () => updateFriendEditBar(),
+});

@@ -59,12 +59,16 @@
                     <span id="worldEditCount" class="vrcn-edit-count">0 selected</span>
                     <button id="worldEditSelectAllBtn" class="vrcn-button" onclick="worldEditSelectAll()" data-i18n="worlds.edit.select_all">Select All</button>
                     <span class="vrcn-edit-spacer"></span>
-                    <div style="position:relative;">
+                    <div style="position:relative;" id="worldEditAddFavWrap">
+                        <button id="worldEditAddFavBtn" class="vrcn-button wd-edit-action" disabled onclick="worldEditShowAddFavMenu(this)"><span class="msi" style="font-size:14px;">favorite</span> <span data-i18n="worlds.edit.add_to_favorites">Add to Favorites</span></button>
+                        <div id="worldEditAddFavPicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
+                    </div>
+                    <div style="position:relative;" id="worldEditMoveWrap">
                         <button id="worldEditMoveBtn" class="vrcn-button wd-edit-action" disabled onclick="worldEditShowMoveMenu(this)"><span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="worlds.edit.move_to">Move to...</span></button>
                         <div id="worldEditMovePicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
                     </div>
                     <button id="worldEditRemoveBtn" class="vrcn-button wd-edit-action" disabled onclick="worldEditRemoveSelected()"><span class="msi" style="font-size:14px;">favorite_border</span> <span data-i18n="worlds.edit.remove">Remove</span></button>
-                    <div style="position:relative;">
+                    <div style="position:relative;" id="worldCreateLocalWrap">
                         <button id="worldCreateLocalBtn" class="vrcn-button" onclick="worldShowCreateLocalGroup(this)"><span class="msi" style="font-size:14px;">create_new_folder</span> <span data-i18n="favorites.create_local_group">Create Local Group</span></button>
                         <div id="worldCreateLocalPanel" class="vn-select-panel" style="display:none;min-width:220px;z-index:1200;padding:8px;">
                             <input type="text" id="worldCreateLocalInput" class="vrcn-input" maxlength="64" placeholder="Group name" data-i18n-placeholder="favorites.local_group_name" style="width:100%;margin-bottom:6px;" onkeydown="if(event.key==='Enter')worldSaveLocalGroup()">
@@ -74,4 +78,5 @@
                             </div>
                         </div>
                     </div>
+                    <button id="worldEditDeleteBtn" class="vrcn-button vrcn-btn-danger wd-edit-action" disabled onclick="worldEditDeleteSelected()"><span class="msi" style="font-size:14px;">delete</span> <span data-i18n="worlds.edit.bulk_delete">Bulk Delete</span></button>
                 </div>

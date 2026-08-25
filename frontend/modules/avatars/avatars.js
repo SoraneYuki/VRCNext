@@ -130,7 +130,7 @@ function setAvatarFilter(filter) {
     const _sc = document.getElementById('avatarSearchCount'); if (_sc) _sc.textContent = '';
 
     const editBtn = document.getElementById('avatarEditModeBtn');
-    if (editBtn) editBtn.style.display = filter === 'favorites' ? '' : 'none';
+    if (editBtn) editBtn.style.display = (filter === 'favorites' || filter === 'own') ? '' : 'none';
     if (filter === 'own') {
         const inp = document.getElementById('ownAvatarSearchInput');
         if (inp) inp.value = '';
@@ -246,7 +246,7 @@ function buildAvatarsListHtml(avatars) {
         const statusBadge = a.releaseStatus
             ? `<span class="vrcn-badge ${isPub ? 'public' : 'private'}">${esc(isPub ? t('avatars.status.public', 'Public') : t('avatars.status.private', 'Private'))}</span>`
             : '';
-        rows += tlTableRow('avatarsList', ` onclick="openAvatarDetail('${aid}')"`, {
+        rows += tlTableRow('avatarsList', ` data-avid="${esc(a.id || '')}" onclick="openAvatarDetail('${aid}')"`, {
             icon:    `<td>${lvIcon(a.thumbnailImageUrl || a.imageUrl, a.name, true)}</td>`,
             name:    `<td class="lv-name">${esc(a.name || '')}</td>`,
             creator: `<td class="lv-sub">${esc(a.authorName || '')}</td>`,
@@ -273,6 +273,7 @@ function _avatarsListPage(el, all, page, barId, pageFn, setPage) {
     lvKeepScroll(el, () => {
         el.classList.remove('avatar-grid');
         el.innerHTML = buildAvatarsListHtml(sorted.slice(p * size, (p + 1) * size));
+        lvEditDecorateList(el, 'avatars');
     });
     setPaginator(barId, lvPaginator('avatars', p, totalPages, pageFn, sorted.length, 'setAvatarsListPageSize'));
 }
@@ -296,13 +297,15 @@ function filterOwnAvatars() {
         setPaginator('avatarOwnPaginatorBar', '');
         return;
     }
-    if (lvViewMode('avatars') === 'list' && lvReady() && !_avEditMode) {
+    if (lvViewMode('avatars') === 'list' && lvReady()) {
         _avatarsListPage(el, filtered, _avOwnPage, 'avatarOwnPaginatorBar', 'avOwnGoPage', p => { _avOwnPage = p; });
+        if (_avEditMode) updateAvEditBar();
         return;
     }
     setPaginator('avatarOwnPaginatorBar', '');
     el.classList.add('avatar-grid');
-    el.innerHTML = filtered.map(a => renderAvatarCard(a, 'own')).join('');
+    el.innerHTML = filtered.map(a => _avEditMode ? _renderFavAvCard(a) : renderAvatarCard(a, 'own')).join('');
+    if (_avEditMode) updateAvEditBar();
 }
 
 function renderAvatarGrid() {
@@ -892,7 +895,7 @@ function filterFavAvatars() {
         if (_avEditMode) updateAvEditBar();
         return;
     }
-    if (lvViewMode('avatars') === 'list' && lvReady() && !_avEditMode) {
+    if (lvViewMode('avatars') === 'list' && lvReady()) {
         _avatarsListPage(el, filtered, _avFavPage, 'avatarFavPaginatorBar', 'avFavGoPage', p => { _avFavPage = p; });
         return;
     }
@@ -1019,15 +1022,11 @@ function toggleAvEditSelect(id, el) {
 }
 
 function avEditSelectAll() {
-    const q = (document.getElementById('favAvatarSearchInput')?.value || '').toLowerCase();
-    let filtered = favAvatarsData;
-    if (favAvatarGroupFilter) filtered = filtered.filter(a => a.favoriteGroup === favAvatarGroupFilter);
-    if (q) filtered = filtered.filter(a => (a.name || '').toLowerCase().includes(q) || (a.authorName || '').toLowerCase().includes(q));
-    filtered = filtered.filter(_avPassesFilters);
+    const filtered = _avEditVisibleList();
     const allSelected = filtered.length > 0 && filtered.every(a => _avEditSelected.has(a.id));
     if (allSelected) filtered.forEach(a => _avEditSelected.delete(a.id));
     else filtered.forEach(a => _avEditSelected.add(a.id));
-    filterFavAvatars();
+    _avEditRerender();
 }
 
 function updateAvEditBar() {
@@ -1036,15 +1035,12 @@ function updateAvEditBar() {
     if (countEl) countEl.textContent = tf('avatars.edit.selected', { count }, '{count} selected');
     const selectAllBtn = document.getElementById('avatarEditSelectAllBtn');
     if (selectAllBtn) {
-        const q = (document.getElementById('favAvatarSearchInput')?.value || '').toLowerCase();
-        let filtered = favAvatarsData;
-        if (favAvatarGroupFilter) filtered = filtered.filter(a => a.favoriteGroup === favAvatarGroupFilter);
-        if (q) filtered = filtered.filter(a => (a.name || '').toLowerCase().includes(q) || (a.authorName || '').toLowerCase().includes(q));
-        filtered = filtered.filter(_avPassesFilters);
+        const filtered = _avEditVisibleList();
         const allSel = filtered.length > 0 && filtered.every(a => _avEditSelected.has(a.id));
         selectAllBtn.textContent = allSel ? t('avatars.edit.deselect_all', 'Deselect All') : t('avatars.edit.select_all', 'Select All');
     }
     document.querySelectorAll('.av-edit-action').forEach(b => b.disabled = count === 0);
+    _avEditSyncButtons();
 }
 
 function avEditShowMoveMenu(btn) {
@@ -1506,3 +1502,130 @@ function renderRoseAvatarCard(a) {
 
 
 _avatarsSyncViewBtns();
+
+function _avEditIsOwn() {
+    return avatarFilter === 'own';
+}
+
+function _avEditVisibleList() {
+    if (_avEditIsOwn()) {
+        const q = (document.getElementById('ownAvatarSearchInput')?.value || '').toLowerCase();
+        const base = q
+            ? avatarsData.filter(a => (a.name || '').toLowerCase().includes(q) || (a.authorName || '').toLowerCase().includes(q))
+            : avatarsData;
+        return base.filter(_avPassesFilters);
+    }
+    const q = (document.getElementById('favAvatarSearchInput')?.value || '').toLowerCase();
+    let filtered = favAvatarsData;
+    if (favAvatarGroupFilter) filtered = filtered.filter(a => a.favoriteGroup === favAvatarGroupFilter);
+    if (q) filtered = filtered.filter(a => (a.name || '').toLowerCase().includes(q) || (a.authorName || '').toLowerCase().includes(q));
+    return filtered.filter(_avPassesFilters);
+}
+
+function _avEditRerender() {
+    if (_avEditIsOwn()) filterOwnAvatars();
+    else filterFavAvatars();
+}
+
+function _avEditSyncButtons() {
+    const isOwn = _avEditIsOwn();
+    const show = (id, on) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = on ? '' : 'none';
+    };
+    show('avatarEditAddFavWrap', isOwn);
+    show('avatarEditMoveWrap', !isOwn);
+    show('avatarEditRemoveBtn', !isOwn);
+    show('avatarEditDeleteBtn', isOwn);
+}
+
+lvEditRegister('avatars', {
+    attr: 'data-avid',
+    isActive: () => _avEditMode,
+    isSelected: id => _avEditSelected.has(id),
+    toggle: id => { if (_avEditSelected.has(id)) _avEditSelected.delete(id); else _avEditSelected.add(id); },
+    onChange: () => updateAvEditBar(),
+});
+
+function avEditShowAddFavMenu(btn) {
+    if (_avEditSelected.size === 0) return;
+    const picker = document.getElementById('avatarEditAddFavPicker');
+    if (!picker) return;
+    if (picker.style.display === 'block') { picker.style.display = 'none'; picker.innerHTML = ''; return; }
+    const groups = (typeof favAvatarGroups !== 'undefined') ? favAvatarGroups : [];
+    picker.innerHTML = groups.map(g => {
+        const count = favAvatarsData.filter(a => a.favoriteGroup === g.name).length;
+        const gn = jsq(g.name), gt = jsq(g.type);
+        return `<div class="vn-select-option" onclick="avEditAddToFavorites('${gn}','${gt}')">
+            <span class="msi" style="font-size:14px;flex-shrink:0;">favorite</span>
+            <span style="flex:1;">${esc(g.displayName || g.name)}</span>
+            ${favGroupBadge(g)}
+            <span style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);flex-shrink:0;">${count}</span>
+        </div>`;
+    }).join('') || `<div class="vn-select-option" style="pointer-events:none;color:var(--tx3);">${esc(t('avatars.favorites.no_groups', 'No favorite groups'))}</div>`;
+    picker.style.display = 'block';
+    setTimeout(() => {
+        const close = (e) => {
+            if (!picker.contains(e.target) && e.target !== btn) {
+                picker.style.display = 'none';
+                picker.innerHTML = '';
+                document.removeEventListener('click', close);
+            }
+        };
+        document.addEventListener('click', close);
+    }, 0);
+}
+
+function avEditAddToFavorites(groupName, groupType) {
+    if (_avEditSelected.size === 0) return;
+    const picker = document.getElementById('avatarEditAddFavPicker');
+    if (picker) { picker.style.display = 'none'; picker.innerHTML = ''; }
+    const ids = [..._avEditSelected];
+    ids.forEach(avatarId => {
+        if (favAvatarsData.some(a => a.id === avatarId && a.favoriteGroup === groupName)) return;
+        sendToCS({ action: 'vrcAddAvatarFavorite', avatarId, groupName, groupType, oldFvrtId: '' });
+    });
+    showToast(true, tf('avatars.edit.added_to_favorites', { count: ids.length }, 'Added {count} avatars to favorites'));
+    exitAvEditMode();
+}
+
+let _avBulkDeletePending = 0;
+let _avBulkDeleteOk = 0;
+
+function avEditDeleteSelected() {
+    const ids = [..._avEditSelected];
+    if (!ids.length) return;
+    const names = ids.map(id => (avatarsData.find(a => a.id === id)?.name) || id).slice(0, 6);
+    const more = ids.length - names.length;
+    const listHtml = names.map(n => `<div>${esc(n)}</div>`).join('')
+        + (more > 0 ? `<div>${esc(tf('avatars.edit.bulk_delete_more', { count: more }, '+{count} more'))}</div>` : '');
+
+    vrcnConfirmDelete({
+        id: 'avatarBulkDeleteModal',
+        title: t('avatars.edit.bulk_delete', 'Bulk Delete'),
+        icon: 'delete',
+        message: tf('avatars.edit.bulk_delete_confirm', { count: ids.length },
+            'Delete {count} avatars? They are hidden and their files are removed. This cannot be undone.'),
+        listHtml,
+        confirmLabel: t('avatars.edit.bulk_delete', 'Bulk Delete'),
+        onConfirm: () => {
+            _avBulkDeletePending = ids.length;
+            _avBulkDeleteOk = 0;
+            ids.forEach(avatarId => sendToCS({ action: 'vrcDeleteAvatar', avatarId }));
+            const gone = new Set(ids);
+            avatarsData = avatarsData.filter(a => !gone.has(a.id));
+            exitAvEditMode();
+        },
+    });
+}
+
+function avBulkDeleteConsume(success) {
+    if (_avBulkDeletePending <= 0) return false;
+    _avBulkDeletePending--;
+    if (success) _avBulkDeleteOk++;
+    if (_avBulkDeletePending === 0) {
+        showToast(_avBulkDeleteOk > 0, tf('avatars.edit.bulk_delete_done', { count: _avBulkDeleteOk }, 'Deleted {count} avatars'));
+        sendToCS({ action: 'vrcGetAvatars', filter: 'own' });
+    }
+    return true;
+}

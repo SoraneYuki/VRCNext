@@ -28,6 +28,14 @@ actions in a bar at the bottom of the tab.
 * Added **Bulk Leave**: leave every selected group at once. A confirmation dialog lists the groups
 first, since leaving cannot be undone.
 
+**Edit Mode**
+* **My Avatars** and **My Worlds** have an Edit button now. In edit mode you can select entries and
+**Add to Favorites...** (pick the group the same way Move to... does), **Create Local Group**, or
+**Bulk Delete** them.
+* **My Groups** got **Bulk Delete** next to Bulk Leave. It only ever touches groups you own, selecting
+a group you merely moderate is ignored.
+* Every bulk delete asks first and lists what is about to go.
+
 **World, Avatar and Group Modals**
 * Added **Delete World**, **Delete Avatar** and **Delete Group**. The action sits in the modal header
 and its icon is shown in red so it never gets mixed up with the ones next to it.
@@ -59,6 +67,18 @@ in a bar at the bottom of the tab. The filter buttons stay visible while editing
 lists them first.
 * Edit mode also works in **All Friends** now. There you can select people and either **Add to Favorites**
 (pick the favorite group from the dropdown) or **Bulk Unfriend** them.
+
+**Fixed Bugs**
+* Edit mode worked in Large Grid and Compact Grid only. Turning it on in **List View** silently threw you
+back to grid. Selection now works in the list too, with a checkmark in the first column and the row
+highlighted, the same way the timeline does it. Applies to Worlds, Avatars, Groups and People.
+* A deleted avatar stayed in **My Avatars**, even after pressing refresh. Deleting only flips an avatar
+to `hidden` and the listing asked for `releaseStatus=all`, which includes hidden ones, so the refresh
+faithfully returned the avatar you had just deleted. Hidden entries are filtered out now, and the
+deleted entry is dropped from the offline cache right away instead of waiting for the next fetch.
+* The same applied to **My Worlds** and would have hit Delete World in exactly the same way.
+* The edit pencil on your own profile picture sat in the top left corner, while groups put it in the
+bottom right. Both are bottom right now.
 
 **Translations**
 * Korean Translation by @roshikeymusica

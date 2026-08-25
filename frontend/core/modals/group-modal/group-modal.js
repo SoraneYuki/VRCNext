@@ -2157,6 +2157,7 @@ function confirmDeleteGroup(groupId, groupName) {
 }
 
 function onGroupDeleteResult(data) {
+    if (typeof groupBulkDeleteConsume === 'function' && groupBulkDeleteConsume(!!data.ok)) return;
     if (data.ok) {
         showToast(true, t('groups.actions.toast.deleted', 'Group deleted'));
         closeGroupDetail();

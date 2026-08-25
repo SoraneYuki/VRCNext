@@ -1565,8 +1565,6 @@ function saveWdField(field, worldId) {
         ? (document.getElementById('wdDescInput')?.value ?? '')
         : (w.description || '');
 
-    // Only author tags are editable. Everything the platform owns (system_*, admin_*)
-    // is sent back untouched so an edit cannot strip a world's approval.
     const preserved = (w.tags || []).filter(x => !x.startsWith('author_tag_'));
     const tags = field === 'tags'
         ? [..._wdEditTags.map(x => 'author_tag_' + x), ...preserved]
@@ -1632,6 +1630,7 @@ function confirmDeleteWorld(worldId, worldName) {
 }
 
 function onWorldDeleteResult(data) {
+    if (typeof wdBulkDeleteConsume === 'function' && wdBulkDeleteConsume(!!data.ok)) return;
     if (data.ok) {
         showToast(true, t('worlds.detail.toast.deleted', 'World deleted'));
         closeWorldSearchDetail();

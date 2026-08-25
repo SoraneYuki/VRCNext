@@ -205,3 +205,10 @@
 
 .lib-wrap { padding: 0; }
 .lib-wrap > .lib-grid { padding: 12px 12px 28px; }
+
+.lv-row-check { display: inline-flex; align-items: center; margin-right: 8px; vertical-align: middle; }
+.lv-row-check .msi { font-size: calc(18px + var(--fs-off, 0px)); }
+.lv-row-check-on { color: var(--accent); }
+.lv-row-check-off { color: var(--tx3); }
+.lv-edit tr.tl-list-row { cursor: pointer; user-select: none; }
+.lv-edit tr.tl-list-row.lv-row-selected { background: color-mix(in srgb, var(--accent) 18%, transparent); }

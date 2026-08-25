@@ -132,6 +132,7 @@ function updateGroupEditBar() {
         selectAllBtn.textContent = allSel ? t('groups.edit.deselect_all', 'Deselect All') : t('groups.edit.select_all', 'Select All');
     }
     document.querySelectorAll('.gr-edit-action').forEach(b => b.disabled = count === 0);
+    _groupEditSyncButtons();
 }
 
 function groupEditLeaveSelected() {
@@ -308,7 +309,7 @@ function buildGroupsListHtml(groups) {
     let rows = '';
     groups.forEach(g => {
         const gid = jsq(g.id || '');
-        rows += tlTableRow('groupsList', ` onclick="openGroupDetail('${gid}')"`, {
+        rows += tlTableRow('groupsList', ` data-gid="${esc(g.id || '')}" onclick="openGroupDetail('${gid}')"`, {
             icon:    `<td>${lvIcon(g.iconUrl, g.name, true)}</td>`,
             name:    `<td class="lv-name">${esc(g.name || '')}</td>`,
             short:   `<td class="lv-sub">${esc(g.shortCode || '')}</td>`,
@@ -344,6 +345,7 @@ function filterMyGroups() {
         if (_groupsPage < 0) _groupsPage = 0;
         el.classList.remove('search-grid');
         el.innerHTML = buildGroupsListHtml(sorted.slice(_groupsPage * size, (_groupsPage + 1) * size));
+        lvEditDecorateList(el, 'groups');
         setPaginator('groupsPaginatorBar', lvPaginator('groups', _groupsPage, totalPages, 'groupsGoPage', sorted.length, 'setGroupsListPageSize'));
         return;
     }
@@ -477,3 +479,63 @@ function renderMyGroups(list) {
 
 
 _groupsSyncViewBtns();
+
+lvEditRegister('groups', {
+    attr: 'data-gid',
+    isActive: () => _groupEditMode,
+    isSelected: id => _groupEditSelected.has(id),
+    toggle: id => { if (_groupEditSelected.has(id)) _groupEditSelected.delete(id); else _groupEditSelected.add(id); },
+    onChange: () => updateGroupEditBar(),
+});
+
+function _groupEditSyncButtons() {
+    const btn = document.getElementById('groupEditDeleteBtn');
+    if (btn) btn.style.display = _groupTab === 'mine' ? '' : 'none';
+}
+
+let _groupBulkDeletePending = 0;
+let _groupBulkDeleteOk = 0;
+
+function groupEditDeleteSelected() {
+    const ids = [..._groupEditSelected].filter(id => {
+        const g = myGroups.find(x => x.id === id);
+        return g && _groupIsOwn(g);
+    });
+    if (!ids.length) {
+        showToast(false, t('groups.edit.bulk_delete_none', 'Only groups you own can be deleted'));
+        return;
+    }
+    const names = ids.map(id => (myGroups.find(g => g.id === id)?.name) || id).slice(0, 6);
+    const more = ids.length - names.length;
+    const listHtml = names.map(n => `<div>${esc(n)}</div>`).join('')
+        + (more > 0 ? `<div>${esc(tf('groups.edit.bulk_delete_more', { count: more }, '+{count} more'))}</div>` : '');
+
+    vrcnConfirmDelete({
+        id: 'groupBulkDeleteModal',
+        title: t('groups.edit.bulk_delete', 'Bulk Delete'),
+        icon: 'delete',
+        message: tf('groups.edit.bulk_delete_confirm', { count: ids.length },
+            'Delete {count} groups? Every member loses access and this cannot be undone.'),
+        listHtml,
+        confirmLabel: t('groups.edit.bulk_delete', 'Bulk Delete'),
+        onConfirm: () => {
+            _groupBulkDeletePending = ids.length;
+            _groupBulkDeleteOk = 0;
+            ids.forEach(groupId => sendToCS({ action: 'vrcDeleteGroup', groupId }));
+            const gone = new Set(ids);
+            myGroups = myGroups.filter(g => !gone.has(g.id));
+            exitGroupEditMode();
+        },
+    });
+}
+
+function groupBulkDeleteConsume(success) {
+    if (_groupBulkDeletePending <= 0) return false;
+    _groupBulkDeletePending--;
+    if (success) _groupBulkDeleteOk++;
+    if (_groupBulkDeletePending === 0) {
+        showToast(_groupBulkDeleteOk > 0, tf('groups.edit.bulk_delete_done', { count: _groupBulkDeleteOk }, 'Deleted {count} groups'));
+        if (typeof loadMyGroups === 'function') loadMyGroups();
+    }
+    return true;
+}

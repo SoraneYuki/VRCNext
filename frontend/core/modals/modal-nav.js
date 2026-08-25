@@ -603,6 +603,7 @@ function vrcnConfirmDelete(opts) {
         ${renderModalBar(opts.title, [modalCloseAction(`document.getElementById('${id}').remove()`)])}
         <div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">${_esc(opts.icon || 'delete')}</span></div>
         <div class="modal-msg">${_esc(opts.message)}</div>
+        ${opts.listHtml ? `<div class="gr-bulk-list">${opts.listHtml}</div>` : ''}
         <div class="modal-btns">
             <button class="vrcn-button-round" id="${id}Cancel">${_esc(typeof t === 'function' ? t('common.cancel', 'Cancel') : 'Cancel')}</button>
             <button class="vrcn-button-round vrcn-btn-danger" id="${id}Ok">${_esc(opts.confirmLabel || 'Delete')}</button>

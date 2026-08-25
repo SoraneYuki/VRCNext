@@ -110,12 +110,16 @@
                     <span id="avatarEditCount" class="vrcn-edit-count">0 selected</span>
                     <button id="avatarEditSelectAllBtn" class="vrcn-button" onclick="avEditSelectAll()" data-i18n="avatars.edit.select_all">Select All</button>
                     <span class="vrcn-edit-spacer"></span>
-                    <div style="position:relative;">
+                    <div style="position:relative;" id="avatarEditAddFavWrap">
+                        <button id="avatarEditAddFavBtn" class="vrcn-button av-edit-action" disabled onclick="avEditShowAddFavMenu(this)"><span class="msi" style="font-size:14px;">favorite</span> <span data-i18n="avatars.edit.add_to_favorites">Add to Favorites</span></button>
+                        <div id="avatarEditAddFavPicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
+                    </div>
+                    <div style="position:relative;" id="avatarEditMoveWrap">
                         <button class="vrcn-button av-edit-action" disabled onclick="avEditShowMoveMenu(this)"><span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="avatars.edit.move_to">Move to...</span></button>
                         <div id="avatarEditMovePicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
                     </div>
                     <button id="avatarEditRemoveBtn" class="vrcn-button av-edit-action" disabled onclick="avEditRemoveSelected()"><span class="msi" style="font-size:14px;">favorite_border</span> <span data-i18n="avatars.edit.remove">Remove</span></button>
-                    <div style="position:relative;">
+                    <div style="position:relative;" id="avatarCreateLocalWrap">
                         <button id="avatarCreateLocalBtn" class="vrcn-button" onclick="avatarShowCreateLocalGroup(this)"><span class="msi" style="font-size:14px;">create_new_folder</span> <span data-i18n="favorites.create_local_group">Create Local Group</span></button>
                         <div id="avatarCreateLocalPanel" class="vn-select-panel" style="display:none;min-width:220px;z-index:1200;padding:8px;">
                             <input type="text" id="avatarCreateLocalInput" class="vrcn-input" maxlength="64" placeholder="Group name" data-i18n-placeholder="favorites.local_group_name" style="width:100%;margin-bottom:6px;" onkeydown="if(event.key==='Enter')avatarSaveLocalGroup()">
@@ -125,4 +129,5 @@
                             </div>
                         </div>
                     </div>
+                    <button id="avatarEditDeleteBtn" class="vrcn-button vrcn-btn-danger av-edit-action" disabled onclick="avEditDeleteSelected()"><span class="msi" style="font-size:14px;">delete</span> <span data-i18n="avatars.edit.bulk_delete">Bulk Delete</span></button>
                 </div>
