@@ -122,6 +122,11 @@ public partial class AppShell
     private readonly List<string> _vrcndbSubmitQueue = new();
     private readonly HashSet<string> _vrcndbSubmittedIds = new();
     private System.Threading.Timer? _vrcndbSubmitTimer;
+    private DateTime? _vrcndbFirstQueuedAt;
+    private readonly System.Threading.SemaphoreSlim _vrcndbFlushGate = new(1, 1);
+    private const int VrcndbBatchSize  = 40;
+    private const int VrcndbQuietMs    = 30_000;
+    private const int VrcndbMaxWaitSec = 60;
     private readonly List<string> _vrcndbRecheckQueue = new();
     private readonly HashSet<string> _vrcndbRecheckedIds = new();
     private System.Threading.Timer? _vrcndbRecheckTimer;
@@ -353,27 +358,41 @@ public partial class AppShell
     private void QueueVrcndbSubmit(string avatarId)
     {
         if (!_settings.VrcndbSubmitAvatars) return;
+        bool flushNow;
         lock (_vrcndbSubmitQueue)
         {
             if (!_vrcndbSubmittedIds.Add(avatarId)) return;
             _vrcndbSubmitQueue.Add(avatarId);
+            _vrcndbFirstQueuedAt ??= DateTime.UtcNow;
+            flushNow = _vrcndbSubmitQueue.Count >= VrcndbBatchSize
+                    || (DateTime.UtcNow - _vrcndbFirstQueuedAt.Value).TotalSeconds >= VrcndbMaxWaitSec;
         }
         _vrcndbSubmitTimer?.Dispose();
-        _vrcndbSubmitTimer = new System.Threading.Timer(_ => _ = Task.Run(FlushVrcndbSubmitQueue), null, 30_000, Timeout.Infinite);
+        _vrcndbSubmitTimer = new System.Threading.Timer(_ => _ = Task.Run(FlushVrcndbSubmitQueue), null, VrcndbQuietMs, Timeout.Infinite);
+        if (flushNow) _ = Task.Run(FlushVrcndbSubmitQueue);
     }
 
     private async Task FlushVrcndbSubmitQueue()
     {
-        List<string> batch;
-        lock (_vrcndbSubmitQueue)
+        if (!await _vrcndbFlushGate.WaitAsync(0)) return;
+        try
         {
-            if (_vrcndbSubmitQueue.Count == 0) return;
-            batch = new List<string>(_vrcndbSubmitQueue);
-            _vrcndbSubmitQueue.Clear();
+            while (true)
+            {
+                List<string> batch;
+                lock (_vrcndbSubmitQueue)
+                {
+                    if (_vrcndbSubmitQueue.Count == 0) { _vrcndbFirstQueuedAt = null; return; }
+                    var take = Math.Min(100, _vrcndbSubmitQueue.Count);
+                    batch = _vrcndbSubmitQueue.GetRange(0, take);
+                    _vrcndbSubmitQueue.RemoveRange(0, take);
+                    _vrcndbFirstQueuedAt = _vrcndbSubmitQueue.Count > 0 ? DateTime.UtcNow : null;
+                }
+                await PostToVrcndb("ingest.php", batch, "submit");
+                await Task.Delay(500);
+            }
         }
-        const int chunk = 100;
-        for (int i = 0; i < batch.Count; i += chunk)
-            await PostToVrcndb("ingest.php", batch.GetRange(i, Math.Min(chunk, batch.Count - i)), "submit");
+        finally { _vrcndbFlushGate.Release(); }
     }
 
     private void QueueVrcndbRecheck(IEnumerable<string> ids)

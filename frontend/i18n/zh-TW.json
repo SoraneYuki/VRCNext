@@ -1313,7 +1313,7 @@
   "settings.vrcndb.title": "VRCNDB 設定",
   "settings.vrcndb.tabs.support": "支援",
   "settings.vrcndb.tabs.reports": "回報",
-  "settings.vrcndb.submit_desc": "協助將資料提交至 VRCNDB",
+  "settings.vrcndb.submit_desc": "協助將資料提交至 VRCNDB。ID 會即時從 VRChat 日誌（包含因效能設定被封鎖的模型）以及 VRChat 快取中收集。",
   "settings.vrcndb.submit_toggle": "提交資料",
   "settings.vrcndb.deleted_desc": "將已刪除的內容提交至 VRCNDB",
   "settings.vrcndb.deleted_toggle": "提交已刪除的內容",

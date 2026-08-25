@@ -1317,7 +1317,7 @@
   "settings.vrcndb.title": "VRCNDb Community Database",
   "settings.vrcndb.tabs.support": "Support",
   "settings.vrcndb.tabs.reports": "Reports",
-  "settings.vrcndb.submit_desc": "Submit avatar IDs you encounter in-game to the official VRCNDb database (db.vrcnext.com). Only the ID is sent. The server verifies the avatar itself, stores only public avatars, and downloads the image on its own. This helps build the community avatar search.",
+  "settings.vrcndb.submit_desc": "Submit avatar IDs you encounter in-game to the official VRCNDb database (db.vrcnext.com). Only the ID is sent. The server verifies the avatar itself, stores only public avatars, and downloads the image on its own. This helps build the community avatar search. IDs are collected live from the VRChat log, including avatars blocked by your performance settings, and from the VRChat cache.",
   "settings.vrcndb.submit_toggle": "Submit avatars to VRCNDb",
   "settings.vrcndb.deleted_desc": "Report avatars that appear to be deleted so VRCNDb re-verifies them. An avatar is only removed from the database if VRChat itself confirms it no longer exists.",
   "settings.vrcndb.deleted_toggle": "Report deleted avatars to VRCNDb",
