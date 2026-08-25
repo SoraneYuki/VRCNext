@@ -1300,6 +1300,7 @@
   "settings.vrcndb.consent.submit_toggle": "向 VRCNDb 提交模型",
   "settings.vrcndb.consent.report_toggle": "向 VRCNDb 报告已删除的模型",
   "settings.vrcndb.consent.confirm": "知道了",
+  "settings.vrcndb.submit_desc": "将你在游戏中遇到的模型 ID 提交到官方 VRCNDb 数据库（db.vrcnext.com）。仅发送 ID。服务器会自行验证模型，只保存公开模型，并自行下载图片。这有助于构建社区模型搜索。ID 会实时从 VRChat 日志（包括因性能设置被屏蔽的模型）以及 VRChat 缓存中收集。",
   "settings.avtrdb.reports.enqueued": "已排队：{count}",
   "settings.avtrdb.reports.invalid": "无效：{count}",
   "settings.avtrdb.reports.ticket": "工单",

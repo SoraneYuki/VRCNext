@@ -1300,6 +1300,7 @@
   "settings.vrcndb.consent.submit_toggle": "Envoyer les avatars à VRCNDb",
   "settings.vrcndb.consent.report_toggle": "Signaler les avatars supprimés à VRCNDb",
   "settings.vrcndb.consent.confirm": "Compris",
+  "settings.vrcndb.submit_desc": "Envoie les ID des avatars que tu rencontres en jeu à la base de données officielle VRCNDb (db.vrcnext.com). Seul l'ID est envoyé. Le serveur vérifie l'avatar lui-même, ne conserve que les avatars publics et télécharge l'image de son côté. Cela aide à construire la recherche d'avatars de la communauté. Les ID sont collectés en direct depuis le journal de VRChat, y compris les avatars bloqués par tes paramètres de performance, ainsi que depuis le cache de VRChat.",
   "settings.avtrdb.reports.enqueued": "En file : {count}",
   "settings.avtrdb.reports.invalid": "Invalide : {count}",
   "settings.avtrdb.reports.ticket": "Ticket",

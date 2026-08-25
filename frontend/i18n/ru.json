@@ -1302,6 +1302,7 @@
   "settings.vrcndb.consent.submit_toggle": "Отправлять аватары в VRCNDb",
   "settings.vrcndb.consent.report_toggle": "Сообщать об удалённых аватарах в VRCNDb",
   "settings.vrcndb.consent.confirm": "Понятно",
+  "settings.vrcndb.submit_desc": "Отправляйте ID аватаров, которые встречаются вам в игре, в официальную базу данных VRCNDb (db.vrcnext.com). Отправляется только ID. Сервер сам проверяет аватар, сохраняет только публичные аватары и самостоятельно загружает изображение. Это помогает создавать поиск аватаров сообщества. ID собираются в реальном времени из лога VRChat, включая аватары, заблокированные вашими настройками производительности, а также из кэша VRChat.",
   "settings.avtrdb.reports.enqueued": "В очереди",
   "settings.avtrdb.reports.invalid": "Недействителен",
   "settings.avtrdb.reports.ticket": "Тикет",
