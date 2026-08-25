@@ -8,25 +8,6 @@
                         <select id="avatarSearchDbDrop" class="vrcn-dropdown" onchange="setAvatarSearchDb(this.value)" style="min-width:112px;flex-shrink:0;"><option value="avtrdb">Avtrdb</option><option value="avtricu">Avtr.icu</option><option value="vrcn">VRCN</option><option value="all">Search all</option></select>
                         <span id="avatarCount" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
                     </div>
-                    <div id="avatarEditBar" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;flex:1;">
-                        <span id="avatarEditCount" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);white-space:nowrap;">0 selected</span>
-                        <button id="avatarEditSelectAllBtn" class="vrcn-button" onclick="avEditSelectAll()" data-i18n="avatars.edit.select_all">Select All</button>
-                        <div style="position:relative;">
-                            <button class="vrcn-button av-edit-action" disabled onclick="avEditShowMoveMenu(this)"><span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="avatars.edit.move_to">Move to...</span></button>
-                            <div id="avatarEditMovePicker" class="vn-select-panel" style="display:none;position:absolute;top:100%;left:0;min-width:180px;z-index:200;"></div>
-                        </div>
-                        <button id="avatarEditRemoveBtn" class="vrcn-button av-edit-action" disabled onclick="avEditRemoveSelected()"><span class="msi" style="font-size:14px;">favorite_border</span> <span data-i18n="avatars.edit.remove">Remove</span></button>
-                        <div style="position:relative;">
-                            <button id="avatarCreateLocalBtn" class="vrcn-button" onclick="avatarShowCreateLocalGroup(this)"><span class="msi" style="font-size:14px;">create_new_folder</span> <span data-i18n="favorites.create_local_group">Create Local Group</span></button>
-                            <div id="avatarCreateLocalPanel" class="vn-select-panel" style="display:none;position:absolute;top:100%;left:0;min-width:220px;z-index:200;padding:8px;">
-                                <input type="text" id="avatarCreateLocalInput" class="vrcn-input" maxlength="64" placeholder="Group name" data-i18n-placeholder="favorites.local_group_name" style="width:100%;margin-bottom:6px;" onkeydown="if(event.key==='Enter')avatarSaveLocalGroup()">
-                                <div style="display:flex;gap:6px;justify-content:flex-end;">
-                                    <button class="vrcn-button" onclick="avatarCancelCreateLocalGroup()" data-i18n="common.cancel">Cancel</button>
-                                    <button class="vrcn-button vrcn-btn-primary" onclick="avatarSaveLocalGroup()" data-i18n="common.create">Create</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div style="display:flex;gap:4px;align-items:center;">
                         <button id="avatarEditModeBtn" class="vrcn-button" style="display:none;" onclick="toggleAvEditMode()" title="Edit favorites" data-i18n-title="avatars.edit.button"><span class="msi" style="font-size:16px;">edit</span> <span data-i18n="avatars.edit.button">Edit</span></button>
                         <button class="vrcn-button sub-tab-btn active" id="avatarGridLarge" onclick="setGridSize('avatars','default');setAvatarsViewMode('grid')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
@@ -124,4 +105,24 @@
                     <div class="search-bar-row" style="margin-bottom:14px;"><span class="msi search-ico">search</span><input type="text" id="avatarSearchInput" class="vrcn-input" placeholder="Search public avatars..." data-i18n-placeholder="avatars.search.placeholder" onkeydown="if(event.key==='Enter')doAvatarSearch()"><select class="vrcn-dropdown av-publish-filter" onchange="setAvPublishFilter(this.value)" style="min-width:130px;flex-shrink:0;"><option value="all" data-i18n="avatars.filter.publish_all">All Status</option><option value="public" data-i18n="avatars.labels.public">Public</option><option value="private" data-i18n="avatars.labels.private">Private</option></select><select class="vrcn-dropdown av-platform-filter" onchange="setAvPlatformFilter(this.value)" style="min-width:140px;flex-shrink:0;"><option value="all" data-i18n="avatars.filter.platform_all">All Platforms</option><option value="pc">PC</option><option value="quest">Quest</option><option value="ios">iOS</option></select><select class="vrcn-dropdown av-vrcn-filter" id="avVrcnPerf" onchange="if(avatarSearchQuery)doAvatarSearch()" style="min-width:120px;flex-shrink:0;display:none;"><option value="" data-i18n="avatars.filter.perf_any">Performance</option><option value="excellent" data-i18n="avatars.perf.excellent">Excellent</option><option value="good" data-i18n="avatars.perf.good">Good</option><option value="medium" data-i18n="avatars.perf.medium">Medium</option><option value="poor" data-i18n="avatars.perf.poor">Poor</option><option value="verypoor" data-i18n="avatars.perf.very_poor">Very Poor</option></select><button class="vrcn-button av-vrcn-filter" id="avVrcnFtBtn" onclick="toggleAvVrcnFt()" style="flex-shrink:0;display:none;" title="Face Tracking"><span class="msi" style="font-size:16px;">face</span> <span data-i18n="avatars.filter.face_tracking">Face Tracking</span></button><div class="av-vrcn-filter" id="avVrcnContentWrap" style="position:relative;flex-shrink:0;display:none;"><button class="vrcn-button" onclick="toggleAvVrcnContentMenu()"><span class="msi" style="font-size:16px;">shield</span> <span data-i18n="avatars.filter.content_filter">Content Filter</span><span id="avVrcnContentCount" style="display:none;margin-left:4px;color:var(--accent);"></span></button><div id="avVrcnContentMenu" class="vn-select-panel" style="display:none;position:absolute;top:100%;right:0;min-width:210px;z-index:200;padding:6px;"><label class="av-cf-item"><input type="checkbox" value="sexual" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.sexual">Sexually Suggestive</span></label><label class="av-cf-item"><input type="checkbox" value="adult" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.adult">Adult Themes</span></label><label class="av-cf-item"><input type="checkbox" value="violence" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.violence">Graphic Violence</span></label><label class="av-cf-item"><input type="checkbox" value="gore" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.gore">Excessive Gore</span></label><label class="av-cf-item"><input type="checkbox" value="horror" onchange="updateAvVrcnContent()"> <span data-i18n="avatars.content.horror">Extreme Horror</span></label></div></div><button class="vrcn-button" onclick="doAvatarSearch()" data-i18n="common.search">Search</button></div>
                     </div>
                     <div class="lv-tab-scroll"><div id="avatarSearchGrid" class="avatar-grid"><div class="empty-msg" data-i18n="avatars.search.empty_prompt">Search for public avatars</div></div></div>
+                </div>
+                <div id="avatarEditBar" class="vrcn-edit-bar" style="display:none;">
+                    <span id="avatarEditCount" class="vrcn-edit-count">0 selected</span>
+                    <button id="avatarEditSelectAllBtn" class="vrcn-button" onclick="avEditSelectAll()" data-i18n="avatars.edit.select_all">Select All</button>
+                    <span class="vrcn-edit-spacer"></span>
+                    <div style="position:relative;">
+                        <button class="vrcn-button av-edit-action" disabled onclick="avEditShowMoveMenu(this)"><span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="avatars.edit.move_to">Move to...</span></button>
+                        <div id="avatarEditMovePicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
+                    </div>
+                    <button id="avatarEditRemoveBtn" class="vrcn-button av-edit-action" disabled onclick="avEditRemoveSelected()"><span class="msi" style="font-size:14px;">favorite_border</span> <span data-i18n="avatars.edit.remove">Remove</span></button>
+                    <div style="position:relative;">
+                        <button id="avatarCreateLocalBtn" class="vrcn-button" onclick="avatarShowCreateLocalGroup(this)"><span class="msi" style="font-size:14px;">create_new_folder</span> <span data-i18n="favorites.create_local_group">Create Local Group</span></button>
+                        <div id="avatarCreateLocalPanel" class="vn-select-panel" style="display:none;min-width:220px;z-index:1200;padding:8px;">
+                            <input type="text" id="avatarCreateLocalInput" class="vrcn-input" maxlength="64" placeholder="Group name" data-i18n-placeholder="favorites.local_group_name" style="width:100%;margin-bottom:6px;" onkeydown="if(event.key==='Enter')avatarSaveLocalGroup()">
+                            <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                <button class="vrcn-button" onclick="avatarCancelCreateLocalGroup()" data-i18n="common.cancel">Cancel</button>
+                                <button class="vrcn-button vrcn-btn-primary" onclick="avatarSaveLocalGroup()" data-i18n="common.create">Create</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>

@@ -1,5 +1,17 @@
 **2026.44.1**
 
+**Worlds Tab**
+* Edit mode now shows **Select All**, **Move to...**, **Remove** and **Create Local Group** in a bar at
+the bottom of the tab, the same way the media library does. The filter buttons stay visible while editing.
+
+**Avatars Tab**
+* Edit mode now shows **Select All**, **Move to...**, **Remove** and **Create Local Group** in a bar at
+the bottom of the tab. The filter buttons stay visible while editing.
+
+**People Tab**
+* Edit mode now shows **Select All**, **Move to...**, **Remove from Favorites** and **Create Local Group**
+in a bar at the bottom of the tab. The filter buttons stay visible while editing.
+
 **Translations**
 * Korean Translation by @roshikeymusica
 * Update Traditional Chinese localization by @SoraneYuki

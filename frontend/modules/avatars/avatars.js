@@ -1,4 +1,4 @@
-/* === Avatars Tab === */
+﻿/* === Avatars Tab === */
 let _avFavRefreshTimer = null;
 let _avEditMode = false;
 let _avEditSelected = new Set();
@@ -900,8 +900,6 @@ function toggleAvEditMode() {
     _avEditSelected = new Set();
     const btn = document.getElementById('avatarEditModeBtn');
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">check</span> <span>${t('avatars.edit.done', 'Done')}</span>`; btn.classList.add('active'); }
-    const filterBtns = document.getElementById('avatarFilterBtns');
-    if (filterBtns) filterBtns.style.display = 'none';
     const bar = document.getElementById('avatarEditBar');
     if (bar) bar.style.display = 'flex';
     filterFavAvatars();
@@ -912,8 +910,6 @@ function exitAvEditMode() {
     _avEditSelected = new Set();
     const btn = document.getElementById('avatarEditModeBtn');
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">edit</span> <span>${t('avatars.edit.button', 'Edit')}</span>`; btn.classList.remove('active'); }
-    const filterBtns = document.getElementById('avatarFilterBtns');
-    if (filterBtns) filterBtns.style.display = '';
     const bar = document.getElementById('avatarEditBar');
     if (bar) bar.style.display = 'none';
     const picker = document.getElementById('avatarEditMovePicker');

@@ -1,4 +1,4 @@
-/* === Search (Worlds, Groups, People) === */
+﻿/* === Search (Worlds, Groups, People) === */
 /* === World Tab: Favorites / Search filter === */
 document.documentElement.addEventListener('languagechange', () => {
     document.getElementById('worldSortSelect')?._vnRefresh?.();
@@ -444,8 +444,6 @@ function toggleWorldEditMode() {
     _worldEditSelected = new Set();
     const btn = document.getElementById('worldEditModeBtn');
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">check</span> <span>${t('worlds.edit.done', 'Done')}</span>`; btn.classList.add('active'); }
-    const filterBtns = document.getElementById('worldFilterBtns');
-    if (filterBtns) filterBtns.style.display = 'none';
     const bar = document.getElementById('worldEditBar');
     if (bar) bar.style.display = 'flex';
     filterFavWorlds();
@@ -457,8 +455,6 @@ function exitWorldEditMode() {
     _worldEditSelected = new Set();
     const btn = document.getElementById('worldEditModeBtn');
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">edit</span> <span>${t('worlds.edit.button', 'Edit')}</span>`; btn.classList.remove('active'); }
-    const filterBtns = document.getElementById('worldFilterBtns');
-    if (filterBtns) filterBtns.style.display = '';
     const bar = document.getElementById('worldEditBar');
     if (bar) bar.style.display = 'none';
     const picker = document.getElementById('worldEditMovePicker');

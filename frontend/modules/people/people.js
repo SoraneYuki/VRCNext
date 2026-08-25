@@ -1,4 +1,4 @@
-/* === VRChat API === */
+﻿/* === VRChat API === */
 function vrcQuickLogin() {
     const u = document.getElementById('vrcQuickUser').value, p = document.getElementById('vrcQuickPass').value;
     if (!u || !p) return;
@@ -1101,8 +1101,6 @@ function toggleFriendEditMode() {
     _favFriendEditSelected = new Set();
     const btn = document.getElementById('favFriendEditModeBtn');
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">check</span> <span>${t('friends.edit.done', 'Done')}</span>`; btn.classList.add('active'); }
-    const filterBtns = document.getElementById('peopleFilterBtns');
-    if (filterBtns) filterBtns.style.display = 'none';
     const bar = document.getElementById('favFriendEditBar');
     if (bar) bar.style.display = 'flex';
     filterFavFriends();
@@ -1114,8 +1112,6 @@ function exitFriendEditMode() {
     _favFriendEditSelected = new Set();
     const btn = document.getElementById('favFriendEditModeBtn');
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">edit</span> <span>${t('friends.edit.button', 'Edit')}</span>`; btn.classList.remove('active'); }
-    const filterBtns = document.getElementById('peopleFilterBtns');
-    if (filterBtns) filterBtns.style.display = '';
     const bar = document.getElementById('favFriendEditBar');
     if (bar) bar.style.display = 'none';
     const picker = document.getElementById('favFriendEditMovePicker');
