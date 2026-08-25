@@ -132,6 +132,16 @@ function _wlAuthorTags(w) {
     return (w.tags || []).filter(x => x.startsWith('author_tag_')).map(x => x.replace('author_tag_', ''));
 }
 
+function _wlPublished(w) { return w.created_at || w.createdAt || ''; }
+function _wlUpdated(w)   { return w.updated_at || w.updatedAt || ''; }
+
+function _wlListDate(value) {
+    if (!value) return '';
+    const raw = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value + 'T00:00:00' : value;
+    const d = new Date(raw);
+    return isNaN(d) ? String(value) : fmtShortDate(d);
+}
+
 function _wlValue(w, field) {
     switch (field) {
         case 'name':      return (w.name || '').toLowerCase();
@@ -139,6 +149,8 @@ function _wlValue(w, field) {
         case 'favorites': return w.favorites || 0;
         case 'users':     return w.occupants || 0;
         case 'visits':    return w.worldVisitCount || 0;
+        case 'published': return Date.parse(_wlPublished(w)) || 0;
+        case 'updated':   return Date.parse(_wlUpdated(w)) || 0;
         case 'time':      return w.worldTimeSeconds || 0;
         case 'lastseen':  return w.worldLastVisited || '';
         default:          return (w.name || '').toLowerCase();
@@ -161,6 +173,8 @@ function buildWorldsListHtml(worlds) {
             favorites: `<td class="lv-num">${w.favorites ? esc(Number(w.favorites).toLocaleString()) : ''}</td>`,
             users:     `<td class="lv-num">${w.occupants ? esc(Number(w.occupants).toLocaleString()) : ''}</td>`,
             visits:    `<td class="lv-num">${w.worldVisitCount ? esc(String(w.worldVisitCount)) : ''}</td>`,
+            published: `<td class="lv-sub">${esc(_wlListDate(_wlPublished(w)))}</td>`,
+            updated:   `<td class="lv-sub">${esc(_wlListDate(_wlUpdated(w)))}</td>`,
             time:      `<td class="lv-num">${esc(lvDuration(w.worldTimeSeconds))}</td>`,
             lastseen:  `<td class="lv-date">${esc(lvDateTime(w.worldLastVisited))}</td>`,
         });

@@ -2537,6 +2537,7 @@ public class AuthController
                 {
                     var wid = w["id"]?.ToString() ?? "";
                     var stats = _core.TimeEngine.GetWorldStats(wid);
+                    AppShell.EnrichWorldDatesFromCache(_core.TimeEngine, w, wid);
                     var rawWorldImg = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                     allWorlds.Add(new
                     {
@@ -2550,6 +2551,8 @@ public class AuthController
                         favorites         = w["favorites"]?.Value<int>()  ?? 0,
                         visits            = w["visits"]?.Value<int>()     ?? 0,
                         tags              = w["tags"]?.ToObject<List<string>>() ?? new List<string>(),
+                        created_at        = DateTimeHelper.Iso(w["created_at"]),
+                        updated_at        = DateTimeHelper.Iso(w["updated_at"]),
                         favoriteGroup     = g.name,
                         favoriteId        = w["favoriteId"]?.ToString() ?? "",
                         worldTimeSeconds  = stats.totalSeconds,
@@ -2565,6 +2568,7 @@ public class AuthController
                 var w = it.Snapshot;
                 var wid = it.EntityId;
                 var stats = _core.TimeEngine.GetWorldStats(wid);
+                AppShell.EnrichWorldDatesFromCache(_core.TimeEngine, w, wid);
                 var rawWorldImg = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                 allWorlds.Add(new
                 {
@@ -2578,6 +2582,8 @@ public class AuthController
                     favorites         = w["favorites"]?.Value<int>()  ?? 0,
                     visits            = w["visits"]?.Value<int>()     ?? 0,
                     tags              = w["tags"]?.ToObject<List<string>>() ?? new List<string>(),
+                    created_at        = DateTimeHelper.Iso(w["created_at"]),
+                    updated_at        = DateTimeHelper.Iso(w["updated_at"]),
                     favoriteGroup     = it.GroupName,
                     favoriteId        = it.Id,
                     worldTimeSeconds  = stats.totalSeconds,
@@ -2751,6 +2757,7 @@ public class AuthController
                 {
                     wo["imageUrl"] = ImageCacheHelper.GetWorldUrl(wo["id"]?.ToString(), wo["imageUrl"]?.ToString() ?? wo["thumbnailImageUrl"]?.ToString());
                     wo["thumbnailImageUrl"] = wo["imageUrl"];
+                    AppShell.EnrichWorldDatesFromCache(_core.TimeEngine, wo, wo["id"]?.ToString() ?? "");
                 }
             _core.SendToJS("vrcFavoriteWorlds", favWorldsObj);
         }

@@ -655,6 +655,9 @@ public partial class AppShell
                             var wid = w["id"]?.ToString() ?? "";
                             var url = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                             w["imageUrl"] = url; w["thumbnailImageUrl"] = url;
+                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid);
+                            w["created_at"] = DateTimeHelper.Iso(w["created_at"]);
+                            w["updated_at"] = DateTimeHelper.Iso(w["updated_at"]);
                             var stats = _core.TimeEngine.GetWorldStats(wid);
                             w["worldTimeSeconds"]  = stats.totalSeconds;
                             w["worldVisitCount"]   = stats.visitCount;
@@ -1474,6 +1477,7 @@ public partial class AppShell
                             var wid2 = w["id"]?.ToString() ?? "";
                             var wurl = ImageCacheHelper.GetWorldUrl(wid2, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                             var wStats = _core.TimeEngine.GetWorldStats(wid2);
+                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid2);
                             return new {
                             id = wid2, name = w["name"]?.ToString() ?? "",
                             imageUrl = wurl, thumbnailImageUrl = wurl,
@@ -1481,6 +1485,8 @@ public partial class AppShell
                             capacity = w["capacity"]?.Value<int>() ?? 0, favorites = w["favorites"]?.Value<int>() ?? 0,
                             visits = w["visits"]?.Value<int>() ?? 0, description = w["description"]?.ToString() ?? "",
                             tags = w["tags"]?.ToObject<List<string>>() ?? new(),
+                            created_at = DateTimeHelper.Iso(w["created_at"]),
+                            updated_at = DateTimeHelper.Iso(w["updated_at"]),
                             worldTimeSeconds = wStats.totalSeconds,
                             worldVisitCount  = wStats.visitCount,
                             worldLastVisited = wStats.lastVisited,
@@ -2138,6 +2144,9 @@ public partial class AppShell
                             var wid = w["id"]?.ToString() ?? "";
                             var url = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                             w["imageUrl"] = url; w["thumbnailImageUrl"] = url;
+                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid);
+                            w["created_at"] = DateTimeHelper.Iso(w["created_at"]);
+                            w["updated_at"] = DateTimeHelper.Iso(w["updated_at"]);
                             var stats = _core.TimeEngine.GetWorldStats(wid);
                             w["worldTimeSeconds"] = stats.totalSeconds;
                             w["worldVisitCount"]  = stats.visitCount;
@@ -2498,7 +2507,14 @@ public partial class AppShell
                         if (_settings.FfcEnabled)
                         {
                             var cachedFavWorlds = _cache.LoadRaw(CacheHandler.KeyFavWorlds);
-                            if (cachedFavWorlds != null) Invoke(() => SendToJS("vrcFavoriteWorlds", cachedFavWorlds));
+                            if (cachedFavWorlds != null)
+                            {
+                                if (cachedFavWorlds is JObject cfw)
+                                    foreach (var cw in cfw["worlds"] as JArray ?? new JArray())
+                                        if (cw is JObject cwo)
+                                            EnrichWorldDatesFromCache(_core.TimeEngine, cwo, cwo["id"]?.ToString() ?? "");
+                                Invoke(() => SendToJS("vrcFavoriteWorlds", cachedFavWorlds));
+                            }
                         }
                         _authCtrl.ClearFavGroupsCache(); // ensure fresh visibility state from API
                         await _authCtrl.FetchAndCacheFavWorldsAsync();
@@ -3795,6 +3811,17 @@ public partial class AppShell
             if (c.HasIos)   compat.Add("ios");
             a["compatibility"] = compat;
         }
+    }
+
+    internal static void EnrichWorldDatesFromCache(UnifiedTimeEngine engine, JObject w, string worldId)
+    {
+        if (w == null || string.IsNullOrEmpty(worldId)) return;
+        UnifiedTimeEngine.WorldDetailCache? c;
+        try { c = engine.GetWorldDetail(worldId); }
+        catch { return; }
+        if (c == null) return;
+        if (string.IsNullOrEmpty(w["created_at"]?.ToString()) && !string.IsNullOrEmpty(c.Published)) w["created_at"] = c.Published;
+        if (string.IsNullOrEmpty(w["updated_at"]?.ToString()) && !string.IsNullOrEmpty(c.Updated)) w["updated_at"] = c.Updated;
     }
 
     private void CacheAvatarDetailFrom(JObject avatar)

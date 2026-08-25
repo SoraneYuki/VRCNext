@@ -67,6 +67,8 @@ const TL_TABLE_DEFS = {
         { id: 'favorites',key: 'worlds.list.header.favorites',    fallback: 'Favorites',    width: '110px', sort: 'favorites' },
         { id: 'users',    key: 'worlds.list.header.users',        fallback: 'Users',        width: '100px', sort: 'users' },
         { id: 'visits',   key: 'worlds.list.header.visits',       fallback: 'Visits',       width: '110px', sort: 'visits' },
+        { id: 'published',key: 'worlds.meta.published',           fallback: 'Published',    width: '130px', sort: 'published' },
+        { id: 'updated',  key: 'worlds.meta.updated',             fallback: 'Updated',      width: '130px', sort: 'updated' },
         { id: 'time',     key: 'people.list.header.time_spent',   fallback: 'Time Spent',   width: '120px', sort: 'time' },
         { id: 'lastseen', key: 'worlds.list.header.last_visited', fallback: 'Last Visited', width: '160px', sort: 'lastseen' },
     ],
