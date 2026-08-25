@@ -52,6 +52,7 @@ public sealed class VRSubprocessHost : IDisposable
     public event Action? OnFsQuit;
     public event Action<JArray>? OnFsDevices;
     public event Action<string>? OnFsPhotoSaved;
+    public event Action<string>? OnFsQrLink;
 
     public VRSubprocessHost(Action<string> log) => _log = log;
 
@@ -227,6 +228,9 @@ public sealed class VRSubprocessHost : IDisposable
             case "fs_photo_saved":
                 OnFsPhotoSaved?.Invoke(msg["path"]?.Value<string>() ?? "");
                 break;
+            case "fs_qr_link":
+                OnFsQrLink?.Invoke(msg["url"]?.Value<string>() ?? "");
+                break;
             case "fs_audio_devices":
             {
                 var list = new List<(string, string)>();
@@ -399,10 +403,11 @@ public sealed class VRSubprocessHost : IDisposable
                           int gifMaxDim, int gifFps, bool useHmdRotations,
                           uint leftVideoButton, uint rightVideoButton,
                           string videoDeviceA, string videoDeviceB,
-                          int videoFps, string videoQuality, string videoBitrateQuality, int audioKbps)
+                          int videoFps, string videoQuality, string videoBitrateQuality, int audioKbps,
+                          uint leftAcceptButton = 0, uint rightAcceptButton = 0)
     {
         FsConnected = true;
-        Send("fs_connect", new { leftButton, rightButton, outputDeviceId, outputDeviceName, activationRadius, leftRecordButton, rightRecordButton, gifMaxDim, gifFps, useHmdRotations, leftVideoButton, rightVideoButton, videoDeviceA, videoDeviceB, videoFps, videoQuality, videoBitrateQuality, audioKbps });
+        Send("fs_connect", new { leftButton, rightButton, outputDeviceId, outputDeviceName, activationRadius, leftRecordButton, rightRecordButton, gifMaxDim, gifFps, useHmdRotations, leftVideoButton, rightVideoButton, videoDeviceA, videoDeviceB, videoFps, videoQuality, videoBitrateQuality, audioKbps, leftAcceptButton, rightAcceptButton });
     }
 
     public void FsDisconnect()
@@ -417,8 +422,9 @@ public sealed class VRSubprocessHost : IDisposable
                          int gifMaxDim, int gifFps, bool useHmdRotations,
                          uint leftVideoButton, uint rightVideoButton,
                          string videoDeviceA, string videoDeviceB,
-                         int videoFps, string videoQuality, string videoBitrateQuality, int audioKbps)
-        => Send("fs_config", new { leftButton, rightButton, activationRadius, leftRecordButton, rightRecordButton, gifMaxDim, gifFps, useHmdRotations, leftVideoButton, rightVideoButton, videoDeviceA, videoDeviceB, videoFps, videoQuality, videoBitrateQuality, audioKbps });
+                         int videoFps, string videoQuality, string videoBitrateQuality, int audioKbps,
+                         uint leftAcceptButton = 0, uint rightAcceptButton = 0)
+        => Send("fs_config", new { leftButton, rightButton, activationRadius, leftRecordButton, rightRecordButton, gifMaxDim, gifFps, useHmdRotations, leftVideoButton, rightVideoButton, videoDeviceA, videoDeviceB, videoFps, videoQuality, videoBitrateQuality, audioKbps, leftAcceptButton, rightAcceptButton });
 
     public void FsGetAudioDevices() => Send("fs_get_audio_devices");
     public event Action<List<(string id, string label)>>? OnFsAudioDevices;
@@ -483,9 +489,9 @@ public sealed class VRSubprocessHost : IDisposable
     public void SfDisconnect() { }
     public void SfConfig(float a, bool b, bool c, bool d, uint e, uint f, uint g, uint h, uint i, uint j, float k) { }
     public void SfReset() { }
-    public void FsConnect(uint a, uint b, string c, string c2, int d, uint e, uint f, int g, int h, bool i, uint j, uint k, string l, string m, int n2, string n, string o, int p) { }
+    public void FsConnect(uint a, uint b, string c, string c2, int d, uint e, uint f, int g, int h, bool i, uint j, uint k, string l, string m, int n2, string n, string o, int p, uint q = 0, uint r = 0) { }
     public void FsDisconnect() { }
-    public void FsConfig(uint a, uint b, int c, uint d, uint e, int f, int g, bool h, uint i, uint j, string k, string l, int m2, string m, string n, int o) { }
+    public void FsConfig(uint a, uint b, int c, uint d, uint e, int f, int g, bool h, uint i, uint j, string k, string l, int m2, string m, string n, int o, uint p = 0, uint q = 0) { }
     public void FsGetAudioDevices() { }
     public event System.Action<System.Collections.Generic.List<(string, string)>>? OnFsAudioDevices;
     public void FsSetOutput(string a, string b) { }
@@ -494,6 +500,7 @@ public sealed class VRSubprocessHost : IDisposable
     public event System.Action? OnFsQuit;
     public event System.Action<Newtonsoft.Json.Linq.JArray>? OnFsDevices;
     public event System.Action<string>? OnFsPhotoSaved;
+    public event System.Action<string>? OnFsQrLink;
     public void TrimMemory() { }
     public void VroWaterConfig(bool enabled, int intervalSec) { }
     public void VroScaleConfig(bool a0, bool a, bool b, System.Collections.Generic.List<uint> c, int d, float e, int f = 25) { }

@@ -22,6 +22,7 @@
   "frameshot.keybind.frame": "擷取",
   "frameshot.keybind.record": "錄製 (GIF)",
   "frameshot.keybind.video": "錄製 (影片)",
+  "frameshot.keybind.accept": "確認 / 開啟 QR",
   "frameshot.keybind.none": "無",
   "frameshot.video.title": "影片設定",
   "frameshot.video.input_a": "輸入裝置 A",

@@ -22,6 +22,7 @@
   "frameshot.keybind.frame": "Frame",
   "frameshot.keybind.record": "Record (GIF)",
   "frameshot.keybind.video": "Record (Video)",
+  "frameshot.keybind.accept": "Accept / Open QR",
   "frameshot.keybind.none": "None",
   "frameshot.video.title": "Video Settings",
   "frameshot.video.input_a": "Input Device A",

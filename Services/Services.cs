@@ -494,6 +494,8 @@ public class AppSettings
     public bool   FsUseHmdRotations   { get; set; } = false;
     public uint   FsLeftVideoButton   { get; set; } = 0;
     public uint   FsRightVideoButton  { get; set; } = 0;
+    public uint   FsLeftAcceptButton  { get; set; } = 0;
+    public uint   FsRightAcceptButton { get; set; } = 0;
     public string FsVideoDeviceA      { get; set; } = "";
     public string FsVideoDeviceB      { get; set; } = "";
     public int    FsVideoFps          { get; set; } = 30;
@@ -505,6 +507,8 @@ public class AppSettings
     public uint   FsIdxRightRecordButton { get; set; } = 0;
     public uint   FsIdxLeftVideoButton   { get; set; } = 0;
     public uint   FsIdxRightVideoButton  { get; set; } = 0;
+    public uint   FsIdxLeftAcceptButton  { get; set; } = 0;
+    public uint   FsIdxRightAcceptButton { get; set; } = 0;
     public int    FsAudioKbps         { get; set; } = 256;
 
     // Auto-start flags (legacy — kept for JSON compat, no longer acted on)

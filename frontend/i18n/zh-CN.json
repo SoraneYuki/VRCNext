@@ -22,6 +22,7 @@
   "frameshot.keybind.frame": "取景",
   "frameshot.keybind.record": "录制 (GIF)",
   "frameshot.keybind.video": "录制 (视频)",
+  "frameshot.keybind.accept": "确认 / 打开二维码",
   "frameshot.keybind.none": "无",
   "frameshot.video.title": "视频设置",
   "frameshot.video.input_a": "输入设备 A",

@@ -22,6 +22,7 @@
   "frameshot.keybind.frame": "フレーム",
   "frameshot.keybind.record": "録画 (GIF)",
   "frameshot.keybind.video": "録画 (ビデオ)",
+  "frameshot.keybind.accept": "決定 / QRを開く",
   "frameshot.keybind.none": "なし",
   "frameshot.video.title": "ビデオ設定",
   "frameshot.video.input_a": "入力デバイス A",

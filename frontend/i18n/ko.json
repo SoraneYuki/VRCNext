@@ -22,6 +22,7 @@
   "frameshot.keybind.frame": "프레임",
   "frameshot.keybind.record": "녹화 (GIF)",
   "frameshot.keybind.video": "녹화 (동영상)",
+  "frameshot.keybind.accept": "확인 / QR 열기",
   "frameshot.keybind.none": "없음",
   "frameshot.video.title": "동영상 설정",
   "frameshot.video.input_a": "입력 디바이스 A",

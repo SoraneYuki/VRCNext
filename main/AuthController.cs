@@ -2115,6 +2115,16 @@ public class AuthController
                 _core.Settings.FsLeftVideoButton  = SfIn("fsLeftVideoButton",  _core.Settings.FsLeftVideoButton);
                 _core.Settings.FsRightVideoButton = SfIn("fsRightVideoButton", _core.Settings.FsRightVideoButton);
             }
+            if (vrIdx)
+            {
+                _core.Settings.FsIdxLeftAcceptButton  = SfIn("fsLeftAcceptButton",  _core.Settings.FsIdxLeftAcceptButton);
+                _core.Settings.FsIdxRightAcceptButton = SfIn("fsRightAcceptButton", _core.Settings.FsIdxRightAcceptButton);
+            }
+            else
+            {
+                _core.Settings.FsLeftAcceptButton  = SfIn("fsLeftAcceptButton",  _core.Settings.FsLeftAcceptButton);
+                _core.Settings.FsRightAcceptButton = SfIn("fsRightAcceptButton", _core.Settings.FsRightAcceptButton);
+            }
             _core.Settings.FsVideoDeviceA          = data["fsVideoDeviceA"]?.Value<string>()          ?? "";
             _core.Settings.FsVideoDeviceB          = data["fsVideoDeviceB"]?.Value<string>()          ?? "";
             _core.Settings.FsVideoFps              = data["fsVideoFps"]?.Value<int>()                 ?? 30;

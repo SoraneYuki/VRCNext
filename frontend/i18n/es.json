@@ -22,6 +22,7 @@
   "frameshot.keybind.frame": "Marco",
   "frameshot.keybind.record": "Grabar (GIF)",
   "frameshot.keybind.video": "Grabar (Video)",
+  "frameshot.keybind.accept": "Aceptar / Abrir QR",
   "frameshot.keybind.none": "Ninguno",
   "frameshot.video.title": "Ajustes de video",
   "frameshot.video.input_a": "Dispositivo de entrada A",

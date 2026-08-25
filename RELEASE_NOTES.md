@@ -1,5 +1,16 @@
 **2026.44.5**
 
+**FrameShot**
+* FrameShot now scans the framed area for **QR codes** while you hold the frame. When one is found the
+frame border turns green, a sound plays and the target is shown as a banner inside the frame.
+* New **Accept / Open QR** keybind next to Frame, Record (GIF) and Record (Video). Pressing it opens the
+detected link in your normal browser, so it is already open when you take the headset off. Photo and
+cancel keep working exactly as before.
+* Only http and https links can be opened. Any other QR content is shown but never opened.
+* Also reads **stylised QR codes**: with a logo in the middle, rounded or dot shaped modules, coloured
+or inverted (light on dark). Those need a bit more work, so they are checked on every third scan pass
+and can take up to about a second longer to show up than a plain black and white code.
+
 **Custom Chatbox**
 * The order of the chatbox lines can be changed. Drag **Local Time**, **Now Playing**, **System Info**
 and **Custom Text** into any order, the same way the sidebar navigation editor works. Song Playtime

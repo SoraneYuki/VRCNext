@@ -22,6 +22,7 @@
   "frameshot.keybind.frame": "Cadre",
   "frameshot.keybind.record": "Enregistrer (GIF)",
   "frameshot.keybind.video": "Enregistrer (Vidéo)",
+  "frameshot.keybind.accept": "Valider / Ouvrir le QR",
   "frameshot.keybind.none": "Aucun",
   "frameshot.video.title": "Paramètres vidéo",
   "frameshot.video.input_a": "Périphérique d'entrée A",

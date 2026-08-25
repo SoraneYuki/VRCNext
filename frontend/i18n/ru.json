@@ -25,6 +25,7 @@
   "frameshot.keybind.frame": "Кадр",
   "frameshot.keybind.record": "Запись (GIF)",
   "frameshot.keybind.video": "Запись (Видео)",
+  "frameshot.keybind.accept": "Подтвердить / Открыть QR",
   "frameshot.keybind.none": "Нет",
   "frameshot.video.title": "Настройки видео",
   "frameshot.video.input_a": "Устройство ввода A",

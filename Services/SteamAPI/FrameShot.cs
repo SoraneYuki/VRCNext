@@ -1,4 +1,4 @@
-#if WINDOWS
+﻿#if WINDOWS
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -26,6 +26,8 @@ namespace VRCNext.Services
         public uint RightRecordButton { get; private set; } = 0;
         public uint LeftVideoButton   { get; private set; } = 0;
         public uint RightVideoButton  { get; private set; } = 0;
+        public uint LeftAcceptButton  { get; private set; } = 0;
+        public uint RightAcceptButton { get; private set; } = 0;
         public float ActivationRadius { get; private set; } = 0.15f;
         public bool  UseHmdRotations  { get; private set; } = false;
 
@@ -40,6 +42,7 @@ namespace VRCNext.Services
         public event Action<object>? OnStateUpdate;
         public event Action? OnVRQuit;
         public event Action<string>? OnPhotoSaved;
+        public event Action<string>? OnQrLink;
 
         private bool _emitPrimed;
         private bool _emitConnected;
@@ -111,6 +114,27 @@ namespace VRCNext.Services
         private float   _recordLockedHeight;
         private System.Drawing.Rectangle _recordCrop;
         private volatile bool _gifAutoStop;
+
+        private const int QR_SCAN_INTERVAL_MS = 400;
+        private const int QR_SCAN_MAX_DIM      = 720;
+        private const int QR_LABEL_MAX_CHARS   = 56;
+
+        private const int QR_DEEP_EVERY = 3;
+
+        private static readonly IDictionary<ZXing.DecodeHintType, object> QrHints =
+            new Dictionary<ZXing.DecodeHintType, object>
+            {
+                { ZXing.DecodeHintType.TRY_HARDER, true },
+            };
+
+        private string   _qrPayload = "";
+        private string   _qrLink    = "";
+        private string   _qrLabel   = "";
+        private DateTime _qrLastScan;
+        private int      _qrScanBusy;
+        private int      _qrScanTick;
+        private bool     _acceptHeld;
+        private bool     _acceptHeldPrev;
 
         // Frame geometry (cached for capture after release)
         private Vector3 _lastLeftPos;
@@ -426,8 +450,11 @@ namespace VRCNext.Services
                                 int gifMaxDim, int gifFps, bool useHmdRotations,
                                 uint leftVideoButton, uint rightVideoButton,
                                 string videoDeviceA, string videoDeviceB,
-                                int videoFps, string videoQuality, string videoBitrateQuality, int audioKbps)
+                                int videoFps, string videoQuality, string videoBitrateQuality, int audioKbps,
+                                uint leftAcceptButton = 0, uint rightAcceptButton = 0)
         {
+            LeftAcceptButton   = leftAcceptButton;
+            RightAcceptButton  = rightAcceptButton;
             LeftButtonId       = leftButton;
             RightButtonId      = rightButton;
             LeftRecordButton   = leftRecordButton;
@@ -506,6 +533,9 @@ namespace VRCNext.Services
             _rightRecHeld = RightRecordButton != 0 && IsButtonHeld(_rightIdx, RightRecordButton);
             _leftVidHeld  = LeftVideoButton   != 0 && IsButtonHeld(_leftIdx,  LeftVideoButton);
             _rightVidHeld = RightVideoButton  != 0 && IsButtonHeld(_rightIdx, RightVideoButton);
+            _acceptHeldPrev = _acceptHeld;
+            _acceptHeld   = (LeftAcceptButton  != 0 && IsButtonHeld(_leftIdx,  LeftAcceptButton))
+                         || (RightAcceptButton != 0 && IsButtonHeld(_rightIdx, RightAcceptButton));
 
             bool wasFraming        = IsFraming;
             bool wasRecording      = IsRecording;
@@ -552,9 +582,12 @@ namespace VRCNext.Services
             if (IsFraming)
             {
                 UpdateFrameAndRender();
+                if (!IsRecording && !IsVideoRecording) TryScanQr();
+                if (_acceptHeld && !_acceptHeldPrev) AcceptQrLink();
             }
             else if (wasFraming)
             {
+                ResetQrState();
                 // Released — distinguish photo vs cancel
                 bool rightReleased = _rightHeldPrev && !_rightHeld;
                 bool leftReleased  = _leftHeldPrev  && !_leftHeld;
@@ -579,6 +612,210 @@ namespace VRCNext.Services
                     _log("[FrameShot] Cancelled");
                 }
             }
+        }
+
+        private void ResetQrState()
+        {
+            _qrPayload  = "";
+            _qrLink     = "";
+            _qrLabel    = "";
+            _qrLastScan = DateTime.MinValue;
+            _qrScanTick = 0;
+        }
+
+        private void AcceptQrLink()
+        {
+            var link = _qrLink;
+            if (link.Length == 0) return;
+            PlaySoundAsync("Accept.wav");
+            _log($"[FrameShot] QR link accepted: {link}");
+            _ = Task.Run(() => { try { OnQrLink?.Invoke(link); } catch { } });
+        }
+
+        private void TryScanQr()
+        {
+            if ((DateTime.UtcNow - _qrLastScan).TotalMilliseconds < QR_SCAN_INTERVAL_MS) return;
+            if (Interlocked.CompareExchange(ref _qrScanBusy, 1, 0) != 0) return;
+            _qrLastScan = DateTime.UtcNow;
+            _ = Task.Run(() =>
+            {
+                try { ScanQrOnce(); }
+                catch (Exception ex) { _log($"[FrameShot] QR scan: {ex.Message}"); }
+                finally { Interlocked.Exchange(ref _qrScanBusy, 0); }
+            });
+        }
+
+        private void ScanQrOnce()
+        {
+            if (!IsFraming || !EnsureMirrorPipeline()) return;
+
+            var corners = ProjectFrameCorners(_mirrorW, _mirrorH);
+            if (corners == null) return;
+
+            var crop = BoundingCrop(corners, _mirrorW, _mirrorH);
+            if (crop.Width < 24 || crop.Height < 24) return;
+
+            var raw = CaptureMirrorCrop(crop, false);
+            if (raw == null) return;
+
+            var scan = DownscaleIfNeeded(raw, QR_SCAN_MAX_DIM);
+            try
+            {
+                bool deep = (_qrScanTick++ % QR_DEEP_EVERY) == 0;
+                var payload = DecodeQr(scan, deep);
+                ApplyQrResult(payload);
+            }
+            finally
+            {
+                if (!ReferenceEquals(scan, raw)) scan.Dispose();
+                raw.Dispose();
+            }
+        }
+
+        private static string DecodeQr(Bitmap bmp, bool deep)
+        {
+            var rect  = new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height);
+            var bData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            byte[] buf;
+            try
+            {
+                buf = new byte[bmp.Width * bmp.Height * 4];
+                int rowBytes = bmp.Width * 4;
+                for (int y = 0; y < bmp.Height; y++)
+                    Marshal.Copy(bData.Scan0 + (nint)((long)y * bData.Stride), buf, y * rowBytes, rowBytes);
+            }
+            finally { bmp.UnlockBits(bData); }
+
+            var baseSource = new ZXing.RGBLuminanceSource(buf, bmp.Width, bmp.Height,
+                ZXing.RGBLuminanceSource.BitmapFormat.BGRA32);
+            var sources = new ZXing.LuminanceSource[] { baseSource, baseSource.invert() };
+
+            foreach (var source in sources)
+            {
+                var hit = DecodeBothBinarizers(source);
+                if (hit.Length > 0) return hit;
+            }
+            if (!deep) return "";
+
+            foreach (var source in sources)
+                foreach (var radius in new[] { 1, 2, 3 })
+                {
+                    var hit = DecodeBothBinarizers(MinFilter(source, radius));
+                    if (hit.Length > 0) return hit;
+                }
+            return "";
+        }
+
+        private static string DecodeBothBinarizers(ZXing.LuminanceSource source)
+        {
+            ZXing.Binarizer[] binarizers =
+            {
+                new ZXing.Common.HybridBinarizer(source),
+                new ZXing.Common.GlobalHistogramBinarizer(source),
+            };
+            foreach (var binarizer in binarizers)
+            {
+                try
+                {
+                    var result = new ZXing.QrCode.QRCodeReader().decode(new ZXing.BinaryBitmap(binarizer), QrHints);
+                    var text = result?.Text?.Trim();
+                    if (!string.IsNullOrEmpty(text)) return text!;
+                }
+                catch { }
+            }
+            return "";
+        }
+
+        private static ZXing.LuminanceSource MinFilter(ZXing.LuminanceSource source, int radius)
+        {
+            int w = source.Width, h = source.Height;
+            var src = source.Matrix;
+            var tmp = new byte[w * h];
+            var dst = new byte[w * h];
+
+            for (int y = 0; y < h; y++)
+            {
+                int row = y * w;
+                for (int x = 0; x < w; x++)
+                {
+                    byte best = 255;
+                    int x0 = Math.Max(0, x - radius), x1 = Math.Min(w - 1, x + radius);
+                    for (int xx = x0; xx <= x1; xx++)
+                    {
+                        var v = src[row + xx];
+                        if (v < best) best = v;
+                    }
+                    tmp[row + x] = best;
+                }
+            }
+            for (int y = 0; y < h; y++)
+            {
+                int y0 = Math.Max(0, y - radius), y1 = Math.Min(h - 1, y + radius);
+                for (int x = 0; x < w; x++)
+                {
+                    byte best = 255;
+                    for (int yy = y0; yy <= y1; yy++)
+                    {
+                        var v = tmp[yy * w + x];
+                        if (v < best) best = v;
+                    }
+                    dst[y * w + x] = best;
+                }
+            }
+            return new ZXing.PlanarYUVLuminanceSource(dst, w, h, 0, 0, w, h, false);
+        }
+
+        private void ApplyQrResult(string payload)
+        {
+            if (!IsFraming) return;
+            if (payload.Length == 0)
+            {
+                if (_qrPayload.Length > 0) ResetQrState();
+                return;
+            }
+            if (payload == _qrPayload) return;
+
+            _qrPayload = payload;
+            _qrLink    = NormalizeQrLink(payload);
+            _qrLabel   = BuildQrLabel(payload, _qrLink);
+            PlaySoundAsync("QRFound.wav");
+            _log($"[FrameShot] QR detected: {_qrLabel}");
+        }
+
+        private static string NormalizeQrLink(string payload)
+        {
+            if (!Uri.TryCreate(payload, UriKind.Absolute, out var uri)) return "";
+            if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return "";
+            if (string.IsNullOrEmpty(uri.Host)) return "";
+            return uri.AbsoluteUri;
+        }
+
+        private static string BuildQrLabel(string payload, string link)
+        {
+            var text = link.Length > 0 && Uri.TryCreate(link, UriKind.Absolute, out var uri)
+                ? uri.Host + (uri.AbsolutePath.Length > 1 ? uri.AbsolutePath : "")
+                : payload;
+            text = text.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (text.Length > QR_LABEL_MAX_CHARS) text = text[..(QR_LABEL_MAX_CHARS - 1)] + "\u2026";
+            return text;
+        }
+
+        private static System.Drawing.Rectangle BoundingCrop(PointF[] corners, int mw, int mh)
+        {
+            float minX = corners[0].X, maxX = corners[0].X;
+            float minY = corners[0].Y, maxY = corners[0].Y;
+            foreach (var p in corners)
+            {
+                if (p.X < minX) minX = p.X;
+                if (p.X > maxX) maxX = p.X;
+                if (p.Y < minY) minY = p.Y;
+                if (p.Y > maxY) maxY = p.Y;
+            }
+            int x = Math.Clamp((int)MathF.Floor(minX), 0, Math.Max(0, mw - 1));
+            int y = Math.Clamp((int)MathF.Floor(minY), 0, Math.Max(0, mh - 1));
+            int w = Math.Clamp((int)MathF.Ceiling(maxX) - x, 0, mw - x);
+            int h = Math.Clamp((int)MathF.Ceiling(maxY) - y, 0, mh - y);
+            return new System.Drawing.Rectangle(x, y, w, h);
         }
 
         private bool AreHandsWithinActivationRadius()
@@ -1468,6 +1705,40 @@ namespace VRCNext.Services
             OpenVR.Overlay.ShowOverlay(_overlayHandle);
         }
 
+        private void DrawQrBanner(Graphics g, int drawW, int drawH, Color accent)
+        {
+            var label = _qrLabel;
+            if (label.Length == 0) return;
+
+            using var font = new Font("Segoe UI", 24f, FontStyle.Bold, GraphicsUnit.Pixel);
+            const float padX = 18f, padY = 10f;
+            var textSize = g.MeasureString(label, font);
+            float maxW = Math.Max(80f, drawW - 56f);
+            float boxW = Math.Min(maxW, textSize.Width + padX * 2);
+            float boxH = textSize.Height + padY * 2;
+            float x    = (drawW - boxW) / 2f;
+            float y    = drawH - boxH - 26f;
+            if (y < 20f) y = 20f;
+
+            var box = new RectangleF(x, y, boxW, boxH);
+            using (var bg = new SolidBrush(Color.FromArgb(205, 10, 12, 16)))
+                g.FillRectangle(bg, box);
+            using (var edge = new Pen(accent, 2f))
+                g.DrawRectangle(edge, box.X, box.Y, box.Width, box.Height);
+
+            using var fmt = new StringFormat
+            {
+                Alignment     = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center,
+                Trimming      = StringTrimming.EllipsisCharacter,
+                FormatFlags   = StringFormatFlags.NoWrap,
+            };
+            using var fg = new SolidBrush(_qrLink.Length > 0
+                ? Color.FromArgb(255, 236, 245, 255)
+                : Color.FromArgb(255, 175, 185, 195));
+            g.DrawString(label, font, fg, box, fmt);
+        }
+
         private void DrawFrameTexture(int drawW, int drawH, bool recording)
         {
             if (_frameBitmap == null || _d3dContext == null || _stagingTex == null || _overlayTex == null) return;
@@ -1478,9 +1749,10 @@ namespace VRCNext.Services
                 g.Clear(Color.Transparent);
 
                 Color borderColor;
-                if (IsVideoRecording)      borderColor = Color.FromArgb(255, 255, 170,  60); // orange (video)
-                else if (recording)        borderColor = Color.FromArgb(255, 255,  70,  70); // red (gif)
-                else                       borderColor = Color.FromArgb(255, 130, 210, 255); // light-blue (idle)
+                if (IsVideoRecording)       borderColor = Color.FromArgb(255, 255, 170,  60); // orange (video)
+                else if (recording)         borderColor = Color.FromArgb(255, 255,  70,  70); // red (gif)
+                else if (_qrLabel.Length>0) borderColor = Color.FromArgb(255,  90, 220, 120); // green (QR found)
+                else                        borderColor = Color.FromArgb(255, 130, 210, 255); // light-blue (idle)
                 using var pen = new Pen(borderColor, 8f);
                 int inset = 4;
                 g.DrawRectangle(pen, inset, inset, drawW - inset * 2 - 1, drawH - inset * 2 - 1);
@@ -1488,6 +1760,8 @@ namespace VRCNext.Services
                 // Subtle inner shadow line for definition
                 using var pen2 = new Pen(Color.FromArgb(120, 255, 255, 255), 1.5f);
                 g.DrawRectangle(pen2, inset + 6, inset + 6, drawW - inset * 2 - 13, drawH - inset * 2 - 13);
+
+                if (!recording && !IsVideoRecording) DrawQrBanner(g, drawW, drawH, borderColor);
             }
 
             var rect = new Rectangle(0, 0, FRAME_TEX_W, FRAME_TEX_H);
