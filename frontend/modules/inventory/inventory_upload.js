@@ -19,6 +19,15 @@ const INV_UPLOAD_REQS = {
         directBlob: true,
         get hint() { return t('avatars.upload.reqs.image', 'PNG/JPG, max 3 MB, max 2000x2000'); }
     },
+    worldImage: {
+        maxMB: 3,
+        ratioW: null,
+        ratioH: null,
+        minPx: 1,
+        maxPx: 2000,
+        directBlob: true,
+        get hint() { return t('worlds.upload.reqs.image', 'PNG/JPG, max 3 MB, max 2000x2000'); }
+    },
     photos: {
         maxMB: 8,
         ratioW: null,

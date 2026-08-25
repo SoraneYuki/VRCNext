@@ -1996,6 +1996,93 @@ public partial class AppShell
                     break;
                 }
 
+                case "vrcUpdateWorld":
+                {
+                    var wuId   = msg["worldId"]?.ToString()               ?? "";
+                    var wuName = msg["name"]?.ToString()                  ?? "";
+                    var wuDesc = msg["description"]?.ToString()           ?? "";
+                    var wuTags = msg["tags"]?.ToObject<List<string>>()    ?? new();
+                    if (!string.IsNullOrEmpty(wuId))
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, error) = await _core.World.UpdateWorldAsync(wuId, wuName, wuDesc, wuTags);
+                            if (ok)
+                            {
+                                var ex = _core.TimeEngine.GetWorldDetail(wuId);
+                                if (ex != null)
+                                {
+                                    _core.TimeEngine.SaveWorldDetail(
+                                        worldId:             wuId,
+                                        name:                wuName,
+                                        thumb:               ex.WorldThumb,
+                                        description:         wuDesc,
+                                        imageUrl:            ex.ImageUrl,
+                                        authorName:          ex.AuthorName,
+                                        authorId:            ex.AuthorId,
+                                        published:           ex.Published,
+                                        updated:             ex.Updated,
+                                        capacity:            ex.Capacity,
+                                        recommendedCapacity: ex.RecommendedCapacity,
+                                        tags:                wuTags,
+                                        favorites:           ex.Favorites,
+                                        visits:              ex.Visits,
+                                        pcSize:              ex.PcSize,
+                                        androidSize:         ex.AndroidSize,
+                                        iosSize:             ex.IosSize,
+                                        heat:                ex.Heat,
+                                        popularity:          ex.Popularity,
+                                        publicOccupants:     ex.PublicOccupants,
+                                        privateOccupants:    ex.PrivateOccupants,
+                                        version:             ex.Version);
+                                }
+                                ModalCacheHelper.Invalidate(wuId);
+                            }
+                            Invoke(() => SendToJS("vrcWorldUpdateResult", new
+                            {
+                                ok,
+                                error,
+                                worldId     = wuId,
+                                name        = ok ? wuName : (string?)null,
+                                description = ok ? wuDesc : (string?)null,
+                                tags        = ok ? wuTags : (List<string>?)null,
+                            }));
+                        });
+                    break;
+                }
+
+                case "vrcUploadWorldImage":
+                {
+                    var wImgId     = msg["worldId"]?.ToString() ?? "";
+                    var wImgDataB64 = msg["data"]?.ToString()   ?? "";
+                    if (!string.IsNullOrEmpty(wImgId) && !string.IsNullOrEmpty(wImgDataB64))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var rawWorld = await _core.World.GetWorldFreshAsync(wImgId);
+                                var rawImageUrl = rawWorld?["imageUrl"]?.ToString()
+                                    ?? rawWorld?["thumbnailImageUrl"]?.ToString() ?? "";
+                                if (string.IsNullOrEmpty(rawImageUrl))
+                                {
+                                    Invoke(() => SendToJS("vrcWorldImageResult", new { ok = false, worldId = wImgId, imageUrl = "", error = "Could not retrieve world image URL" }));
+                                    return;
+                                }
+                                var imgRaw = wImgDataB64.Contains(",") ? wImgDataB64.Split(',')[1] : wImgDataB64;
+                                var bytes = Convert.FromBase64String(imgRaw);
+                                var (ok, imageUrl, error) = await _core.World.UploadWorldMainImageAsync(wImgId, rawImageUrl, bytes);
+                                if (ok) ModalCacheHelper.Invalidate(wImgId);
+                                Invoke(() => SendToJS("vrcWorldImageResult", new { ok, worldId = wImgId, imageUrl, error }));
+                            }
+                            catch (Exception ex)
+                            {
+                                Invoke(() => SendToJS("vrcWorldImageResult", new { ok = false, worldId = wImgId, imageUrl = "", error = ex.Message }));
+                            }
+                        });
+                    }
+                    break;
+                }
+
                 case "vrcUploadAvatarImage":
                 {
                     var imgAvId = msg["avatarId"]?.ToString() ?? "";

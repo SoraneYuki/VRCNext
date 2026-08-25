@@ -280,14 +280,38 @@ function renderWorldSearchDetail(w) {
             <div class="wd-section-label" style="margin-bottom:6px;">${t('worlds.favorites.add_group_title', 'ADD TO FAVORITE GROUP')}</div>
             <div class="ci-group-list" id="wdFavGroupList"><div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:8px 0;">${t('worlds.favorites.loading_groups', 'Loading groups...')}</div></div>
         </div>`;
-    const wdTagsCard = tagsHtml ? `<div class="fd-info-card"><div class="fd-group-rep-label">${t('worlds.meta.tags_title', 'Tags')}</div>${tagsHtml}</div>` : '';
+    const wdTagsCard = (tagsHtml || isOwnWorld) ? `<div class="fd-info-card">
+            <div class="fd-group-rep-label">${t('worlds.meta.tags_title', 'Tags')}${isOwnWorld ? `<button class="myp-edit-btn" onclick="editWdField('tags')"><span class="msi" style="font-size:14px;">edit</span></button>` : ''}</div>
+            <div id="wdfTagsView">${tagsHtml || `<div class="myp-empty">${t('worlds.detail.no_tags', 'No tags')}</div>`}</div>
+            ${isOwnWorld ? `<div id="wdfTagsEdit" style="display:none;">
+                <div id="wdTagsChips" class="myp-lang-chips" style="margin-bottom:6px;"></div>
+                <div style="display:flex;gap:6px;margin-bottom:8px;">
+                    <input id="wdTagInput" class="vrcn-edit-field" placeholder="${esc(t('worlds.detail.add_tag_placeholder', 'Add tag...'))}" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();wdAddTag();}">
+                    <button class="myp-add-lang-btn" onclick="wdAddTag()"><span class="msi" style="font-size:15px;">add</span></button>
+                </div>
+                <div class="myp-edit-actions">
+                    <button class="vrcn-button" onclick="cancelWdField('tags')">${t('common.cancel', 'Cancel')}</button>
+                    <button class="vrcn-button vrcn-btn-primary" onclick="saveWdField('tags','${jsq(wid)}')">${t('common.save', 'Save')}</button>
+                </div>
+            </div>` : ''}
+        </div>` : '';
     const wdTimeCard = (w.worldTimeSeconds > 0 || currentInstanceData?.worldId === wid) ? `<div class="fd-info-card"><div class="wd-your-time"><span class="msi" style="font-size:15px;">schedule</span><div><div style="font-size:calc(12px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);">${t('worlds.time_spent.label', 'Your Time Spent')}</div><div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);"><span id="wdTimeSpent">${formatDuration(w.worldTimeSeconds || 0)}</span>${w.worldVisitCount > 0 ? ' &middot; ' + getWorldVisitCountLabel(w.worldVisitCount) : ''}</div></div></div></div>` : '';
     const wdInfosCard = `<div class="fd-info-card"><div class="fd-group-rep-label">${t('worlds.meta.infos_title', 'Infos')}</div><div style="display:grid;gap:6px;">${wdInfosRows}</div></div>`;
     const wdCommunityCard = wdCommunityRows ? `<div class="fd-info-card"><div class="fd-group-rep-label">${t('worlds.meta.community_title', 'Community')}</div><div style="display:grid;gap:6px;">${wdCommunityRows}</div></div>` : '';
     const wdPopularityCard = wdPopularityRows ? `<div class="fd-info-card"><div class="fd-group-rep-label">${t('worlds.meta.popularity_title', 'Popularity')}</div><div style="display:grid;gap:6px;">${wdPopularityRows}</div></div>` : '';
     const wdHistoryInner = `<div class="fd-group-rep-label">${t('worlds.instance_history.title', 'Instance History')}</div>
             <div id="wdInstanceHistory" style="max-height:160px;overflow-y:auto;"><div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.insights.loading', 'Loading...')}</div></div>`;
-    const wdNameAuthor = `<h2 style="margin:0 0 4px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(w.name)}</h2>
+    const wdNameAuthor = `<div id="wdfNameView" style="display:flex;align-items:center;gap:6px;">
+            <h2 style="margin:0 0 4px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(w.name)}</h2>
+            ${isOwnWorld ? `<button class="myp-edit-btn" onclick="editWdField('name')"><span class="msi" style="font-size:14px;">edit</span></button>` : ''}
+        </div>
+        ${isOwnWorld ? `<div id="wdfNameEdit" style="display:none;margin-bottom:6px;">
+            <input id="wdNameInput" class="vrcn-edit-field" value="${esc(w.name || '')}" maxlength="64" style="width:100%;">
+            <div class="myp-edit-actions">
+                <button class="vrcn-button" onclick="cancelWdField('name')">${t('common.cancel', 'Cancel')}</button>
+                <button class="vrcn-button vrcn-btn-primary" onclick="saveWdField('name','${jsq(wid)}')">${t('common.save', 'Save')}</button>
+            </div>
+        </div>` : ''}
         <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);margin-bottom:12px;">${t('worlds.meta.by', 'by')} ${w.authorId ? `<span onclick="navOpenModal('friend','${jsq(w.authorId)}','${jsq(w.authorName || '')}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--bg-hover);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);cursor:pointer;line-height:1.8;">${esc(w.authorName)}</span>` : esc(w.authorName)}</div>`;
     const wdStatsBadgesRow = `<div class="fd-badges-row">${wdStatsBadges}</div>`;
     const wdActionsCompact = `<div class="fd-actions">
@@ -296,9 +320,16 @@ function renderWorldSearchDetail(w) {
         </div>`;
     const wdDescTransBtn = (desc && window._kxdProfileTranslationEnabled !== false) ? `<button class="fd-bio-translate myp-edit-btn" onclick="fdTranslateBio(this)" title="${esc(t('profiles.bio.translate', 'Translate'))}"><span class="msi" style="font-size:14px;">translate</span></button>` : '';
     const wdDescCardCompact = `<div class="fd-info-card">
-            <div class="fd-group-rep-label">${t('worlds.meta.description_title', 'Description')}${wdDescTransBtn}</div>
+            <div class="fd-group-rep-label">${t('worlds.meta.description_title', 'Description')}${wdDescTransBtn}${isOwnWorld ? `<button class="myp-edit-btn" onclick="editWdField('desc')"><span class="msi" style="font-size:14px;">edit</span></button>` : ''}</div>
             <div class="fd-badges-row fd-bio-badges-row" style="margin-bottom:10px;">${idBadge(wid)}</div>
-            ${desc ? `<div class="fd-bio" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);max-height:150px;overflow-y:auto;line-height:1.5;white-space:pre-wrap;margin-bottom:0;">${esc(desc)}</div>` : ''}
+            <div id="wdfDescView">${desc ? `<div class="fd-bio" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);max-height:150px;overflow-y:auto;line-height:1.5;white-space:pre-wrap;margin-bottom:0;">${esc(desc)}</div>` : (isOwnWorld ? `<div class="myp-empty">${t('worlds.detail.empty_description', 'No description')}</div>` : '')}</div>
+            ${isOwnWorld ? `<div id="wdfDescEdit" style="display:none;">
+                <textarea id="wdDescInput" class="myp-textarea" rows="4" maxlength="2000" placeholder="${esc(t('worlds.detail.description_placeholder', 'World description...'))}">${esc(w.description || '')}</textarea>
+                <div class="myp-edit-actions">
+                    <button class="vrcn-button" onclick="cancelWdField('desc')">${t('common.cancel', 'Cancel')}</button>
+                    <button class="vrcn-button vrcn-btn-primary" onclick="saveWdField('desc','${jsq(wid)}')">${t('common.save', 'Save')}</button>
+                </div>
+            </div>` : ''}
         </div>`;
     const wdComPopRow = (wdCommunityCard && wdPopularityCard)
         ? `<div class="wd-compact-row">${wdCommunityCard}${wdPopularityCard}</div>`
@@ -315,7 +346,7 @@ function renderWorldSearchDetail(w) {
 
     {
         const wdLeftHtml = `<div class="fd-left">
-            <div class="fd-left-banner" id="wd-banner-slot">${thumb ? '<div class="fd-banner-fade"></div>' : ''}</div>
+            <div class="fd-left-banner" id="wd-banner-slot">${thumb ? '<div class="fd-banner-fade"></div>' : ''}${isOwnWorld ? `<button class="fd-banner-edit" onclick="wdUploadBannerImage('${jsq(wid)}')" title="${esc(t('worlds.detail.actions.change_image', 'Change Image'))}"><span class="msi">edit</span></button>` : ''}</div>
             <div class="fd-left-body">
                 <div>${wdNameAuthor}</div>
                 ${wdStatsBadgesRow}
@@ -1437,4 +1468,152 @@ function _wdWmState(s) {
     _wiInitialized     = s.wiInitialized   ?? false;
     _wiDpYear          = s.wiDpYear        ?? 0;
     _wiDpMonth         = s.wiDpMonth       ?? 0;
+}
+
+/* === World inline edit === */
+
+const _wdFieldIds = {
+    name: { view: 'wdfNameView', edit: 'wdfNameEdit' },
+    desc: { view: 'wdfDescView', edit: 'wdfDescEdit' },
+    tags: { view: 'wdfTagsView', edit: 'wdfTagsEdit' },
+};
+let _wdEditTags = [];
+let _wdSavingField = '';
+
+function wdFieldLabel(field) {
+    if (field === 'name') return t('worlds.detail.fields.name', 'Name');
+    if (field === 'desc') return t('worlds.detail.fields.desc', 'Description');
+    if (field === 'tags') return t('worlds.detail.fields.tags', 'Tags');
+    return '';
+}
+
+function wdAuthorTags(w) {
+    return (w?.tags || []).filter(x => x.startsWith('author_tag_')).map(x => x.replace('author_tag_', ''));
+}
+
+function editWdField(field) {
+    Object.keys(_wdFieldIds).forEach(f => {
+        const ids = _wdFieldIds[f];
+        const v = document.getElementById(ids.view); if (v) v.style.display = '';
+        const e = document.getElementById(ids.edit); if (e) e.style.display = 'none';
+    });
+    const ids = _wdFieldIds[field];
+    if (!ids) return;
+    const v = document.getElementById(ids.view); if (v) v.style.display = 'none';
+    const e = document.getElementById(ids.edit); if (e) e.style.display = '';
+
+    if (field === 'name') {
+        document.getElementById('wdNameInput')?.focus();
+    } else if (field === 'desc') {
+        document.getElementById('wdDescInput')?.focus();
+    } else if (field === 'tags') {
+        _wdEditTags = wdAuthorTags(window._currentWorldDetailFull);
+        wdRenderTagChips();
+        document.getElementById('wdTagInput')?.focus();
+    }
+}
+
+function cancelWdField(field) {
+    const ids = _wdFieldIds[field];
+    if (!ids) return;
+    const v = document.getElementById(ids.view); if (v) v.style.display = '';
+    const e = document.getElementById(ids.edit); if (e) e.style.display = 'none';
+}
+
+function wdAddTag() {
+    const inp = document.getElementById('wdTagInput');
+    if (!inp) return;
+    const val = inp.value.trim().replace(/^author_tag_/, '');
+    if (val && !_wdEditTags.includes(val)) {
+        _wdEditTags.push(val);
+        wdRenderTagChips();
+    }
+    inp.value = '';
+    inp.focus();
+}
+
+function wdRemoveTag(idx) {
+    _wdEditTags.splice(idx, 1);
+    wdRenderTagChips();
+}
+
+function wdRenderTagChips() {
+    const container = document.getElementById('wdTagsChips');
+    if (!container) return;
+    container.innerHTML = _wdEditTags.length
+        ? _wdEditTags.map((tag, i) =>
+            `<span class="myp-lang-chip" data-idx="${i}">${esc(tag)}<span class="myp-lang-remove" onclick="wdRemoveTag(${i})">&times;</span></span>`).join('')
+        : `<span class="myp-empty">${t('worlds.detail.no_tags', 'No tags')}</span>`;
+}
+
+function saveWdField(field, worldId) {
+    const w = window._currentWorldDetailFull;
+    if (!w) return;
+    _wdSavingField = field;
+    const ids = _wdFieldIds[field];
+    const saveBtn = document.querySelector(`#${ids.edit} .vrcn-btn-primary`);
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = t('common.saving', 'Saving...');
+    }
+
+    const name = field === 'name'
+        ? (document.getElementById('wdNameInput')?.value.trim() || '')
+        : (w.name || '');
+    const description = field === 'desc'
+        ? (document.getElementById('wdDescInput')?.value ?? '')
+        : (w.description || '');
+
+    // Only author tags are editable. Everything the platform owns (system_*, admin_*)
+    // is sent back untouched so an edit cannot strip a world's approval.
+    const preserved = (w.tags || []).filter(x => !x.startsWith('author_tag_'));
+    const tags = field === 'tags'
+        ? [..._wdEditTags.map(x => 'author_tag_' + x), ...preserved]
+        : (w.tags || []);
+
+    sendToCS({ action: 'vrcUpdateWorld', worldId, name, description, tags });
+}
+
+function onWorldUpdateResult(data) {
+    if (data.ok) {
+        const w = window._currentWorldDetailFull;
+        if (w) {
+            if (data.name != null) w.name = data.name;
+            if (data.description != null) w.description = data.description;
+            if (data.tags != null) w.tags = data.tags;
+            renderWorldDetail(w);
+        }
+        showToast(true, tf('worlds.detail.toast.saved', { field: wdFieldLabel(_wdSavingField) }, '{field} saved'));
+        if (typeof renderWorldsListView === 'function') renderWorldsListView();
+    } else {
+        showToast(false, data.error || t('worlds.detail.toast.update_failed', 'Update failed'));
+        const ids = _wdSavingField ? _wdFieldIds[_wdSavingField] : null;
+        const saveBtn = ids ? document.querySelector(`#${ids.edit} .vrcn-btn-primary`) : null;
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = t('common.save', 'Save');
+        }
+    }
+}
+
+function wdUploadBannerImage(worldId) {
+    openInvUploadModal('worldImage', blob => {
+        const reader = new FileReader();
+        reader.onload = e => sendToCS({ action: 'vrcUploadWorldImage', worldId, data: e.target.result });
+        reader.readAsDataURL(blob);
+    });
+}
+
+function onWorldImageResult(data) {
+    if (data.ok) {
+        showToast(true, t('worlds.detail.toast.image_updated', 'World image updated!'));
+        const w = window._currentWorldDetailFull;
+        if (data.imageUrl && w) {
+            w.imageUrl = data.imageUrl;
+            w.thumbnailImageUrl = data.imageUrl;
+            renderWorldDetail(w);
+        }
+    } else {
+        showToast(false, data.error || t('worlds.detail.toast.image_update_failed', 'Image update failed'));
+    }
 }

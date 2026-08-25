@@ -1,5 +1,8 @@
+using System.Security.Cryptography;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Rsync.Delta;
 
 namespace VRCNext.Services;
 
@@ -92,5 +95,109 @@ public class FilesAPI(VRChatApiService ctx)
             return resp.IsSuccessStatusCode;
         }
         catch (Exception ex) { ctx.Log($"DeleteInventoryFile exception: {ex.Message}"); return false; }
+    }
+
+    public static async Task<(bool ok, string imageUrl, string error)> ReplaceEntityImageAsync(
+        VRChatApiService ctx, string entityPath, string entityId, string existingImageUrl, byte[] imageBytes)
+    {
+        if (!ctx.IsLoggedIn) return (false, "", "Not logged in");
+        try
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(existingImageUrl, @"/file/([^/]+)/\d+");
+            if (!match.Success) return (false, "", "Could not extract file ID from existing image URL");
+            var sourceFileId = match.Groups[1].Value;
+
+            using var md5 = MD5.Create();
+            var fileMd5 = Convert.ToBase64String(md5.ComputeHash(imageBytes));
+            var fileSizeInBytes = imageBytes.Length;
+
+            var signatureBytes = await ComputeRsyncSignatureAsync(imageBytes);
+            var signatureMd5 = Convert.ToBase64String(md5.ComputeHash(signatureBytes));
+            var signatureSizeInBytes = signatureBytes.Length;
+
+            var initBody = JsonConvert.SerializeObject(new { fileMd5, fileSizeInBytes, signatureMd5, signatureSizeInBytes });
+            ctx.Log($"ReplaceEntityImage[{entityPath}]: POST file/{sourceFileId} fileSize={fileSizeInBytes} sigSize={signatureSizeInBytes}");
+            var r = await ctx._http.PostAsync(
+                $"{VRChatApiService.BASE}/file/{sourceFileId}",
+                new StringContent(initBody, Encoding.UTF8, "application/json"));
+            var rb = await r.Content.ReadAsStringAsync();
+            ctx.Log($"ReplaceEntityImage[{entityPath}]: init [{(int)r.StatusCode}] preview={rb[..Math.Min(200, rb.Length)]}");
+            if (!r.IsSuccessStatusCode) return (false, "", VRChatApiService.TryGetApiError(rb) ?? $"HTTP {(int)r.StatusCode}");
+
+            var uploadObj = JObject.Parse(rb);
+            var uploadedFileId = uploadObj["id"]?.ToString();
+            var versions = uploadObj["versions"] as JArray;
+            var fileVersion = versions?.OfType<JObject>().LastOrDefault()?["version"]?.Value<int>();
+            if (string.IsNullOrEmpty(uploadedFileId) || fileVersion == null)
+                return (false, "", "No file version returned");
+
+            await UploadFileSegmentAsync(ctx, uploadedFileId, fileVersion.Value, "file", imageBytes, "image/png", fileMd5);
+            await UploadFileSegmentAsync(ctx, uploadedFileId, fileVersion.Value, "signature", signatureBytes, "application/x-rsync-signature", signatureMd5);
+
+            var newImageUrl = $"{VRChatApiService.BASE}/file/{uploadedFileId}/{fileVersion}/file";
+            var entityBody = JsonConvert.SerializeObject(new { id = entityId, imageUrl = newImageUrl });
+            ctx.Log($"ReplaceEntityImage[{entityPath}]: PUT {entityPath}/{entityId}");
+            var ar = await ctx._http.PutAsync(
+                $"{VRChatApiService.BASE}/{entityPath}/{entityId}",
+                new StringContent(entityBody, Encoding.UTF8, "application/json"));
+            var arb = await ar.Content.ReadAsStringAsync();
+            ctx.Log($"ReplaceEntityImage[{entityPath}]: PUT [{(int)ar.StatusCode}] preview={arb[..Math.Min(200, arb.Length)]}");
+            if (!ar.IsSuccessStatusCode) return (false, "", VRChatApiService.TryGetApiError(arb) ?? $"HTTP {(int)ar.StatusCode}");
+            return (true, newImageUrl, "");
+        }
+        catch (Exception ex) { ctx.Log($"ReplaceEntityImage[{entityPath}] exception: {ex.Message}"); return (false, "", ex.Message); }
+    }
+
+    private static async Task UploadFileSegmentAsync(VRChatApiService ctx, string fileId, int version, string segment, byte[] data, string mimeType, string md5Base64)
+    {
+        var startUrl = $"{VRChatApiService.BASE}/file/{fileId}/{version}/{segment}/start";
+        ctx.Log($"UploadFileSegment [{segment}]: PUT start");
+        var startResp = await ctx._http.PutAsync(startUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
+        var startBody = await startResp.Content.ReadAsStringAsync();
+        ctx.Log($"UploadFileSegment [{segment}]: start [{(int)startResp.StatusCode}] preview={startBody[..Math.Min(200, startBody.Length)]}");
+        var uploadUrl = JObject.Parse(startBody)["url"]?.ToString();
+
+        if (!string.IsNullOrEmpty(uploadUrl))
+        {
+            ctx.Log($"UploadFileSegment [{segment}]: PUT to CDN");
+            var fileContent = new ByteArrayContent(data);
+            fileContent.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse(mimeType);
+            // VRChat internal upload URLs require auth cookies; S3 URLs do not
+            System.Net.Http.HttpResponseMessage cdnResp;
+            if (uploadUrl.StartsWith(VRChatApiService.BASE, StringComparison.OrdinalIgnoreCase))
+            {
+                cdnResp = await ctx._http.PutAsync(uploadUrl, fileContent);
+            }
+            else
+            {
+                fileContent.Headers.Add("Content-MD5", md5Base64);
+                using var s3Client = new HttpClient();
+                s3Client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+                s3Client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
+                s3Client.Timeout = TimeSpan.FromSeconds(120);
+                cdnResp = await s3Client.PutAsync(uploadUrl, fileContent);
+            }
+            ctx.Log($"UploadFileSegment [{segment}]: CDN [{(int)cdnResp.StatusCode}]");
+        }
+
+        var finishUrl = $"{VRChatApiService.BASE}/file/{fileId}/{version}/{segment}/finish";
+        var finishBody = JsonConvert.SerializeObject(new { maxParts = 0, nextPartNumber = 0 });
+        ctx.Log($"UploadFileSegment [{segment}]: PUT finish");
+        var finishResp = await ctx._http.PutAsync(finishUrl, new StringContent(finishBody, Encoding.UTF8, "application/json"));
+        ctx.Log($"UploadFileSegment [{segment}]: finish [{(int)finishResp.StatusCode}]");
+    }
+
+    private static async Task<byte[]> ComputeRsyncSignatureAsync(byte[] bytes)
+    {
+        var rdiff = new Rdiff();
+        using var inputStream = new MemoryStream(bytes);
+        using var outputStream = new MemoryStream();
+        var options = new SignatureOptions(
+            blockLength: 2048,
+            strongHashLength: 8,
+            rollingHashAlgorithm: RollingHashAlgorithm.Adler,
+            strongHashAlgorithm: StrongHashAlgorithm.Blake2b);
+        await rdiff.SignatureAsync(inputStream, outputStream, options);
+        return outputStream.ToArray();
     }
 }

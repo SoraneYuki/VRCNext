@@ -879,6 +879,12 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcAvatarUpdateResult':
                 onAvatarUpdateResult(payload);
                 break;
+            case 'vrcWorldUpdateResult':
+                if (typeof onWorldUpdateResult === 'function') onWorldUpdateResult(payload);
+                break;
+            case 'vrcWorldImageResult':
+                if (typeof onWorldImageResult === 'function') onWorldImageResult(payload);
+                break;
             case 'vrcOnlineCount':
                 _dashOnlineCount = payload.count || 0;
                 updateDashSub();

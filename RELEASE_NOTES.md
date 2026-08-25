@@ -1,4 +1,4 @@
-**2026.44.5**
+**2026.44.6**
 
 **FrameShot**
 * FrameShot now scans the framed area for **QR codes** while you hold the frame. When one is found the
@@ -29,6 +29,11 @@ actions in a bar at the bottom of the tab.
 first, since leaving cannot be undone.
 
 **Worlds Tab**
+* Your own worlds can be edited straight from the world modal, the same way avatars already work:
+**Name**, **Description**, **Tags** and the **World Image**. The pencil next to each section opens an
+inline editor, the pencil on the banner replaces the image.
+* Editing tags only touches your own tags. Everything the platform owns, like the approval flag, is
+sent back untouched so an edit cannot strip a world's approval.
 * Edit mode now shows **Select All**, **Move to...**, **Remove** and **Create Local Group** in a bar at
 the bottom of the tab, the same way the media library does. The filter buttons stay visible while editing.
 * #165 The list view has two new columns: **Published** and **Updated**. They work in My Worlds, Favorites,
@@ -78,3 +83,4 @@ and the sort dropdown now sit in one row.
 * VR mode detection at VRChat start now waits briefly for SteamVR instead of guessing Desktop mode too early.
 * **Close with VRChat** no longer closes copies of a startup app that you started manually yourself.
 * Tool auto-start no longer depends on the **Start always with VRChat** setting, which only applies to external startup apps as described.
+* Fixed edit pen position on own profiles.

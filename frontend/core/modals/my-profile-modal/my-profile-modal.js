@@ -177,7 +177,7 @@ function renderMyProfileContent() {
         ? `<img class="fd-avatar" src="${esc(u.image)}" onerror="this.style.display='none'">`
         : `<div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(20px + var(--fs-off, 0px));font-weight:700;color:var(--tx3)">${esc((u.displayName||'?')[0])}</div>`;
     const _mypFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(u.iconFrameUrl, true) : '';
-    const _editBtnPos = 'top:-4px;left:-4px;';
+    const _editBtnPos = 'bottom:-4px;right:-4px;';
     const imgTag = `<div style="position:relative;display:inline-block;flex-shrink:0;line-height:0;">${avatarImg}${_mypFrame}<button class="myp-edit-btn" style="position:absolute;${_editBtnPos}z-index:5;padding:2px;min-width:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;" onclick="openImagePicker('profile-icon')" title="${esc(changeIconTitle)}"><span class="msi" style="font-size:11px;">edit</span></button></div>`;
 
     // Trust rank & badges row

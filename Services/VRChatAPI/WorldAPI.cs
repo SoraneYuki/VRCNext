@@ -1,3 +1,5 @@
+using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace VRCNext.Services;
@@ -391,4 +393,28 @@ public class WorldAPI
         catch (Exception ex) { ctx.Log($"SearchWorlds exception: {ex.Message}"); }
         return new JArray();
     }
+
+    public async Task<(bool ok, string error)> UpdateWorldAsync(string worldId, string name, string description, List<string> tags)
+    {
+        if (!ctx.IsLoggedIn) return (false, "Not logged in");
+        try
+        {
+            var body = JsonConvert.SerializeObject(new { name, description, tags });
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+            var resp = await ctx._http.PutAsync($"{VRChatApiService.BASE}/worlds/{worldId}", content);
+            var respBody = await resp.Content.ReadAsStringAsync();
+            if (resp.IsSuccessStatusCode)
+            {
+                try { StoreCachedWorld(worldId, JObject.Parse(respBody)); } catch { }
+                return (true, "");
+            }
+            ctx.Log($"UpdateWorld {(int)resp.StatusCode}: {respBody[..Math.Min(200, respBody.Length)]}");
+            return (false, VRChatApiService.TryGetApiError(respBody) ?? $"API error {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"UpdateWorld exception: {ex.Message}"); return (false, ex.Message); }
+    }
+
+    public Task<(bool ok, string imageUrl, string error)> UploadWorldMainImageAsync(
+        string worldId, string existingImageUrl, byte[] imageBytes)
+        => FilesAPI.ReplaceEntityImageAsync(ctx, "worlds", worldId, existingImageUrl, imageBytes);
 }
