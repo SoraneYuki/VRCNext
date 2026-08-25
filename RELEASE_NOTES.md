@@ -1,7 +1,5 @@
 ****2026.45.2****
 
-**Message Templates**
-
 ****Message Templates****
 * New ****Taskbar > Tools > VRChat > Message Templates****. Edit all four sets of VRChat's canned messages in one place: Invite, Invite Response, Invite Request and Request Response, twelve slots each.
 * Slots on cooldown are shown with the remaining minutes and cannot be edited, since VRChat locks a slot for 60 minutes after every change.
