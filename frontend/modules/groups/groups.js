@@ -1,4 +1,4 @@
-/* === Join State === */
+﻿/* === Join State === */
 function getJoinStateLabel(js) {
     const map = {
         open: ['groups.join_state.open', 'Open'],
@@ -32,6 +32,23 @@ function _renderGroupListCard(g) {
     if (g.shortCode) metaParts.push(esc(g.shortCode));
     metaParts.push(`<span class="msi" style="font-size:12px;">group</span> ${esc(getGroupMembersText(g.memberCount || 0))}`);
     const iconHtml = g.iconUrl ? `<div class="cc-group-icon" style="background-image:url('${cssUrl(imgThumb(g.iconUrl, 64))}')"></div>` : '';
+    if (_groupEditMode) {
+        const isSelected = _groupEditSelected.has(g.id);
+        const checkIcon = isSelected
+            ? `<span class="msi" style="font-size:22px;color:var(--accent);">check_circle</span>`
+            : `<span class="msi" style="font-size:22px;color:rgba(255,255,255,0.7);">radio_button_unchecked</span>`;
+        return `<div class="vrcn-content-card" data-gid="${esc(g.id)}" onclick="toggleGroupEditSelect('${jsq(g.id)}',this)" style="user-select:none;">
+            <div class="cc-bg"><img src="${imgThumb(g.bannerUrl, 256)||'fallback_cover.png'}" loading="lazy" decoding="async" onerror="this.src='fallback_cover.png'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div>
+            <div class="cc-scrim"></div>
+            <div class="wd-edit-check">${checkIcon}</div>
+            <div class="cc-content">
+                <div class="cc-name">${esc(g.name)}</div>
+                <div class="cc-bottom-row">
+                    <div class="cc-meta">${iconHtml}${metaParts.join(' · ')}</div>
+                </div>
+            </div>
+            ${isSelected ? '<div class="wd-edit-sel-border"></div>' : ''}</div>`;
+    }
     return `<div class="vrcn-content-card" onclick="openGroupDetail('${esc(g.id)}')">
         <div class="cc-bg"><img src="${imgThumb(g.bannerUrl, 256)||'fallback_cover.png'}" loading="lazy" decoding="async" onerror="this.src='fallback_cover.png'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div>
         <div class="cc-scrim"></div>
@@ -45,11 +62,144 @@ function _renderGroupListCard(g) {
 }
 
 let _groupTab = 'joined';
+let _groupEditMode = false;
+let _groupEditSelected = new Set();
+
+function toggleGroupEditMode() {
+    if (_groupEditMode) { exitGroupEditMode(); return; }
+    _groupEditMode = true;
+    _groupEditSelected = new Set();
+    const btn = document.getElementById('groupEditModeBtn');
+    if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">check</span> <span>${t('groups.edit.done', 'Done')}</span>`; btn.classList.add('active'); }
+    const bar = document.getElementById('groupEditBar');
+    if (bar) bar.style.display = 'flex';
+    filterMyGroups();
+    updateGroupEditBar();
+}
+
+function exitGroupEditMode() {
+    _groupEditMode = false;
+    _groupEditSelected = new Set();
+    const btn = document.getElementById('groupEditModeBtn');
+    if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">edit</span> <span>${t('groups.edit.button', 'Edit')}</span>`; btn.classList.remove('active'); }
+    const bar = document.getElementById('groupEditBar');
+    if (bar) bar.style.display = 'none';
+    filterMyGroups();
+}
+
+function toggleGroupEditSelect(id, el) {
+    if (_groupEditSelected.has(id)) {
+        _groupEditSelected.delete(id);
+        const chk = el?.querySelector('.wd-edit-check .msi');
+        if (chk) { chk.textContent = 'radio_button_unchecked'; chk.style.color = 'rgba(255,255,255,0.7)'; }
+        el?.querySelector('.wd-edit-sel-border')?.remove();
+    } else {
+        _groupEditSelected.add(id);
+        const chk = el?.querySelector('.wd-edit-check .msi');
+        if (chk) { chk.textContent = 'check_circle'; chk.style.color = 'var(--accent)'; }
+        if (el && !el.querySelector('.wd-edit-sel-border')) {
+            el.insertAdjacentHTML('beforeend', '<div class="wd-edit-sel-border"></div>');
+        }
+    }
+    updateGroupEditBar();
+}
+
+function _groupEditVisibleList() {
+    const q = (document.getElementById('filterGroupsInput')?.value || '').toLowerCase();
+    const base = _groupTabList();
+    return q
+        ? base.filter(g => (g.name || '').toLowerCase().includes(q) || (g.shortCode || '').toLowerCase().includes(q))
+        : base;
+}
+
+function groupEditSelectAll() {
+    const list = _groupEditVisibleList();
+    const allSel = list.length > 0 && list.every(g => _groupEditSelected.has(g.id));
+    if (allSel) list.forEach(g => _groupEditSelected.delete(g.id));
+    else list.forEach(g => _groupEditSelected.add(g.id));
+    filterMyGroups();
+    updateGroupEditBar();
+}
+
+function updateGroupEditBar() {
+    const count = _groupEditSelected.size;
+    const countEl = document.getElementById('groupEditCount');
+    if (countEl) countEl.textContent = tf('groups.edit.selected', { count }, '{count} selected');
+    const selectAllBtn = document.getElementById('groupEditSelectAllBtn');
+    if (selectAllBtn) {
+        const list = _groupEditVisibleList();
+        const allSel = list.length > 0 && list.every(g => _groupEditSelected.has(g.id));
+        selectAllBtn.textContent = allSel ? t('groups.edit.deselect_all', 'Deselect All') : t('groups.edit.select_all', 'Select All');
+    }
+    document.querySelectorAll('.gr-edit-action').forEach(b => b.disabled = count === 0);
+}
+
+function groupEditLeaveSelected() {
+    const ids = [..._groupEditSelected];
+    if (!ids.length) return;
+    const names = ids
+        .map(id => (myGroups.find(g => g.id === id)?.name) || id)
+        .slice(0, 6);
+    const more = ids.length - names.length;
+    const listHtml = names.map(n => `<div>${esc(n)}</div>`).join('')
+        + (more > 0 ? `<div>${esc(tf('groups.edit.bulk_leave_more', { count: more }, '+{count} more'))}</div>` : '');
+
+    const old = document.getElementById('groupBulkLeaveModal');
+    if (old) old.remove();
+    const o = document.createElement('div');
+    o.className = 'modal-overlay';
+    o.style.display = 'flex';
+    o.id = 'groupBulkLeaveModal';
+    o.style.zIndex = '10003';
+    o.onclick = e => { if (e.target === o) o.remove(); };
+    o.innerHTML = `<div class="modal-box">
+        ${renderModalBar(t('groups.edit.bulk_leave', 'Bulk Leave'), [modalCloseAction("document.getElementById('groupBulkLeaveModal').remove()")])}
+        <div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">logout</span></div>
+        <div class="modal-msg">${tf('groups.edit.bulk_leave_confirm', { count: ids.length }, 'Leave {count} groups? This cannot be undone.')}</div>
+        <div class="gr-bulk-list">${listHtml}</div>
+        <div class="modal-btns">
+            <button class="vrcn-button-round" onclick="document.getElementById('groupBulkLeaveModal').remove()">${esc(t('common.cancel', 'Cancel'))}</button>
+            <button class="vrcn-button-round vrcn-btn-danger" onclick="groupEditLeaveConfirmed()">${esc(t('groups.edit.bulk_leave', 'Bulk Leave'))}</button>
+        </div></div>`;
+    document.body.appendChild(o);
+}
+
+let _groupBulkLeavePending = 0;
+let _groupBulkLeaveOk = 0;
+
+function groupEditLeaveConfirmed() {
+    document.getElementById('groupBulkLeaveModal')?.remove();
+    const ids = [..._groupEditSelected];
+    if (!ids.length) return;
+    _groupBulkLeavePending = ids.length;
+    _groupBulkLeaveOk = 0;
+    ids.forEach(id => sendToCS({ action: 'vrcLeaveGroup', groupId: id }));
+    const leaving = new Set(ids);
+    myGroups = myGroups.filter(g => !leaving.has(g.id));
+    exitGroupEditMode();
+}
+
+function groupBulkLeaveConsume(success) {
+    if (_groupBulkLeavePending <= 0) return false;
+    _groupBulkLeavePending--;
+    if (success) _groupBulkLeaveOk++;
+    if (_groupBulkLeavePending === 0) {
+        const done = _groupBulkLeaveOk;
+        if (typeof showToast === 'function') {
+            showToast(done > 0, tf('groups.edit.bulk_leave_done', { count: done }, 'Left {count} groups'));
+        }
+        loadMyGroups();
+    }
+    return true;
+}
 
 const _GROUP_TAB_BTNS = { joined: 'groupFilterJoined', mine: 'groupFilterMine', mod: 'groupFilterMod', search: 'groupFilterSearch', instances: 'groupFilterInstances' };
 
 function setGroupFilter(filter) {
     if (!_GROUP_TAB_BTNS[filter]) filter = 'joined';
+    if (_groupEditMode) exitGroupEditMode();
+    const editBtn = document.getElementById('groupEditModeBtn');
+    if (editBtn) editBtn.style.display = (filter === 'search' || filter === 'instances') ? 'none' : '';
     for (const [key, id] of Object.entries(_GROUP_TAB_BTNS)) {
         document.getElementById(id)?.classList.toggle('active', key === filter);
     }

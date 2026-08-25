@@ -7,6 +7,7 @@
                         <button class="vrcn-button sub-tab-btn" id="groupFilterSearch" onclick="setGroupFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+                        <button id="groupEditModeBtn" class="vrcn-button" onclick="toggleGroupEditMode()" title="Edit groups" data-i18n-title="groups.edit.button"><span class="msi" style="font-size:16px;">edit</span> <span data-i18n="groups.edit.button">Edit</span></button>
                         <button id="groupsRefreshBtn" class="vrcn-button" onclick="refreshGroups()" title="Refresh my groups" data-i18n-title="groups.mine.refresh_title"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
                         <button class="vrcn-button sub-tab-btn active" id="groupGridLarge" onclick="setGridSize('groups','default');setGroupsViewMode('grid')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
                         <button class="vrcn-button sub-tab-btn" id="groupGridSmall" onclick="setGridSize('groups','compact');setGroupsViewMode('grid')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>
@@ -34,4 +35,10 @@
                 <div id="groupSearchArea" style="display:none;">
                     <div class="tab-toolbar-body"><div class="search-bar-row"><span class="msi search-ico">search</span><input type="text" id="searchGroupsInput" class="vrcn-input" placeholder="Search groups..." data-i18n-placeholder="groups.search.placeholder" onkeydown="if(event.key==='Enter')doSearch('groups')"><button class="vrcn-button" onclick="doSearch('groups')" data-i18n="common.search">Search</button></div></div>
                     <div id="searchGroupsResults" class="search-grid"><div class="empty-msg" data-i18n="groups.search.empty_prompt">Search for VRChat groups</div></div>
+                </div>
+                <div id="groupEditBar" class="vrcn-edit-bar" style="display:none;">
+                    <span id="groupEditCount" class="vrcn-edit-count">0 selected</span>
+                    <button id="groupEditSelectAllBtn" class="vrcn-button" onclick="groupEditSelectAll()" data-i18n="groups.edit.select_all">Select All</button>
+                    <span class="vrcn-edit-spacer"></span>
+                    <button id="groupEditLeaveBtn" class="vrcn-button vrcn-btn-danger gr-edit-action" disabled onclick="groupEditLeaveSelected()"><span class="msi" style="font-size:14px;">logout</span> <span data-i18n="groups.edit.bulk_leave">Bulk Leave</span></button>
                 </div>

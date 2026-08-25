@@ -1,5 +1,11 @@
 **2026.44.1**
 
+**Groups Tab**
+* Added an **Edit** button. In edit mode you can select multiple groups, with **Select All** and the
+actions in a bar at the bottom of the tab.
+* Added **Bulk Leave**: leave every selected group at once. A confirmation dialog lists the groups
+first, since leaving cannot be undone.
+
 **Worlds Tab**
 * Edit mode now shows **Select All**, **Move to...**, **Remove** and **Create Local Group** in a bar at
 the bottom of the tab, the same way the media library does. The filter buttons stay visible while editing.
@@ -11,6 +17,10 @@ the bottom of the tab. The filter buttons stay visible while editing.
 **People Tab**
 * Edit mode now shows **Select All**, **Move to...**, **Remove from Favorites** and **Create Local Group**
 in a bar at the bottom of the tab. The filter buttons stay visible while editing.
+* Added **Bulk Unfriend**: unfriend every selected person at once, with a confirmation dialog that
+lists them first.
+* Edit mode also works in **All Friends** now. There you can select people and either **Add to Favorites**
+(pick the favorite group from the dropdown) or **Bulk Unfriend** them.
 
 **Translations**
 * Korean Translation by @roshikeymusica

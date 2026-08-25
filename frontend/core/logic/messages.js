@@ -492,6 +492,8 @@ window.external.receiveMessage(rawMsg => {
                         }
                     }
                 } else {
+                    if (payload.action === 'leaveGroup' && typeof groupBulkLeaveConsume === 'function'
+                        && groupBulkLeaveConsume(payload.success)) break;
                     showToast(payload.success, payload.message);
                     // Auto-refresh groups list on join/leave (from anywhere in the app)
                     if (payload.success && (payload.action === 'joinGroup' || payload.action === 'leaveGroup' || payload.groupJoined)) {
@@ -581,6 +583,7 @@ window.external.receiveMessage(rawMsg => {
                 }
                 break;
             case 'vrcUnfriendDone':
+                if (typeof friendBulkUnfriendConsume === 'function' && friendBulkUnfriendConsume()) break;
                 closeFriendDetail();
                 sendToCS({ action: 'vrcRefreshFriends' });
                 break;
