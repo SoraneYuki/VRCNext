@@ -157,7 +157,7 @@ function _wlValue(w, field) {
     }
 }
 
-function buildWorldsListHtml(worlds) {
+function buildWorldsListHtml(worlds, staticHeader) {
     let rows = '';
     worlds.forEach(w => {
         const wid = jsq(w.id || '');
@@ -179,7 +179,7 @@ function buildWorldsListHtml(worlds) {
             lastseen:  `<td class="lv-date">${esc(lvDateTime(w.worldLastVisited))}</td>`,
         });
     });
-    return `<div class="lv-scroll">${tlTableHtml('worldsList', rows)}</div>`;
+    return `<div class="lv-scroll">${tlTableHtml('worldsList', rows, staticHeader)}</div>`;
 }
 
 function _worldsListPage(el, all, page, barId, pageFn, setPage) {

@@ -606,7 +606,7 @@ function _plSort(list) {
     });
 }
 
-function buildPeopleListHtml(friends) {
+function buildPeopleListHtml(friends, staticHeader) {
     _plEnsureStats();
     let rows = '';
     friends.forEach(f => {
@@ -646,7 +646,7 @@ function buildPeopleListHtml(friends) {
             lastseen:  `<td class="pl-date">${esc(_plDateTime(f.lastSeen))}</td>`,
         });
     });
-    return tlTableHtml('friendsList', rows);
+    return tlTableHtml('friendsList', rows, staticHeader);
 }
 
 const _PL_BAR_FILTER = {

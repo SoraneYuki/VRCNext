@@ -307,7 +307,7 @@ function _glValue(g, field) {
     }
 }
 
-function buildGroupsListHtml(groups) {
+function buildGroupsListHtml(groups, staticHeader) {
     let rows = '';
     groups.forEach(g => {
         const gid = jsq(g.id || '');
@@ -320,7 +320,7 @@ function buildGroupsListHtml(groups) {
             created: `<td class="lv-sub">${esc(_glDate(g.createdAt))}</td>`,
         });
     });
-    return `<div class="lv-scroll">${tlTableHtml('groupsList', rows)}</div>`;
+    return `<div class="lv-scroll">${tlTableHtml('groupsList', rows, staticHeader)}</div>`;
 }
 
 let _myGroupsDirty = false;

@@ -1,4 +1,7 @@
-****2026.45.5****
+****2026.45.6****
+
+**Hotfix Changes**
+* Removed cell filtering visuals on seatch lists.
 
 ****Log Viewer****
 * New ****Taskbar > Tools > VRChat > Log Viewer****. Pick any of your VRChat log files and read them as a proper table with ****Time****, ****Level****, ****Category**** and ****Message****.

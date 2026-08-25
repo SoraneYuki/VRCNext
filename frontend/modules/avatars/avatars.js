@@ -236,7 +236,7 @@ function _avListTagsHtml(a) {
     return `<span class="av-list-tags">${shown}${more}</span>`;
 }
 
-function buildAvatarsListHtml(avatars) {
+function buildAvatarsListHtml(avatars, staticHeader) {
     let rows = '';
     avatars.forEach(a => {
         const aid = jsq(a.id || '');
@@ -258,7 +258,7 @@ function buildAvatarsListHtml(avatars) {
             tags:    `<td>${_avListTagsHtml(a)}</td>`,
         });
     });
-    return `<div class="lv-scroll">${tlTableHtml('avatarsList', rows)}</div>`;
+    return `<div class="lv-scroll">${tlTableHtml('avatarsList', rows, staticHeader)}</div>`;
 }
 
 function _avatarsListPage(el, all, page, barId, pageFn, setPage) {
@@ -341,7 +341,7 @@ function renderSearchGrid() {
         const more = avatarSearchHasMore
             ? `<div class="lv-more"><button class="vrcn-button" onclick="doAvatarSearch(true)">${esc(t('avatars.search.load_more', 'Load More'))}</button></div>`
             : '';
-        el.innerHTML = buildAvatarsListHtml(results) + more;
+        el.innerHTML = buildAvatarsListHtml(results, true) + more;
         _checkAvatarsExist(avatarSearchResults.map(a => a.id).filter(Boolean));
         return;
     }
