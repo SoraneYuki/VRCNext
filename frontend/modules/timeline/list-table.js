@@ -84,6 +84,8 @@ const TL_TABLE_DEFS = {
         { id: 'name',    key: 'groups.list.header.name',         fallback: 'Name',         width: '',      sort: 'name' },
         { id: 'short',   key: 'groups.list.header.short_name',   fallback: 'Short Name',   width: '160px', sort: 'short' },
         { id: 'members', key: 'groups.list.header.member_count', fallback: 'Member Count', width: '140px', sort: 'members' },
+        { id: 'joined',  key: 'groups.list.header.joined',       fallback: 'Joined Group',  width: '130px', sort: 'joined' },
+        { id: 'created', key: 'groups.list.header.created',      fallback: 'Created At',    width: '130px', sort: 'created' },
     ],
     avatarsList: [
         { id: 'icon',    key: 'avatars.list.header.avatar',  fallback: 'Avatar',  width: '64px',  sort: 'icon' },

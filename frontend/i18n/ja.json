@@ -3354,6 +3354,8 @@
   "groups.list.header.name": "名前",
   "groups.list.header.short_name": "短縮名",
   "groups.list.header.member_count": "メンバー数",
+  "groups.list.header.joined": "参加日",
+  "groups.list.header.created": "作成日",
   "groups.filters.instances": "グループインスタンス",
   "groups.instances.header.world": "ワールド",
   "groups.instances.header.players": "プレイヤー",

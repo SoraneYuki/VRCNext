@@ -1,4 +1,4 @@
-**2026.44.9**
+**2026.45.0**
 
 **FrameShot**
 * FrameShot now scans the framed area for **QR codes** while you hold the frame. When one is found the
@@ -23,6 +23,10 @@ language, and several languages (German among them) define it as empty, which si
 * The AFK time next to the AFK message can now be switched off.
 
 **Groups Tab**
+* The list view has two new columns: **Joined Group** and **Created At**, both sortable and reorderable.
+They come out of the local group cache, so a group fills them in once its modal has been opened. The
+listing endpoint VRChat offers for your groups returns neither value, so there is nothing to read on
+first load.
 * Added an **Edit** button. In edit mode you can select multiple groups, with **Select All** and the
 actions in a bar at the bottom of the tab.
 * Added **Bulk Leave**: leave every selected group at once. A confirmation dialog lists the groups

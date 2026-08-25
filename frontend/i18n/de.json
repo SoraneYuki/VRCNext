@@ -3370,6 +3370,8 @@
   "groups.list.header.name": "Name",
   "groups.list.header.short_name": "Kurzname",
   "groups.list.header.member_count": "Mitglieder",
+  "groups.list.header.joined": "Beigetreten am",
+  "groups.list.header.created": "Erstellt am",
   "groups.filters.instances": "Gruppen-Instanzen",
   "groups.instances.header.world": "Welt",
   "groups.instances.header.players": "Spieler",

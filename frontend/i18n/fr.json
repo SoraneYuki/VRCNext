@@ -3355,6 +3355,8 @@
   "groups.list.header.name": "Nom",
   "groups.list.header.short_name": "Nom court",
   "groups.list.header.member_count": "Membres",
+  "groups.list.header.joined": "Rejoint le",
+  "groups.list.header.created": "Créé le",
   "groups.filters.instances": "Instances de groupe",
   "groups.instances.header.world": "Monde",
   "groups.instances.header.players": "Joueurs",

@@ -3377,6 +3377,8 @@
   "groups.list.header.name": "Название",
   "groups.list.header.short_name": "Короткое имя",
   "groups.list.header.member_count": "Участники",
+  "groups.list.header.joined": "Вступление",
+  "groups.list.header.created": "Создана",
   "groups.filters.instances": "Инстансы групп",
   "groups.instances.header.world": "Мир",
   "groups.instances.header.players": "Игроки",

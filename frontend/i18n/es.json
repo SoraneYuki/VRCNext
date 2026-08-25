@@ -3355,6 +3355,8 @@
   "groups.list.header.name": "Nombre",
   "groups.list.header.short_name": "Nombre corto",
   "groups.list.header.member_count": "Miembros",
+  "groups.list.header.joined": "Te uniste el",
+  "groups.list.header.created": "Creado el",
   "groups.filters.instances": "Instancias de grupo",
   "groups.instances.header.world": "Mundo",
   "groups.instances.header.players": "Jugadores",

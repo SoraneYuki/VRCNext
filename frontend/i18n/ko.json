@@ -3403,6 +3403,8 @@
   "groups.list.header.name": "이름",
   "groups.list.header.short_name": "숏코드",
   "groups.list.header.member_count": "멤버 수",
+  "groups.list.header.joined": "가입일",
+  "groups.list.header.created": "생성일",
   "groups.filters.instances": "그룹 인스턴스",
   "groups.instances.header.world": "월드",
   "groups.instances.header.players": "유저",

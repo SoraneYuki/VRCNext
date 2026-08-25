@@ -3419,6 +3419,8 @@
   "groups.list.header.name": "Name",
   "groups.list.header.short_name": "Short Name",
   "groups.list.header.member_count": "Member Count",
+  "groups.list.header.joined": "Joined Group",
+  "groups.list.header.created": "Created At",
   "groups.filters.instances": "Group Instances",
   "groups.instances.header.world": "World",
   "groups.instances.header.players": "Players",

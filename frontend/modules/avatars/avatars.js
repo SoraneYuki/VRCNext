@@ -129,8 +129,7 @@ function setAvatarFilter(filter) {
     document.getElementById('avatarCount').textContent = '';
     const _sc = document.getElementById('avatarSearchCount'); if (_sc) _sc.textContent = '';
 
-    const editBtn = document.getElementById('avatarEditModeBtn');
-    if (editBtn) editBtn.style.display = (filter === 'favorites' || filter === 'own') ? '' : 'none';
+    _avSyncEditBtn();
     if (filter === 'own') {
         const inp = document.getElementById('ownAvatarSearchInput');
         if (inp) inp.value = '';
@@ -279,6 +278,7 @@ function _avatarsListPage(el, all, page, barId, pageFn, setPage) {
 }
 
 function filterOwnAvatars() {
+    _avSyncEditBtn();
     const q = (document.getElementById('ownAvatarSearchInput')?.value || '').toLowerCase();
     const el = document.getElementById('avatarGrid');
     if (!el) return;
@@ -931,7 +931,7 @@ function toggleAvEditMode() {
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">check</span> <span>${t('avatars.edit.done', 'Done')}</span>`; btn.classList.add('active'); }
     const bar = document.getElementById('avatarEditBar');
     if (bar) bar.style.display = 'flex';
-    filterFavAvatars();
+    _avEditRerender();
 }
 
 function exitAvEditMode() {
@@ -941,10 +941,12 @@ function exitAvEditMode() {
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">edit</span> <span>${t('avatars.edit.button', 'Edit')}</span>`; btn.classList.remove('active'); }
     const bar = document.getElementById('avatarEditBar');
     if (bar) bar.style.display = 'none';
-    const picker = document.getElementById('avatarEditMovePicker');
-    if (picker) { picker.style.display = 'none'; picker.innerHTML = ''; }
+    ['avatarEditMovePicker', 'avatarEditAddFavPicker'].forEach(id => {
+        const picker = document.getElementById(id);
+        if (picker) { picker.style.display = 'none'; picker.innerHTML = ''; }
+    });
     avatarCancelCreateLocalGroup();
-    filterFavAvatars();
+    _avEditRerender();
 }
 
 /* === Local Groups (Avatars) === */
@@ -1628,4 +1630,9 @@ function avBulkDeleteConsume(success) {
         sendToCS({ action: 'vrcGetAvatars', filter: 'own' });
     }
     return true;
+}
+
+function _avSyncEditBtn() {
+    const btn = document.getElementById('avatarEditModeBtn');
+    if (btn) btn.style.display = (avatarFilter === 'favorites' || avatarFilter === 'own') ? '' : 'none';
 }

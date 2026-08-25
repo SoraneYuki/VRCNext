@@ -120,9 +120,12 @@ public class GroupsController
 
                 newPerms[gid] = new GroupMemberPerms(canPost, canEvent, canInvite, canEdit, canKick, canBan, canManageRoles, canAssignRoles, canViewAudit, vis);
 
+                var gCached = _core.TimeEngine.GetGroupDetail(gid);
                 enriched.Add(new {
                     id = gid,
                     name,
+                    createdAt      = DateTimeHelper.Iso(gCached?.CreatedAt ?? ""),
+                    joinedAt       = DateTimeHelper.Iso(gCached?.JoinedAt ?? ""),
                     shortCode      = g["shortCode"]?.ToString() ?? "",
                     discriminator  = g["discriminator"]?.ToString() ?? "",
                     description    = g["description"]?.ToString() ?? "",
@@ -174,6 +177,7 @@ public class GroupsController
                         shortCode = g["shortCode"]?.ToString() ?? "", description = g["description"]?.ToString() ?? "",
                         iconUrl = ImageCacheHelper.GetGroupUrl(g["id"]?.ToString(), g["iconUrl"]?.ToString()), bannerUrl = ImageCacheHelper.GetGroupBannerUrl(g["id"]?.ToString(), g["bannerUrl"]?.ToString()),
                         memberCount = g["memberCount"]?.Value<int>() ?? 0, privacy = g["privacy"]?.ToString() ?? "",
+                        createdAt = DateTimeHelper.Iso(g["createdAt"]), joinedAt = "",
                     }).ToList();
                     _core.SendToJS("vrcSearchResults", new { type = "groups", results = list, offset = gOff, hasMore = list.Count >= 20 });
                 });
@@ -266,8 +270,8 @@ public class GroupsController
                             description = ggCached.Description, iconUrl = ImageCacheHelper.GetGroupUrl(ggId, ggCached.IconUrl),
                             bannerUrl = ImageCacheHelper.GetGroupBannerUrl(ggId, ggCached.BannerUrl), memberCount = ggCached.MemberCount,
                             privacy = ggCached.Privacy, joinState = ggCached.JoinState,
-                            createdAt = ggCached.CreatedAt, isVerified = ggCached.IsVerified,
-                            joinedAt = ggCached.JoinedAt, isRepresenting = ggCached.IsRepresenting,
+                            createdAt = DateTimeHelper.Iso(ggCached.CreatedAt), isVerified = ggCached.IsVerified,
+                            joinedAt = DateTimeHelper.Iso(ggCached.JoinedAt), isRepresenting = ggCached.IsRepresenting,
                             ownerId = ggCached.OwnerId, ownerDisplayName = ggCached.OwnerName,
                             visibility = gp?.Visibility ?? "", rules = ggCached.Rules,
                             languages = ggCached.Languages.ToArray(),
@@ -305,9 +309,9 @@ public class GroupsController
                                 g["rules"]?.ToString() ?? "",
                                 (g["languages"] as JArray)?.Select(x => x.ToString()).ToList() ?? new(),
                                 (g["links"]     as JArray)?.Select(x => x.ToString()).ToList() ?? new(),
-                                createdAt:      g["createdAt"]?.ToString() ?? "",
+                                createdAt:      DateTimeHelper.Iso(g["createdAt"]),
                                 isVerified:     g["isVerified"]?.Value<bool>() ?? false,
-                                joinedAt:       earlyMember?["joinedAt"]?.ToString() ?? "",
+                                joinedAt:       DateTimeHelper.Iso(earlyMember?["joinedAt"]),
                                 isRepresenting: earlyMember?["isRepresenting"]?.Value<bool>() ?? false);
 
                             bool isMember = g["myMember"] != null && g["myMember"]!.Type != JTokenType.Null;
@@ -400,9 +404,9 @@ public class GroupsController
                                 g["rules"]?.ToString() ?? "",
                                 (g["languages"] as JArray)?.Select(x => x.ToString()).ToList() ?? new(),
                                 (g["links"]     as JArray)?.Select(x => x.ToString()).ToList() ?? new(),
-                                createdAt:      g["createdAt"]?.ToString() ?? "",
+                                createdAt:      DateTimeHelper.Iso(g["createdAt"]),
                                 isVerified:     g["isVerified"]?.Value<bool>() ?? false,
-                                joinedAt:       myMember?["joinedAt"]?.ToString() ?? "",
+                                joinedAt:       DateTimeHelper.Iso(myMember?["joinedAt"]),
                                 isRepresenting: myMember?["isRepresenting"]?.Value<bool>() ?? false,
                                 lastPostJson:   lastPostJson,
                                 lastEventJson:  lastEventJson);
@@ -414,7 +418,7 @@ public class GroupsController
                                 joinState = g["joinState"]?.ToString() ?? "",
                                 createdAt    = g["createdAt"]?.ToString() ?? "",
                                 isVerified   = g["isVerified"]?.Value<bool>() ?? false,
-                                joinedAt     = myMember?["joinedAt"]?.ToString() ?? "",
+                                joinedAt     = DateTimeHelper.Iso(myMember?["joinedAt"]),
                                 isRepresenting = myMember?["isRepresenting"]?.Value<bool>() ?? false,
                                 ownerId, ownerDisplayName,
                                 visibility = myMember?["visibility"]?.ToString() ?? "",

@@ -3355,6 +3355,8 @@
   "groups.list.header.name": "名称",
   "groups.list.header.short_name": "短名称",
   "groups.list.header.member_count": "成员数",
+  "groups.list.header.joined": "加入时间",
+  "groups.list.header.created": "创建时间",
   "groups.filters.instances": "群组实例",
   "groups.instances.header.world": "世界",
   "groups.instances.header.players": "玩家",

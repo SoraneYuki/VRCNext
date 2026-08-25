@@ -301,6 +301,8 @@ function _glValue(g, field) {
         case 'name':    return (g.name || '').toLowerCase();
         case 'short':   return (g.shortCode || '').toLowerCase();
         case 'members': return g.memberCount || 0;
+        case 'joined':  return Date.parse(g.joinedAt || '') || 0;
+        case 'created': return Date.parse(g.createdAt || '') || 0;
         default:        return (g.name || '').toLowerCase();
     }
 }
@@ -314,6 +316,8 @@ function buildGroupsListHtml(groups) {
             name:    `<td class="lv-name">${esc(g.name || '')}</td>`,
             short:   `<td class="lv-sub">${esc(g.shortCode || '')}</td>`,
             members: `<td class="lv-num">${esc((g.memberCount || 0).toLocaleString())}</td>`,
+            joined:  `<td class="lv-sub">${esc(_glDate(g.joinedAt))}</td>`,
+            created: `<td class="lv-sub">${esc(_glDate(g.createdAt))}</td>`,
         });
     });
     return `<div class="lv-scroll">${tlTableHtml('groupsList', rows)}</div>`;
@@ -538,4 +542,11 @@ function groupBulkDeleteConsume(success) {
         if (typeof loadMyGroups === 'function') loadMyGroups();
     }
     return true;
+}
+
+function _glDate(value) {
+    if (!value) return '';
+    const raw = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value + 'T00:00:00' : value;
+    const d = new Date(raw);
+    return isNaN(d) ? String(value) : fmtShortDate(d);
 }
