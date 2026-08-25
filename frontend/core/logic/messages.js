@@ -60,42 +60,66 @@ window.external.receiveMessage(rawMsg => {
             case 'cursorFiles': _localHttpPort = payload.port || _localHttpPort; renderCursorThemeChips(payload.files); applyCursorTheme(currentCursorTheme); break;
             case 'customThemes': _localHttpPort = payload.port || _localHttpPort; _customThemes = payload.themes || []; applyCustomThemesFromSettings([..._activeCustomThemes]); break;
             case 'vrcLaunched': {
-                // Fired when the user launches VRChat from VRCNext (VR or Desktop)
+                // Fired when a VRChat session starts (VRCNext launch or detected externally)
                 if (window._isLinuxUi) break;
                 const vr = !!payload.vr;
-                const s = settings || {};
                 const chk = id => !!document.getElementById(id)?.checked;
+                const session = (window._autoStartToken = (window._autoStartToken || 0) + 1);
                 let delay = 300;
-                const trigger = (cond, fn) => { if (cond) { setTimeout(fn, delay); delay += 100; } };
+                const ensure = (cond, isRunning, start) => {
+                    if (!cond) return;
+                    const first = delay; delay += 100;
+                    let tries = 0;
+                    const tick = () => {
+                        if (window._autoStartToken !== session) return;
+                        if (isRunning()) return;
+                        if (tries >= 5) return;
+                        tries++;
+                        start();
+                        setTimeout(tick, 5000);
+                    };
+                    setTimeout(tick, first);
+                };
                 // Chatbox
-                trigger(vr ? chk('setCbAutoStartVR') : chk('setCbAutoStartDesktop'),
-                    () => { if (!chatboxEnabled) toggleChatbox(); });
+                ensure(vr ? chk('setCbAutoStartVR') : chk('setCbAutoStartDesktop'),
+                    () => typeof chatboxEnabled !== 'undefined' && chatboxEnabled,
+                    () => toggleChatbox());
                 // Space Flight (VR only)
-                trigger(vr && chk('setSfAutoStartVR'), sfConnect);
+                ensure(vr && chk('setSfAutoStartVR'),
+                    () => typeof sfConnected !== 'undefined' && sfConnected,
+                    () => sfConnect());
                 // FrameShot (VR only)
-                trigger(vr && chk('setFsAutoStartVR'),
+                ensure(vr && chk('setFsAutoStartVR'),
+                    () => typeof fsConnected !== 'undefined' && fsConnected,
                     () => { if (typeof fsConnect === 'function') fsConnect(); });
                 // Media Relay
-                trigger(vr ? chk('setAutoStartVR') : chk('setAutoStartDesktop'),
+                ensure(vr ? chk('setAutoStartVR') : chk('setAutoStartDesktop'),
+                    () => typeof relayOn !== 'undefined' && relayOn,
                     () => sendToCS({ action: 'startRelay' }));
                 // YouTube Fix
-                trigger(vr ? chk('setYtAutoStartVR') : chk('setYtAutoStartDesktop'),
+                ensure(vr ? chk('setYtAutoStartVR') : chk('setYtAutoStartDesktop'),
+                    () => !!document.getElementById('vcDot')?.classList.contains('online'),
                     () => { if (typeof toggleVc === 'function') toggleVc(); });
                 // Voice Fight
-                trigger(vr ? chk('setVfAutoStartVR') : chk('setVfAutoStartDesktop'),
+                ensure(vr ? chk('setVfAutoStartVR') : chk('setVfAutoStartDesktop'),
+                    () => typeof vfRunning !== 'undefined' && vfRunning,
                     () => { if (typeof vfConnect === 'function') vfConnect(); });
                 // Discord Presence
-                trigger(vr ? chk('setDpAutoStartVR') : chk('setDpAutoStartDesktop'),
-                    () => { if (!_dpRunning) sendToCS({ action: 'dpStart' }); });
+                ensure(vr ? chk('setDpAutoStartVR') : chk('setDpAutoStartDesktop'),
+                    () => typeof _dpRunning !== 'undefined' && _dpRunning,
+                    () => sendToCS({ action: 'dpStart' }));
                 // VR Overlay (VR only)
-                trigger(vr && chk('setVroAutoStartVR'),
+                ensure(vr && chk('setVroAutoStartVR'),
+                    () => typeof vroConnected !== 'undefined' && vroConnected,
                     () => { if (typeof vroConnect === 'function') vroConnect(); });
                 // Avatar Scaling
-                trigger(vr ? chk('setAsAutoStartVR') : chk('setAsAutoStartDesktop'),
-                    () => { if (!_asConnected) sendToCS({ action: 'asConnect' }); });
+                ensure(vr ? chk('setAsAutoStartVR') : chk('setAsAutoStartDesktop'),
+                    () => typeof _asConnected !== 'undefined' && _asConnected,
+                    () => sendToCS({ action: 'asConnect' }));
                 break;
             }
             case 'vrcClosed': {
+                window._autoStartToken = (window._autoStartToken || 0) + 1;
                 // Fired when VRChat closes and "Close with VRChat" is enabled.
                 // Mirror of vrcLaunched: shut down the VRCNext tools that are running.
                 let delay = 0;

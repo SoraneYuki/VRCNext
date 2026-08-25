@@ -23,3 +23,9 @@ and the sort dropdown now sit in one row.
 
 **Fixed Bugs**
 * Fixed friends sidebar searchbar card seperation.
+* Fixed tools and startup apps with **Start with VR/Desktop** sometimes not starting again after VRChat was closed and restarted, for example after killing a stuck VRChat from the SteamVR dashboard. VRChat restarts are now detected reliably, no matter how VRChat was started or stopped.
+* Auto-start can no longer accidentally turn a tool **off** when it was still running.
+* Failed auto-starts (for example while SteamVR is still starting up) are now retried automatically instead of silently giving up.
+* VR mode detection at VRChat start now waits briefly for SteamVR instead of guessing Desktop mode too early.
+* **Close with VRChat** no longer closes copies of a startup app that you started manually yourself.
+* Tool auto-start no longer depends on the **Start always with VRChat** setting, which only applies to external startup apps as described.

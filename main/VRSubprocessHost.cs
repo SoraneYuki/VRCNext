@@ -169,6 +169,7 @@ public sealed class VRSubprocessHost : IDisposable
                 _log(msg["text"]?.Value<string>() ?? "");
                 break;
             case "vro_state":
+                VroConnected = msg["connected"]?.Value<bool>() ?? VroConnected;
                 OnVroState?.Invoke(msg);
                 break;
             case "vro_keybind_recorded":
