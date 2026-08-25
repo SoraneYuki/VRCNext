@@ -648,7 +648,13 @@ function loadSettingsToUI(s) {
     const cbInt = s.CbIntervalMs || s.cbIntervalMs || 5000;
     const cbIntEl = document.getElementById('cbInterval');
     if (cbIntEl) cbIntEl.value = String(cbInt);
-    chatboxCustomLines = s.CbCustomLines || s.cbCustomLines || [];
+    document.getElementById('cbShowAfkTime').checked = s.CbShowAfkTime ?? s.cbShowAfkTime ?? true;
+    document.getElementById('cbStatCpu').checked = s.CbStatCpu ?? s.cbStatCpu ?? true;
+    document.getElementById('cbStatRam').checked = s.CbStatRam ?? s.cbStatRam ?? true;
+    document.getElementById('cbStatGpu').checked = s.CbStatGpu ?? s.cbStatGpu ?? false;
+    document.getElementById('cbStatVram').checked = s.CbStatVram ?? s.cbStatVram ?? false;
+    cbApplyLineOrder(s.CbLineOrder || s.cbLineOrder);
+    chatboxCustomLines = _cbNormalizeLines(s.CbCustomLines || s.cbCustomLines || []);
     renderChatboxLines();
 
     if (typeof vriInit === 'function') vriInit(s.VrInputMode ?? s.vrInputMode ?? 0);

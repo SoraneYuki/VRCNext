@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -8,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using VRCNext.Services;
 #if WINDOWS
 using Windows.Media.Control;
 #endif
@@ -39,15 +41,23 @@ namespace VRCNext
         public bool ShowPlaytime { get; set; } = true;
         public bool ShowCustomText { get; set; } = true;
         public bool ShowSystemStats { get; set; }
+        public bool StatCpu { get; set; } = true;
+        public bool StatRam { get; set; } = true;
+        public bool StatGpu { get; set; }
+        public bool StatVram { get; set; }
         public bool ShowAfk { get; set; }
+        public bool ShowAfkTime { get; set; } = true;
         public string AfkMessage { get; set; } = "Currently AFK";
         public bool SuppressNotifSound { get; set; } = true;
         public bool HideChatboxBackground { get; set; } = false;
         public string TimeFormat { get; set; } = "hh:mm tt";
         public string Separator { get; set; } = " | ";
         public int IntervalMs { get; set; } = 5000;
-        public List<string> CustomLines { get; set; } = new();
+        public List<CbCustomLine> CustomLines { get; set; } = new();
+        public List<string> LineOrder { get; set; } = new(DefaultLineOrder);
         private int _customLineIndex;
+
+        public static readonly string[] DefaultLineOrder = { "time", "media", "stats", "custom" };
 
         // Media state
         public string CurrentTitle { get; private set; } = "";
@@ -71,6 +81,14 @@ namespace VRCNext
         private float _cpuPercent;
         private float _ramUsedGB;
         private float _ramTotalGB;
+        private float _gpuPercent;
+        private float _vramUsedGB;
+        private bool  _gpuAvailable;
+#if WINDOWS
+        private readonly List<PerformanceCounter> _gpuCounters  = new();
+        private readonly List<PerformanceCounter> _vramCounters = new();
+        private DateTime _gpuCountersBuilt = DateTime.MinValue;
+#endif
 
         // Direct send pause
         private volatile int _pauseUntilTick;
@@ -133,6 +151,7 @@ namespace VRCNext
                         durationMs = (long)CurrentDuration.TotalMilliseconds,
                         isPlaying = IsPlaying, chatboxText = text, enabled = Enabled,
                         cpuPercent = _cpuPercent, ramUsedGB = _ramUsedGB, ramTotalGB = _ramTotalGB,
+                        gpuPercent = _gpuPercent, vramUsedGB = _vramUsedGB, gpuAvailable = _gpuAvailable,
                         isAfk = _isAfk,
                     });
                     await Task.Delay(Math.Max(IntervalMs, MIN_INTERVAL_MS), ct);
@@ -142,6 +161,7 @@ namespace VRCNext
             }
 #if WINDOWS
             _cpuCounter?.Dispose(); _cpuCounter = null;
+            DisposeGpuCounters();
 #endif
         }
 
@@ -153,43 +173,88 @@ namespace VRCNext
 
             if (ShowAfk && _isAfk)
             {
-                var d = DateTime.Now - _afkSince;
-                var t = d.TotalHours >= 1 ? $"{(int)d.TotalHours}h {d.Minutes}m" : $"{(int)d.TotalMinutes}m";
-                var msg = $"{AfkMessage} ({t})";
-                if (ShowTime) msg = DateTime.Now.ToString(TimeFormat) + Separator + msg;
+                var msg = AfkMessage;
+                if (ShowAfkTime)
+                {
+                    var d = DateTime.Now - _afkSince;
+                    var t = d.TotalHours >= 1 ? $"{(int)d.TotalHours}h {d.Minutes}m" : $"{(int)d.TotalMinutes}m";
+                    msg = $"{msg} ({t})";
+                }
+                if (ShowTime) msg = FormatClock() + Separator + msg;
                 if (msg.Length > limit) msg = msg[..limit];
                 return HideChatboxBackground ? msg + "\u0003\u001f" : msg;
             }
 
             var parts = new List<string>();
-            if (ShowTime) parts.Add(DateTime.Now.ToString(TimeFormat));
-
-            if (ShowMedia && IsPlaying && !string.IsNullOrEmpty(CurrentTitle))
+            foreach (var segment in EffectiveLineOrder())
             {
-                var m = $"\"{CurrentTitle}\"";
-                if (!string.IsNullOrEmpty(CurrentArtist)) m += $" by {CurrentArtist}";
-                if (ShowPlaytime && CurrentDuration.TotalSeconds > 0)
-                    m += $" [{FormatTime(CurrentPosition)}/{FormatTime(CurrentDuration)}]";
-                parts.Add(m);
-            }
-
-            if (ShowSystemStats)
-            {
-                var s = $"CPU {_cpuPercent:0}%";
-                if (_ramTotalGB > 0) s += $" RAM {_ramUsedGB:0.0}/{_ramTotalGB:0.0}GB";
-                parts.Add(s);
-            }
-
-            if (ShowCustomText && CustomLines.Count > 0)
-            {
-                var line = CustomLines[_customLineIndex % CustomLines.Count];
-                if (!string.IsNullOrWhiteSpace(line)) parts.Add(line);
-                _customLineIndex++;
+                var part = segment switch
+                {
+                    "time"   => ShowTime ? FormatClock() : null,
+                    "media"  => BuildMediaPart(),
+                    "stats"  => BuildStatsPart(),
+                    "custom" => NextCustomLine(),
+                    _        => null,
+                };
+                if (!string.IsNullOrEmpty(part)) parts.Add(part!);
             }
 
             var result = string.Join(Separator, parts);
             if (result.Length > limit) result = result[..limit];
             return HideChatboxBackground ? result + "\u0003\u001f" : result;
+        }
+
+        private List<string> EffectiveLineOrder()
+        {
+            var seen  = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var order = new List<string>();
+            foreach (var raw in LineOrder ?? new List<string>())
+            {
+                var key = (raw ?? "").Trim().ToLowerInvariant();
+                if (Array.IndexOf(DefaultLineOrder, key) >= 0 && seen.Add(key)) order.Add(key);
+            }
+            foreach (var key in DefaultLineOrder)
+                if (seen.Add(key)) order.Add(key);
+            return order;
+        }
+
+        private string FormatClock()
+        {
+            try { return DateTime.Now.ToString(TimeFormat, CultureInfo.InvariantCulture); }
+            catch { return DateTime.Now.ToString("HH:mm", CultureInfo.InvariantCulture); }
+        }
+
+        private string? BuildMediaPart()
+        {
+            if (!ShowMedia || !IsPlaying || string.IsNullOrEmpty(CurrentTitle)) return null;
+            var m = $"\"{CurrentTitle}\"";
+            if (!string.IsNullOrEmpty(CurrentArtist)) m += $" by {CurrentArtist}";
+            if (ShowPlaytime && CurrentDuration.TotalSeconds > 0)
+                m += $" [{FormatTime(CurrentPosition)}/{FormatTime(CurrentDuration)}]";
+            return m;
+        }
+
+        private string? BuildStatsPart()
+        {
+            if (!ShowSystemStats) return null;
+            var bits = new List<string>();
+            if (StatCpu)  bits.Add($"CPU {_cpuPercent:0}%");
+            if (StatRam && _ramTotalGB > 0) bits.Add($"RAM {_ramUsedGB:0.0}/{_ramTotalGB:0.0}GB");
+            if (StatGpu && _gpuAvailable)   bits.Add($"GPU {_gpuPercent:0}%");
+            if (StatVram && _vramUsedGB > 0) bits.Add($"VRAM {_vramUsedGB:0.0}GB");
+            return bits.Count == 0 ? null : string.Join(" ", bits);
+        }
+
+        private string? NextCustomLine()
+        {
+            if (!ShowCustomText) return null;
+            var active = CustomLines
+                .Where(l => l != null && l.Enabled && !string.IsNullOrWhiteSpace(l.Text))
+                .ToList();
+            if (active.Count == 0) return null;
+            var line = active[_customLineIndex % active.Count];
+            _customLineIndex = (_customLineIndex + 1) % active.Count;
+            return line.Text;
         }
 
         private static string FormatTime(TimeSpan ts) =>
@@ -206,6 +271,8 @@ namespace VRCNext
                 _ramUsedGB = (_ramTotalGB * 1024f - availMB) / 1024f;
             }
             catch { }
+
+            if (StatGpu || StatVram) UpdateGpuStats();
 #else
             // CPU via /proc/stat
             try
@@ -251,6 +318,77 @@ namespace VRCNext
             catch { }
 #endif
         }
+
+#if WINDOWS
+        private void UpdateGpuStats()
+        {
+            try
+            {
+                if ((DateTime.UtcNow - _gpuCountersBuilt).TotalSeconds > 15) RebuildGpuCounters();
+
+                float gpu = 0f;
+                foreach (var c in _gpuCounters)
+                {
+                    try { gpu += c.NextValue(); } catch { }
+                }
+                _gpuPercent = Math.Min(gpu, 100f);
+
+                double vramBytes = 0;
+                foreach (var c in _vramCounters)
+                {
+                    try { vramBytes += c.NextValue(); } catch { }
+                }
+                _vramUsedGB = (float)(vramBytes / (1024.0 * 1024.0 * 1024.0));
+            }
+            catch { }
+        }
+
+        private void RebuildGpuCounters()
+        {
+            DisposeGpuCounters();
+            _gpuCountersBuilt = DateTime.UtcNow;
+            try
+            {
+                foreach (var inst in new PerformanceCounterCategory("GPU Engine").GetInstanceNames())
+                {
+                    if (inst.IndexOf("engtype_3D", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                    try
+                    {
+                        var c = new PerformanceCounter("GPU Engine", "Utilization Percentage", inst, true);
+                        c.NextValue();
+                        _gpuCounters.Add(c);
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex) { _log($"[Chatbox] GPU counters unavailable: {ex.Message}"); }
+
+            try
+            {
+                foreach (var inst in new PerformanceCounterCategory("GPU Adapter Memory").GetInstanceNames())
+                {
+                    try
+                    {
+                        var c = new PerformanceCounter("GPU Adapter Memory", "Dedicated Usage", inst, true);
+                        c.NextValue();
+                        _vramCounters.Add(c);
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            _gpuAvailable = _gpuCounters.Count > 0 || _vramCounters.Count > 0;
+        }
+
+        private void DisposeGpuCounters()
+        {
+            foreach (var c in _gpuCounters)  { try { c.Dispose(); } catch { } }
+            foreach (var c in _vramCounters) { try { c.Dispose(); } catch { } }
+            _gpuCounters.Clear();
+            _vramCounters.Clear();
+        }
+#endif
 
         private void UpdateAfkState()
         {
@@ -393,18 +531,23 @@ namespace VRCNext
         public void ApplyConfig(bool enabled, bool showTime, bool showMedia, bool showPlaytime,
             bool showCustomText, bool showSystemStats, bool showAfk, string afkMessage,
             bool suppressSound, string timeFormat, string separator,
-            int intervalMs, List<string> customLines, bool hideBackground = false)
+            int intervalMs, List<CbCustomLine> customLines, bool hideBackground = false,
+            List<string>? lineOrder = null, bool showAfkTime = true,
+            bool statCpu = true, bool statRam = true, bool statGpu = false, bool statVram = false)
         {
             var was = Enabled; Enabled = enabled;
             ShowTime = showTime; ShowMedia = showMedia; ShowPlaytime = showPlaytime;
             ShowCustomText = showCustomText; ShowSystemStats = showSystemStats;
-            ShowAfk = showAfk;
+            ShowAfk = showAfk; ShowAfkTime = showAfkTime;
+            StatCpu = statCpu; StatRam = statRam; StatGpu = statGpu; StatVram = statVram;
             if (!string.IsNullOrWhiteSpace(afkMessage)) AfkMessage = afkMessage;
             SuppressNotifSound = suppressSound;
             if (!string.IsNullOrWhiteSpace(timeFormat)) TimeFormat = timeFormat;
             if (separator != null) Separator = separator;
             IntervalMs = Math.Max(intervalMs, MIN_INTERVAL_MS);
             CustomLines = customLines ?? new();
+            LineOrder = (lineOrder != null && lineOrder.Count > 0) ? lineOrder : new List<string>(DefaultLineOrder);
+            _customLineIndex = 0;
             HideChatboxBackground = hideBackground;
             if (enabled && !was) Start(); else if (!enabled && was) Stop();
         }

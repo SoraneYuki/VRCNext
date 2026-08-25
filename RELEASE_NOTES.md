@@ -1,5 +1,16 @@
 **2026.44.5**
 
+**Custom Chatbox**
+* The order of the chatbox lines can be changed. Drag **Local Time**, **Now Playing**, **System Info**
+and **Custom Text** into any order, the same way the sidebar navigation editor works. Song Playtime
+stays attached to Now Playing.
+* Custom text lines can now be edited afterwards instead of only deleted.
+* Every custom text line has its own on/off switch, so a line can be parked without losing it.
+* Fixed the 12 hour time formats never showing **AM/PM**. The designator was rendered in the system
+language, and several languages (German among them) define it as empty, which silently dropped it.
+* **System Info** now has its own sub switches for **CPU**, **RAM**, **GPU** and **VRAM**.
+* The AFK time next to the AFK message can now be switched off.
+
 **Groups Tab**
 * Added an **Edit** button. In edit mode you can select multiple groups, with **Select All** and the
 actions in a bar at the bottom of the tab.

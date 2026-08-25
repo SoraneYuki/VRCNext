@@ -225,6 +225,41 @@ public class VrcAccount
     [JsonIgnore] public string TwoFactorCookie { get; set; } = "";
 }
 
+[JsonConverter(typeof(CbCustomLineConverter))]
+public class CbCustomLine
+{
+    public string Text { get; set; } = "";
+    public bool Enabled { get; set; } = true;
+}
+
+public class CbCustomLineConverter : JsonConverter<CbCustomLine>
+{
+    public override CbCustomLine ReadJson(JsonReader reader, Type objectType, CbCustomLine? existingValue,
+        bool hasExistingValue, JsonSerializer serializer)
+    {
+        var token = JToken.Load(reader);
+        if (token.Type == JTokenType.String)
+            return new CbCustomLine { Text = token.ToString(), Enabled = true };
+        if (token is JObject o)
+            return new CbCustomLine
+            {
+                Text    = o["Text"]?.ToString() ?? o["text"]?.ToString() ?? "",
+                Enabled = o["Enabled"]?.Value<bool>() ?? o["enabled"]?.Value<bool>() ?? true,
+            };
+        return new CbCustomLine();
+    }
+
+    public override void WriteJson(JsonWriter writer, CbCustomLine? value, JsonSerializer serializer)
+    {
+        writer.WriteStartObject();
+        writer.WritePropertyName("Text");
+        writer.WriteValue(value?.Text ?? "");
+        writer.WritePropertyName("Enabled");
+        writer.WriteValue(value?.Enabled ?? true);
+        writer.WriteEndObject();
+    }
+}
+
 // App Settings - persisted to JSON in %AppData%
 public class AppSettings
 {
@@ -411,8 +446,14 @@ public class AppSettings
     public string CbTimeFormat { get; set; } = "hh:mm tt";
     public string CbSeparator { get; set; } = " | ";
     public int CbIntervalMs { get; set; } = 5000;
-    public List<string> CbCustomLines { get; set; } = new();
+    public List<CbCustomLine> CbCustomLines { get; set; } = new();
     public bool CbHideBackground { get; set; } = false;
+    public bool CbShowAfkTime { get; set; } = true;
+    public List<string> CbLineOrder { get; set; } = new() { "time", "media", "stats", "custom" };
+    public bool CbStatCpu { get; set; } = true;
+    public bool CbStatRam { get; set; } = true;
+    public bool CbStatGpu { get; set; }
+    public bool CbStatVram { get; set; }
 
     // Space Flight settings
     public float SfMultiplier { get; set; } = 1f;

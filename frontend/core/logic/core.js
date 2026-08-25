@@ -519,6 +519,7 @@ let fsConnected = false;
 // Custom Chatbox OSC
 let chatboxEnabled = false;
 let chatboxCustomLines = [];
+let chatboxLineOrder = ['time', 'media', 'stats', 'custom'];
 // OSC Tool
 let oscParams = {};
 let oscConnected = false;
