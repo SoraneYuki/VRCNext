@@ -1,5 +1,10 @@
 ****2026.45.0****
 
+**Time Spent**
+* New ****Groups**** tab next to Worlds and Persons. It shows how long you spent in each group's instances and how many times you joined them, with the same ranking, search and paging as the other two.
+* All three group instance types count towards it: ****Group****, ****Group+**** and ****Group Public****.
+* This starts collecting from now on. Group time was never stored before, only world time, so past sessions cannot be shown and the tab fills up as you play.
+
 ****FrameShot****
 * FrameShot now scans the framed area for ****QR codes**** while you hold the frame. When one is found, the frame turns green, a sound plays and the detected target is shown inside the frame.
 * Added a new ****Accept / Open QR**** keybind next to Frame, Record (GIF) and Record (Video). Pressing it opens the detected link in your normal browser, so it is already open when you take the headset off.

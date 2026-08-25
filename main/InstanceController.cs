@@ -664,6 +664,8 @@ public class InstanceController
                         tsView == "worlds" ? tsQuery : "", tsView == "worlds" ? tsPage : 0, tsPageSize);
                     var personData = _core.TimeEngine.GetTimeSpentPersonPage(
                         tsMyId, tsView == "persons" ? tsQuery : "", tsView == "persons" ? tsPage : 0, tsPageSize);
+                    var groupData = _core.TimeEngine.GetTimeSpentGroupPage(
+                        tsView == "groups" ? tsQuery : "", tsView == "groups" ? tsPage : 0, tsPageSize);
 
                     var worldPage  = worldData.Rows;
                     var personPage = personData.Rows;
@@ -701,6 +703,12 @@ public class InstanceController
                         totalPersons  = personData.TotalFiltered,
                         allUniqueWorlds   = worldData.TotalAll,
                         allUniquePersons  = personData.TotalAll,
+                        totalGroups       = groupData.TotalFiltered,
+                        allUniqueGroups   = groupData.TotalAll,
+                        globalGroupSeconds = groupData.TotalSeconds,
+                        globalGroupJoins   = groupData.TotalJoins,
+                        globalTopGroupName = groupData.TopGroupName,
+                        maxGroupSeconds    = groupData.MaxSeconds,
                         globalFriendCount,
                         globalStrangerCount,
                         globalTopFriendName    = globalTopFriend?.DisplayName ?? "",
@@ -729,6 +737,16 @@ public class InstanceController
                             seconds     = p.Seconds,
                             meets       = p.Meets,
                             rank        = p.Rank,
+                        }),
+                        groups = groupData.Rows.Select(g => new
+                        {
+                            groupId   = g.GroupId,
+                            groupName = g.GroupName,
+                            iconUrl   = ImageCacheHelper.GetGroupUrl(g.GroupId, g.IconUrl),
+                            shortCode = g.ShortCode,
+                            seconds   = g.Seconds,
+                            joins     = g.Joins,
+                            rank      = g.Rank,
                         }),
                     }));
 
@@ -890,6 +908,8 @@ public class InstanceController
                     {
                         ownerName  = grp["name"]?.ToString() ?? "";
                         ownerGroup = grp["shortCode"]?.ToString() ?? "";
+                        _core.TimeEngine.SaveGroupTimeIdentity(ownerId, ownerName, ownerGroup,
+                            grp["iconUrl"]?.ToString() ?? "");
                     }
                 }
                 else if (ownerId.StartsWith("usr_"))
