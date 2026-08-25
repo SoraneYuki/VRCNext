@@ -622,6 +622,7 @@
   "ctx.open_group_id": "Open Group ID",
   "ctx.open_profile_id": "Open Profile ID",
   "ctx.open_instance_link": "Open Instance Link",
+  "ctx.open_event_link": "Open Event Link",
   "common.clear": "Clear",
   "common.delete": "Delete",
   "avatars.detail.actions.delete": "Delete Avatar",

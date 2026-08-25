@@ -622,6 +622,7 @@
   "ctx.open_group_id": "그룹 ID 열기",
   "ctx.open_profile_id": "프로필 ID 열기",
   "ctx.open_instance_link": "인스턴스 링크 열기",
+  "ctx.open_event_link": "이벤트 링크 열기",
   "common.clear": "지우기",
   "common.delete": "삭제",
   "avatars.edit.add_to_favorites": "즐겨찾기에 추가",

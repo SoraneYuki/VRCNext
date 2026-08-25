@@ -72,18 +72,6 @@ lists them first.
 * Edit mode also works in **All Friends** now. There you can select people and either **Add to Favorites**
 (pick the favorite group from the dropdown) or **Bulk Unfriend** them.
 
-**Fixed Bugs**
-* Edit mode worked in Large Grid and Compact Grid only. Turning it on in **List View** silently threw you
-back to grid. Selection now works in the list too, with a checkmark in the first column and the row
-highlighted, the same way the timeline does it. Applies to Worlds, Avatars, Groups and People.
-* A deleted avatar stayed in **My Avatars**, even after pressing refresh. Deleting only flips an avatar
-to `hidden` and the listing asked for `releaseStatus=all`, which includes hidden ones, so the refresh
-faithfully returned the avatar you had just deleted. Hidden entries are filtered out now, and the
-deleted entry is dropped from the offline cache right away instead of waiting for the next fetch.
-* The same applied to **My Worlds** and would have hit Delete World in exactly the same way.
-* The edit pencil on your own profile picture sat in the top left corner, while groups put it in the
-bottom right. Both are bottom right now.
-
 **Translations**
 * Korean Translation by @roshikeymusica
 * Update Traditional Chinese localization by @SoraneYuki
@@ -106,6 +94,19 @@ and the sort dropdown now sit in one row.
 * Small color adjustments on all themes.
 
 **Fixed Bugs**
+* Direct Access (Ctrl+D and the context menu) only recognised a handful of link shapes. A VRChat ID is
+now found anywhere in the clipboard, so an API URL like `.../api/1/users/usr_xxx/groups`, an ID pasted
+in the middle of a sentence, or a bare ID all open the right thing.
+* Direct Access can open **events** now, from a link carrying both a group and a calendar ID, and it
+recognises instance links in the plain `wrld_xxx:12345~region(eu)` form, not just as a launch URL.
+* Edit mode worked in Large Grid and Compact Grid only. Turning it on in **List View** silently threw you
+back to grid. Selection now works in the list too, with a checkmark in the first column and the row
+highlighted, the same way the timeline does it. Applies to Worlds, Avatars, Groups and People.
+* A deleted avatar stayed in **My Avatars**, even after pressing refresh. Deleting only flips an avatar
+to `hidden` and the listing asked for `releaseStatus=all`, which includes hidden ones, so the refresh
+faithfully returned the avatar you had just deleted. Hidden entries are filtered out now, and the
+deleted entry is dropped from the offline cache right away instead of waiting for the next fetch.
+* The same applied to **My Worlds** and would have hit Delete World in exactly the same way.
 * Fixed friends sidebar searchbar card seperation.
 * Fixed tools and startup apps with **Start with VR/Desktop** sometimes not starting again after VRChat was closed and restarted, for example after killing a stuck VRChat from the SteamVR dashboard. VRChat restarts are now detected reliably, no matter how VRChat was started or stopped.
 * Auto-start can no longer accidentally turn a tool **off** when it was still running.

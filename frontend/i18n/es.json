@@ -610,6 +610,7 @@
   "ctx.open_group_id": "Abrir ID de grupo",
   "ctx.open_profile_id": "Abrir ID de perfil",
   "ctx.open_instance_link": "Abrir enlace de instancia",
+  "ctx.open_event_link": "Abrir enlace del evento",
   "common.clear": "Borrar",
   "common.delete": "Eliminar",
   "avatars.detail.actions.delete": "Eliminar avatar",

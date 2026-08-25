@@ -622,6 +622,7 @@
   "ctx.open_group_id": "開啟群組ID",
   "ctx.open_profile_id": "開啟個人檔案ID",
   "ctx.open_instance_link": "開啟房間連結",
+  "ctx.open_event_link": "開啟活動連結",
   "common.clear": "清除",
   "common.delete": "刪除",
   "avatars.detail.actions.delete": "刪除模型",

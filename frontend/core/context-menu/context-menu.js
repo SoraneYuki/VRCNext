@@ -37,20 +37,41 @@
     });
 
     /* VRC clipboard link detection */
+    const VRC_PREFIX_TYPES = { avtr: 'avatar', wrld: 'world', grp: 'group', usr: 'user' };
+
+    function scanVrcIds(text) {
+        const out = [];
+        const re = /(avtr|wrld|grp|usr|cal)_[0-9A-Za-z][0-9A-Za-z-]*/gi;
+        let m;
+        while ((m = re.exec(text)) !== null) {
+            out.push({ prefix: m[1].toLowerCase(), id: m[0], index: m.index });
+        }
+        return out;
+    }
+
     function detectVrcClipboard(text) {
         text = (text || '').trim();
+        if (!text) return null;
         let m;
-        if ((m = text.match(/vrchat\.com\/home\/launch\?worldId=(wrld_[\w-]+)&instanceId=(\S+)/i))) return { type: 'instance', id: m[1], instanceId: m[2] };
-        if ((m = text.match(/vrchat\.com\/home\/avatar\/(avtr_[\w-]+)/i)))       return { type: 'avatar', id: m[1] };
-        if ((m = text.match(/vrchat\.com\/home\/world\/(wrld_[\w-]+)/i)))        return { type: 'world',  id: m[1] };
-        if ((m = text.match(/vrchat\.com\/home\/group\/(grp_[\w-]+)/i)))         return { type: 'group',  id: m[1] };
-        if ((m = text.match(/vrchat\.com\/home\/user\/(usr_[\w-]+)/i)))          return { type: 'user',   id: m[1] };
-        if ((m = text.match(/vrchat:\/\/launch.*[?&]worldId=(wrld_[\w-]+)/i)))  return { type: 'world',  id: m[1] };
-        if ((m = text.match(/^(avtr_[\w-]+)$/i)))  return { type: 'avatar', id: m[1], bare: true };
-        if ((m = text.match(/^(wrld_[\w-]+)$/i)))  return { type: 'world',  id: m[1], bare: true };
-        if ((m = text.match(/^(grp_[\w-]+)$/i)))   return { type: 'group',  id: m[1], bare: true };
-        if ((m = text.match(/^(usr_[\w-]+)$/i)))   return { type: 'user',   id: m[1], bare: true };
-        return null;
+
+        if ((m = text.match(/worldId=(wrld_[\w-]+)[&?]instanceId=([^\s&"'<>]+)/i))) {
+            let inst = m[2];
+            try { inst = decodeURIComponent(inst); } catch {}
+            return { type: 'instance', id: m[1], instanceId: inst };
+        }
+        if ((m = text.match(/(wrld_[\w-]+):(\d+[^\s"'<>]*)/i))) {
+            return { type: 'instance', id: m[1], instanceId: m[2] };
+        }
+
+        const grpHit = text.match(/grp_[0-9A-Za-z][0-9A-Za-z-]*/i);
+        const calHit = text.match(/cal_[0-9A-Za-z][0-9A-Za-z-]*/i);
+        if (grpHit && calHit) {
+            return { type: 'event', id: grpHit[0], eventId: calHit[0] };
+        }
+
+        const hit = scanVrcIds(text).find(h => VRC_PREFIX_TYPES[h.prefix]);
+        if (!hit) return null;
+        return { type: VRC_PREFIX_TYPES[hit.prefix], id: hit.id, bare: text === hit.id };
     }
     const VRC_CTX_META = {
         avatar:   { icon: 'checkroom',      labelKey: 'ctx.open_avatar_link',   fallback: 'Open Avatar Link',   bareKey: 'ctx.open_avatar_id',  bareFallback: 'Open Avatar ID'  },
@@ -58,6 +79,7 @@
         group:    { icon: 'group',          labelKey: 'ctx.open_group_link',    fallback: 'Open Group Link',    bareKey: 'ctx.open_group_id',   bareFallback: 'Open Group ID'   },
         user:     { icon: 'person',         labelKey: 'ctx.open_profile_link',  fallback: 'Open Profile Link',  bareKey: 'ctx.open_profile_id', bareFallback: 'Open Profile ID' },
         instance: { icon: 'meeting_room',   labelKey: 'ctx.open_instance_link', fallback: 'Open Instance Link' },
+        event:    { icon: 'event',          labelKey: 'ctx.open_event_link',    fallback: 'Open Event Link' },
     };
 
     function getVrcContextLabel(vrcData) {
@@ -75,6 +97,7 @@
         else if (vrcData.type === 'group')    navOpenModal('group',        vrcData.id, '');
         else if (vrcData.type === 'user')     navOpenModal('friend',       vrcData.id, '');
         else if (vrcData.type === 'instance') sendToCS({ action: 'vrcGetInstanceDetail', location: vrcData.id + ':' + vrcData.instanceId });
+        else if (vrcData.type === 'event')    navOpenModal('event', vrcData.id, '', vrcData.eventId);
         else return false;
         return true;
     }

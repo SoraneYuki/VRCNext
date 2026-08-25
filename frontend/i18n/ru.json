@@ -611,6 +611,7 @@
   "ctx.open_group_id": "Открыть ID группы",
   "ctx.open_profile_id": "Открыть ID профиля",
   "ctx.open_instance_link": "Открыть ссылку на инстанс",
+  "ctx.open_event_link": "Открыть ссылку на событие",
   "common.clear": "Очистить",
   "common.delete": "Удалить",
   "avatars.detail.actions.delete": "Удалить аватар",

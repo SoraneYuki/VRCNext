@@ -610,6 +610,7 @@
   "ctx.open_group_id": "打开群组ID",
   "ctx.open_profile_id": "打开个人资料ID",
   "ctx.open_instance_link": "打开实例链接",
+  "ctx.open_event_link": "打开活动链接",
   "common.clear": "清除",
   "common.delete": "删除",
   "avatars.detail.actions.delete": "删除模型",
