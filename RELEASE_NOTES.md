@@ -1,127 +1,92 @@
-**2026.45.0**
+****2026.45.0****
 
-**FrameShot**
-* FrameShot now scans the framed area for **QR codes** while you hold the frame. When one is found the
-frame border turns green, a sound plays and the target is shown as a banner inside the frame.
-* New **Accept / Open QR** keybind next to Frame, Record (GIF) and Record (Video). Pressing it opens the
-detected link in your normal browser, so it is already open when you take the headset off. Photo and
-cancel keep working exactly as before.
-* Only http and https links can be opened. Any other QR content is shown but never opened.
-* Also reads **stylised QR codes**: with a logo in the middle, rounded or dot shaped modules, coloured
-or inverted (light on dark). Those need a bit more work, so they are checked on every third scan pass
-and can take up to about a second longer to show up than a plain black and white code.
+****FrameShot****
+* FrameShot now scans the framed area for ****QR codes**** while you hold the frame. When one is found, the frame turns green, a sound plays and the detected target is shown inside the frame.
+* Added a new ****Accept / Open QR**** keybind next to Frame, Record (GIF) and Record (Video). Pressing it opens the detected link in your normal browser, so it is already open when you take the headset off.
+* Only http and https links can be opened. Other QR content is shown but never opened.
+* FrameShot can also detect ****stylised QR codes**** with logos, rounded or dot-shaped modules, colors or inverted designs. These can take slightly longer to detect than normal QR codes.
 
-**Custom Chatbox**
-* The order of the chatbox lines can be changed. Drag **Local Time**, **Now Playing**, **System Info**
-and **Custom Text** into any order, the same way the sidebar navigation editor works. Song Playtime
-stays attached to Now Playing.
-* Custom text lines can now be edited afterwards instead of only deleted.
-* Every custom text line has its own on/off switch, so a line can be parked without losing it.
-* Fixed the 12 hour time formats never showing **AM/PM**. The designator was rendered in the system
-language, and several languages (German among them) define it as empty, which silently dropped it.
-* **System Info** now has its own sub switches for **CPU**, **RAM**, **GPU** and **VRAM**.
-* The AFK time next to the AFK message can now be switched off.
+****Custom Chatbox****
+* Chatbox lines can now be reordered. Drag ****Local Time****, ****Now Playing****, ****System Info**** and ****Custom Text**** into any order, similar to the sidebar navigation editor.
+* Custom text lines can now be edited instead of only deleted.
+* Every custom text line now has its own on/off switch.
+* Fixed 12-hour time formats not showing ****AM/PM**** on some system languages.
+* ****System Info**** now has separate switches for ****CPU****, ****RAM****, ****GPU**** and ****VRAM****.
+* The AFK time next to the AFK message can now be disabled.
 
-**Groups Tab**
-* The list view has two new columns: **Joined Group** and **Created At**, both sortable and reorderable.
-They come out of the local group cache, so a group fills them in once its modal has been opened. The
-listing endpoint VRChat offers for your groups returns neither value, so there is nothing to read on
-first load.
-* Added an **Edit** button. In edit mode you can select multiple groups, with **Select All** and the
-actions in a bar at the bottom of the tab.
-* Added **Bulk Leave**: leave every selected group at once. A confirmation dialog lists the groups
-first, since leaving cannot be undone.
+****Groups Tab****
+* Added ****Joined Group**** and ****Created At**** columns to List View. Both can be sorted and reordered.
+* These values are loaded from the local group cache after a group's modal has been opened, since VRChat does not provide them in the normal groups list.
+* Added an ****Edit**** button. Edit Mode allows selecting multiple groups, using ****Select All**** and performing actions from a bar at the bottom.
+* Added ****Bulk Leave**** to leave multiple selected groups at once, with a confirmation dialog first.
 
-**Edit Mode**
-* **My Avatars** and **My Worlds** have an Edit button now. In edit mode you can select entries and
-**Add to Favorites...** (pick the group the same way Move to... does), **Create Local Group**, or
-**Bulk Delete** them.
-* **My Groups** got **Bulk Delete** next to Bulk Leave. It only ever touches groups you own, selecting
-a group you merely moderate is ignored.
-* Every bulk delete asks first and lists what is about to go.
+****Edit Mode****
+* ****My Avatars**** and ****My Worlds**** now have an Edit button.
+* Selected entries can be ****Added to Favorites****, moved into a ****Local Group**** or deleted in bulk.
+* ****My Groups**** now supports ****Bulk Delete**** alongside Bulk Leave.
+* Bulk Delete only affects groups you own. Groups you only moderate are ignored.
+* Every bulk delete shows a confirmation dialog listing what will be deleted.
 
-**World, Avatar and Group Modals**
-* Added **Delete World**, **Delete Avatar** and **Delete Group**. The action sits in the modal header
-and its icon is shown in red so it never gets mixed up with the ones next to it.
-* Delete Group is only offered to the group owner, the other two only for content you uploaded yourself.
-* Every one of them asks first, in a dialog that names what is about to be deleted.
+****World, Avatar and Group Modals****
+* Added ****Delete World****, ****Delete Avatar**** and ****Delete Group**** directly to their modals.
+* Delete Group is only available to the group owner. World and Avatar deletion is only available for content you uploaded yourself.
+* Every delete action asks for confirmation and shows what is about to be deleted.
 
-**Worlds Tab**
-* Your own worlds can be edited straight from the world modal, the same way avatars already work:
-**Name**, **Description**, **Tags** and the **World Image**. The pencil next to each section opens an
-inline editor, the pencil on the banner replaces the image.
-* Editing tags only touches your own tags. Everything the platform owns, like the approval flag, is
-sent back untouched so an edit cannot strip a world's approval.
-* Edit mode now shows **Select All**, **Move to...**, **Remove** and **Create Local Group** in a bar at
-the bottom of the tab, the same way the media library does. The filter buttons stay visible while editing.
-* #165 The list view has two new columns: **Published** and **Updated**. They work in My Worlds, Favorites,
-Recently Visited and Search, and can be sorted and reordered like every other column.
+****Worlds Tab****
+* Your own worlds can now be edited directly from the world modal, similar to avatars.
+* You can edit the ****Name****, ****Description****, ****Tags**** and ****World Image****.
+* Editing tags only changes your own tags and keeps platform-owned tags such as approval information untouched.
+* Edit Mode now shows ****Select All****, ****Move to...****, ****Remove**** and ****Create Local Group**** in a bar at the bottom.
+* #165 Added ****Published**** and ****Updated**** columns to List View. They work in My Worlds, Favorites, Recently Visited and Search and can be sorted and reordered.
 
-**Avatars Tab**
-* Edit mode now shows **Select All**, **Move to...**, **Remove** and **Create Local Group** in a bar at
-the bottom of the tab. The filter buttons stay visible while editing.
-* #165 The list view has three new columns: **Created At**, **Last Updated** and **Tags**. They work in
-My Avatars, Favorites, Recently Used, Rose Database and Search, and can be sorted and reordered
-like every other column.
+****Avatars Tab****
+* Edit Mode now shows ****Select All****, ****Move to...****, ****Remove**** and ****Create Local Group**** in a bar at the bottom.
+* #165 Added ****Created At****, ****Last Updated**** and ****Tags**** columns to List View.
+* The new columns work in My Avatars, Favorites, Recently Used, Rose Database and Search and can be sorted and reordered.
 
-**People Tab**
-* Edit mode now shows **Select All**, **Move to...**, **Remove from Favorites** and **Create Local Group**
-in a bar at the bottom of the tab. The filter buttons stay visible while editing.
-* Added **Bulk Unfriend**: unfriend every selected person at once, with a confirmation dialog that
-lists them first.
-* Edit mode also works in **All Friends** now. There you can select people and either **Add to Favorites**
-(pick the favorite group from the dropdown) or **Bulk Unfriend** them.
+****People Tab****
+* Edit Mode now shows ****Select All****, ****Move to...****, ****Remove from Favorites**** and ****Create Local Group**** in a bar at the bottom.
+* Added ****Bulk Unfriend**** to unfriend multiple selected people at once, with a confirmation dialog first.
+* Edit Mode now also works in ****All Friends****. Selected friends can be added to a favorite group or unfriended in bulk.
 
-**Translations**
+****Translations****
 * Korean Translation by @roshikeymusica
-* Update Traditional Chinese localization by @SoraneYuki
+* Updated Traditional Chinese localization by @SoraneYuki
 
-**User Profiles**
-* **Friends** and **Groups** moved into the search bar of Shared Connections, so search, both tabs
-and the sort dropdown now sit in one row.
+****User Profiles****
+* ****Friends**** and ****Groups**** were moved into the Shared Connections search bar, putting search, tabs and sorting into one row.
 
-**Messages**
+****Messages****
 * Redesigned the message list with cards to match the V2 design.
 * The header now shows the number of open conversations.
 
-**Notifications**
+****Notifications****
 * Redesigned the notification center with cleaner cards for each notification.
 * Notification types are now color coded for easier recognition.
 * The header now shows the total number of notifications.
 * Fixed notifications getting squished when many were shown. The list now scrolls properly.
 
-**Design**
-* Small color adjustments on all themes.
+****Design****
+* Small color adjustments across all themes.
 
-**Inventory**
-* #65 You can **upload prints** now. The Prints tab got an Upload button that runs through the same
-picker and preview as the other inventory uploads. If you are in a world at the time, the print is
-tagged with that world, and the capture time is set on upload.
+****Inventory****
+* #65 You can now ****upload prints**** directly from the Prints tab.
+* Uploaded prints use the same picker and preview as other inventory uploads.
+* If you are currently in a world, the print is automatically tagged with that world and the capture time is saved.
 
-**Fixed Bugs**
-* Direct Access (Ctrl+D and the context menu) only recognised a handful of link shapes. A VRChat ID is
-now found anywhere in the clipboard, so an API URL like `.../api/1/users/usr_xxx/groups`, an ID pasted
-in the middle of a sentence, or a bare ID all open the right thing.
-* Direct Access can open **events** now, from a link carrying both a group and a calendar ID, and it
-recognises instance links in the plain `wrld_xxx:12345~region(eu)` form, not just as a launch URL.
-* In the **People** tab list view, any live update (a friend coming online, a profile detail arriving)
-threw the horizontal scroll position back to the left, so scrolling right to read the far columns was
-pointless. Favorites and All Friends keep their scroll position on live updates now, the same way the
-Instance list already did.
-* Edit mode worked in Large Grid and Compact Grid only. Turning it on in **List View** silently threw you
-back to grid. Selection now works in the list too, with a checkmark in the first column and the row
-highlighted, the same way the timeline does it. Applies to Worlds, Avatars, Groups and People.
-* A deleted avatar stayed in **My Avatars**, even after pressing refresh. Deleting only flips an avatar
-to `hidden` and the listing asked for `releaseStatus=all`, which includes hidden ones, so the refresh
-faithfully returned the avatar you had just deleted. Hidden entries are filtered out now, and the
-deleted entry is dropped from the offline cache right away instead of waiting for the next fetch.
-* The same applied to **My Worlds** and would have hit Delete World in exactly the same way.
-* Fixed friends sidebar searchbar card seperation.
-* Fixed tools and startup apps with **Start with VR/Desktop** sometimes not starting again after VRChat was closed and restarted, for example after killing a stuck VRChat from the SteamVR dashboard. VRChat restarts are now detected reliably, no matter how VRChat was started or stopped.
-* Auto-start can no longer accidentally turn a tool **off** when it was still running.
-* Failed auto-starts (for example while SteamVR is still starting up) are now retried automatically instead of silently giving up.
-* VR mode detection at VRChat start now waits briefly for SteamVR instead of guessing Desktop mode too early.
-* **Close with VRChat** no longer closes copies of a startup app that you started manually yourself.
-* Tool auto-start no longer depends on the **Start always with VRChat** setting, which only applies to external startup apps as described.
-* Fixed edit pen position on own profiles.
-* Fixed an bug that caused FFC cache to not refresh avatars that were deleted/added to the my avatar section.
+****Fixed Bugs****
+* Direct Access (Ctrl+D and context menu) now detects ****VRChat IDs anywhere in copied text****, including API URLs, sentences and bare IDs.
+* Direct Access now supports ****events**** and plain instance links like `wrld_xxx:12345~region(eu)`.
+* Fixed the ****People List View**** jumping back to the left whenever friends or profile information updated.
+* Fixed ****Edit Mode**** switching back to Grid View when enabled in List View. Selection now works properly in List View for Worlds, Avatars, Groups and People.
+* Fixed deleted avatars still appearing in ****My Avatars**** after refreshing. Deleted avatars are now removed from the list and local cache immediately.
+* Fixed deleted worlds still appearing in ****My Worlds**** after refreshing.
+* Fixed the Friends sidebar search bar card separation.
+* Fixed tools and startup apps with ****Start with VR/Desktop**** sometimes not starting again after VRChat was closed and restarted.
+* Auto-start can no longer accidentally turn a running tool ****off****.
+* Failed auto-starts, for example while SteamVR is still starting, are now retried automatically.
+* VR mode detection now briefly waits for SteamVR instead of incorrectly detecting Desktop mode during startup.
+* ****Close with VRChat**** no longer closes copies of startup apps that were launched manually.
+* Tool auto-start no longer depends on ****Start always with VRChat****, which only applies to external startup apps.
+* Fixed the edit pencil position on your own profile.
+* Fixed an issue where the ****FFC cache**** did not refresh after avatars were added to or removed from My Avatars.
