@@ -3146,6 +3146,143 @@ public partial class AppShell
                 case "vrcHideNotification":
                 case "vrcGetRespondMessages":
                 case "vrcUpdateRespondMessage":
+                case "vrcGetLogFiles":
+                {
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            var dir = VRCNext.Services.Helpers.VrcPathsHelper.AppDataDir();
+                            var files = Directory.Exists(dir)
+                                ? Directory.GetFiles(dir, "output_log_*.txt")
+                                    .Select(f => new FileInfo(f))
+                                    .OrderByDescending(f => f.LastWriteTimeUtc)
+                                    .Take(50)
+                                    .Select(f => new
+                                    {
+                                        name = f.Name,
+                                        sizeBytes = f.Length,
+                                        modified = f.LastWriteTimeUtc.ToString("o"),
+                                    })
+                                    .ToList<object>()
+                                : new List<object>();
+                            Invoke(() => SendToJS("vrcLogFiles", new { dir, files }));
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(() => SendToJS("vrcLogFiles", new { dir = "", files = new object[0], error = ex.Message }));
+                        }
+                    });
+                    break;
+                }
+
+                case "vrcReadLogFile":
+                {
+                    var lvName   = msg["file"]?.ToString() ?? "";
+                    var lvQuery  = msg["query"]?.ToString() ?? "";
+                    var lvLevels = msg["levels"]?.ToObject<List<string>>() ?? new List<string>();
+                    var lvCats   = msg["categories"]?.ToObject<List<string>>() ?? new List<string>();
+                    var lvMax    = Math.Clamp(msg["max"]?.Value<int>() ?? 2000, 100, 20000);
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            var dir = VRCNext.Services.Helpers.VrcPathsHelper.AppDataDir();
+                            var safe = Path.GetFileName(lvName);
+                            if (string.IsNullOrEmpty(safe)
+                                || !safe.StartsWith("output_log_", StringComparison.OrdinalIgnoreCase)
+                                || !safe.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Invoke(() => SendToJS("vrcLogLines", new { file = lvName, entries = new object[0], error = "Invalid log file" }));
+                                return;
+                            }
+                            var path = Path.Combine(dir, safe);
+                            if (!File.Exists(path))
+                            {
+                                Invoke(() => SendToJS("vrcLogLines", new { file = safe, entries = new object[0], error = "File not found" }));
+                                return;
+                            }
+
+                            var all = new List<VrcLogEntry>();
+                            VrcLogEntry? current = null;
+                            var lineNo = 0;
+                            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            using (var sr = new StreamReader(fs))
+                            {
+                                string? line;
+                                while ((line = sr.ReadLine()) != null)
+                                {
+                                    lineNo++;
+                                    var header = ParseVrcLogHeader(line);
+                                    if (header != null)
+                                    {
+                                        if (current != null) all.Add(current);
+                                        current = new VrcLogEntry
+                                        {
+                                            timestamp = header.Value.timestamp,
+                                            level     = header.Value.level,
+                                            message   = StripVrcRichText(header.Value.message),
+                                            category  = ExtractVrcLogCategory(header.Value.message),
+                                            raw       = line,
+                                            lineNumber = lineNo,
+                                        };
+                                        continue;
+                                    }
+                                    if (current != null) current.continuation.Add(line);
+                                }
+                            }
+                            if (current != null) all.Add(current);
+
+                            var categories = all.Select(e => e.category)
+                                .Where(c => !string.IsNullOrEmpty(c))
+                                .Distinct(StringComparer.Ordinal)
+                                .OrderBy(c => c, StringComparer.OrdinalIgnoreCase)
+                                .ToList();
+
+                            IEnumerable<VrcLogEntry> filtered = all;
+                            if (lvLevels.Count > 0)
+                                filtered = filtered.Where(e => lvLevels.Contains(e.level, StringComparer.OrdinalIgnoreCase));
+                            if (lvCats.Count > 0)
+                                filtered = filtered.Where(e => lvCats.Contains(e.category, StringComparer.Ordinal));
+                            if (!string.IsNullOrWhiteSpace(lvQuery))
+                                filtered = filtered.Where(e =>
+                                    e.message.Contains(lvQuery, StringComparison.OrdinalIgnoreCase)
+                                    || e.category.Contains(lvQuery, StringComparison.OrdinalIgnoreCase)
+                                    || e.continuation.Any(c => c.Contains(lvQuery, StringComparison.OrdinalIgnoreCase)));
+
+                            var list = filtered.ToList();
+                            var matched = list.Count;
+                            var truncated = matched > lvMax;
+                            var shown = truncated ? list.Skip(matched - lvMax).ToList() : list;
+
+                            Invoke(() => SendToJS("vrcLogLines", new
+                            {
+                                file = safe,
+                                entries = shown.Select(e => new
+                                {
+                                    e.timestamp,
+                                    e.level,
+                                    e.category,
+                                    e.message,
+                                    e.raw,
+                                    e.lineNumber,
+                                    contLines = e.continuation,
+                                }),
+                                categories,
+                                matched,
+                                total = all.Count,
+                                truncated,
+                                error = "",
+                            }));
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(() => SendToJS("vrcLogLines", new { file = lvName, entries = new object[0], error = ex.Message }));
+                        }
+                    });
+                    break;
+                }
+
                 case "vrcGetMessageTemplates":
                 case "vrcUpdateMessageTemplate":
                 case "vrcRespondToNotification":
@@ -3998,6 +4135,59 @@ public partial class AppShell
             _cache.Save(cacheKey, root);
         }
         catch { }
+    }
+
+
+    private sealed class VrcLogEntry
+    {
+        public string timestamp { get; set; } = "";
+        public string level     { get; set; } = "";
+        public string category  { get; set; } = "";
+        public string message   { get; set; } = "";
+        public string raw       { get; set; } = "";
+        public int    lineNumber { get; set; }
+        public List<string> continuation { get; } = new();
+    }
+
+    private static readonly string[] VrcLogLevels = { "Debug", "Warning", "Error" };
+
+    private static (string timestamp, string level, string message)? ParseVrcLogHeader(string line)
+    {
+        if (line.Length < 20) return null;
+        var stamp = line[..19];
+        if (!DateTime.TryParseExact(stamp, "yyyy.MM.dd HH:mm:ss",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out _))
+            return null;
+
+        var rest = line[19..].TrimStart();
+        foreach (var level in VrcLogLevels)
+        {
+            if (!rest.StartsWith(level, StringComparison.Ordinal)) continue;
+            var afterLevel = rest[level.Length..].TrimStart();
+            if (!afterLevel.StartsWith('-')) return null;
+            return (stamp, level, afterLevel[1..].TrimStart());
+        }
+        return null;
+    }
+
+    private static string ExtractVrcLogCategory(string message)
+    {
+        var trimmed = message.TrimStart();
+        if (!trimmed.StartsWith('[')) return "";
+        var close = trimmed.IndexOf(']');
+        if (close < 0) return "";
+        return StripVrcRichText(trimmed[1..close]).Trim();
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex VrcRichTextRe = new(
+        @"</?(?:color|b|i|u|s|size|material|quad|align|alpha|cspace|font|indent|line-height|link|lowercase|uppercase|smallcaps|margin|mark|mspace|noparse|nobr|page|pos|space|sprite|strikethrough|style|sub|sup|voffset|width)(?:=[^>]*)?>",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static string StripVrcRichText(string text)
+    {
+        if (string.IsNullOrEmpty(text) || text.IndexOf('<') < 0) return text;
+        return VrcRichTextRe.Replace(text, "");
     }
 
     internal static void EnrichWorldDatesFromCache(UnifiedTimeEngine engine, JObject w, string worldId)

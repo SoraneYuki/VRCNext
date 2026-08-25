@@ -1199,6 +1199,12 @@ case 'vrcNews':
             case 'vrcMessageTemplateResult':
                 if (typeof onMessageTemplateResult === 'function') onMessageTemplateResult(payload);
                 break;
+            case 'vrcLogFiles':
+                if (typeof onLogFiles === 'function') onLogFiles(payload);
+                break;
+            case 'vrcLogLines':
+                if (typeof onLogLines === 'function') onLogLines(payload);
+                break;
             case 'invDeleteResult': handleInvDeleteResult(payload); break;
             case 'invPrintDeleteResult': handleInvPrintDeleteResult(payload); break;
             case 'invInventory': handleInvInventoryResult(payload); break;

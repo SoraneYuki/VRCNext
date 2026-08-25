@@ -354,3 +354,342 @@ function mtSave(slot) {
     _mtSavingSlot = slot;
     sendToCS({ action: 'vrcUpdateMessageTemplate', pool: _mtPool, slot, message: text });
 }
+
+/* === VRChat Log Viewer === */
+
+const LGV_LEVELS = ['Debug', 'Warning', 'Error'];
+const LGV_LEVEL_BOX = { Debug: 'lgvLvlDebug', Warning: 'lgvLvlWarning', Error: 'lgvLvlError' };
+
+let _lgvFiles = [];
+let _lgvEntries = [];
+let _lgvCategories = [];
+let _lgvSelectedCats = new Set();
+let _lgvQuery = '';
+let _lgvTimer = null;
+let _lgvActiveLevels = new Set(LGV_LEVELS);
+let _lgvSelected = new Set();
+
+function openLogViewerModal() {
+    const overlay = document.getElementById('modalLogViewer');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    lgvSyncLevelButtons();
+    _lgvSelected.clear();
+    lvRefresh();
+}
+
+function closeLogViewerModal() {
+    const overlay = document.getElementById('modalLogViewer');
+    if (overlay) overlay.style.display = 'none';
+    clearTimeout(_lgvTimer);
+    lgvCloseCatMenu();
+}
+
+function lvRefresh() {
+    lgvSetStatus(t('log_viewer.loading', 'Loading log entries'));
+    sendToCS({ action: 'vrcGetLogFiles' });
+}
+
+function onLogFiles(payload) {
+    _lgvFiles = payload?.files || [];
+    const sel = document.getElementById('lgvFile');
+    if (!sel) return;
+
+    if (!_lgvFiles.length) {
+        sel.innerHTML = `<option value="">${esc(t('log_viewer.no_files', 'No VRChat output logs found'))}</option>`;
+        if (sel._vnRefresh) sel._vnRefresh();
+        lgvSetStatus('');
+        lgvShowEmpty(t('log_viewer.no_files', 'No VRChat output logs found'),
+            t('log_viewer.no_files_description', 'Start VRChat once and refresh after output_log_*.txt appears.'));
+        return;
+    }
+
+    sel.innerHTML = _lgvFiles.map((f, i) =>
+        `<option value="${esc(f.name)}">${esc(f.name)} — ${esc(formatFileSize(f.sizeBytes || 0))}${i === 0 ? ' · ' + esc(t('log_viewer.latest', 'latest')) : ''}</option>`).join('');
+    if (sel._vnRefresh) sel._vnRefresh();
+    lgvLoad();
+}
+
+function lgvOnSearch(value) {
+    _lgvQuery = value;
+    clearTimeout(_lgvTimer);
+    _lgvTimer = setTimeout(lgvLoad, 300);
+}
+
+function lgvActiveLevels() {
+    return LGV_LEVELS.filter(l => _lgvActiveLevels.has(l));
+}
+
+function lgvToggleLevel(level) {
+    if (_lgvActiveLevels.has(level)) _lgvActiveLevels.delete(level);
+    else _lgvActiveLevels.add(level);
+    lgvSyncLevelButtons();
+    lgvLoad();
+}
+
+function lgvSyncLevelButtons() {
+    LGV_LEVELS.forEach(l => {
+        document.getElementById(LGV_LEVEL_BOX[l])?.classList.toggle('active', _lgvActiveLevels.has(l));
+    });
+}
+
+function lgvLoad() {
+    const sel = document.getElementById('lgvFile');
+    const file = sel?.value || '';
+    if (!file) return;
+    lgvSetStatus(t('log_viewer.loading', 'Loading log entries'));
+    sendToCS({
+        action: 'vrcReadLogFile',
+        file,
+        query: _lgvQuery.trim(),
+        levels: lgvActiveLevels(),
+        categories: [..._lgvSelectedCats],
+        max: 2000,
+    });
+}
+
+function onLogLines(payload) {
+    if (payload?.error) {
+        lgvSetStatus('');
+        lgvShowEmpty(t('log_viewer.error_load_entries', 'Failed to load VRChat log entries.'), payload.error);
+        return;
+    }
+
+    _lgvEntries = payload?.entries || [];
+    if (Array.isArray(payload?.categories)) {
+        _lgvCategories = payload.categories;
+        [..._lgvSelectedCats].forEach(c => { if (!_lgvCategories.includes(c)) _lgvSelectedCats.delete(c); });
+        lgvRenderCatLabel();
+    }
+
+    const body = document.getElementById('lgvBody');
+    if (!body) return;
+
+    if (!_lgvEntries.length) {
+        lgvShowEmpty(t('log_viewer.no_entries', 'No entries match the current filters'),
+            t('log_viewer.no_entries_description', 'Adjust levels, category, or search text.'));
+        lgvSetStatus('');
+        return;
+    }
+
+    const visible = new Set(_lgvEntries.map(e => e.lineNumber));
+    [..._lgvSelected].forEach(n => { if (!visible.has(n)) _lgvSelected.delete(n); });
+
+    body.innerHTML = _lgvEntries.map(e => lgvRowHtml(e)).join('');
+    body.scrollTop = body.scrollHeight;
+    lgvSyncSelectAll();
+
+    const parts = [tf('log_viewer.loaded_count', { loaded: _lgvEntries.length, total: payload.total ?? 0 }, '{loaded} / {total} loaded')];
+    if (payload.truncated) parts.push(t('log_viewer.status.truncated', 'showing the newest 2000'));
+    lgvSetStatus(parts.join(' · '));
+    lgvUpdateSelectionStatus();
+}
+
+function lgvRowHtml(e) {
+    const cat = e.category || t('log_viewer.no_category', 'No category');
+    const contCount = (e.contLines || []).length;
+    const cont = contCount > 0
+        ? `<span class="lgv-cont">${esc(tf('log_viewer.continuation_count', { count: contCount }, '+{count} lines'))}</span>`
+        : '';
+    const sel = _lgvSelected.has(e.lineNumber);
+    return `<div class="lgv-row${sel ? ' lgv-row-sel' : ''}" data-line="${e.lineNumber}"
+        onclick="lgvToggleRow(${e.lineNumber})"
+        oncontextmenu="lgvRowMenu(event, ${e.lineNumber})">
+        <div class="lgv-check"><span class="msi ${sel ? 'lgv-chk-on' : 'lgv-chk-off'}">${sel ? 'check_circle' : 'radio_button_unchecked'}</span></div>
+        <div class="lgv-time">${esc(e.timestamp)}</div>
+        <div><span class="vrcn-badge ${lgvBadgeClass(e.level)}">${esc(e.level)}</span></div>
+        <div class="lgv-cat" title="${esc(cat)}">${esc(cat)}</div>
+        <div class="lgv-msg">${lgvHighlight(e.message)}${cont}</div>
+    </div>`;
+}
+
+function lgvEntry(lineNumber) {
+    return _lgvEntries.find(e => e.lineNumber === lineNumber) || null;
+}
+
+function lgvRedrawRow(lineNumber) {
+    const e = lgvEntry(lineNumber);
+    const el = document.querySelector(`.lgv-row[data-line="${lineNumber}"]`);
+    if (!e || !el) return;
+    el.outerHTML = lgvRowHtml(e);
+}
+
+function lgvToggleRow(lineNumber) {
+    if (_lgvSelected.has(lineNumber)) _lgvSelected.delete(lineNumber);
+    else _lgvSelected.add(lineNumber);
+    lgvRedrawRow(lineNumber);
+    lgvSyncSelectAll();
+    lgvUpdateSelectionStatus();
+}
+
+function lgvToggleSelectAll() {
+    const all = _lgvEntries.length > 0 && _lgvEntries.every(e => _lgvSelected.has(e.lineNumber));
+    if (all) _lgvSelected.clear();
+    else _lgvEntries.forEach(e => _lgvSelected.add(e.lineNumber));
+    _lgvEntries.forEach(e => lgvRedrawRow(e.lineNumber));
+    lgvSyncSelectAll();
+    lgvUpdateSelectionStatus();
+}
+
+function lgvSyncSelectAll() {
+    const el = document.getElementById('lgvSelAll');
+    if (!el) return;
+    const all = _lgvEntries.length > 0 && _lgvEntries.every(e => _lgvSelected.has(e.lineNumber));
+    el.textContent = all ? 'check_circle' : 'radio_button_unchecked';
+    el.classList.toggle('lgv-chk-on', all);
+    el.classList.toggle('lgv-chk-off', !all);
+}
+
+function lgvClearSelection() {
+    const was = [..._lgvSelected];
+    _lgvSelected.clear();
+    was.forEach(lgvRedrawRow);
+    lgvSyncSelectAll();
+    lgvUpdateSelectionStatus();
+}
+
+function lgvUpdateSelectionStatus() {
+    const el = document.getElementById('lgvSelCount');
+    if (!el) return;
+    el.textContent = _lgvSelected.size
+        ? tf('log_viewer.selected_count', { count: _lgvSelected.size }, '{count} selected')
+        : '';
+}
+
+function lgvEntryText(e) {
+    return [e.raw || `${e.timestamp} ${e.level} - ${e.message}`].concat(e.contLines || []).join('\n');
+}
+
+function lgvEntryMessageText(e) {
+    return [e.message].concat(e.contLines || []).join('\n');
+}
+
+function lgvCopyText(text, empty) {
+    if (!text) { if (empty) showToast(false, empty); return; }
+    navigator.clipboard.writeText(text)
+        .then(() => showToast(true, t('log_viewer.copied', 'Copied log text to clipboard')))
+        .catch(() => showToast(false, t('log_viewer.copy_failed', 'Failed to copy log text')));
+}
+
+function lgvCopySelected() {
+    const text = _lgvEntries
+        .filter(e => _lgvSelected.has(e.lineNumber))
+        .map(lgvEntryText)
+        .join('\n');
+    lgvCopyText(text, t('log_viewer.nothing_selected', 'Nothing selected'));
+}
+
+function lgvRowMenu(event, lineNumber) {
+    event.preventDefault();
+    event.stopPropagation();
+    const e = lgvEntry(lineNumber);
+    if (!e) return;
+    if (typeof VrcnShowContextMenu !== 'function') return;
+
+    VrcnShowContextMenu(event.clientX, event.clientY, [
+        { icon: 'content_copy', label: t('log_viewer.copy_entry', 'Copy row'),
+          action: () => lgvCopyText(lgvEntryText(e)) },
+        { icon: 'notes', label: t('log_viewer.copy_message', 'Copy message'),
+          action: () => lgvCopyText(lgvEntryMessageText(e)) },
+        'sep',
+        { icon: 'select_all', label: t('log_viewer.copy_selected', 'Copy selected'),
+          action: () => lgvCopySelected() },
+        { icon: 'close', label: t('log_viewer.clear_selected', 'Clear selected'),
+          action: () => lgvClearSelection() },
+    ]);
+}
+
+function lgvBadgeClass(level) {
+    if (level === 'Error') return 'lgv-b-error';
+    if (level === 'Warning') return 'lgv-b-warn';
+    return 'lgv-b-debug';
+}
+
+function lgvShowEmpty(title, desc) {
+    const body = document.getElementById('lgvBody');
+    if (!body) return;
+    body.innerHTML = `<div class="lgv-empty"><div class="lgv-empty-title">${esc(title)}</div><div>${esc(desc || '')}</div></div>`;
+}
+
+function lgvHighlight(text) {
+    const q = _lgvQuery.trim();
+    if (!q) return esc(text);
+    const lower = text.toLowerCase();
+    const needle = q.toLowerCase();
+    let out = '';
+    let at = 0;
+    for (;;) {
+        const idx = lower.indexOf(needle, at);
+        if (idx < 0) { out += esc(text.slice(at)); break; }
+        out += esc(text.slice(at, idx)) + '<mark class="lgv-hit">' + esc(text.slice(idx, idx + needle.length)) + '</mark>';
+        at = idx + needle.length;
+    }
+    return out;
+}
+
+function lgvSetStatus(text) {
+    const el = document.getElementById('lgvStatus');
+    if (el) el.textContent = text || '';
+}
+
+function lgvRenderCatLabel() {
+    const el = document.getElementById('lgvCatLabel');
+    if (!el) return;
+    el.textContent = _lgvSelectedCats.size
+        ? tf('log_viewer.categories_selected', { count: _lgvSelectedCats.size }, '{count} categories')
+        : t('log_viewer.all_categories', 'All categories');
+}
+
+function lgvToggleCatMenu() {
+    const menu = document.getElementById('lgvCatMenu');
+    if (!menu) return;
+    if (menu.style.display === 'block') { lgvCloseCatMenu(); return; }
+
+    const rows = _lgvCategories.map(c => {
+        const on = _lgvSelectedCats.has(c);
+        return `<div class="vn-select-option" onclick="lgvToggleCat('${jsq(c)}')">
+            <span class="msi" style="font-size:15px;flex-shrink:0;color:${on ? 'var(--accent)' : 'var(--tx3)'};">${on ? 'check_circle' : 'radio_button_unchecked'}</span>
+            <span style="flex:1;">${esc(c)}</span>
+        </div>`;
+    }).join('');
+
+    menu.innerHTML = `<div class="vn-select-option lgv-catclear" onclick="lgvClearCats()">${esc(t('log_viewer.clear_categories', 'Clear categories'))}</div>`
+        + (rows || `<div class="vn-select-option" style="pointer-events:none;color:var(--tx3);">${esc(t('log_viewer.no_category', 'No category'))}</div>`);
+    menu.style.display = 'block';
+
+    setTimeout(() => {
+        const close = e => {
+            if (!menu.contains(e.target) && !e.target.closest('#lgvCatBtn')) {
+                lgvCloseCatMenu();
+                document.removeEventListener('click', close);
+            }
+        };
+        document.addEventListener('click', close);
+    }, 0);
+}
+
+function lgvCloseCatMenu() {
+    const menu = document.getElementById('lgvCatMenu');
+    if (menu) { menu.style.display = 'none'; menu.innerHTML = ''; }
+}
+
+function lgvToggleCat(cat) {
+    if (_lgvSelectedCats.has(cat)) _lgvSelectedCats.delete(cat);
+    else _lgvSelectedCats.add(cat);
+    lgvRenderCatLabel();
+    lgvCloseCatMenu();
+    lgvLoad();
+}
+
+function lgvClearCats() {
+    _lgvSelectedCats.clear();
+    lgvRenderCatLabel();
+    lgvCloseCatMenu();
+    lgvLoad();
+}
+
+function lgvCopy() {
+    if (_lgvSelected.size) { lgvCopySelected(); return; }
+    if (!_lgvEntries.length) return;
+    lgvCopyText(_lgvEntries.map(lgvEntryText).join('\n'));
+}

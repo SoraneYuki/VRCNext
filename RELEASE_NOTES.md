@@ -1,4 +1,12 @@
-****2026.45.2****
+****2026.45.5****
+
+****Log Viewer****
+* New ****Taskbar > Tools > VRChat > Log Viewer****. Pick any of your VRChat log files and read them as a proper table with ****Time****, ****Level****, ****Category**** and ****Message****.
+* Level badges are colour coded and can be toggled with the ****Debug****, ****Warning**** and ****Error**** checkboxes, and the category dropdown lets you narrow it down to the sources you care about.
+* Search covers message, category and stack traces, with matches highlighted. Lines that belong to the entry above, such as stack traces, are folded into it and counted.
+* Rows can be ticked, with a select all box in the header, and right clicking a row offers ****Copy row****, ****Copy message****, ****Copy selected**** and ****Clear selected****. Copying gives you the original log text including stack traces, not the cleaned up display text.
+* VRChat's colour markup is stripped, so a category like `<color="#B5438F">BilliardsModule</color>` shows up as plain **BilliardsModule** in the dropdown instead of a wall of tags.
+* Very large logs are capped at the newest 2000 matching entries so the modal stays responsive, and the counter shows how many entries the file has in total.
 
 ****Message Templates****
 * New ****Taskbar > Tools > VRChat > Message Templates****. Edit all four sets of VRChat's canned messages in one place: Invite, Invite Response, Invite Request and Request Response, twelve slots each.
