@@ -2634,6 +2634,8 @@ public class AuthController
                 if (!perGroup.TryGetValue(g.name, out var groupAvatars)) continue;
                 foreach (var a in groupAvatars)
                 {
+                    AppShell.CacheAvatarDetailFrom(_core.TimeEngine, a);
+                    AppShell.EnrichAvatarFromCache(_core.TimeEngine, a, a["id"]?.ToString() ?? "");
                     var rawUrl    = a["imageUrl"]?.ToString() ?? a["thumbnailImageUrl"]?.ToString() ?? "";
                     var img       = ImageCacheHelper.GetAvatarUrl(a["id"]?.ToString(), rawUrl);
                     var id        = a["id"]?.ToString() ?? "";
@@ -2644,8 +2646,11 @@ public class AuthController
                     var pkgs      = (a["unityPackages"] as JArray ?? new JArray())
                         .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                         .ToArray();
-                    allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, unityPackages = pkgs });
-                    allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, unityPackages = pkgs });
+                    var created   = DateTimeHelper.Iso(a["created_at"]);
+                    var updated   = DateTimeHelper.Iso(a["updated_at"]);
+                    var tags      = (a["tags"] as JArray ?? new JArray()).Select(x => x?.ToString() ?? "").ToArray();
+                    allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, created_at = created, updated_at = updated, tags, unityPackages = pkgs });
+                    allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, created_at = created, updated_at = updated, tags, unityPackages = pkgs });
                 }
             }
 
@@ -2653,6 +2658,7 @@ public class AuthController
             foreach (var it in _core.LocalFavorites.GetItems("avatar"))
             {
                 var a         = it.Snapshot;
+                AppShell.EnrichAvatarFromCache(_core.TimeEngine, a, it.EntityId);
                 var rawUrl    = a["imageUrl"]?.ToString() ?? a["thumbnailImageUrl"]?.ToString() ?? "";
                 var img       = ImageCacheHelper.GetAvatarUrl(it.EntityId, rawUrl);
                 var id        = it.EntityId;
@@ -2662,8 +2668,11 @@ public class AuthController
                 var pkgs      = (a["unityPackages"] as JArray ?? new JArray())
                     .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                     .ToArray();
-                allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, unityPackages = pkgs });
-                allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, unityPackages = pkgs });
+                var created   = DateTimeHelper.Iso(a["created_at"]);
+                var updated   = DateTimeHelper.Iso(a["updated_at"]);
+                var tags      = (a["tags"] as JArray ?? new JArray()).Select(x => x?.ToString() ?? "").ToArray();
+                allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, created_at = created, updated_at = updated, tags, unityPackages = pkgs });
+                allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, created_at = created, updated_at = updated, tags, unityPackages = pkgs });
             }
 
             if (_core.Settings.FfcEnabled) _core.Cache.Save(CacheHandler.KeyFavAvatars, new { avatars = allAvatarsRaw, groups = groupList });
@@ -2681,6 +2690,11 @@ public class AuthController
         try
         {
             var avatars = await _core.Avatars.GetOwnAvatarsAsync();
+            foreach (var a in avatars)
+            {
+                AppShell.CacheAvatarDetailFrom(_core.TimeEngine, a);
+                AppShell.EnrichAvatarFromCache(_core.TimeEngine, a, a["id"]?.ToString() ?? "");
+            }
             // Build with raw CDN URLs so FFC can detect image changes on next load
             var rawList = avatars.Select(a => new
             {
@@ -2691,6 +2705,9 @@ public class AuthController
                 authorName        = a["authorName"]?.ToString() ?? "",
                 releaseStatus     = a["releaseStatus"]?.ToString() ?? "private",
                 description       = a["description"]?.ToString() ?? "",
+                created_at        = DateTimeHelper.Iso(a["created_at"]),
+                updated_at        = DateTimeHelper.Iso(a["updated_at"]),
+                tags              = (a["tags"] as JArray ?? new JArray()).Select(x => x?.ToString() ?? "").ToArray(),
                 unityPackages     = (a["unityPackages"] as JArray ?? new JArray())
                     .Select(p => new { platform = p["platform"]?.ToString() ?? "", variant = p["variant"]?.ToString() ?? "", performanceRating = p["performanceRating"]?.ToString() ?? "" })
                     .ToArray(),
@@ -2698,7 +2715,7 @@ public class AuthController
             if (_core.Settings.FfcEnabled)
                 _core.Cache.Save(CacheHandler.KeyAvatars, new { filter = "own", avatars = rawList, currentAvatarId = _core.VrcApi.CurrentAvatarId ?? "" });
             // Send to JS with processed image URLs (disk cache or CDN)
-            var jsList = rawList.Select(a => { var img = ImageCacheHelper.GetAvatarUrl(a.id, a.imageUrl); return new { a.id, a.name, imageUrl = img, thumbnailImageUrl = img, a.authorName, a.releaseStatus, a.description, a.unityPackages }; }).ToList();
+            var jsList = rawList.Select(a => { var img = ImageCacheHelper.GetAvatarUrl(a.id, a.imageUrl); return new { a.id, a.name, imageUrl = img, thumbnailImageUrl = img, a.authorName, a.releaseStatus, a.description, a.created_at, a.updated_at, a.tags, a.unityPackages }; }).ToList();
             Invoke(() => _core.SendToJS("vrcAvatars", new { filter = "own", avatars = jsList, currentAvatarId = _core.VrcApi.CurrentAvatarId ?? "" }));
         }
         catch (Exception ex)
@@ -2722,6 +2739,7 @@ public class AuthController
                 {
                     ao["imageUrl"] = ImageCacheHelper.GetAvatarUrl(ao["id"]?.ToString(), ao["imageUrl"]?.ToString() ?? ao["thumbnailImageUrl"]?.ToString());
                     ao["thumbnailImageUrl"] = ao["imageUrl"];
+                    AppShell.EnrichAvatarFromCache(_core.TimeEngine, ao, ao["id"]?.ToString() ?? "");
                 }
             _core.SendToJS("vrcAvatars", avatarsObj);
         }
@@ -2744,6 +2762,7 @@ public class AuthController
                 {
                     ao["imageUrl"] = ImageCacheHelper.GetAvatarUrl(ao["id"]?.ToString(), ao["imageUrl"]?.ToString() ?? ao["thumbnailImageUrl"]?.ToString());
                     ao["thumbnailImageUrl"] = ao["imageUrl"];
+                    AppShell.EnrichAvatarFromCache(_core.TimeEngine, ao, ao["id"]?.ToString() ?? "");
                 }
             _core.SendToJS("vrcFavoriteAvatars", favAvatarsObj);
         }

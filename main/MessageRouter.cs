@@ -1189,6 +1189,9 @@ public partial class AppShell
                                             unityPackages     = Array.Empty<object>(),
                                             performance       = AvtrdbPerf(a),
                                             compatibility     = (a["compatibility"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
+                                            tags              = (a["tags"]?["author_tags"] as JArray ?? new JArray()).Select(x => "author_tag_" + x.ToString()).ToArray(),
+                                            created_at        = DateTimeHelper.Iso(a["created_at"]),
+                                            updated_at        = DateTimeHelper.Iso(a["updated_at"]),
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
@@ -1203,6 +1206,9 @@ public partial class AppShell
                                             description       = a["description"]?.ToString() ?? "",
                                             compatibility     = (a["platforms"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
                                             performance       = AvtrIcuPerf(a),
+                                            tags              = (a["tags"] as JArray ?? new JArray()).Select(x => x.ToString()).ToArray(),
+                                            created_at        = DateTimeHelper.Iso(a["created_at"]),
+                                            updated_at        = DateTimeHelper.Iso(a["updated_at"]),
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
@@ -1217,6 +1223,9 @@ public partial class AppShell
                                             description       = a["description"]?.ToString() ?? "",
                                             compatibility     = VrcndbCompat(a),
                                         performance       = a["performance"],
+                                            tags              = (a["tags"] as JArray ?? new JArray()).Select(x => x.ToString()).ToArray(),
+                                            created_at        = DateTimeHelper.Iso(a["created_at"]),
+                                            updated_at        = DateTimeHelper.Iso(a["updated_at"]),
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
@@ -1236,16 +1245,16 @@ public partial class AppShell
 
                                     list = new List<object>();
                                     foreach (var a in dbEntries)
-                                        list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, a.unityPackages, a.performance, a.compatibility, sources = Srcs(a.id, "avtrdb") });
+                                        list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, a.unityPackages, a.performance, a.compatibility, a.tags, a.created_at, a.updated_at, sources = Srcs(a.id, "avtrdb") });
                                     foreach (var a in icuEntries)
                                     {
                                         if (!dbIds.Contains(a.id))
-                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, sources = Srcs(a.id, "avtricu") });
+                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, a.tags, a.created_at, a.updated_at, sources = Srcs(a.id, "avtricu") });
                                     }
                                     foreach (var a in vrcnEntries)
                                     {
                                         if (!dbIds.Contains(a.id) && !icuIds.Contains(a.id))
-                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, sources = new[] { "vrcn" } });
+                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, a.tags, a.created_at, a.updated_at, sources = new[] { "vrcn" } });
                                     }
                                     vrcndbIds.AddRange(dbIds);
                                     vrcndbIds.AddRange(icuIds);
@@ -1267,8 +1276,8 @@ public partial class AppShell
                                         performance       = AvtrdbPerf(a),
                                         compatibility     = (a["compatibility"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
                                         tags              = (a["tags"]?["author_tags"] as JArray ?? new JArray()).Select(x => "author_tag_" + x.ToString()).ToArray(),
-                                        created_at        = a["created_at"]?.ToString() ?? "",
-                                        updated_at        = a["updated_at"]?.ToString() ?? "",
+                                        created_at        = DateTimeHelper.Iso(a["created_at"]),
+                                        updated_at        = DateTimeHelper.Iso(a["updated_at"]),
                                         sources           = new[] { "avtrdb" },
                                     }).ToList();
                                     vrcndbIds.AddRange(raw.Cast<JObject>().Select(a => a["vrc_id"]?.ToString() ?? a["id"]?.ToString() ?? ""));
@@ -1811,7 +1820,7 @@ public partial class AppShell
                                         avId, avName, ex.AuthorName, ex.AuthorId,
                                         ex.ThumbnailImageUrl, ex.ImageUrl,
                                         avStatus, ex.Version,
-                                        ex.CreatedAt, ex.UpdatedAt,
+                                        DateTimeHelper.Iso(ex.CreatedAt), DateTimeHelper.Iso(ex.UpdatedAt),
                                         avDesc, avTags,
                                         ex.HasPC, ex.HasQuest, ex.HasImpostor,
                                         ex.PcPerf, ex.QuestPerf);
@@ -1843,8 +1852,8 @@ public partial class AppShell
                                 id = avdId, name = avdCached.Name, authorName = avdCached.AuthorName,
                                 authorId = avdCached.AuthorId, thumbnailImageUrl = ImageCacheHelper.GetAvatarUrl(avdId, avdCached.ThumbnailImageUrl),
                                 imageUrl = ImageCacheHelper.GetAvatarUrl(avdId, avdCached.ImageUrl), releaseStatus = avdCached.ReleaseStatus,
-                                version = avdCached.Version, created_at = avdCached.CreatedAt,
-                                updated_at = avdCached.UpdatedAt, description = avdCached.Description,
+                                version = avdCached.Version, created_at = DateTimeHelper.Iso(avdCached.CreatedAt),
+                                updated_at = DateTimeHelper.Iso(avdCached.UpdatedAt), description = avdCached.Description,
                                 tags = avdCached.Tags, hasPC = avdCached.HasPC, hasQuest = avdCached.HasQuest,
                                 hasIos = avdCached.HasIos,
                                 hasImpostor = avdCached.HasImpostor,
@@ -1879,8 +1888,8 @@ public partial class AppShell
                                 avatar["imageUrl"]?.ToString() ?? "",
                                 avatar["releaseStatus"]?.ToString() ?? "",
                                 avatar["version"]?.Value<int>() ?? 0,
-                                avatar["created_at"]?.ToString() ?? "",
-                                avatar["updated_at"]?.ToString() ?? "",
+                                DateTimeHelper.Iso(avatar["created_at"]),
+                                DateTimeHelper.Iso(avatar["updated_at"]),
                                 avatar["description"]?.ToString() ?? "",
                                 avatar["tags"]?.ToObject<List<string>>() ?? new(),
                                 hasPC, hasQuest, hasImpostor, pcPerf, questPerf, hasIos, iosPerf);
@@ -1894,8 +1903,8 @@ public partial class AppShell
                                 imageUrl         = ImageCacheHelper.GetAvatarUrl(avatar["id"]?.ToString(), avatar["imageUrl"]?.ToString() ?? avatar["thumbnailImageUrl"]?.ToString()),
                                 releaseStatus    = avatar["releaseStatus"]?.ToString()       ?? "",
                                 version          = avatar["version"]?.Value<int>()           ?? 0,
-                                created_at       = avatar["created_at"]?.ToString()          ?? "",
-                                updated_at       = avatar["updated_at"]?.ToString()          ?? "",
+                                created_at       = DateTimeHelper.Iso(avatar["created_at"]),
+                                updated_at       = DateTimeHelper.Iso(avatar["updated_at"]),
                                 description      = avatar["description"]?.ToString()         ?? "",
                                 tags             = avatar["tags"]?.ToObject<List<string>>()  ?? new(),
                                 hasPC,
@@ -3744,10 +3753,13 @@ public partial class AppShell
     }
 
     private void EnrichAvatarFromCache(JObject a, string avatarId)
+        => EnrichAvatarFromCache(_core.TimeEngine, a, avatarId);
+
+    internal static void EnrichAvatarFromCache(UnifiedTimeEngine engine, JObject a, string avatarId)
     {
         if (a == null || string.IsNullOrEmpty(avatarId)) return;
         UnifiedTimeEngine.AvatarDetailCache? c;
-        try { c = _core.TimeEngine.GetAvatarDetail(avatarId); }
+        try { c = engine.GetAvatarDetail(avatarId); }
         catch { return; }
         if (c == null) return;
 
@@ -3763,9 +3775,9 @@ public partial class AppShell
         Str("authorId", c.AuthorId);
         Str("releaseStatus", c.ReleaseStatus);
         Str("description", c.Description);
-        Str("created_at", c.CreatedAt);
-        Str("updated_at", c.UpdatedAt);
-        if (a["tags"] == null && c.Tags.Count > 0) a["tags"] = JArray.FromObject(c.Tags);
+        Str("created_at", DateTimeHelper.Iso(c.CreatedAt));
+        Str("updated_at", DateTimeHelper.Iso(c.UpdatedAt));
+        if ((a["tags"] as JArray)?.Count is null or 0 && c.Tags.Count > 0) a["tags"] = JArray.FromObject(c.Tags);
 
         var (livePc, liveQuest, liveIos) = ResolveAvatarPerf(a);
         var pcPerf    = livePc.Length    > 0 ? livePc    : ValidPerf(c.PcPerf);
@@ -3786,33 +3798,74 @@ public partial class AppShell
     }
 
     private void CacheAvatarDetailFrom(JObject avatar)
+        => CacheAvatarDetailFrom(_core.TimeEngine, avatar);
+
+    internal static void CacheAvatarDetailFrom(UnifiedTimeEngine engine, JObject avatar,
+        bool? platformPC = null, bool? platformQuest = null, bool? platformIos = null)
     {
         try
         {
-            var id = avatar["id"]?.ToString() ?? "";
+            var id = avatar?["id"]?.ToString() ?? "";
             if (string.IsNullOrEmpty(id)) return;
-            var packages = (avatar["unityPackages"] as JArray)?.OfType<JObject>().ToList() ?? new List<JObject>();
-            if (packages.Count == 0) return;
+
+            UnifiedTimeEngine.AvatarDetailCache? old = null;
+            try { old = engine.GetAvatarDetail(id); } catch { }
+
+            var packages = (avatar!["unityPackages"] as JArray)?.OfType<JObject>().ToList() ?? new List<JObject>();
             var realPkgs = packages.Where(p => p["variant"]?.ToString() != "impostor").ToList();
-            var hasPC    = realPkgs.Any(p => p["platform"]?.ToString() == "standalonewindows");
-            var hasQuest = realPkgs.Any(p => p["platform"]?.ToString() == "android");
-            var hasIos   = realPkgs.Any(p => p["platform"]?.ToString() == "ios");
-            var hasImpostor = packages.Any(p => p["variant"]?.ToString() == "impostor");
             var (pcPerf, questPerf, iosPerf) = ResolveAvatarPerf(avatar);
-            if (pcPerf.Length == 0 && questPerf.Length == 0 && iosPerf.Length == 0) return;
-            _core.TimeEngine.SaveAvatarDetail(
+
+            var hasPC       = platformPC    ?? (realPkgs.Any(p => p["platform"]?.ToString() == "standalonewindows") || pcPerf.Length > 0);
+            var hasQuest    = platformQuest ?? (realPkgs.Any(p => p["platform"]?.ToString() == "android")           || questPerf.Length > 0);
+            var hasIos      = platformIos   ?? (realPkgs.Any(p => p["platform"]?.ToString() == "ios")               || iosPerf.Length > 0);
+            var hasImpostor = packages.Any(p => p["variant"]?.ToString() == "impostor");
+
+            if (old != null)
+            {
+                if (packages.Count == 0)
+                {
+                    hasPC       = hasPC       || old.HasPC;
+                    hasQuest    = hasQuest    || old.HasQuest;
+                    hasIos      = hasIos      || old.HasIos;
+                    hasImpostor = hasImpostor || old.HasImpostor;
+                }
+                if (pcPerf.Length == 0)    pcPerf    = old.PcPerf;
+                if (questPerf.Length == 0) questPerf = old.QuestPerf;
+                if (iosPerf.Length == 0)   iosPerf   = old.IosPerf;
+            }
+
+            string Pick(string key, string? fallback)
+            {
+                var v = avatar[key]?.ToString() ?? "";
+                return string.IsNullOrEmpty(v) ? (fallback ?? "") : v;
+            }
+
+            var tags = avatar["tags"]?.ToObject<List<string>>() ?? new List<string>();
+            if (tags.Count == 0 && old != null) tags = old.Tags;
+
+            var createdAt = DateTimeHelper.Iso(Pick("created_at", old?.CreatedAt));
+            var updatedAt = DateTimeHelper.Iso(Pick("updated_at", old?.UpdatedAt));
+
+            var hasMeta = createdAt.Length > 0 || updatedAt.Length > 0 || tags.Count > 0;
+            var hasPerf = pcPerf.Length > 0 || questPerf.Length > 0 || iosPerf.Length > 0;
+            if (!hasMeta && !hasPerf) return;
+
+            var version = avatar["version"]?.Value<int>() ?? 0;
+            if (version == 0 && old != null) version = old.Version;
+
+            engine.SaveAvatarDetail(
                 id,
-                avatar["name"]?.ToString() ?? "",
-                avatar["authorName"]?.ToString() ?? "",
-                avatar["authorId"]?.ToString() ?? "",
-                avatar["thumbnailImageUrl"]?.ToString() ?? "",
-                avatar["imageUrl"]?.ToString() ?? "",
-                avatar["releaseStatus"]?.ToString() ?? "",
-                avatar["version"]?.Value<int>() ?? 0,
-                avatar["created_at"]?.ToString() ?? "",
-                avatar["updated_at"]?.ToString() ?? "",
-                avatar["description"]?.ToString() ?? "",
-                avatar["tags"]?.ToObject<List<string>>() ?? new(),
+                Pick("name", old?.Name),
+                Pick("authorName", old?.AuthorName),
+                Pick("authorId", old?.AuthorId),
+                Pick("thumbnailImageUrl", old?.ThumbnailImageUrl),
+                Pick("imageUrl", old?.ImageUrl),
+                Pick("releaseStatus", old?.ReleaseStatus),
+                version,
+                createdAt,
+                updatedAt,
+                Pick("description", old?.Description),
+                tags,
                 hasPC, hasQuest, hasImpostor, pcPerf, questPerf, hasIos, iosPerf);
         }
         catch { }
@@ -3828,6 +3881,9 @@ public partial class AppShell
                 name = avatar["name"]?.ToString() ?? "",
                 authorName = avatar["authorName"]?.ToString() ?? "",
                 releaseStatus = avatar["releaseStatus"]?.ToString() ?? "",
+                created_at = DateTimeHelper.Iso(avatar["created_at"]),
+                updated_at = DateTimeHelper.Iso(avatar["updated_at"]),
+                tags = (avatar["tags"] as JArray)?.Select(x => x.ToString()).ToArray() ?? Array.Empty<string>(),
                 performance = new { pc, quest, ios },
             };
         }
@@ -3914,32 +3970,21 @@ public partial class AppShell
     {
         try
         {
-            var id = a["id"]?.ToString() ?? "";
+            var id = a?["id"]?.ToString() ?? "";
             if (!id.StartsWith("avtr_", StringComparison.Ordinal)) return;
-            if (_core.TimeEngine.GetAvatarDetail(id) != null) return;
+
+            var compat = (a!["compatibility"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>();
+            if (compat.Count == 0)
+            {
+                CacheAvatarDetailFrom(_core.TimeEngine, a);
+                return;
+            }
 
             var (pc, quest, ios) = ResolveAvatarPerf(a);
-            if (pc.Length == 0 && quest.Length == 0 && ios.Length == 0) return;
-
-            var compat = (a["compatibility"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>();
-            var hasPC    = pc.Length > 0    || compat.Contains("pc") || compat.Contains("standalonewindows");
-            var hasQuest = quest.Length > 0 || compat.Contains("android") || compat.Contains("quest");
-            var hasIos   = ios.Length > 0   || compat.Contains("ios");
-
-            _core.TimeEngine.SaveAvatarDetail(
-                id,
-                a["name"]?.ToString() ?? "",
-                a["authorName"]?.ToString() ?? "",
-                a["authorId"]?.ToString() ?? "",
-                a["thumbnailImageUrl"]?.ToString() ?? "",
-                a["imageUrl"]?.ToString() ?? "",
-                a["releaseStatus"]?.ToString() ?? "public",
-                0,
-                a["created_at"]?.ToString() ?? "",
-                a["updated_at"]?.ToString() ?? "",
-                a["description"]?.ToString() ?? "",
-                (a["tags"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>(),
-                hasPC, hasQuest, false, pc, quest, hasIos, ios);
+            CacheAvatarDetailFrom(_core.TimeEngine, a,
+                platformPC:    pc.Length > 0    || compat.Contains("pc") || compat.Contains("standalonewindows"),
+                platformQuest: quest.Length > 0 || compat.Contains("android") || compat.Contains("quest"),
+                platformIos:   ios.Length > 0   || compat.Contains("ios"));
         }
         catch { }
     }

@@ -1,4 +1,4 @@
-**2026.44.1**
+**2026.44.3**
 
 **Groups Tab**
 * Added an **Edit** button. In edit mode you can select multiple groups, with **Select All** and the
@@ -13,6 +13,9 @@ the bottom of the tab, the same way the media library does. The filter buttons s
 **Avatars Tab**
 * Edit mode now shows **Select All**, **Move to...**, **Remove** and **Create Local Group** in a bar at
 the bottom of the tab. The filter buttons stay visible while editing.
+* The list view has three new columns: **Created At**, **Last Updated** and **Tags**. They work in
+My Avatars, Favorites, Recently Used, Rose Database and Search, and can be sorted and reordered
+like every other column.
 
 **People Tab**
 * Edit mode now shows **Select All**, **Move to...**, **Remove from Favorites** and **Create Local Group**

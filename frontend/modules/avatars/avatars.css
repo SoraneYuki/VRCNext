@@ -1,4 +1,4 @@
-/* === Avatars Module === */
+﻿/* === Avatars Module === */
 
 .vrcn-badge.current        { background: rgba(0,214,143,.2);    color: var(--ok); }
 
@@ -61,3 +61,10 @@
 
 #avatarFilterBtns > .sub-tab-btn { flex-shrink: 0; }
 #avatarFilterBtns > .vn-select { flex-shrink: 0; }
+
+
+.av-list-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}

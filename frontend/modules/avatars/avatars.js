@@ -210,8 +210,31 @@ function _alValue(a, field) {
         case 'pc':      return _avPerfRank(p.pc);
         case 'android': return _avPerfRank(p.quest);
         case 'ios':     return _avPerfRank(p.ios);
+        case 'created': return Date.parse(a.created_at || '') || 0;
+        case 'updated': return Date.parse(a.updated_at || '') || 0;
+        case 'tags':    return (_avAuthorTags(a)[0] || '').toLowerCase();
         default:        return (a.name || '').toLowerCase();
     }
+}
+
+function _avAuthorTags(a) {
+    return (a.tags || [])
+        .filter(x => typeof x === 'string' && x.startsWith('author_tag_'))
+        .map(x => x.replace('author_tag_', ''));
+}
+
+function _avListDate(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    return isNaN(d) ? String(value) : fmtShortDate(d);
+}
+
+function _avListTagsHtml(a) {
+    const tags = _avAuthorTags(a);
+    if (!tags.length) return '';
+    const shown = tags.slice(0, 3).map(x => `<span class="vrcn-badge">${esc(x)}</span>`).join('');
+    const more = tags.length > 3 ? `<span class="vrcn-badge">+${tags.length - 3}</span>` : '';
+    return `<span class="av-list-tags">${shown}${more}</span>`;
 }
 
 function buildAvatarsListHtml(avatars) {
@@ -231,6 +254,9 @@ function buildAvatarsListHtml(avatars) {
             pc:      `<td class="lv-perf">${avatarPerfIcon(p.pc, 20, 'PC')}</td>`,
             android: `<td class="lv-perf">${avatarPerfIcon(p.quest, 20, 'Android')}</td>`,
             ios:     `<td class="lv-perf">${avatarPerfIcon(p.ios, 20, 'iOS')}</td>`,
+            created: `<td class="lv-sub">${esc(_avListDate(a.created_at))}</td>`,
+            updated: `<td class="lv-sub">${esc(_avListDate(a.updated_at))}</td>`,
+            tags:    `<td>${_avListTagsHtml(a)}</td>`,
         });
     });
     return `<div class="lv-scroll">${tlTableHtml('avatarsList', rows)}</div>`;
@@ -1320,6 +1346,9 @@ function _roseToAvatar(a) {
         releaseStatus: d.releaseStatus || 'public',
         performance: p || undefined,
         compatibility: compat.length ? compat : undefined,
+        created_at: d.created_at || a.created_at || '',
+        updated_at: d.updated_at || a.updated_at || '',
+        tags: d.tags || (Array.isArray(a.tags) ? a.tags.map(x => 'author_tag_' + x) : []),
     };
 }
 
@@ -1367,6 +1396,9 @@ function _avApplyDetails(list, keyField, details) {
         if (!d) return;
         if (d.authorName && !a.authorName) { a.authorName = d.authorName; changed = true; }
         if (d.releaseStatus && !a.releaseStatus) { a.releaseStatus = d.releaseStatus; changed = true; }
+        if (d.created_at && a.created_at !== d.created_at) { a.created_at = d.created_at; changed = true; }
+        if (d.updated_at && a.updated_at !== d.updated_at) { a.updated_at = d.updated_at; changed = true; }
+        if (Array.isArray(d.tags) && d.tags.length && !(a.tags || []).length) { a.tags = d.tags; changed = true; }
         const p = d.performance;
         if (p && (p.pc || p.quest || p.ios)) {
             const cur = a.performance || {};
@@ -1411,9 +1443,17 @@ function onAvatarDetailsBatch(details) {
 function onAvatarDetailLive(a) {
     if (!a || !a.id) return;
     const perf = { pc: a.pcPerf || '', quest: a.questPerf || '', ios: a.iosPerf || '' };
-    if (!perf.pc && !perf.quest && !perf.ios && !a.authorName) return;
+    const hasMeta = !!(a.created_at || a.updated_at || (a.tags || []).length);
+    if (!perf.pc && !perf.quest && !perf.ios && !a.authorName && !hasMeta) return;
     onAvatarDetailsBatch({
-        [a.id]: { authorName: a.authorName || '', releaseStatus: a.releaseStatus || '', performance: perf },
+        [a.id]: {
+            authorName: a.authorName || '',
+            releaseStatus: a.releaseStatus || '',
+            created_at: a.created_at || '',
+            updated_at: a.updated_at || '',
+            tags: a.tags || [],
+            performance: perf,
+        },
     });
 }
 

@@ -1,4 +1,4 @@
-/* === Timeline List Tables — column order + sorting === */
+﻿/* === Timeline List Tables — column order + sorting === */
 
 const TL_TABLE_DEFS = {
     personal: [
@@ -91,6 +91,9 @@ const TL_TABLE_DEFS = {
         { id: 'pc',      key: 'avatars.list.header.pc',      fallback: 'PC',      width: '80px',  sort: 'pc' },
         { id: 'android', key: 'avatars.list.header.android', fallback: 'Android', width: '90px',  sort: 'android' },
         { id: 'ios',     key: 'avatars.list.header.ios',     fallback: 'iOS',     width: '80px',  sort: 'ios' },
+        { id: 'created', key: 'avatars.list.header.created', fallback: 'Created At',   width: '130px', sort: 'created' },
+        { id: 'updated', key: 'avatars.list.header.updated', fallback: 'Last Updated', width: '130px', sort: 'updated' },
+        { id: 'tags',    key: 'avatars.list.header.tags',    fallback: 'Tags',         width: '200px', sort: 'tags' },
     ],
 };
 
