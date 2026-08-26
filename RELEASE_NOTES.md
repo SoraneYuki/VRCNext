@@ -15,7 +15,11 @@
 **Changes**
 * Reduced the gap between the two toolbar rows in **Worlds**, **People**, **Groups**, **Avatars**, **Timeline** and **Time Spent** for more consistent spacing.
 
+**Improvements**
+Fix grammar and wording issues in the Traditional Chinese localization for the current version - #169#169 by @SoraneYuki
+
 **Fixed Bugs**
+* #171 The **minimize**, **maximize** and **close** buttons no longer get cut off when the window is narrow. The menu bar and the tool badges now shrink first, so the window controls always stay reachable.
 * Fixed the whole app dropping to a few frames per second while the **OSC Tool** was connected. VRChat streams avatar parameters continuously, and every single value was forwarded to the interface on its own. Updates are now collected and applied as one batch, keeping only the newest value per parameter, and no interface work happens at all while the OSC tab is closed.
 * #170 Fixed **Remember window size** not restoring maximized windows. VRCNext now remembers the maximized state as well as the previous window size and position.
 * Fixed the blank space above the header row in the **Timeline** list view.

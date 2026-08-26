@@ -3198,7 +3198,7 @@
   "action_flow.osc.set_int": "définir OSC entier",
   "action_flow.osc.to": "sur",
   "action_flow.osc.pick": "(choisir un paramètre)",
-  "action_flow.osc.no_params": "(aucun paramètre OSC chargé)",
+  "action_flow.osc.no_params": "(connectez l'outil OSC, ou saisissez vous-même le nom du paramètre)",
   "action_flow.osc.tooltip": "Envoie une valeur OSC à VRChat. Un nom simple est envoyé comme paramètre d'avatar, un chemin commençant par / est envoyé tel quel, donc des adresses comme /input/Jump ou /chatbox/typing fonctionnent aussi. L'outil OSC doit être connecté.",
   "action_flow.log.osc_no_param": "envoi OSC ignoré : aucun paramètre",
   "action_flow.log.osc_not_connected": "envoi OSC ignoré : l'outil OSC n'est pas connecté",

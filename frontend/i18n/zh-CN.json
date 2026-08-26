@@ -3198,7 +3198,7 @@
   "action_flow.osc.set_int": "设置 OSC integer",
   "action_flow.osc.to": "为",
   "action_flow.osc.pick": "(选择参数)",
-  "action_flow.osc.no_params": "(未加载 OSC 参数)",
+  "action_flow.osc.no_params": "(请连接 OSC 工具，或自行输入参数名称)",
   "action_flow.osc.tooltip": "向 VRChat 发送 OSC 值。普通名称作为化身参数发送，以 / 开头的路径原样发送，因此 /input/Jump 或 /chatbox/typing 这类地址同样可用。需要 OSC 工具处于连接状态。",
   "action_flow.log.osc_no_param": "已跳过 OSC 发送：未设置参数",
   "action_flow.log.osc_not_connected": "已跳过 OSC 发送：OSC 工具未连接",

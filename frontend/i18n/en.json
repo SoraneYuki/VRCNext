@@ -3174,7 +3174,7 @@
   "action_flow.osc.set_int": "set OSC integer",
   "action_flow.osc.to": "to",
   "action_flow.osc.pick": "(pick parameter)",
-  "action_flow.osc.no_params": "(no OSC parameters loaded)",
+  "action_flow.osc.no_params": "(connect the OSC Tool, or type the parameter name yourself)",
   "action_flow.osc.tooltip": "Sends an OSC value to VRChat. A plain name is sent as an avatar parameter, a path starting with / is sent as is, so addresses like /input/Jump or /chatbox/typing work too. Requires the OSC Tool to be connected.",
   "action_flow.log.osc_no_param": "OSC send skipped: no parameter set",
   "action_flow.log.osc_not_connected": "OSC send skipped: OSC Tool is not connected",

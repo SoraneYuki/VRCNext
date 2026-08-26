@@ -252,9 +252,6 @@ function handleOscOutputsEnabled(data) {
     }, 3000);
 }
 
-/* Batched parameter updates. The backend coalesces VRChat's parameter stream and sends one
-   batch per interval, so the expensive status recount runs once per batch instead of per value.
-   When the OSC tab is not visible only the cached values are updated, no DOM work at all. */
 function handleOscParamBatch(payload) {
     const list = (payload && payload.list) || [];
     if (!list.length) return;

@@ -68,8 +68,6 @@ const ACTION_TYPES = new Set([
 ]);
 
 const aft  = (k, f) => (typeof t  === 'function' ? t ('action_flow.' + k, f)        : f);
-/* Features the "set feature" block can toggle. Each entry is
-   [id, label, isOn(), turnOn(), turnOff()] and reuses the same path as the sidebar button. */
 const AF_FEATURES = [
     ['vr_overlay',       'VR Overlay',       () => typeof vroConnected   !== 'undefined' && vroConnected,
         () => vroConnect(), () => vroConnect()],
@@ -96,9 +94,6 @@ const AF_FEATURES = [
         () => snipeToggle(), () => sendToCS({ action: 'vrcStopSnipe' })],
 ];
 const afFeatureLabel = (id, fallback) => aft('feature.' + id, fallback);
-/* Picker listing the parameters the OSC Tool discovered for the current avatar.
-   Choosing one writes it into the block's own path field; the field itself stays
-   free text so custom VRChat OSC addresses such as /input/Jump still work. */
 const OSC_PICK_PLACEHOLDER = '';
 function oscParamPicker(wantType) {
     return () => {
@@ -111,7 +106,7 @@ function oscParamPicker(wantType) {
                 if (names.length) return head.concat(names.map(n => [n, n]));
             }
         } catch {}
-        return head.concat([[aft('osc.no_params', '(no OSC parameters loaded)'), OSC_PICK_PLACEHOLDER]]);
+        return head.concat([[aft('osc.no_params', '(connect the OSC Tool, or type the parameter name yourself)'), OSC_PICK_PLACEHOLDER]]);
     };
 }
 function oscPickValidator(newValue) {
@@ -189,7 +184,6 @@ function afDefineBlocks() {
         return [[aft('block.no_friends', '(no friends loaded)'), '']];
     };
     const friendDropdownAny = () => [[aft('block.any_friend', '(any friend)'), '']].concat(friendDropdown());
-    /* Favorite friend groups: VRChat groups (Group 1-3) and VRCNext local groups. */
     const favFriendGroupDropdown = () => {
         try {
             if (typeof favFriendGroups !== 'undefined' && Array.isArray(favFriendGroups) && favFriendGroups.length) {
@@ -2028,7 +2022,6 @@ function afExecAction(flow, block) {
         case 'af_send_webhook':
         case 'af_send_webhook_value':
         case 'af_send_advanced_webhook': {
-            /* Exempt from rate limit: no VRChat API call, just an outgoing webhook post. */
             const url = String(f.WEBHOOK || '').trim();
             if (!/^https:\/\//i.test(url)) { afLog('err', '[' + flow.name + '] ' + aft('log.webhook_missing_text', 'webhook skipped: missing or invalid webhook url')); break; }
             let text = String(f.TEXT || '');
@@ -2045,7 +2038,6 @@ function afExecAction(flow, block) {
             break;
         }
         case 'af_set_feature': {
-            /* Exempt from rate limit: toggles a local VRCNext feature, no VRChat API call. */
             const featId = String(f.FEATURE || '');
             const stateIn = afInput(block, 'STATE');
             const want   = stateIn ? !!afEvalValue(stateIn) : String(f.STATE || 'true') === 'true';
@@ -2074,7 +2066,6 @@ function afExecAction(flow, block) {
         case 'af_osc_set_bool':
         case 'af_osc_set_float':
         case 'af_osc_set_int': {
-            /* Exempt from rate limit: OSC goes straight to VRChat over UDP, no API call. */
             const oscPath = String(f.PARAM || '').trim();
             if (!oscPath) { afLog('err', '[' + flow.name + '] ' + aft('log.osc_no_param', 'OSC send skipped: no parameter set')); break; }
             if (typeof oscConnected === 'undefined' || !oscConnected) {

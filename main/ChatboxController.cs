@@ -214,13 +214,6 @@ public class ChatboxController : IDisposable
         }
     }
 
-    // OSC parameter coalescing
-    //
-    // VRChat streams avatar parameters continuously (visemes, gestures, velocity, ...), easily
-    // hundreds of messages per second. Forwarding each one to the WebView separately starved the
-    // UI thread. Updates are collected here and flushed as one batch on a fixed interval, keeping
-    // only the newest value per parameter.
-
     private const int OscFlushIntervalMs = 100;
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (object Value, string Type)> _oscPending = new();
     private System.Threading.Timer? _oscFlushTimer;
