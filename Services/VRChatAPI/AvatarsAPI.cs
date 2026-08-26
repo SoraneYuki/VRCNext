@@ -63,7 +63,7 @@ public class AvatarsAPI(VRChatApiService ctx)
         var all = new List<JObject>();
         try
         {
-            for (int offset = 0; offset < 500; offset += 50)
+            for (int offset = 0; offset < 10000; offset += 50)
             {
                 var resp = await ctx._http.GetAsync(
                     $"{VRChatApiService.BASE}/avatars?user=me&releaseStatus=all&n=50&offset={offset}&sort=updated&order=descending");

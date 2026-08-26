@@ -351,6 +351,7 @@
   "timeline.detail.url": "URL",
   "timeline.detail.instance_type": "Тип инстанса",
   "timeline.detail.instance_id": "ID инстанса",
+  "timeline.detail.instance_creator": "Создатель инстанса",
   "timeline.detail.server": "Сервер",
   "regions.short.eu": "EU",
   "regions.short.us": "USW",

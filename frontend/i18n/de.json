@@ -351,6 +351,7 @@
   "timeline.detail.url": "URL",
   "timeline.detail.instance_type": "Instanztyp",
   "timeline.detail.instance_id": "Instanz-ID",
+  "timeline.detail.instance_creator": "Instanz-Ersteller",
   "timeline.detail.server": "Server",
   "regions.short.eu": "EU",
   "regions.short.us": "USW",

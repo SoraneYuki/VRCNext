@@ -349,6 +349,7 @@
   "timeline.detail.url": "連結",
   "timeline.detail.instance_type": "房間類型",
   "timeline.detail.instance_id": "房間 ID",
+  "timeline.detail.instance_creator": "執行個體建立者",
   "timeline.detail.server": "伺服器",
   "regions.short.eu": "EU",
   "regions.short.us": "USW",

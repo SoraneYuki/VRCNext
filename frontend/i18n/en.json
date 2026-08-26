@@ -349,6 +349,7 @@
   "timeline.detail.url": "URL",
   "timeline.detail.instance_type": "Instance Type",
   "timeline.detail.instance_id": "Instance ID",
+  "timeline.detail.instance_creator": "Instance Creator",
   "timeline.detail.server": "Server",
   "regions.short.eu": "EU",
   "regions.short.us": "USW",
