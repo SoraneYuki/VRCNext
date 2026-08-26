@@ -1200,6 +1200,14 @@ case 'vrcNews':
             case 'vrcLogFiles':
                 if (typeof onLogFiles === 'function') onLogFiles(payload);
                 break;
+            case 'debugKitExported':
+                if (payload.ok) {
+                    showToast(true, tf('debugkit.toast.done', { path: payload.path || '' }, 'Debug kit saved: {path}'));
+                    sendToCS({ action: 'revealInExplorer', path: payload.path });
+                } else {
+                    showToast(false, tf('debugkit.toast.failed', { error: payload.error || '' }, 'Debug kit export failed: {error}'));
+                }
+                break;
             case 'vrcLogLines':
                 if (typeof onLogLines === 'function') onLogLines(payload);
                 break;

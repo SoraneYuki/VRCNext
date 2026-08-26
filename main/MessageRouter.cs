@@ -2447,6 +2447,54 @@ public partial class AppShell
                     break;
                 }
 
+                case "exportDebugKit":
+                {
+                    var dkPick = Dialog.FolderPicker();
+                    if (!dkPick.IsOk || string.IsNullOrEmpty(dkPick.Path)) break;
+                    var dkDir = dkPick.Path;
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            var vrcnLogs = Path.Combine(
+                                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                                "VRCNext", "Logs");
+                            var crashDir = Path.Combine(vrcnLogs, "Crashes");
+                            var vrcDir   = VRCNext.Services.Helpers.VrcPathsHelper.AppDataDir();
+
+                            IEnumerable<string> Latest(string dir, string pattern, int count) =>
+                                Directory.Exists(dir)
+                                    ? Directory.GetFiles(dir, pattern)
+                                        .Select(f => new FileInfo(f))
+                                        .OrderByDescending(f => f.LastWriteTimeUtc)
+                                        .Take(count)
+                                        .Select(f => f.FullName)
+                                    : Enumerable.Empty<string>();
+
+                            var zipPath = Path.Combine(dkDir, $"vrcn-log-{DateTime.Now:dd-MM-yyyy}.zip");
+                            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, System.IO.Compression.ZipArchiveMode.Create))
+                            {
+                                void Add(string folder, string file)
+                                {
+                                    var entry = zip.CreateEntry(folder + "/" + Path.GetFileName(file), System.IO.Compression.CompressionLevel.Optimal);
+                                    using var src = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                                    using var dst = entry.Open();
+                                    src.CopyTo(dst);
+                                }
+                                foreach (var f in Latest(crashDir, "crash_*.txt", 5))    Add("crashes", f);
+                                foreach (var f in Latest(vrcnLogs, "vrcn-log-*.txt", 5)) Add("vrcn", f);
+                                foreach (var f in Latest(vrcDir, "output_log_*.txt", 2)) Add("vrchat", f);
+                            }
+                            Invoke(() => SendToJS("debugKitExported", new { ok = true, path = zipPath }));
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(() => SendToJS("debugKitExported", new { ok = false, error = ex.Message }));
+                        }
+                    });
+                    break;
+                }
+
                 case "importPickFile":
                 {
                     var imType = msg["type"]?.ToString() ?? "";
