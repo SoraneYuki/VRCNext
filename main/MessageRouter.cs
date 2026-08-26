@@ -2053,7 +2053,11 @@ public partial class AppShell
                         _ = Task.Run(async () =>
                         {
                             var (ok, error) = await _core.Groups.DeleteGroupAsync(delGId);
-                            if (ok) ModalCacheHelper.Invalidate(delGId);
+                            if (ok)
+                            {
+                                ModalCacheHelper.Invalidate(delGId);
+                                _groups.MarkDeleted(delGId);
+                            }
                             Invoke(() => SendToJS("vrcGroupDeleteResult", new { ok, error, groupId = delGId }));
                         });
                     break;
@@ -2945,6 +2949,8 @@ public partial class AppShell
                     await _groups.HandleMessage(action, msg);
                     break;
 
+                case "vrcPickGroupImage":
+                case "vrcCreateGroup":
                 case "vrcCreateGroupPost":
                 case "vrcUpdateGroupPost":
                 case "vrcDeleteGroupPost":

@@ -2161,6 +2161,8 @@ function onGroupDeleteResult(data) {
     if (data.ok) {
         showToast(true, t('groups.actions.toast.deleted', 'Group deleted'));
         closeGroupDetail();
+        if (typeof myGroups !== 'undefined') myGroups = myGroups.filter(g => g.id !== data.groupId);
+        if (typeof filterMyGroups === 'function') filterMyGroups();
         if (typeof loadMyGroups === 'function') loadMyGroups();
     } else {
         showToast(false, data.error || t('groups.actions.toast.delete_failed', 'Delete failed'));

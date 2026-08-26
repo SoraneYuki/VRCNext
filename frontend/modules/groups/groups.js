@@ -550,3 +550,222 @@ function _glDate(value) {
     const d = new Date(raw);
     return isNaN(d) ? String(value) : fmtShortDate(d);
 }
+
+/* === Create Group === */
+let _cgIconDataUrl = null, _cgBannerDataUrl = null;
+
+function openCreateGroupModal() {
+    _cgIconDataUrl = null;
+    _cgBannerDataUrl = null;
+    let overlay = document.getElementById('groupCreateOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'groupCreateOverlay';
+        overlay.className = 'modal-overlay';
+        overlay.style.display = 'none';
+        overlay.onclick = (e) => { if (e.target === overlay) closeCreateGroupModal(); };
+        document.body.appendChild(overlay);
+    }
+    const optional = `<span class="cg-optional">(${t('groups.common.optional', 'optional')})</span>`;
+    overlay.innerHTML = `
+    <div class="modal-box cg-box" role="dialog" aria-label="${esc(t('groups.create.title', 'Create Group'))}">
+        ${renderModalBar(t('groups.create.title', 'Create Group'), [modalCloseAction('closeCreateGroupModal()')])}
+        <div class="modal-card">
+            <div class="modal-msg" style="margin:0 0 18px;">${t('groups.create.desc', 'Fill in the details on the right. The preview shows how your group will look.')}</div>
+            <div class="cg-layout">
+                <div class="cg-preview">
+                    <div class="cg-prev-banner" id="cgPrevBanner" onclick="cgPickImage('banner')" title="${esc(t('groups.create.fields.banner', 'Banner'))}">
+                        <div class="cg-prev-banner-hint"><span class="msi">add_photo_alternate</span><span>${t('groups.create.choose_banner', 'Choose banner')}</span></div>
+                        <button class="cg-prev-clear" id="cgClear_banner" style="display:none;" onclick="event.stopPropagation();cgClearImage('banner')" title="${esc(t('common.remove', 'Remove'))}"><span class="msi">close</span></button>
+                        <div class="fd-banner-fade"></div>
+                    </div>
+                    <div class="cg-prev-body">
+                        <div class="cg-prev-id">
+                            <div class="cg-prev-icon" id="cgPrevIcon" onclick="cgPickImage('icon')" title="${esc(t('groups.create.fields.icon', 'Icon'))}">
+                                <span class="msi cg-prev-icon-hint">add_photo_alternate</span>
+                                <button class="cg-prev-clear" id="cgClear_icon" style="display:none;" onclick="event.stopPropagation();cgClearImage('icon')" title="${esc(t('common.remove', 'Remove'))}"><span class="msi">close</span></button>
+                            </div>
+                            <div class="cg-prev-name-wrap">
+                                <div class="fd-name cg-prev-name" id="cgPrevName">${esc(t('groups.create.preview.name', 'Group Name'))}</div>
+                                <div class="cg-prev-code" id="cgPrevCode">ABC.0000</div>
+                            </div>
+                        </div>
+                        <div class="cg-prev-chips">
+                            <span class="cg-chip" id="cgPrevJoin"></span>
+                            <span class="cg-chip" id="cgPrevPrivacy"></span>
+                            <span class="cg-chip"><span class="msi">group</span>1</span>
+                        </div>
+                        <div class="cg-prev-desc" id="cgPrevDesc">${esc(t('groups.create.preview.desc', 'Your description will appear here.'))}</div>
+                    </div>
+                </div>
+                <div class="cg-form">
+                    <div class="vrc-cfg-grid">
+                        <div class="vrc-cfg-field" style="grid-column:1 / -1;">
+                            <div class="sf-section-label">${t('groups.create.fields.name', 'Name')}</div>
+                            <input id="cgName" class="vrcn-edit-field" type="text" maxlength="64" placeholder="${esc(t('groups.create.fields.name_placeholder', 'Group name (3 to 64 characters)'))}" oninput="cgSyncPreview()">
+                        </div>
+                        <div class="vrc-cfg-field">
+                            <div class="sf-section-label">${t('groups.create.fields.short_code', 'Short Code')}</div>
+                            <input id="cgShort" class="vrcn-edit-field" type="text" maxlength="6" placeholder="${esc(t('groups.create.fields.short_code_placeholder', '3 to 6 characters'))}" style="text-transform:uppercase;" oninput="cgSyncPreview()">
+                        </div>
+                        <div class="vrc-cfg-field">
+                            <div class="sf-section-label">${t('groups.create.fields.role_template', 'Role Template')}</div>
+                            <select id="cgTemplate" class="vrcn-dropdown">
+                                <option value="default">${t('groups.create.template.default', 'Default')}</option>
+                                <option value="managedFree">${t('groups.create.template.managed_free', 'Managed (free join)')}</option>
+                                <option value="managedRequest">${t('groups.create.template.managed_request', 'Managed (request)')}</option>
+                                <option value="managedInvite">${t('groups.create.template.managed_invite', 'Managed (invite)')}</option>
+                            </select>
+                        </div>
+                        <div class="vrc-cfg-field">
+                            <div class="sf-section-label">${t('groups.create.fields.join_state', 'Join State')}</div>
+                            <select id="cgJoin" class="vrcn-dropdown" onchange="cgSyncPreview()">
+                                <option value="open">${t('groups.create.join.open', 'Open')}</option>
+                                <option value="request">${t('groups.create.join.request', 'Request to join')}</option>
+                                <option value="invite">${t('groups.create.join.invite', 'Invite only')}</option>
+                                <option value="closed">${t('groups.create.join.closed', 'Closed')}</option>
+                            </select>
+                        </div>
+                        <div class="vrc-cfg-field">
+                            <div class="sf-section-label">${t('groups.create.fields.privacy', 'Privacy')}</div>
+                            <select id="cgPrivacy" class="vrcn-dropdown" onchange="cgSyncPreview()">
+                                <option value="default">${t('groups.create.privacy.default', 'Public')}</option>
+                                <option value="private">${t('groups.create.privacy.private', 'Private')}</option>
+                            </select>
+                        </div>
+                        <div class="vrc-cfg-field" style="grid-column:1 / -1;">
+                            <div class="sf-section-label">${t('groups.create.fields.description', 'Description')} ${optional}</div>
+                            <textarea id="cgDesc" class="vrcn-edit-field cg-textarea" rows="4" maxlength="250" placeholder="${esc(t('groups.create.fields.description_placeholder', 'What is this group about?'))}" oninput="cgSyncPreview()"></textarea>
+                            <div class="set-desc cg-counter"><span id="cgDescCount">0</span>/250</div>
+                        </div>
+                        <div class="vrc-cfg-field">
+                            <div class="sf-section-label">${t('groups.create.fields.icon', 'Icon')} ${optional}</div>
+                            <div class="vrc-cfg-path">
+                                <input type="text" id="cgIconName" class="vrcn-edit-field" readonly placeholder="${esc(t('groups.create.no_image', 'No image selected'))}">
+                                <button class="vrcn-button" onclick="cgPickImage('icon')" title="${esc(t('common.browse', 'Browse'))}"><span class="msi" style="font-size:16px;">folder_open</span></button>
+                            </div>
+                        </div>
+                        <div class="vrc-cfg-field">
+                            <div class="sf-section-label">${t('groups.create.fields.banner', 'Banner')} ${optional}</div>
+                            <div class="vrc-cfg-path">
+                                <input type="text" id="cgBannerName" class="vrcn-edit-field" readonly placeholder="${esc(t('groups.create.no_image', 'No image selected'))}">
+                                <button class="vrcn-button" onclick="cgPickImage('banner')" title="${esc(t('common.browse', 'Browse'))}"><span class="msi" style="font-size:16px;">folder_open</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="cgError" class="cg-error" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="vrcn-button" id="cgSubmitBtn" onclick="submitCreateGroup()"><span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">group_add</span>${esc(t('groups.create.submit', 'Create'))}</button>
+            <span style="flex:1;"></span>
+            <button class="vrcn-button" onclick="closeCreateGroupModal()">${t('common.cancel', 'Cancel')}</button>
+        </div>
+    </div>`;
+    initAllVnSelects();
+    cgSyncPreview();
+    overlay.style.display = 'flex';
+    setTimeout(() => document.getElementById('cgName')?.focus(), 50);
+}
+
+function cgSyncPreview() {
+    const name = document.getElementById('cgName')?.value.trim() || '';
+    const code = (document.getElementById('cgShort')?.value.trim() || '').toUpperCase();
+    const desc = document.getElementById('cgDesc')?.value.trim() || '';
+    const join = document.getElementById('cgJoin')?.value || 'open';
+    const privacy = document.getElementById('cgPrivacy')?.value || 'default';
+    const nameEl = document.getElementById('cgPrevName');
+    if (nameEl) { nameEl.textContent = name || t('groups.create.preview.name', 'Group Name'); nameEl.classList.toggle('cg-placeholder', !name); }
+    const codeEl = document.getElementById('cgPrevCode');
+    if (codeEl) { codeEl.textContent = (code || 'ABC') + '.0000'; codeEl.classList.toggle('cg-placeholder', !code); }
+    const descEl = document.getElementById('cgPrevDesc');
+    if (descEl) { descEl.textContent = desc || t('groups.create.preview.desc', 'Your description will appear here.'); descEl.classList.toggle('cg-placeholder', !desc); }
+    const cnt = document.getElementById('cgDescCount');
+    if (cnt) cnt.textContent = String(document.getElementById('cgDesc')?.value.length || 0);
+    const joinIcon = { open: 'lock_open', request: 'how_to_reg', invite: 'mail', closed: 'lock' }[join] || 'lock_open';
+    const joinLabel = { open: t('groups.create.join.open', 'Open'), request: t('groups.create.join.request', 'Request to join'), invite: t('groups.create.join.invite', 'Invite only'), closed: t('groups.create.join.closed', 'Closed') }[join];
+    const joinEl = document.getElementById('cgPrevJoin');
+    if (joinEl) joinEl.innerHTML = `<span class="msi">${joinIcon}</span>${esc(joinLabel)}`;
+    const privEl = document.getElementById('cgPrevPrivacy');
+    if (privEl) privEl.innerHTML = `<span class="msi">${privacy === 'private' ? 'visibility_off' : 'public'}</span>${esc(privacy === 'private' ? t('groups.create.privacy.private', 'Private') : t('groups.create.privacy.default', 'Public'))}`;
+}
+
+function closeCreateGroupModal() {
+    const overlay = document.getElementById('groupCreateOverlay');
+    if (overlay) overlay.style.display = 'none';
+    _cgIconDataUrl = null;
+    _cgBannerDataUrl = null;
+}
+
+function cgPickImage(kind) {
+    sendToCS({ action: 'vrcPickGroupImage', kind });
+}
+
+function cgClearImage(kind) {
+    if (kind === 'icon') _cgIconDataUrl = null; else _cgBannerDataUrl = null;
+    _cgApplyImage(kind, null, '');
+}
+
+function _cgApplyImage(kind, dataUrl, fileName) {
+    const box = document.getElementById(kind === 'icon' ? 'cgPrevIcon' : 'cgPrevBanner');
+    if (box) { box.style.backgroundImage = dataUrl ? `url("${dataUrl}")` : ''; box.classList.toggle('has-img', !!dataUrl); }
+    const clr = document.getElementById('cgClear_' + kind);
+    if (clr) clr.style.display = dataUrl ? '' : 'none';
+    const nameEl = document.getElementById(kind === 'icon' ? 'cgIconName' : 'cgBannerName');
+    if (nameEl) nameEl.value = dataUrl ? (fileName || '') : '';
+}
+
+function onGroupImagePicked(data) {
+    if (!data || !document.getElementById('groupCreateOverlay')) return;
+    if (data.error || !data.dataUrl) { showToast(false, data.error || t('groups.create.toast.image_failed', 'Could not load image')); return; }
+    if (data.kind === 'icon') _cgIconDataUrl = data.dataUrl; else _cgBannerDataUrl = data.dataUrl;
+    _cgApplyImage(data.kind, data.dataUrl, data.fileName || '');
+}
+
+function _cgSetError(msg) {
+    const errEl = document.getElementById('cgError');
+    if (!errEl) return;
+    if (msg) { errEl.textContent = msg; errEl.style.display = ''; } else errEl.style.display = 'none';
+}
+
+function _cgResetSubmit() {
+    const btn = document.getElementById('cgSubmitBtn');
+    if (btn) { btn.disabled = false; btn.innerHTML = `<span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">group_add</span>${esc(t('groups.create.submit', 'Create'))}`; }
+}
+
+function submitCreateGroup() {
+    const name = document.getElementById('cgName')?.value.trim() || '';
+    const shortCode = (document.getElementById('cgShort')?.value.trim() || '').toUpperCase();
+    const description = document.getElementById('cgDesc')?.value.trim() || '';
+    const joinState = document.getElementById('cgJoin')?.value || 'open';
+    const privacy = document.getElementById('cgPrivacy')?.value || 'default';
+    const roleTemplate = document.getElementById('cgTemplate')?.value || 'default';
+
+    if (name.length < 3 || name.length > 64) { _cgSetError(t('groups.create.validation.name', 'Name must be 3 to 64 characters.')); return; }
+    if (shortCode.length < 3 || shortCode.length > 6) { _cgSetError(t('groups.create.validation.short_code', 'Short code must be 3 to 6 characters.')); return; }
+    _cgSetError('');
+
+    const btn = document.getElementById('cgSubmitBtn');
+    if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">hourglass_empty</span>${esc(t('groups.create.submitting', 'Creating...'))}`; }
+
+    const payload = { action: 'vrcCreateGroup', name, shortCode, description, joinState, privacy, roleTemplate };
+    if (_cgIconDataUrl) payload.iconBase64 = _cgIconDataUrl;
+    if (_cgBannerDataUrl) payload.bannerBase64 = _cgBannerDataUrl;
+    sendToCS(payload);
+}
+
+function onGroupCreateResult(data) {
+    if (data.ok) {
+        showToast(true, t('groups.create.toast.created', 'Group created'));
+        closeCreateGroupModal();
+        loadMyGroups();
+    } else {
+        _cgResetSubmit();
+        const msg = data.vrcPlusRequired
+            ? t('groups.create.toast.vrcplus_required', 'Creating groups requires a VRChat+ subscription.')
+            : (data.error || t('groups.create.toast.failed', 'Could not create group'));
+        _cgSetError(msg);
+        showToast(false, msg);
+    }
+}

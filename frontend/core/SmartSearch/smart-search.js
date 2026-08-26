@@ -600,6 +600,7 @@ const SmartSearch = (() => {
         deleteModal: () => typeof closeDeleteModal === 'function' && closeDeleteModal(),
         imagePickerOverlay: () => typeof closeImagePicker === 'function' && closeImagePicker(),
         groupPostOverlay: () => typeof closeGroupPostModal === 'function' && closeGroupPostModal(),
+        groupCreateOverlay: () => typeof closeCreateGroupModal === 'function' && closeCreateGroupModal(),
         groupEventOverlay: () => typeof closeGroupEventModal === 'function' && closeGroupEventModal(),
     };
 

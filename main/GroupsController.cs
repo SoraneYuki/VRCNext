@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using VRCNext.Services;
 using VRCNext.Services.Helpers;
 
@@ -12,6 +12,12 @@ public class GroupsController
     private readonly FriendsController _friends;
     private int _groupsInFlight = 0;
     private Dictionary<string, GroupMemberPerms> _memberPerms = new();
+    private readonly HashSet<string> _deletedGroupIds = new();
+
+    public void MarkDeleted(string groupId)
+    {
+        lock (_deletedGroupIds) _deletedGroupIds.Add(groupId);
+    }
 
     private record GroupMemberPerms(
         bool CanPost, bool CanEvent, bool CanInvite, bool CanEdit,
@@ -95,6 +101,7 @@ public class GroupsController
                 var gid  = g["groupId"]?.ToString() ?? "";
                 var name = g["name"]?.ToString() ?? "";
                 if (string.IsNullOrEmpty(gid) || string.IsNullOrEmpty(name)) continue;
+                lock (_deletedGroupIds) { if (_deletedGroupIds.Contains(gid)) continue; }
 
                 var perms = allPerms[gid]?.ToObject<List<string>>();
 
@@ -695,6 +702,82 @@ public class GroupsController
                         });
                     });
                 }
+                break;
+            }
+
+            case "vrcPickGroupImage":
+            {
+                var pgKind = msg["kind"]?.ToString() ?? "icon";
+                var pgPick = NativeFileDialogSharp.Dialog.FileOpen("png,jpg,jpeg");
+                if (!pgPick.IsOk || string.IsNullOrEmpty(pgPick.Path)) break;
+                var pgPath = pgPick.Path;
+                _ = Task.Run(() =>
+                {
+                    try
+                    {
+                        var bytes = File.ReadAllBytes(pgPath);
+                        var mime = Path.GetExtension(pgPath).ToLowerInvariant() switch
+                        {
+                            ".jpg" or ".jpeg" => "image/jpeg",
+                            _                 => "image/png",
+                        };
+                        var dataUrl = $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+                        _core.SendToJS("vrcGroupImagePicked", new { kind = pgKind, dataUrl, fileName = Path.GetFileName(pgPath) });
+                    }
+                    catch (Exception ex)
+                    {
+                        _core.SendToJS("vrcGroupImagePicked", new { kind = pgKind, error = ex.Message });
+                    }
+                });
+                break;
+            }
+
+            case "vrcCreateGroup":
+            {
+                var cgName      = msg["name"]?.ToString()?.Trim() ?? "";
+                var cgShort     = msg["shortCode"]?.ToString()?.Trim() ?? "";
+                var cgDesc      = msg["description"]?.ToString() ?? "";
+                var cgJoin      = msg["joinState"]?.ToString() ?? "open";
+                var cgPrivacy   = msg["privacy"]?.ToString() ?? "default";
+                var cgTemplate  = msg["roleTemplate"]?.ToString() ?? "default";
+                var cgIconB64   = msg["iconBase64"]?.ToString();
+                var cgBannerB64 = msg["bannerBase64"]?.ToString();
+                _ = Task.Run(async () =>
+                {
+                    if (!_core.VrcApi.HasVrcPlus)
+                    {
+                        _core.SendToJS("vrcGroupCreateResult", new { ok = false, error = "Creating groups requires a VRChat+ subscription.", vrcPlusRequired = true });
+                        return;
+                    }
+                    async Task<string?> UploadDataUrl(string? dataUrl, string label)
+                    {
+                        if (string.IsNullOrEmpty(dataUrl)) return null;
+                        var b64 = dataUrl;
+                        string imgMime = "image/png";
+                        string imgExt = ".png";
+                        if (b64.StartsWith("data:"))
+                        {
+                            var semi = b64.IndexOf(';');
+                            if (semi > 5) imgMime = b64[5..semi];
+                            imgExt = imgMime switch { "image/jpeg" => ".jpg", "image/gif" => ".gif", "image/webp" => ".webp", _ => ".png" };
+                        }
+                        var commaIdx = b64.IndexOf(',');
+                        if (commaIdx >= 0) b64 = b64[(commaIdx + 1)..];
+                        var id = await _core.Files.UploadImageAsync(Convert.FromBase64String(b64), imgMime, imgExt);
+                        if (id == null) _core.SendToJS("log", new { msg = $"[CreateGroup] {label} upload failed", color = "warn" });
+                        return id;
+                    }
+                    string? iconId = null, bannerId = null;
+                    try
+                    {
+                        iconId   = await UploadDataUrl(cgIconB64, "Icon");
+                        bannerId = await UploadDataUrl(cgBannerB64, "Banner");
+                    }
+                    catch (Exception ex) { _core.SendToJS("log", new { msg = $"[CreateGroup] Image parse error: {ex.Message}", color = "err" }); }
+                    var (ok, error, groupId) = await _core.Groups.CreateGroupAsync(cgName, cgShort, cgDesc, cgJoin, cgPrivacy, cgTemplate, iconId, bannerId);
+                    if (ok) _ = FetchAndCacheAsync();
+                    _core.SendToJS("vrcGroupCreateResult", new { ok, error, groupId });
+                });
                 break;
             }
 

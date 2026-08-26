@@ -1,4 +1,9 @@
-**2026.46.0**
+**2026.46.1**
+
+**Create Groups**
+* New **Create Group** button next to the filter bar in **Groups > My Groups**. Set name, short code, description, join state, privacy and role template, and pick an icon and banner from your PC.
+* The modal shows a live preview of the group card while you type, so you can see how the group will look before creating it.
+* Creating groups requires **VRChat+**. Without it VRCNext shows an error instead of sending the request, and any VRChat error is shown as well.
 
 **Help/Support**
 * New **Taskbar > Help > Export Debug Kit**. Pick a folder and VRCNext bundles the 5 newest crash logs, the 5 newest VRCNext logs and the 2 newest VRChat logs into `vrcn-log-dd-mm-yyyy.zip`, then opens the folder so the file is ready to attach to a bug report.
@@ -113,3 +118,4 @@
 * Removed cell filtering visuals on seatch lists.
 * Improved avatar submitting to VRCNDb. Avatar IDs are now also collected live from the VRChat log, including avatars that were blocked by your performance settings (AssetBundleDownloadManager), and sent in batches of 40 instead of only after a quiet period. The log that already exists when VRCNext starts is included.
 * Fixed the friends sidebar showing **Online 0** and **No friends online** after being logged out. It now shows the login prompt again, and the red warning icon when collapsed.
+* Fixed an issue when deleting a group it was still in the group list.
