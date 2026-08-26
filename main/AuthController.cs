@@ -214,6 +214,7 @@ public class AuthController
 
             case "setupReady":
                 _core.SendToJS("setPlatform", new { isLinux = !OperatingSystem.IsWindows() });
+                // After the setup wizard starts, send the list of available languages so the frontend can automatically generate the language buttons
                 SendAvailableLanguages();
                 var detectedPath = _core.Settings.VrcPath;
                 if (string.IsNullOrWhiteSpace(detectedPath) || !File.Exists(detectedPath))
@@ -617,6 +618,7 @@ public class AuthController
     public void HandleReady()
     {
         _readyAt = DateTime.UtcNow;
+        // When the main interface starts, provide the list of available languages, then load the currently selected language and settings
         SendAvailableLanguages();
         SendTranslation(_core.Settings.Language);
         _core.SendToJS("loadSettings", _core.Settings);
@@ -2280,9 +2282,11 @@ public class AuthController
         }
     }
 
+    // Get the path to the language JSON folder and use it for both scanning and loading language files
     private static string I18nDirectory =>
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "i18n");
 
+    // Scan the _meta data from all language JSON files and build the list of available languages required by the frontend to generate the language buttons
     private static List<object> GetAvailableLanguages()
     {
         var languages = new List<(string Code, string Name, string Locale, string Flag, int Order)>();
@@ -2292,10 +2296,13 @@ public class AuthController
         {
             try
             {
+                // Use the JSON filename as the default language code; if other metadata is missing, fall back to the filename, 🌐, and a sort order of 999
                 var fileCode = Path.GetFileNameWithoutExtension(path);
                 var json = JObject.Parse(File.ReadAllText(path));
                 var meta = json["_meta"] as JObject;
                 var code = meta?["code"]?.ToString() ?? fileCode;
+
+                // _meta.code must match the filename to prevent the language button code from pointing to the wrong language
                 if (!string.Equals(code, fileCode, StringComparison.OrdinalIgnoreCase)) continue;
 
                 languages.Add((
@@ -2306,9 +2313,13 @@ public class AuthController
                     meta?["order"]?.Value<int?>() ?? 999
                 ));
             }
-            catch { }
+            catch
+            {
+                // Skip any JSON file that fails to parse to prevent it from affecting the loading of other languages
+            }
         }
 
+        // Languages with lower order values are placed first; if two languages have the same order values, they are sorted by language name
         return languages
             .OrderBy(language => language.Order)
             .ThenBy(language => language.Name, StringComparer.CurrentCultureIgnoreCase)
@@ -2323,6 +2334,12 @@ public class AuthController
             .ToList();
     }
 
+    // Convert underscores to hyphens and search for an existing language file case-insensitively; fall back to English if no match is found
+    // Example:
+    //  zh_TW  → zh-TW
+    // ZH-TW   → zh-TW
+    // zh-tw   → zh-TW
+    // zh-TW   → zh-TW
     private static string NormalizeLanguage(string? language)
     {
         var requested = (language ?? string.Empty).Trim().Replace('_', '-');
@@ -2336,23 +2353,29 @@ public class AuthController
         return "en";
     }
 
+    // Send the scanned list of available languages to the frontend as availableLanguages
     private void SendAvailableLanguages()
     {
         _core.SendToJS("availableLanguages", GetAvailableLanguages());
     }
 
+    // Use the English localization as the base, then override it with valid, non-empty translations from the selected language
     private void SendTranslation(string? requestedLanguage)
     {
         try
         {
+            // Resolve the actual language filename and build the paths for both the target language file and the English fallback file
             var language = NormalizeLanguage(requestedLanguage);
             var i18nDir = I18nDirectory;
             var path = Path.Combine(i18nDir, $"{language}.json");
             var fallbackPath = Path.Combine(i18nDir, "en.json");
 
+            // Load the complete English localization first to ensure that text is still displayed when the selected language is missing translations for certain entries
             var translations = File.Exists(fallbackPath)
                 ? JObject.Parse(File.ReadAllText(fallbackPath))
                 : new JObject();
+
+            // Properties beginning with "_", including _meta, contain file information and should not be sent as translations
             foreach (var property in translations.Properties()
                          .Where(property => property.Name.StartsWith('_')).ToList())
                 property.Remove();
@@ -2364,6 +2387,7 @@ public class AuthController
                     var localized = JObject.Parse(File.ReadAllText(path));
                     foreach (var property in localized.Properties())
                     {
+                        // Only accept regular, non-empty string translations; otherwise, keep the English content
                         if (property.Name.StartsWith('_')) continue;
                         if (property.Value.Type != JTokenType.String) continue;
                         if (string.IsNullOrWhiteSpace(property.Value.Value<string>())) continue;
@@ -2372,15 +2396,18 @@ public class AuthController
                 }
                 catch (Exception ex)
                 {
+                    // If the target language JSON file cannot be read or parsed, fall back entirely to English and log a warning
                     language = "en";
                     _core.SendToJS("log", new { msg = $"Translation fallback to English: {ex.Message}", color = "warn" });
                 }
             }
 
+            // Send the resolved language code and merged localization content to JavaScript
             _core.SendToJS("translationData", new { language, translations });
         }
         catch (Exception ex)
         {
+            // Return empty content if even the English localization fails to load, preventing the error from interrupting the entire application
             _core.SendToJS("log", new { msg = $"Translation load failed: {ex.Message}", color = "err" });
             _core.SendToJS("translationData", new { language = "en", translations = new JObject() });
         }

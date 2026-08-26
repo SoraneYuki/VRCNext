@@ -50,8 +50,10 @@ function applySetupTranslations() {
     }
 }
 
+// The setup wizard's language list is also provided by the backend after scanning the JSON files, rather than being hardcoded here
 let SETUP_LANGUAGES = [];
 
+// Convert the backend language data into the format required by the setup wizard while preserving the currently selected language
 function handleSetupLanguages(languages) {
     if (!Array.isArray(languages) || languages.length === 0) return;
     SETUP_LANGUAGES = languages.map(language => ({
@@ -59,6 +61,7 @@ function handleSetupLanguages(languages) {
         flag: language.flag || '🌐',
         label: language.name || language.code,
     }));
+    // Find the existing setting case-insensitively; if it doesn't exist, default to the first language in the sorted list
     const selected = SETUP_LANGUAGES.find(language =>
         language.key.toLowerCase() === String(selectedLanguage).toLowerCase());
     selectedLanguage = selected?.key || SETUP_LANGUAGES[0].key;
@@ -75,6 +78,7 @@ function savePrefs(prefs) {
 }
 
 // Language grid
+// Use the language list scanned by the backend to create the language selection buttons on the initial setup page
 function renderSetupLangGrid() {
     const grid = document.getElementById('setupLangGrid');
     if (!grid) return;
@@ -267,6 +271,7 @@ function onBackendMessage(e) {
     const p = d.payload;
 
     switch (type) {
+        // Automatically generate the setup wizard's language buttons after receiving the list of available languages
         case 'availableLanguages':
             handleSetupLanguages(p);
             break;

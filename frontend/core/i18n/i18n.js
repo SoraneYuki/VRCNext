@@ -1,13 +1,16 @@
 ﻿let currentLanguage = 'en';
 let i18nBundle = {};
 
+// The language list is no longer hardcoded in the frontend and is populated at startup by scanning JSON files on the backend
 let UI_LANGUAGES = {};
 
+// Match language codes case-insensitively and return the canonical form used in the JSON filename; fall back to English if no match is found
 function normalizeUiLanguage(language) {
     const normalized = String(language || '').trim().toLowerCase();
     return Object.keys(UI_LANGUAGES).find(key => key.toLowerCase() === normalized) || 'en';
 }
 
+// Convert backend-scanned language metadata into frontend objects and generate the language buttons
 function handleAvailableLanguages(languages) {
     if (!Array.isArray(languages) || languages.length === 0) return;
     UI_LANGUAGES = Object.fromEntries(languages.map(language => [language.code, {
@@ -122,6 +125,7 @@ function applyTranslationRerenders() {
     }
 }
 
+// Generate settings page language buttons from the backend-provided language list
 function renderLanguageChips() {
     const el = document.getElementById('languageGrid');
     if (!el) return;
