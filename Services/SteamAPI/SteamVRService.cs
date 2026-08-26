@@ -353,13 +353,14 @@ namespace VRCNext.Services
 
             // DRAG — per hand, held while button is pressed
             bool lp = false, rp = false;
+            bool lValid = false, rValid = false;
             Vector3 lRaw = default, rRaw = default;
 
             if (LeftDragButton != 0 && _leftIdx != OpenVR.k_unTrackedDeviceIndexInvalid)
             {
                 lp = IsBitSet(leftBtns, LeftDragButton);
-                if (lp) lRaw = GetRawPos(_leftIdx);
-                if (lp && !_loggedLeftPress)
+                if (lp) lValid = TryGetRawPos(_leftIdx, out lRaw);
+                if (lp && lValid && !_loggedLeftPress)
                 {
                     _loggedLeftPress = true;
                     _log($"[SteamVR] L-DRAG raw=({lRaw.X:F3},{lRaw.Y:F3},{lRaw.Z:F3})");
@@ -369,8 +370,8 @@ namespace VRCNext.Services
             if (RightDragButton != 0 && _rightIdx != OpenVR.k_unTrackedDeviceIndexInvalid)
             {
                 rp = IsBitSet(rightBtns, RightDragButton);
-                if (rp) rRaw = GetRawPos(_rightIdx);
-                if (rp && !_loggedRightPress)
+                if (rp) rValid = TryGetRawPos(_rightIdx, out rRaw);
+                if (rp && rValid && !_loggedRightPress)
                 {
                     _loggedRightPress = true;
                     _log($"[SteamVR] R-DRAG raw=({rRaw.X:F3},{rRaw.Y:F3},{rRaw.Z:F3})");
@@ -379,37 +380,38 @@ namespace VRCNext.Services
             }
 
             if (LeftDragButton != 0)
-                HandleHandDrag(ref _leftDragging, lp, lRaw, ref _leftRawAnchor, ref _leftOffsetAtGrab);
+                HandleHandDrag(ref _leftDragging, lp, lValid, lRaw, ref _leftRawAnchor, ref _leftOffsetAtGrab);
             else
                 _leftDragging = false;
 
             if (RightDragButton != 0)
-                HandleHandDrag(ref _rightDragging, rp, rRaw, ref _rightRawAnchor, ref _rightOffsetAtGrab);
+                HandleHandDrag(ref _rightDragging, rp, rValid, rRaw, ref _rightRawAnchor, ref _rightOffsetAtGrab);
             else
                 _rightDragging = false;
 
             bool gravWasDragging = _leftGravDragging || _rightGravDragging;
 
             bool lgp = false, rgp = false;
+            bool lgValid = false, rgValid = false;
             Vector3 lgRaw = default, rgRaw = default;
             if (LeftGravityButton != 0 && _leftIdx != OpenVR.k_unTrackedDeviceIndexInvalid)
             {
                 lgp = IsBitSet(leftBtns, LeftGravityButton);
-                if (lgp) lgRaw = GetRawPos(_leftIdx);
+                if (lgp) lgValid = TryGetRawPos(_leftIdx, out lgRaw);
             }
             if (RightGravityButton != 0 && _rightIdx != OpenVR.k_unTrackedDeviceIndexInvalid)
             {
                 rgp = IsBitSet(rightBtns, RightGravityButton);
-                if (rgp) rgRaw = GetRawPos(_rightIdx);
+                if (rgp) rgValid = TryGetRawPos(_rightIdx, out rgRaw);
             }
 
             if (LeftGravityButton != 0)
-                HandleHandDrag(ref _leftGravDragging, lgp, lgRaw, ref _leftGravRawAnchor, ref _leftGravOffsetAtGrab);
+                HandleHandDrag(ref _leftGravDragging, lgp, lgValid, lgRaw, ref _leftGravRawAnchor, ref _leftGravOffsetAtGrab);
             else
                 _leftGravDragging = false;
 
             if (RightGravityButton != 0)
-                HandleHandDrag(ref _rightGravDragging, rgp, rgRaw, ref _rightGravRawAnchor, ref _rightGravOffsetAtGrab);
+                HandleHandDrag(ref _rightGravDragging, rgp, rgValid, rgRaw, ref _rightGravRawAnchor, ref _rightGravOffsetAtGrab);
             else
                 _rightGravDragging = false;
 
@@ -476,8 +478,10 @@ namespace VRCNext.Services
         private static bool IsBitSet(ulong buttons, uint buttonId)
             => buttonId != 0 && (buttons & (1UL << (int)buttonId)) != 0;
 
-        private void HandleHandDrag(ref bool wasDragging, bool pressed, Vector3 rawPos, ref Vector3 rawAnchor, ref Vector3 offsetAtGrab)
+        private void HandleHandDrag(ref bool wasDragging, bool pressed, bool rawValid, Vector3 rawPos, ref Vector3 rawAnchor, ref Vector3 offsetAtGrab)
         {
+            if (pressed && !rawValid) return;
+
             if (pressed && !wasDragging)
             {
                 wasDragging = true;
@@ -597,17 +601,19 @@ namespace VRCNext.Services
             _log("[SteamVR] Reset");
         }
 
-        private Vector3 GetRawPos(uint i)
+        private bool TryGetRawPos(uint i, out Vector3 pos)
         {
-            if (i < _rawPoses.Length && _rawPoses[i].bPoseIsValid)
+            if (i < _rawPoses.Length && _rawPoses[i].bPoseIsValid && _rawPoses[i].bDeviceIsConnected)
             {
-                return new Vector3(
+                pos = new Vector3(
                     _rawPoses[i].mDeviceToAbsoluteTracking.m3,
                     _rawPoses[i].mDeviceToAbsoluteTracking.m7,
                     _rawPoses[i].mDeviceToAbsoluteTracking.m11);
+                return true;
             }
 
-            return Vector3.Zero;
+            pos = Vector3.Zero;
+            return false;
         }
 
         private void UpdateControllerIndices()

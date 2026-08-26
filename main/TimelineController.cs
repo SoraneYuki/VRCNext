@@ -39,7 +39,12 @@ public class TimelineController
         switch (action)
         {
             case "importVrcxSelect":
-                _ = Task.Run(() => SelectAndPreview());
+                {
+                    var r = Dialog.FileOpen("sqlite3,db");
+                    if (!r.IsOk) { _core.SendToJS("vrcxSelectCancelled", null); break; }
+                    _vrcxImportPath = r.Path;
+                    _ = Task.Run(() => PreviewAsync(_vrcxImportPath));
+                }
                 break;
 
             case "importVrcxStart":
@@ -1202,15 +1207,11 @@ public class TimelineController
 
     // VRCX Import
 
-    private void SelectAndPreview()
+    private void PreviewAsync(string vrcxPath)
     {
-        var r = Dialog.FileOpen("sqlite3,db");
-        if (!r.IsOk) { _core.SendToJS("vrcxSelectCancelled", null); return; }
-        _vrcxImportPath = r.Path;
-
         try
         {
-            using var vrcx = new SqliteConnection($"Data Source={_vrcxImportPath};Mode=ReadOnly");
+            using var vrcx = new SqliteConnection($"Data Source={vrcxPath};Mode=ReadOnly");
             vrcx.Open();
             using var cmd = vrcx.CreateCommand();
 
@@ -1241,7 +1242,7 @@ public class TimelineController
 
             _core.SendToJS("vrcxPreview", new
             {
-                path        = Path.GetFileName(_vrcxImportPath),
+                path        = Path.GetFileName(vrcxPath),
                 worlds,
                 locations,
                 friendTimes,
