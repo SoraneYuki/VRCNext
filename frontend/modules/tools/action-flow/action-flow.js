@@ -15,6 +15,7 @@ const COLOR_GAME    = '#2c4e8a';
 const COLOR_OTHER   = '#43c59e';
 const COLOR_INFO    = '#f0a14e';
 const COLOR_VRCN    = '#4ec9f0';
+const COLOR_FRIEND  = '#c9702a';
 
 const WORLD_CHANGE_DELAY_MS = 15 * 1000;
 const EVENT_TICK_MS = 5 * 1000;
@@ -944,6 +945,41 @@ function afDefineBlocks() {
         },
     };
 
+    B.Blocks['af_text'] = { init() {
+        this.appendDummyInput()
+            .appendField('"').appendField(new B.FieldTextInput(''), 'TEXT').appendField('"');
+        this.setOutput(true, 'String');
+        this.setColour(COLOR_INFO);
+        this.setTooltip(aft('info.text_tooltip', 'A piece of text you type yourself. Use it to label an entry in a bundled message list.'));
+    } };
+
+    B.Blocks['af_join_text'] = { init() {
+        this.appendValueInput('A');
+        this.appendValueInput('B').appendField(aft('block.and', 'and'));
+        this.setInputsInline(true);
+        this.setOutput(true, 'String');
+        this.setColour(COLOR_INFO);
+        this.setTooltip(aft('info.join_text_tooltip', 'Glues two values into one line of text. A space is added between them unless the left side already ends with one.'));
+    } };
+
+    function makeFriendInfoBlock(typeName, labelKey, labelFallback, tipKey, tipFallback) {
+        B.Blocks[typeName] = { init() {
+            this.appendValueInput('USER').setCheck('User').appendField(aft(labelKey, labelFallback));
+            this.setOutput(true, 'String');
+            this.setInputsInline(true);
+            this.setColour(COLOR_FRIEND);
+            this.setTooltip(aft(tipKey, tipFallback));
+        } };
+    }
+    makeFriendInfoBlock('af_friend_status',      'friend_info.status',      "friend's status is",
+                        'friend_info.status_tooltip',      'The status of the attached user: Online, Ask Me, Do Not Disturb or Join Me.');
+    makeFriendInfoBlock('af_friend_status_text', 'friend_info.status_text', "friend's status text is",
+                        'friend_info.status_text_tooltip', 'The status text the attached user wrote under their status.');
+    makeFriendInfoBlock('af_friend_world',       'friend_info.world',       "friend's current world is",
+                        'friend_info.world_tooltip',       'The world the attached user is in. Empty when they are offline or in a private instance.');
+    makeFriendInfoBlock('af_friend_presence',    'friend_info.presence',    "friend is",
+                        'friend_info.presence_tooltip',    'Whether the attached user is In Game, Active on Website or Offline.');
+
     const INFO_BLOCKS = [
         ['af_get_world_name',     'info.world_name',     'current world name',     'info.world_name_tooltip',     'Name of the world you are currently in.'],
         ['af_get_avatar_name',    'info.avatar_name',    'current avatar name',    'info.avatar_name_tooltip',    'Name of the avatar you are currently wearing.'],
@@ -1017,6 +1053,13 @@ function afToolbox() {
             ]},
             { kind: 'category', name: aft('toolbox.get_info', 'Get Info'), colour: COLOR_INFO, contents: [
                 { kind: 'block', type: 'af_bundle_list' },
+                { kind: 'block', type: 'af_text' },
+                { kind: 'block', type: 'af_join_text' },
+                { kind: 'sep' },
+                { kind: 'block', type: 'af_friend_status' },
+                { kind: 'block', type: 'af_friend_status_text' },
+                { kind: 'block', type: 'af_friend_world' },
+                { kind: 'block', type: 'af_friend_presence' },
                 { kind: 'block', type: 'af_get_world_name' },
                 { kind: 'block', type: 'af_get_avatar_name' },
                 { kind: 'block', type: 'af_get_instance_name' },
@@ -2458,6 +2501,14 @@ function afInputStatement(block, name) {
     return block.inputs && block.inputs[name] && block.inputs[name].block;
 }
 
+function afBundleText(child) {
+    if (!child) return '';
+    const val = afEvalValue(child);
+    if (val === null || val === undefined) return '';
+    if (typeof val === 'object') return String(val.displayName || val.name || val.id || '');
+    return String(val);
+}
+
 function afEvalValue(block) {
     if (!block) return null;
     const f = block.fields || {};
@@ -2465,14 +2516,47 @@ function afEvalValue(block) {
         case 'af_bundle_list': {
             const lines = [];
             for (let i = 0; i < 20; i++) {
-                const child = afInput(block, 'ITEM' + i);
-                if (!child) continue;
-                const val = afEvalValue(child);
-                if (val === null || val === undefined) continue;
-                const text = typeof val === 'object' ? String(val.displayName || val.name || val.id || '') : String(val);
+                const text = afBundleText(afInput(block, 'ITEM' + i));
                 if (text !== '') lines.push(text);
             }
             return lines.join('\n');
+        }
+        case 'af_text': return String(f.TEXT || '');
+        case 'af_friend_status': {
+            const u = afEvalUser(afInput(block, 'USER'));
+            if (!u) return '';
+            return vrcStatusLabel(u.status || '');
+        }
+        case 'af_friend_status_text': {
+            const u = afEvalUser(afInput(block, 'USER'));
+            return u ? String(u.statusDescription || '') : '';
+        }
+        case 'af_friend_world': {
+            const u = afEvalUser(afInput(block, 'USER'));
+            if (!u) return '';
+            const loc = String(u.location || '');
+            if (!loc || loc === 'offline' || loc === 'private' || loc === 'traveling') return '';
+            const worldId = loc.split(':')[0];
+            return afWorldNameFor(worldId, u._worldName);
+        }
+        case 'af_friend_presence': {
+            const u = afEvalUser(afInput(block, 'USER'));
+            if (!u) return aft('friend_info.presence_offline', 'Offline');
+            const p = String(u.presence || '');
+            if (p === 'game') return aft('friend_info.presence_game', 'In Game');
+            if (p === 'web')  return aft('friend_info.presence_web', 'Active on Website');
+            if (p === 'offline') return aft('friend_info.presence_offline', 'Offline');
+            const loc = String(u.location || '');
+            if (loc && loc !== 'offline') return aft('friend_info.presence_game', 'In Game');
+            if ((u.status || 'offline') !== 'offline') return aft('friend_info.presence_web', 'Active on Website');
+            return aft('friend_info.presence_offline', 'Offline');
+        }
+        case 'af_join_text': {
+            const a = afBundleText(afInput(block, 'A'));
+            const b = afBundleText(afInput(block, 'B'));
+            if (!a) return b;
+            if (!b) return a;
+            return /\s$/.test(a) ? a + b : a + ' ' + b;
         }
         case 'af_bool':   return f.BOOL === 'TRUE';
         case 'af_number': return Number(f.VALUE);

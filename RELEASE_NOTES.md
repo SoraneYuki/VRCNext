@@ -1,8 +1,11 @@
 **2026.46.7**
 
 **Action Flow**
+* Four new friend blocks under **Get Info**, in their own darker orange: **friend's status is**, **friend's status text is**, **friend's current world is** and **friend is** (In Game, Active on Website or Offline).
+* Each takes a user, so they work with a picked friend, your own profile or the **triggering user** of a trigger, and they return text that fits straight into a message or a bundled message list.
 * New **bundled message list** block under **Get Info**. Stack several Get Info blocks in it and they are sent as one message, one entry per line.
 * It grows a new slot as soon as you fill the last one, and fits into **send notification**, **send notification "Info:"**, **send to webhook** and **send to webhook "Info:"**.
+* Two more **Get Info** blocks go with it: a plain **text** block for typing your own words, and an **and** block that glues two values into one line, so an entry can read `Avatar: Cute - Ayrina`.
 * New **cooldown** block under **Logic**. Runs its branch right away, then blocks it for the given number of seconds, so a trigger that fires often cannot spam an action. The **cooldown / else** variant additionally runs an else branch while the cooldown is still active.
 * New **wait for** and **wait until** blocks under **Logic**. Both are C shaped with a **then do** branch.
 * **wait for** takes a number block and runs its branch after that many seconds. **wait until** takes a condition plus a **true/false** block and runs its branch as soon as the condition matches, checking once per second.
