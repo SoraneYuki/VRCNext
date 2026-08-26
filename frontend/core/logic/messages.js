@@ -1139,6 +1139,9 @@ case 'vrcNews':
             case 'oscParam':
                 handleOscParam(payload);
                 break;
+            case 'oscParams':
+                handleOscParamBatch(payload);
+                break;
             case 'oscAvatarParams':
                 handleOscAvatarParams(payload);
                 break;

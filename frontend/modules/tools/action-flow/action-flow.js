@@ -35,6 +35,9 @@ const TASK_EXEMPT_TYPES = new Set([
     'af_send_webhook_value',
     'af_send_advanced_webhook',
     'af_set_feature',
+    'af_osc_set_bool',
+    'af_osc_set_float',
+    'af_osc_set_int',
     'af_close_vrchat',
 ]);
 const ACTION_TYPES = new Set([
@@ -59,6 +62,9 @@ const ACTION_TYPES = new Set([
     'af_send_webhook_value',
     'af_send_advanced_webhook',
     'af_set_feature',
+    'af_osc_set_bool',
+    'af_osc_set_float',
+    'af_osc_set_int',
 ]);
 
 const aft  = (k, f) => (typeof t  === 'function' ? t ('action_flow.' + k, f)        : f);
@@ -90,11 +96,31 @@ const AF_FEATURES = [
         () => snipeToggle(), () => sendToCS({ action: 'vrcStopSnipe' })],
 ];
 const afFeatureLabel = (id, fallback) => aft('feature.' + id, fallback);
+/* Picker listing the parameters the OSC Tool discovered for the current avatar.
+   Choosing one writes it into the block's own path field; the field itself stays
+   free text so custom VRChat OSC addresses such as /input/Jump still work. */
+const OSC_PICK_PLACEHOLDER = '';
+function oscParamPicker(wantType) {
+    return () => {
+        const head = [[aft('osc.pick', '(pick parameter)'), OSC_PICK_PLACEHOLDER]];
+        try {
+            if (typeof oscParams !== 'undefined' && oscParams) {
+                const names = Object.keys(oscParams)
+                    .filter(n => !wantType || (oscParams[n] || {}).type === wantType)
+                    .sort((a, b) => a.localeCompare(b));
+                if (names.length) return head.concat(names.map(n => [n, n]));
+            }
+        } catch {}
+        return head.concat([[aft('osc.no_params', '(no OSC parameters loaded)'), OSC_PICK_PLACEHOLDER]]);
+    };
+}
+function oscPickValidator(newValue) {
+    if (!newValue) return OSC_PICK_PLACEHOLDER;
+    const src = this.getSourceBlock && this.getSourceBlock();
+    if (src) setTimeout(() => { try { src.setFieldValue(newValue, 'PARAM'); } catch {} }, 0);
+    return OSC_PICK_PLACEHOLDER;
+}
 const FEATURE_DROPDOWN_FACTORY = () => AF_FEATURES.map(x => [afFeatureLabel(x[0], x[1]), x[0]]);
-const BOOL_DROPDOWN_FACTORY = () => [
-    [aft('block.true',  'true'),  'true'],
-    [aft('block.false', 'false'), 'false'],
-];
 const aftf = (k, v, f) => (typeof tf === 'function' ? tf('action_flow.' + k, v || {}, f) : f);
 const STATUS_DROPDOWN_FACTORY = () => [
     [aft('status.online',         'Online'),         'active'],
@@ -724,17 +750,34 @@ function afDefineBlocks() {
     } };
 
     B.Blocks['af_set_feature'] = { init() {
-        this.appendDummyInput()
+        this.appendValueInput('STATE').setCheck('Boolean')
             .appendField(aft('action.set_feature', 'set feature'))
             .appendField(new B.FieldDropdown(FEATURE_DROPDOWN_FACTORY), 'FEATURE')
-            .appendField(aft('action.set_feature_to', 'to'))
-            .appendField(new B.FieldDropdown(BOOL_DROPDOWN_FACTORY), 'STATE');
+            .appendField(aft('action.set_feature_to', 'to'));
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(COLOR_VRCN);
         this.setTooltip(aft('action.set_feature_tooltip', 'Turns a VRCNext feature on or off. true starts it, false stops it. Does nothing when the feature is already in that state.'));
     } };
+
+    function makeOscSetBlock(typeName, labelKey, labelFallback, wantType, check) {
+        B.Blocks[typeName] = { init() {
+            this.appendValueInput('VALUE').setCheck(check)
+                .appendField(aft(labelKey, labelFallback))
+                .appendField('"').appendField(new B.FieldTextInput(''), 'PARAM').appendField('"')
+                .appendField(new B.FieldDropdown(oscParamPicker(wantType), oscPickValidator), 'PICK')
+                .appendField(aft('osc.to', 'to'));
+            this.setInputsInline(true);
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour(COLOR_VRCN);
+            this.setTooltip(aft('osc.tooltip', 'Sends an OSC value to VRChat. A plain name is sent as an avatar parameter, a path starting with / is sent as is, so addresses like /input/Jump or /chatbox/typing work too. Requires the OSC Tool to be connected.'));
+        } };
+    }
+    makeOscSetBlock('af_osc_set_bool',  'osc.set_bool',  'set OSC bool',    'bool',  'Boolean');
+    makeOscSetBlock('af_osc_set_float', 'osc.set_float', 'set OSC float',   'float', 'Number');
+    makeOscSetBlock('af_osc_set_int',   'osc.set_int',   'set OSC integer', 'int',   'Number');
 
     B.Blocks['af_send_webhook'] = { init() {
         this.appendDummyInput()
@@ -949,6 +992,9 @@ function afToolbox() {
             ]},
             { kind: 'category', name: aft('toolbox.vrcn_actions', 'VRCN Actions'), colour: COLOR_VRCN, contents: [
                 { kind: 'block', type: 'af_set_feature' },
+                { kind: 'block', type: 'af_osc_set_bool' },
+                { kind: 'block', type: 'af_osc_set_float' },
+                { kind: 'block', type: 'af_osc_set_int' },
             ]},
             { kind: 'category', name: aft('toolbox.other', 'Webhook Actions'), colour: COLOR_OTHER, contents: [
                 { kind: 'block', type: 'af_send_own_instance_info' },
@@ -2001,7 +2047,8 @@ function afExecAction(flow, block) {
         case 'af_set_feature': {
             /* Exempt from rate limit: toggles a local VRCNext feature, no VRChat API call. */
             const featId = String(f.FEATURE || '');
-            const want   = String(f.STATE || 'true') === 'true';
+            const stateIn = afInput(block, 'STATE');
+            const want   = stateIn ? !!afEvalValue(stateIn) : String(f.STATE || 'true') === 'true';
             const entry  = AF_FEATURES.find(x => x[0] === featId);
             if (!entry) { afLog('err', '[' + flow.name + '] ' + aft('log.feature_unknown', 'set feature skipped: unknown feature')); break; }
             const featLabel = afFeatureLabel(entry[0], entry[1]);
@@ -2022,6 +2069,36 @@ function afExecAction(flow, block) {
                 break;
             }
             afLog('ok', '[' + flow.name + '] ' + aftf('log.feature_set', { feature: featLabel, state: featState }, 'set ' + featLabel + ' to ' + featState));
+            break;
+        }
+        case 'af_osc_set_bool':
+        case 'af_osc_set_float':
+        case 'af_osc_set_int': {
+            /* Exempt from rate limit: OSC goes straight to VRChat over UDP, no API call. */
+            const oscPath = String(f.PARAM || '').trim();
+            if (!oscPath) { afLog('err', '[' + flow.name + '] ' + aft('log.osc_no_param', 'OSC send skipped: no parameter set')); break; }
+            if (typeof oscConnected === 'undefined' || !oscConnected) {
+                afLog('err', '[' + flow.name + '] ' + aft('log.osc_not_connected', 'OSC send skipped: OSC Tool is not connected'));
+                break;
+            }
+            const oscRaw  = afEvalValue(afInput(block, 'VALUE'));
+            const oscType = block.type === 'af_osc_set_bool' ? 'bool'
+                          : block.type === 'af_osc_set_float' ? 'float' : 'int';
+            const isRawAddress = oscPath.startsWith('/');
+            let oscValue;
+            if (oscType === 'bool') oscValue = !!oscRaw;
+            else if (oscType === 'float') {
+                oscValue = Number(oscRaw) || 0;
+                if (!isRawAddress) oscValue = Math.max(-1, Math.min(1, oscValue));
+            } else {
+                oscValue = Math.trunc(Number(oscRaw) || 0);
+                if (!isRawAddress) oscValue = Math.max(0, Math.min(255, oscValue));
+            }
+            if (typeof sendToCS === 'function') {
+                if (isRawAddress) sendToCS({ action: 'oscSendRaw', address: oscPath, type: oscType, value: oscValue });
+                else sendToCS({ action: 'oscSend', name: oscPath, type: oscType, value: oscValue });
+            }
+            afLog('ok', '[' + flow.name + '] ' + aftf('log.osc_sent', { param: oscPath, value: String(oscValue) }, 'OSC ' + oscPath + ' = ' + oscValue));
             break;
         }
         case 'af_close_vrchat': {

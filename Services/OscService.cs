@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -436,6 +436,25 @@ namespace VRCNext
                 _log($"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] SendRawBool error: {ex.Message}"); }
+        }
+
+        public void SendRawInt(string address, int value)
+        {
+            if (_sender == null) { _log("[OSC] SendRawInt: no sender"); return; }
+            try
+            {
+                var buf = new List<byte>();
+                WriteOscString(buf, address);
+                WriteOscString(buf, ",i");
+                buf.Add((byte)(value >> 24));
+                buf.Add((byte)(value >> 16));
+                buf.Add((byte)(value >> 8));
+                buf.Add((byte)(value));
+                var p = buf.ToArray();
+                int sent = _sender.Send(p, p.Length);
+                _log($"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
+            }
+            catch (Exception ex) { _log($"[OSC] SendRawInt error: {ex.Message}"); }
         }
 
         public void SendEyeHeight(float meters)

@@ -186,6 +186,10 @@ function handleOscState(data) {
     oscUpdateStatusText(total, live);
     oscApplyConnectButton();
 
+    if (oscConnected) {
+        sendToCS({ action: 'oscSetTabVisible', visible: !!document.getElementById('tab11')?.classList.contains('active') });
+    }
+
     if (!oscConnected) {
         oscParams = {};
         _oscBannerState = 'none';
@@ -246,6 +250,40 @@ function handleOscOutputsEnabled(data) {
         _oscEnableBtnMode = 'idle';
         oscApplyEnableOutputsButton();
     }, 3000);
+}
+
+/* Batched parameter updates. The backend coalesces VRChat's parameter stream and sends one
+   batch per interval, so the expensive status recount runs once per batch instead of per value.
+   When the OSC tab is not visible only the cached values are updated, no DOM work at all. */
+function handleOscParamBatch(payload) {
+    const list = (payload && payload.list) || [];
+    if (!list.length) return;
+    const render = !payload || payload.render !== false;
+    const search = render ? oscCurrentSearch() : '';
+
+    for (const data of list) {
+        const { name, value, type } = data;
+        const wasNew = !oscParams[name];
+        oscParams[name] = { value, type, live: true, hasOutput: true };
+        if (!render) continue;
+        if (search && !name.toLowerCase().includes(search)) continue;
+
+        const row = document.querySelector(`[data-osc-param="${CSS.escape(name)}"]`);
+        if (row) {
+            if (row.classList.contains('osc-row-pending')) row.classList.remove('osc-row-pending');
+            _updateOscParamRowEl(row, name, type, value);
+        } else if (wasNew) {
+            const empty = document.getElementById('oscEmptyMsg');
+            if (empty) empty.remove();
+            _insertOscParamRow(name, type, value, true);
+        }
+    }
+
+    if (render) _updateOscParamCount();
+    const total = Object.keys(oscParams).length;
+    let live = 0;
+    for (const k in oscParams) if (oscParams[k].live) live++;
+    oscUpdateStatusText(total, live);
 }
 
 function handleOscParam(data) {

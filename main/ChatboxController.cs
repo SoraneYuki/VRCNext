@@ -128,9 +128,8 @@ public class ChatboxController : IDisposable
             case "oscConnect":
                 {
                     _osc ??= new OscService(s => Invoke(() => _core.SendToJS("log", new { msg = s, color = "sec" })));
-                    _osc.SetParamCallback((name, val, type) => {
-                        try { Invoke(() => _core.SendToJS("oscParam", new { name, value = val, type })); } catch (Exception ex) { CrashHandler.WriteEntry("Osc.SetParamCallback", ex); }
-                    });
+                    _osc.SetParamCallback(QueueOscParam);
+                    StartOscFlushTimer();
                     _osc.SetAvatarChangeCallback((avatarId, paramDefs) => {
                         try
                         {
@@ -146,10 +145,7 @@ public class ChatboxController : IDisposable
                         _ = Task.Run(async () =>
                         {
                             // Try OSCQuery first; gets all live values instantly (VRChat v2023.3.1+)
-                            bool gotLive = await _osc.TryOscQueryAsync((name, val, type) =>
-                            {
-                                try { Invoke(() => _core.SendToJS("oscParam", new { name, value = val, type })); } catch (Exception ex) { CrashHandler.WriteEntry("Osc.TryOscQueryAsync", ex); }
-                            });
+                            bool gotLive = await _osc.TryOscQueryAsync(QueueOscParam);
                             // Fallback: load config file as pending params so the full list is visible
                             if (!gotLive)
                             {
@@ -167,6 +163,7 @@ public class ChatboxController : IDisposable
 
             case "oscDisconnect":
                 _osc?.Stop();
+                StopOscFlushTimer();
                 _core.SendToJS("oscState", new { connected = false });
                 break;
 
@@ -197,9 +194,14 @@ public class ChatboxController : IDisposable
                         {
                             if (pType == "float") _osc.SendRawFloat(address, msg["value"]?.Value<float>() ?? 0f);
                             else if (pType == "bool") _osc.SendRawBool(address, msg["value"]?.Value<bool>() ?? false);
+                            else if (pType == "int") _osc.SendRawInt(address, msg["value"]?.Value<int>() ?? 0);
                         }
                     }
                 }
+                break;
+
+            case "oscSetTabVisible":
+                _oscTabVisible = msg["visible"]?.Value<bool>() ?? true;
                 break;
 
             case "oscEnableOutputs":
@@ -210,6 +212,53 @@ public class ChatboxController : IDisposable
                 }
                 break;
         }
+    }
+
+    // OSC parameter coalescing
+    //
+    // VRChat streams avatar parameters continuously (visemes, gestures, velocity, ...), easily
+    // hundreds of messages per second. Forwarding each one to the WebView separately starved the
+    // UI thread. Updates are collected here and flushed as one batch on a fixed interval, keeping
+    // only the newest value per parameter.
+
+    private const int OscFlushIntervalMs = 100;
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (object Value, string Type)> _oscPending = new();
+    private System.Threading.Timer? _oscFlushTimer;
+    private volatile bool _oscTabVisible = true;
+
+    private void QueueOscParam(string name, object value, string type)
+    {
+        _oscPending[name] = (value, type);
+    }
+
+    private void StartOscFlushTimer()
+    {
+        if (_oscFlushTimer != null) return;
+        _oscFlushTimer = new System.Threading.Timer(_ => FlushOscParams(), null, OscFlushIntervalMs, OscFlushIntervalMs);
+    }
+
+    private void StopOscFlushTimer()
+    {
+        _oscFlushTimer?.Dispose();
+        _oscFlushTimer = null;
+        _oscPending.Clear();
+    }
+
+    private void FlushOscParams()
+    {
+        if (_oscPending.IsEmpty) return;
+        try
+        {
+            var batch = new List<object>(_oscPending.Count);
+            foreach (var key in _oscPending.Keys)
+            {
+                if (_oscPending.TryRemove(key, out var entry))
+                    batch.Add(new { name = key, value = entry.Value, type = entry.Type });
+            }
+            if (batch.Count == 0) return;
+            Invoke(() => _core.SendToJS("oscParams", new { list = batch, render = _oscTabVisible }));
+        }
+        catch (Exception ex) { CrashHandler.WriteEntry("Osc.FlushOscParams", ex); }
     }
 
     // Toggle (called from VR overlay)
