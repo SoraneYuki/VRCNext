@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using VRCNext.Services;
 using VRCNext.Services.Helpers;
 
@@ -276,6 +276,31 @@ public class ActionFlowController : IDisposable
                         var res = attachments.Count > 0
                             ? await _core.Webhook.PostEmbedWithFilesAsync(url, json, attachments)
                             : await _core.Webhook.PostJsonAsync(url, json);
+                        if (!res.Success)
+                            _core.SendToJS("log", new { msg = "[ActionFlow] webhook send failed: " + res.Error, color = "err" });
+                    }
+                    catch (Exception ex)
+                    {
+                        _core.SendToJS("log", new { msg = "[ActionFlow] webhook error: " + ex.Message, color = "err" });
+                    }
+                });
+                break;
+            }
+
+            case "afTextWebhook":
+            {
+                var twUrl = msg["url"]?.ToString();
+                var twText = msg["text"]?.ToString() ?? "";
+                if (string.IsNullOrWhiteSpace(twUrl)
+                    || !twUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                    || string.IsNullOrWhiteSpace(twText)) break;
+                if (twText.Length > 2000) twText = twText[..2000];
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var payload = new JObject { ["content"] = twText };
+                        var res = await _core.Webhook.PostJsonAsync(twUrl, payload.ToString(Newtonsoft.Json.Formatting.None));
                         if (!res.Success)
                             _core.SendToJS("log", new { msg = "[ActionFlow] webhook send failed: " + res.Error, color = "err" });
                     }

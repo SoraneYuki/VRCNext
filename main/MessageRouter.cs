@@ -3073,6 +3073,7 @@ public partial class AppShell
                 case "afGetGameRunning":
                 case "afSendChatMessage":
                 case "afInstanceWebhook":
+                case "afTextWebhook":
                     _afCtrl.HandleMessage(action, msg);
                     break;
 

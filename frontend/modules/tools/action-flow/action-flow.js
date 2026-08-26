@@ -30,6 +30,9 @@ const TASK_EXEMPT_TYPES = new Set([
     'af_send_own_instance_info',
     'af_send_own_advanced_instance_info',
     'af_send_friend_instance_info',
+    'af_send_webhook',
+    'af_send_webhook_value',
+    'af_send_advanced_webhook',
     'af_close_vrchat',
 ]);
 const ACTION_TYPES = new Set([
@@ -50,6 +53,9 @@ const ACTION_TYPES = new Set([
     'af_send_own_instance_info',
     'af_send_own_advanced_instance_info',
     'af_send_friend_instance_info',
+    'af_send_webhook',
+    'af_send_webhook_value',
+    'af_send_advanced_webhook',
 ]);
 
 const aft  = (k, f) => (typeof t  === 'function' ? t ('action_flow.' + k, f)        : f);
@@ -657,6 +663,43 @@ function afDefineBlocks() {
         this.setTooltip(aft('action.send_friend_instance_info_tooltip', 'Sends a friend instance info to a Discord webhook. Keep friend on (any friend) to use the friend from a "when a friend joins an instance" trigger.'));
     } };
 
+    B.Blocks['af_send_webhook'] = { init() {
+        this.appendDummyInput()
+            .appendField(aft('action.send_webhook', 'send to webhook'))
+            .appendField('"').appendField(new B.FieldTextInput(''), 'WEBHOOK').appendField('"').appendField(aft('action.webhook_hint', 'discord webhook url'))
+            .appendField('"').appendField(new B.FieldTextInput(aft('action.send_webhook_default', 'Hello')), 'TEXT').appendField('"');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLOR_OTHER);
+        this.setTooltip(aft('action.send_webhook_tooltip', 'Sends your text to a Discord webhook. Useful for long term logging instead of a temporary notification.'));
+    } };
+
+    B.Blocks['af_send_webhook_value'] = { init() {
+        this.appendDummyInput()
+            .appendField(aft('action.send_webhook', 'send to webhook'))
+            .appendField('"').appendField(new B.FieldTextInput(''), 'WEBHOOK').appendField('"').appendField(aft('action.webhook_hint', 'discord webhook url'));
+        this.appendValueInput('VALUE');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLOR_OTHER);
+        this.setTooltip(aft('action.send_webhook_value_tooltip', 'Sends the value of the attached Get Info block to a Discord webhook.'));
+    } };
+
+    B.Blocks['af_send_advanced_webhook'] = { init() {
+        this.appendDummyInput()
+            .appendField(aft('action.send_webhook', 'send to webhook'))
+            .appendField('"').appendField(new B.FieldTextInput(''), 'WEBHOOK').appendField('"').appendField(aft('action.webhook_hint', 'discord webhook url'))
+            .appendField('"').appendField(new B.FieldTextInput(aft('action.send_advanced_webhook_default', 'Info:')), 'TEXT').appendField('"');
+        this.appendValueInput('VALUE');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLOR_OTHER);
+        this.setTooltip(aft('action.send_advanced_webhook_tooltip', 'Sends your own text followed by the value of the attached Get Info block to a Discord webhook.'));
+    } };
+
     B.Blocks['af_switch_avatar_id'] = { init() {
         this.appendDummyInput()
             .appendField(aft('action.switch_to_avatar', 'switch to avatar'))
@@ -834,6 +877,9 @@ function afToolbox() {
                 { kind: 'block', type: 'af_send_own_instance_info' },
                 { kind: 'block', type: 'af_send_own_advanced_instance_info' },
                 { kind: 'block', type: 'af_send_friend_instance_info' },
+                { kind: 'block', type: 'af_send_webhook' },
+                { kind: 'block', type: 'af_send_webhook_value' },
+                { kind: 'block', type: 'af_send_advanced_webhook' },
             ]},
         ],
     };
@@ -1854,6 +1900,25 @@ function afExecAction(flow, block) {
             afShowFlowNotificationCard(flow.name, text);
             if (typeof sendToCS === 'function') sendToCS({ action: 'afTrayNotify', title: flow.name, subtitle: text, accent: 'info' });
             afLog('ok', '[' + flow.name + '] ' + aftf('log.notify', { text }, 'notify "' + text + '"'));
+            break;
+        }
+        case 'af_send_webhook':
+        case 'af_send_webhook_value':
+        case 'af_send_advanced_webhook': {
+            /* Exempt from rate limit: no VRChat API call, just an outgoing webhook post. */
+            const url = String(f.WEBHOOK || '').trim();
+            if (!/^https:\/\//i.test(url)) { afLog('err', '[' + flow.name + '] ' + aft('log.webhook_missing_text', 'webhook skipped: missing or invalid webhook url')); break; }
+            let text = String(f.TEXT || '');
+            if (block.type !== 'af_send_webhook') {
+                const raw = afEvalValue(afInput(block, 'VALUE'));
+                const val = (raw === null || raw === undefined) ? ''
+                          : (typeof raw === 'object' ? String(raw.id || '') : String(raw));
+                const lead = block.type === 'af_send_advanced_webhook' ? text : '';
+                text = (lead ? lead + ' ' + val : val).trim();
+            }
+            if (!text) { afLog('err', '[' + flow.name + '] ' + aft('log.webhook_skipped', 'webhook skipped: nothing to send')); break; }
+            if (typeof sendToCS === 'function') sendToCS({ action: 'afTextWebhook', url, text, flow: flow.name });
+            afLog('ok', '[' + flow.name + '] ' + aftf('log.webhook_sent', { text }, 'sent to webhook "' + text + '"'));
             break;
         }
         case 'af_close_vrchat': {

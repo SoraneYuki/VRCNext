@@ -1,5 +1,9 @@
 **2026.46.5**
 
+**Action Flow**
+* #153 New **send to webhook** blocks under **Other Actions**. They work exactly like the send notification blocks, but post to a Discord webhook instead, which makes them suitable for long term logging.
+* Three variants: your own text, the value of an attached **Get Info** block, or your own text followed by that value.
+
 **Improvements**
 
 **Changes**
