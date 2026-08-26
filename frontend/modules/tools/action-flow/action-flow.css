@@ -292,3 +292,11 @@
 }
 .af-cond-remove { padding: 2px 4px !important; }
 .af-cond-remove:hover { color: var(--err) !important; border-color: var(--err) !important; }
+
+.af-nc-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}

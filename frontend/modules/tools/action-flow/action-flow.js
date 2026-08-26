@@ -964,7 +964,9 @@ function afDefineBlocks() {
 
     function makeFriendInfoBlock(typeName, labelKey, labelFallback, tipKey, tipFallback) {
         B.Blocks[typeName] = { init() {
-            this.appendValueInput('USER').setCheck('User').appendField(aft(labelKey, labelFallback));
+            this.appendDummyInput()
+                .appendField(aft(labelKey, labelFallback))
+                .appendField(new B.FieldDropdown(friendDropdownAny), 'FRIEND_ID');
             this.setOutput(true, 'String');
             this.setInputsInline(true);
             this.setColour(COLOR_FRIEND);
@@ -972,13 +974,23 @@ function afDefineBlocks() {
         } };
     }
     makeFriendInfoBlock('af_friend_status',      'friend_info.status',      "friend's status is",
-                        'friend_info.status_tooltip',      'The status of the attached user: Online, Ask Me, Do Not Disturb or Join Me.');
+                        'friend_info.status_tooltip',      'The status of the picked friend: Online, Ask Me, Do Not Disturb or Join Me.');
     makeFriendInfoBlock('af_friend_status_text', 'friend_info.status_text', "friend's status text is",
-                        'friend_info.status_text_tooltip', 'The status text the attached user wrote under their status.');
+                        'friend_info.status_text_tooltip', 'The status text the picked friend wrote under their status.');
     makeFriendInfoBlock('af_friend_world',       'friend_info.world',       "friend's current world is",
-                        'friend_info.world_tooltip',       'The world the attached user is in. Empty when they are offline or in a private instance.');
+                        'friend_info.world_tooltip',       'The world the picked friend is in. Empty when they are offline or in a private instance.');
     makeFriendInfoBlock('af_friend_presence',    'friend_info.presence',    "friend is",
-                        'friend_info.presence_tooltip',    'Whether the attached user is In Game, Active on Website or Offline.');
+                        'friend_info.presence_tooltip',    'Whether the picked friend is In Game, Active on Website or Offline.');
+
+    B.Blocks['af_friend_icon'] = { init() {
+        this.appendDummyInput()
+            .appendField(aft('friend_info.icon', "friend's icon"))
+            .appendField(new B.FieldDropdown(friendDropdownAny), 'FRIEND_ID');
+        this.setOutput(true, 'Icon');
+        this.setInputsInline(true);
+        this.setColour(COLOR_FRIEND);
+        this.setTooltip(aft('friend_info.icon_tooltip', "Uses the friend's profile picture as the image of the message. Works in send notification and send to webhook, and shows up in the in-app card, the system tray notification, the VR overlay and the Discord webhook."));
+    } };
 
     const INFO_BLOCKS = [
         ['af_get_world_name',     'info.world_name',     'current world name',     'info.world_name_tooltip',     'Name of the world you are currently in.'],
@@ -1060,6 +1072,7 @@ function afToolbox() {
                 { kind: 'block', type: 'af_friend_status_text' },
                 { kind: 'block', type: 'af_friend_world' },
                 { kind: 'block', type: 'af_friend_presence' },
+                { kind: 'block', type: 'af_friend_icon' },
                 { kind: 'block', type: 'af_get_world_name' },
                 { kind: 'block', type: 'af_get_avatar_name' },
                 { kind: 'block', type: 'af_get_instance_name' },
@@ -2310,12 +2323,13 @@ function afExecAction(flow, block) {
         case 'af_send_advanced_notification': {
             const raw = afEvalValue(afInput(block, 'VALUE'));
             const val = (raw === null || raw === undefined) ? ''
-                      : (typeof raw === 'object' ? String(raw.id || '') : String(raw));
+                      : afValueText(raw);
             const lead = block.type === 'af_send_advanced_notification' ? String(f.TEXT || '') : '';
             const text = (lead ? lead + ' ' + val : val).trim();
-            if (!text) { afLog('err', '[' + flow.name + '] ' + aft('log.notify_skipped', 'notification skipped: nothing to send')); break; }
-            afShowFlowNotificationCard(flow.name, text);
-            if (typeof sendToCS === 'function') sendToCS({ action: 'afTrayNotify', title: flow.name, subtitle: text, accent: 'info' });
+            const icon = afFindIcon(afInput(block, 'VALUE'));
+            if (!text && !icon) { afLog('err', '[' + flow.name + '] ' + aft('log.notify_skipped', 'notification skipped: nothing to send')); break; }
+            afShowFlowNotificationCard(flow.name, text, icon);
+            if (typeof sendToCS === 'function') sendToCS({ action: 'afTrayNotify', title: flow.name, subtitle: text, accent: 'info', imageUrl: icon ? icon.url : '', friendId: icon ? icon.id : '' });
             afLog('ok', '[' + flow.name + '] ' + aftf('log.notify', { text }, 'notify "' + text + '"'));
             break;
         }
@@ -2328,12 +2342,16 @@ function afExecAction(flow, block) {
             if (block.type !== 'af_send_webhook') {
                 const raw = afEvalValue(afInput(block, 'VALUE'));
                 const val = (raw === null || raw === undefined) ? ''
-                          : (typeof raw === 'object' ? String(raw.id || '') : String(raw));
+                          : afValueText(raw);
                 const lead = block.type === 'af_send_advanced_webhook' ? text : '';
                 text = (lead ? lead + ' ' + val : val).trim();
             }
-            if (!text) { afLog('err', '[' + flow.name + '] ' + aft('log.webhook_skipped', 'webhook skipped: nothing to send')); break; }
-            if (typeof sendToCS === 'function') sendToCS({ action: 'afTextWebhook', url, text, flow: flow.name });
+            const hookIcon = afFindIcon(afInput(block, 'VALUE'));
+            if (!text && !hookIcon) { afLog('err', '[' + flow.name + '] ' + aft('log.webhook_skipped', 'webhook skipped: nothing to send')); break; }
+            if (typeof sendToCS === 'function') sendToCS({
+                action: 'afTextWebhook', url, text, flow: flow.name,
+                iconUserId: hookIcon ? hookIcon.id : '', iconUrl: hookIcon ? hookIcon.url : '',
+            });
             afLog('ok', '[' + flow.name + '] ' + aftf('log.webhook_sent', { text }, 'sent to webhook "' + text + '"'));
             break;
         }
@@ -2501,12 +2519,37 @@ function afInputStatement(block, name) {
     return block.inputs && block.inputs[name] && block.inputs[name].block;
 }
 
+function afFindIcon(block, depth) {
+    if (!block || (depth || 0) > 6) return null;
+    if (block.type === 'af_friend_icon') {
+        const val = afEvalValue(block);
+        return (val && val.__afIcon) ? val : null;
+    }
+    const inputs = block.inputs || {};
+    for (const name of Object.keys(inputs)) {
+        const child = inputs[name] && inputs[name].block;
+        const hit = afFindIcon(child, (depth || 0) + 1);
+        if (hit) return hit;
+    }
+    return null;
+}
+
+function afFriendFromField(f) {
+    const id = String((f && f.FRIEND_ID) || '').trim();
+    if (id) return afLookupUser(id) || afContext.triggeringUser || null;
+    return afContext.triggeringUser || null;
+}
+
+function afValueText(val) {
+    if (val === null || val === undefined) return '';
+    if (typeof val !== 'object') return String(val);
+    if (val.__afIcon) return '';
+    return String(val.displayName || val.name || val.id || '');
+}
+
 function afBundleText(child) {
     if (!child) return '';
-    const val = afEvalValue(child);
-    if (val === null || val === undefined) return '';
-    if (typeof val === 'object') return String(val.displayName || val.name || val.id || '');
-    return String(val);
+    return afValueText(afEvalValue(child));
 }
 
 function afEvalValue(block) {
@@ -2522,17 +2565,22 @@ function afEvalValue(block) {
             return lines.join('\n');
         }
         case 'af_text': return String(f.TEXT || '');
+        case 'af_friend_icon': {
+            const u = afFriendFromField(f);
+            if (!u) return null;
+            return { __afIcon: true, id: String(u.id || ''), url: String(u.image || '') };
+        }
         case 'af_friend_status': {
-            const u = afEvalUser(afInput(block, 'USER'));
+            const u = afFriendFromField(f);
             if (!u) return '';
             return vrcStatusLabel(u.status || '');
         }
         case 'af_friend_status_text': {
-            const u = afEvalUser(afInput(block, 'USER'));
+            const u = afFriendFromField(f);
             return u ? String(u.statusDescription || '') : '';
         }
         case 'af_friend_world': {
-            const u = afEvalUser(afInput(block, 'USER'));
+            const u = afFriendFromField(f);
             if (!u) return '';
             const loc = String(u.location || '');
             if (!loc || loc === 'offline' || loc === 'private' || loc === 'traveling') return '';
@@ -2540,7 +2588,7 @@ function afEvalValue(block) {
             return afWorldNameFor(worldId, u._worldName);
         }
         case 'af_friend_presence': {
-            const u = afEvalUser(afInput(block, 'USER'));
+            const u = afFriendFromField(f);
             if (!u) return aft('friend_info.presence_offline', 'Offline');
             const p = String(u.presence || '');
             if (p === 'game') return aft('friend_info.presence_game', 'In Game');
@@ -2867,14 +2915,17 @@ window.afDeleteSelected = function () {
     if (sel && typeof sel.dispose === 'function') sel.dispose(true);
 };
 
-function afShowFlowNotificationCard(flowName, text) {
+function afShowFlowNotificationCard(flowName, text, icon) {
     const area = document.getElementById('notifCardArea');
     if (!area) return;
     const card = document.createElement('div');
     card.className = 'nc-card';
+    const iconHtml = (icon && icon.url)
+        ? '<img class="nc-icon af-nc-avatar" src="' + afEsc(icon.url) + '" alt="">'
+        : '<span class="msi nc-icon" style="color:var(--accent);">auto_awesome</span>';
     card.innerHTML =
         '<div class="nc-inner">' +
-            '<span class="msi nc-icon" style="color:var(--accent);">auto_awesome</span>' +
+            iconHtml +
             '<div class="nc-body">' +
                 '<div class="nc-title"><strong>' + afEsc(flowName) + '</strong></div>' +
                 (text ? '<div class="nc-sub">' + afEsc(text) + '</div>' : '') +

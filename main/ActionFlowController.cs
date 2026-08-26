@@ -97,14 +97,16 @@ public class ActionFlowController : IDisposable
                 var title    = msg["title"]?.ToString()    ?? "Action Flow";
                 var subtitle = msg["subtitle"]?.ToString() ?? "";
                 var accent   = msg["accent"]?.ToString()   ?? "info";
+                var imageUrl = msg["imageUrl"]?.ToString() ?? "";
+                var friendId = msg["friendId"]?.ToString() ?? "";
 
 #if WINDOWS
                 var tray = TrayServiceProvider?.Invoke();
-                tray?.ShowNotification(title, subtitle, "", accent);
+                tray?.ShowNotification(title, subtitle, imageUrl, accent);
 
                 var notifTime = DateTimeHelper.FormatTime(DateTime.Now);
-                _core.VrOverlay?.AddNotification("notif_actionflow", title, subtitle, notifTime);
-                _core.VrOverlay?.EnqueueToast("notif_actionflow", title, subtitle, notifTime, "", false);
+                _core.VrOverlay?.AddNotification("notif_actionflow", title, subtitle, notifTime, imageUrl, friendId);
+                _core.VrOverlay?.EnqueueToast("notif_actionflow", title, subtitle, notifTime, imageUrl, false, friendId);
 #endif
                 break;
             }
@@ -291,14 +293,47 @@ public class ActionFlowController : IDisposable
             {
                 var twUrl = msg["url"]?.ToString();
                 var twText = msg["text"]?.ToString() ?? "";
+                var twIconUserId = msg["iconUserId"]?.ToString() ?? "";
+                var twIconUrl    = msg["iconUrl"]?.ToString() ?? "";
                 if (string.IsNullOrWhiteSpace(twUrl)
                     || !twUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-                    || string.IsNullOrWhiteSpace(twText)) break;
+                    || (string.IsNullOrWhiteSpace(twText) && string.IsNullOrWhiteSpace(twIconUserId))) break;
                 if (twText.Length > 2000) twText = twText[..2000];
                 _ = Task.Run(async () =>
                 {
                     try
                     {
+                        if (!string.IsNullOrEmpty(twIconUserId))
+                        {
+                            var embed = new JObject { ["color"] = 0x7B61FF };
+                            if (!string.IsNullOrWhiteSpace(twText)) embed["description"] = twText;
+                            var attachments = new List<(string Path, string Name)>();
+                            var iconFile = ImageCacheHelper.GetUserCached(twIconUserId);
+                            if (iconFile == null && twIconUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                            {
+                                try { iconFile = await ImageCacheHelper.CacheUserAsync(twIconUserId, twIconUrl); } catch { }
+                            }
+                            if (iconFile != null && File.Exists(iconFile))
+                            {
+                                var ext = Path.GetExtension(iconFile);
+                                if (string.IsNullOrEmpty(ext)) ext = ".png";
+                                var name = "icon" + ext;
+                                embed["thumbnail"] = new JObject { ["url"] = "attachment://" + name };
+                                attachments.Add((iconFile, name));
+                            }
+                            else if (twIconUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                            {
+                                embed["thumbnail"] = new JObject { ["url"] = twIconUrl };
+                            }
+                            var embedPayload = new JObject { ["embeds"] = new JArray { embed } };
+                            var embedJson = embedPayload.ToString(Newtonsoft.Json.Formatting.None);
+                            var embedRes = attachments.Count > 0
+                                ? await _core.Webhook.PostEmbedWithFilesAsync(twUrl, embedJson, attachments)
+                                : await _core.Webhook.PostJsonAsync(twUrl, embedJson);
+                            if (!embedRes.Success)
+                                _core.SendToJS("log", new { msg = "[ActionFlow] webhook send failed: " + embedRes.Error, color = "err" });
+                            return;
+                        }
                         var payload = new JObject { ["content"] = twText };
                         var res = await _core.Webhook.PostJsonAsync(twUrl, payload.ToString(Newtonsoft.Json.Formatting.None));
                         if (!res.Success)
