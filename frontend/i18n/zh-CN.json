@@ -350,6 +350,7 @@
   "timeline.detail.url": "链接",
   "timeline.detail.instance_type": "实例类型",
   "timeline.detail.instance_id": "实例 ID",
+  "timeline.detail.instance_creator": "实例创建者",
   "timeline.detail.server": "服务器",
   "regions.short.eu": "EU",
   "regions.short.us": "USW",

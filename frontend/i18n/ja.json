@@ -350,6 +350,7 @@
   "timeline.detail.url": "URL",
   "timeline.detail.instance_type": "インスタンスタイプ",
   "timeline.detail.instance_id": "インスタンスID",
+  "timeline.detail.instance_creator": "インスタンス作成者",
   "timeline.detail.server": "サーバー",
   "regions.short.eu": "EU",
   "regions.short.us": "USW",

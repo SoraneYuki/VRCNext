@@ -1,13 +1,15 @@
-**2026.46.2**
-
-**HOTFIX**
-* Fix "My Avatar" limit. remove limit of 500 and set it to 10000
+**2026.46.4**
 
 **Create Groups**
 * New **Create Group** button next to the filter bar in **Groups > My Groups**. Set name, short code, description, join state, privacy and role template, and pick an icon and banner from your VRChat inventory, using the same picker as Select Icon and Select Banner Photo.
 * The image picker now has an **Upload** button. New images go through the inventory upload flow, so icon (1:1) and photo rules are applied before uploading.
 * The modal shows a live preview of the group card while you type, so you can see how the group will look before creating it.
 * Creating groups requires **VRChat+**. Without it VRCNext shows an error instead of sending the request, and any VRChat error is shown as well.
+
+**Timeline**
+* The detail modal now shows an **Instance Creator** row under **Instance ID**, in **Personal > Instance** and in **Friends > Location**.
+* The creator name is clickable and opens that user's profile, or the group modal for group instances.
+* The creator is read from the instance location, so it is only available for non-public instances. Public instances do not carry an owner.
 
 **Help/Support**
 * New **Taskbar > Help > Export Debug Kit**. Pick a folder and VRCNext bundles the 5 newest crash logs, the 5 newest VRCNext logs and the 2 newest VRChat logs into `vrcn-log-dd-mm-yyyy.zip`, then opens the folder so the file is ready to attach to a bug report.
@@ -28,6 +30,7 @@
 * New **Groups** tab next to Worlds and Persons. It shows how long you spent in each group's instances and how many times you joined them, with the same ranking, search and paging as the other two.
 * All three group instance types count towards it: **Group**, **Group+** and **Group Public**.
 * This starts collecting from now on. Group time was never stored before, only world time, so past sessions cannot be shown and the tab fills up as you play.
+* Store instance owner in Personal > Instances/Location Modals.
 
 **FrameShot**
 * FrameShot now scans the framed area for **QR codes** while you hold the frame. When one is found, the frame turns green, a sound plays and the detected target is shown inside the frame.
@@ -123,3 +126,5 @@
 * Improved avatar submitting to VRCNDb. Avatar IDs are now also collected live from the VRChat log, including avatars that were blocked by your performance settings (AssetBundleDownloadManager), and sent in batches of 40 instead of only after a quiet period. The log that already exists when VRCNext starts is included.
 * Fixed the friends sidebar showing **Online 0** and **No friends online** after being logged out. It now shows the login prompt again, and the red warning icon when collapsed.
 * Fixed an issue when deleting a group it was still in the group list.
+* Fixed "My Avatar" limit. remove limit of 500 and set it to 10000
+* Fixed "Instance creator" was missing because i forgot to push this to the latest version.

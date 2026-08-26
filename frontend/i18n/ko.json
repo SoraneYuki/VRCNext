@@ -348,6 +348,7 @@
   "timeline.detail.url": "URL",
   "timeline.detail.instance_type": "인스턴스 종류",
   "timeline.detail.instance_id": "인스턴스 ID",
+  "timeline.detail.instance_creator": "인스턴스 생성자",
   "timeline.detail.server": "서버",
   "regions.short.eu": "EU",
   "regions.short.us": "USW",
