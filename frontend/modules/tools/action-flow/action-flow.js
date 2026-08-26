@@ -1232,10 +1232,7 @@ function afOnWorkspaceChange(ev) {
     if (afAutoSaveSuppressed) return;
 
     const flow = afFlows.find(f => f.id === afCurrentFlowId);
-    if (flow && afWorkspace) {
-        afCancelWaits(flow.id);
-        flow.workspace = window.Blockly.serialization.workspaces.save(afWorkspace);
-    }
+    if (flow && afWorkspace) flow.workspace = window.Blockly.serialization.workspaces.save(afWorkspace);
     afUpdateActionCounter();
     afApplyActionLockState();
     afScheduleAutoSave();
@@ -1469,6 +1466,7 @@ function afRunNow() {
     const flow = afFlows.find(f => f.id === afCurrentFlowId);
     if (!flow) { if (typeof showToast === 'function') showToast(false, aft('toast.no_flow_selected', 'No flow selected')); return; }
     if (afWorkspace) flow.workspace = window.Blockly.serialization.workspaces.save(afWorkspace);
+    afCancelWaits(flow.id);
     delete afTriggerState[flow.id];
     afLog('info', '[' + flow.name + '] ' + aft('log.manual_run', 'manual run, firing all triggers'));
     const ws = flow.workspace;
@@ -1929,10 +1927,16 @@ function afCancelWaits(flowId) {
     }
 }
 
-function afRunWaitBranch(flow, block, ctx) {
-    afWaitPending.delete(block);
+function afWaitFlowGone(flow, wasEnabled) {
     const live = afFlows.find(x => x.id === flow.id);
-    if (!live || !live.enabled) return;
+    if (!live) return true;
+    return wasEnabled && !live.enabled;
+}
+
+function afRunWaitBranch(flow, block, ctx, wasEnabled) {
+    afWaitPending.delete(block);
+    if (afWaitFlowGone(flow, wasEnabled)) return;
+    const live = afFlows.find(x => x.id === flow.id) || flow;
     const prevCtx = afContext;
     afContext = ctx;
     try { afExecStatements(live, afInputStatement(block, 'DO')); }
@@ -1941,7 +1945,8 @@ function afRunWaitBranch(flow, block, ctx) {
 
 function afStartWaitFor(flow, block, secs) {
     const ctx = { ...afContext };
-    const timer = setTimeout(() => afRunWaitBranch(flow, block, ctx), secs * 1000);
+    const wasEnabled = !!flow.enabled;
+    const timer = setTimeout(() => afRunWaitBranch(flow, block, ctx, wasEnabled), secs * 1000);
     afWaitPending.set(block, { timer, flowId: flow.id });
 }
 
@@ -1952,6 +1957,7 @@ function afWaitUntilMatches(block) {
 
 function afStartWaitUntil(flow, block) {
     const ctx = { ...afContext };
+    const wasEnabled = !!flow.enabled;
     const startedAt = Date.now();
     const timer = setInterval(() => {
         if (Date.now() - startedAt > AF_WAIT_TIMEOUT_MS) {
@@ -1960,8 +1966,7 @@ function afStartWaitUntil(flow, block) {
             afLog('err', '[' + flow.name + '] ' + aft('log.wait_timeout', 'wait until gave up: condition stayed false'));
             return;
         }
-        const live = afFlows.find(x => x.id === flow.id);
-        if (!live || !live.enabled) {
+        if (afWaitFlowGone(flow, wasEnabled)) {
             clearInterval(timer);
             afWaitPending.delete(block);
             return;
@@ -1974,7 +1979,7 @@ function afStartWaitUntil(flow, block) {
         finally { afContext = prevCtx; }
         if (!ok) return;
         clearInterval(timer);
-        afRunWaitBranch(flow, block, ctx);
+        afRunWaitBranch(flow, block, ctx, wasEnabled);
     }, AF_WAIT_POLL_MS);
     afWaitPending.set(block, { timer, flowId: flow.id });
 }
