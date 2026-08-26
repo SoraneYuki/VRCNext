@@ -1,8 +1,9 @@
-****2026.45.7****
+****2026.45.8****
 
 **Hotfix Changes**
 * Removed cell filtering visuals on seatch lists.
 * Improved avatar submitting to VRCNDb. Avatar IDs are now also collected live from the VRChat log, including avatars that were blocked by your performance settings (AssetBundleDownloadManager), and sent in batches of 40 instead of only after a quiet period. The log that already exists when VRCNext starts is included.
+* Fixed the friends sidebar showing **Online 0** and **No friends online** after being logged out. It now shows the login prompt again, and the red warning icon when collapsed.
 
 ****Log Viewer****
 * New ****Taskbar > Tools > VRChat > Log Viewer****. Pick any of your VRChat log files and read them as a proper table with ****Time****, ****Level****, ****Category**** and ****Message****.

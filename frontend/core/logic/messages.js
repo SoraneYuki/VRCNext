@@ -279,7 +279,6 @@ window.external.receiveMessage(rawMsg => {
                 renderVrcProfile(payload);
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);
                 if (payload.currentAvatar) currentAvatarId = payload.currentAvatar;
-                document.getElementById('vrcLoginPrompt') && (document.getElementById('vrcLoginPrompt').style.display = 'none');
                 // Login state is reflected in the Accounts tab now that the old login card is gone.
                 if (typeof requestAccountsList === 'function') requestAccountsList();
                 if (typeof updateTbAppUserHeader === 'function') updateTbAppUserHeader();
@@ -372,7 +371,6 @@ window.external.receiveMessage(rawMsg => {
                 vrcFriendsLoaded = false;
                 renderVrcProfile(null);
                 { const _fl = document.getElementById('vrcFriendsList'); _fl.innerHTML = ''; _fl.__lastHtml = null; }
-                document.getElementById('vrcLoginPrompt') && (document.getElementById('vrcLoginPrompt').style.display = '');
                 { _hasVrcPlus = false; _hasVrcCredits = false; applyTbBadgeVisibility(); }
                 if (typeof updateTbAppUserHeader === 'function') updateTbAppUserHeader();
                 break;
