@@ -26,7 +26,11 @@ function openImagePicker(type, targetId) {
                     <div style="grid-column:1/-1;text-align:center;padding:20px;font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${t('common.loading', 'Loading...')}</div>
                 </div>
             </div>
-            <div class="gp-modal-footer">
+            <div class="gp-modal-footer" style="display:flex;align-items:center;gap:8px;">
+                <button class="vrcn-button" id="imagePickerUpload" onclick="imagePickerUpload()">
+                    <span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">upload</span>${t('inventory.actions.upload', 'Upload')}
+                </button>
+                <span style="flex:1;"></span>
                 <button class="vrcn-button-round vrcn-btn-join" id="imagePickerApply" disabled onclick="applyImagePicker()" style="opacity:.45;">
                     <span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">check</span>${t('common.apply', 'Apply')}
                 </button>
@@ -68,6 +72,19 @@ function selectPickerImage(el, url, fileId) {
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
 }
 
+function imagePickerUpload() {
+    if (!_pickerContext || typeof openInvUploadModal !== 'function') return;
+    const isIcon = _pickerContext.type.endsWith('-icon');
+    const tag = isIcon ? 'icon' : 'gallery';
+    openInvUploadModal(isIcon ? 'icons' : 'photos', file => {
+        if (!document.getElementById('imagePickerOverlay') || !_pickerContext) return;
+        const files = (typeof invFilesCache !== 'undefined' && invFilesCache[tag]) || [file];
+        _renderImagePickerGrid(files);
+        const el = document.querySelector(`#imagePickerGrid img[data-file-id="${CSS.escape(file.id || '')}"]`);
+        if (el) selectPickerImage(el, file.fileUrl || '', file.id || '');
+    });
+}
+
 function closeImagePicker() {
     const overlay = document.getElementById('imagePickerOverlay');
     if (overlay) overlay.remove();
@@ -87,6 +104,8 @@ function refreshImagePickerTranslations() {
     if (titleEl) { titleEl.textContent = newTitle; titleEl.title = newTitle; }
     const closeBtn = overlay.querySelector('.fd-modal-bar-actions .fd-action-btn');
     if (closeBtn) closeBtn.title = t('common.close', 'Close');
+    const uploadBtn = document.getElementById('imagePickerUpload');
+    if (uploadBtn) uploadBtn.innerHTML = `<span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">upload</span>${t('inventory.actions.upload', 'Upload')}`;
     const applyBtn = document.getElementById('imagePickerApply');
     if (applyBtn) applyBtn.innerHTML = `<span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">check</span>${t('common.apply', 'Apply')}`;
     const grid = document.getElementById('imagePickerGrid');

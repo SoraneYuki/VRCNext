@@ -2,6 +2,7 @@
 
 **Create Groups**
 * New **Create Group** button next to the filter bar in **Groups > My Groups**. Set name, short code, description, join state, privacy and role template, and pick an icon and banner from your VRChat inventory, using the same picker as Select Icon and Select Banner Photo.
+* The image picker now has an **Upload** button. New images go through the inventory upload flow, so icon (1:1) and photo rules are applied before uploading.
 * The modal shows a live preview of the group card while you type, so you can see how the group will look before creating it.
 * Creating groups requires **VRChat+**. Without it VRCNext shows an error instead of sending the request, and any VRChat error is shown as well.
 
