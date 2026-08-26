@@ -1,8 +1,4 @@
-**2026.46.5**
-
-**Space Turn**
-
-**Space Sync**
+**2026.46.6**
 
 **Action Flow**
 * New **set OSC bool**, **set OSC float** and **set OSC integer** blocks under **VRCN Actions**. Enter a parameter name or pick one detected by the **OSC Tool** for your current avatar.
