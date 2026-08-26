@@ -218,3 +218,8 @@
     overflow-x: hidden;
     padding: 12px 18px 18px;
 }
+
+.tl-creator-link {
+    color: var(--accent-lt);
+    cursor: pointer;
+}

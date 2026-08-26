@@ -64,6 +64,56 @@ function openTlDetail(id, stacked) {
 function _tlMr(label, val) {
     return `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:calc(11px + var(--fs-off, 0px));"><span style="color:var(--tx3);">${label}</span><span style="color:var(--tx1);text-align:right;">${val}</span></div>`;
 }
+function _tlCreatorName(ownerId) {
+    if (typeof currentVrcUser !== 'undefined' && currentVrcUser && currentVrcUser.id === ownerId)
+        return currentVrcUser.displayName || '';
+    if (typeof vrcFriendsData !== 'undefined')
+        return (vrcFriendsData.find(f => f.id === ownerId) || {}).displayName || '';
+    return '';
+}
+
+function _tlCreatorRow(loc) {
+    const { ownerId } = parseFriendLocation(loc || '');
+    if (!ownerId) return '';
+    const label = esc(t('timeline.detail.instance_creator', 'Instance Creator'));
+    if (ownerId.startsWith('grp_')) {
+        const cached = (typeof dashGroupCache !== 'undefined' && dashGroupCache[ownerId]) || null;
+        const gName = (cached && cached.name)
+            || (typeof myGroups !== 'undefined' ? (myGroups.find(g => g.id === ownerId) || {}).name : '')
+            || '';
+        if (gName)
+            return _tlMr(label, `<span class="tl-creator-link" onclick="navOpenModal('group','${jsq(ownerId)}','${jsq(gName)}')">${esc(gName)}</span>`);
+        sendToCS({ action: 'vrcResolveGroups', groupIds: [ownerId] });
+        return _tlMr(label, `<span id="tlCreatorSlot" data-owner-id="${esc(ownerId)}" style="color:var(--tx3);">${esc(t('common.loading', 'Loading...'))}</span>`);
+    }
+    if (!ownerId.startsWith('usr_')) return '';
+    const name = _tlCreatorName(ownerId);
+    if (name)
+        return _tlMr(label, `<span class="tl-creator-link" onclick="navOpenModal('friend','${jsq(ownerId)}','${jsq(name)}')">${esc(name)}</span>`);
+    sendToCS({ action: 'vrcGetUserBasic', userId: ownerId, contextId: 'tlCreator' });
+    return _tlMr(label, `<span id="tlCreatorSlot" data-owner-id="${esc(ownerId)}" style="color:var(--tx3);">${esc(t('common.loading', 'Loading...'))}</span>`);
+}
+
+function _tlCreatorFill(type, id, name) {
+    const slot = document.getElementById('tlCreatorSlot');
+    if (!slot || slot.dataset.ownerId !== id) return;
+    if (!name) { slot.textContent = t('timeline.unknown', 'Unknown'); return; }
+    slot.outerHTML = `<span class="tl-creator-link" onclick="navOpenModal('${type}','${jsq(id)}','${jsq(name)}')">${esc(name)}</span>`;
+}
+
+function tlOnCreatorResolved(payload) {
+    if (!payload) return;
+    _tlCreatorFill('friend', payload.id, payload.displayName || '');
+}
+
+function tlOnCreatorGroupResolved(payload) {
+    const slot = document.getElementById('tlCreatorSlot');
+    if (!slot || !payload || typeof payload !== 'object') return;
+    const entry = payload[slot.dataset.ownerId];
+    if (!entry) return;
+    _tlCreatorFill('group', slot.dataset.ownerId, entry.name || '');
+}
+
 function _tlInfoCard(title, rowsHtml) {
     return `<div class="fd-info-card"><div class="fd-group-rep-label">${title}</div><div style="display:grid;gap:6px;">${rowsHtml}</div></div>`;
 }
@@ -238,6 +288,7 @@ function renderTlDetailJoin(ev, el) {
         _tlMr(esc(t('timeline.detail.instance_type', 'Instance Type')), `<span class="vrcn-badge ${instCls}">${instLabel}</span>`),
         regionCode ? _tlMr(esc(t('timeline.detail.server', 'Server')), `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">language</span>${esc(getRegionShortLabel(regionCode))}</span>`) : '',
         instanceId ? _tlMr(esc(t('timeline.detail.instance_id', 'Instance ID')), `<span style="font-family:monospace;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">#${esc(instanceId)}</span>`) : '',
+        _tlCreatorRow(loc),
     ].filter(Boolean).join('');
 
     const canCopyLink = !!(ev.location && ev.location.indexOf(':') > 0 && ev.location.startsWith('wrld_'));
@@ -537,6 +588,7 @@ function renderFtGpsDetailModal(ev) {
         _tlMr(esc(t('timeline.detail.instance_type', 'Instance Type')), `<span class="vrcn-badge ${instCls}">${instLabel}</span>`),
         regionCode ? _tlMr(esc(t('timeline.detail.server', 'Server')), `<span class="vrcn-badge"><span class="msi" style="font-size:10px;">language</span>${esc(getRegionShortLabel(regionCode))}</span>`) : '',
         instanceId ? _tlMr(esc(t('timeline.detail.instance_id', 'Instance ID')), `<span style="font-family:monospace;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">#${esc(instanceId)}</span>`) : '',
+        _tlCreatorRow(loc),
         _tlMr(esc(t('timeline.detail.event', 'Event')), `<span style="color:var(--tx2);">${esc(tf('timeline.detail.friend_joined_world', { name: ev.friendName || t('timeline.unknown', 'Unknown') }, `${ev.friendName || 'Unknown'} joined this world`))}</span>`),
     ].filter(Boolean).join(''));
 

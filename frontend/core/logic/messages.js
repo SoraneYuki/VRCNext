@@ -394,6 +394,7 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcUserBasic':
                 if (typeof handleUserBasic === 'function') handleUserBasic(payload);
                 if (typeof pinsOnUserBasic === 'function') pinsOnUserBasic(payload);
+                if (typeof tlOnCreatorResolved === 'function') tlOnCreatorResolved(payload);
                 break;
             case 'vrcAvatarByFileId': handleAvatarByFileId(payload); break;
             case 'vrcAvatarInfo': handleAvatarByFileId(payload); break;
@@ -950,6 +951,7 @@ window.external.receiveMessage(rawMsg => {
                 if (payload && typeof payload === 'object') {
                     Object.assign(dashGroupCache, payload);
                     renderDashboard();
+                    if (typeof tlOnCreatorGroupResolved === 'function') tlOnCreatorGroupResolved(payload);
                 }
                 break;
 case 'vrcNews':
