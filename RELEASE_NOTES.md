@@ -1,4 +1,6 @@
-**2026.46.1**
+**2026.46.2**
+
+**HOTFIX**
 
 **Create Groups**
 * New **Create Group** button next to the filter bar in **Groups > My Groups**. Set name, short code, description, join state, privacy and role template, and pick an icon and banner from your VRChat inventory, using the same picker as Select Icon and Select Banner Photo.
