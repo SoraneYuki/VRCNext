@@ -279,6 +279,28 @@ function afDefineBlocks() {
         this.setTooltip(aft('block.if_tooltip', 'If the condition is true, run the do branch.'));
     } };
 
+    B.Blocks['af_wait_for'] = { init() {
+        this.appendValueInput('SECS').setCheck('Number').appendField(aft('block.wait_for', 'wait for'));
+        this.appendDummyInput().appendField(aft('block.wait_seconds', 'seconds'));
+        this.appendStatementInput('DO').appendField(aft('block.then_do', 'then do'));
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLOR_LOGIC);
+        this.setTooltip(aft('block.wait_for_tooltip', 'Runs the branch after the given number of seconds. Blocks below this one keep running right away. Only one wait per block can be pending at a time.'));
+    } };
+
+    B.Blocks['af_wait_until'] = { init() {
+        this.appendValueInput('COND').setCheck('Boolean').appendField(aft('block.wait_until', 'wait until'));
+        this.appendValueInput('STATE').setCheck('Boolean').appendField(aft('block.wait_is', 'is'));
+        this.appendStatementInput('DO').appendField(aft('block.then_do', 'then do'));
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLOR_LOGIC);
+        this.setTooltip(aft('block.wait_until_tooltip', 'Checks the condition every second and runs the branch once it matches the attached true/false block. Gives up after 30 minutes. Blocks below this one keep running right away.'));
+    } };
+
     B.Blocks['af_if_else'] = { init() {
         this.appendValueInput('IF0').setCheck('Boolean').appendField(aft('block.if', 'if'));
         this.appendStatementInput('DO0').appendField(DO);
@@ -907,6 +929,8 @@ function afToolbox() {
             { kind: 'category', name: aft('toolbox.logic', 'Logic'), colour: COLOR_LOGIC, contents: [
                 { kind: 'block', type: 'af_if' },
                 { kind: 'block', type: 'af_if_else' },
+                { kind: 'block', type: 'af_wait_for' },
+                { kind: 'block', type: 'af_wait_until' },
                 { kind: 'block', type: 'af_compare' },
                 { kind: 'block', type: 'af_and' },
                 { kind: 'block', type: 'af_or' },
@@ -1208,7 +1232,10 @@ function afOnWorkspaceChange(ev) {
     if (afAutoSaveSuppressed) return;
 
     const flow = afFlows.find(f => f.id === afCurrentFlowId);
-    if (flow && afWorkspace) flow.workspace = window.Blockly.serialization.workspaces.save(afWorkspace);
+    if (flow && afWorkspace) {
+        afCancelWaits(flow.id);
+        flow.workspace = window.Blockly.serialization.workspaces.save(afWorkspace);
+    }
     afUpdateActionCounter();
     afApplyActionLockState();
     afScheduleAutoSave();
@@ -1391,6 +1418,7 @@ function afDeleteFlow() {
         confirmLabel: t('common.delete', 'Delete'),
         onConfirm: () => {
             afFlows = afFlows.filter(f => f.id !== flow.id);
+            afCancelWaits();
             delete afTriggerState[flow.id];
             afCurrentFlowId = afFlows[0]?.id || null;
             afRenderFlowSelect();
@@ -1887,6 +1915,70 @@ function afExtractUserId(payload) {
     return payload.userId || payload.id || payload.senderUserId || (payload.user && payload.user.id) || null;
 }
 
+const AF_WAIT_POLL_MS   = 1000;
+const AF_WAIT_TIMEOUT_MS = 30 * 60 * 1000;
+const AF_WAIT_MAX_SECS   = 3600;
+const afWaitPending = new Map();
+
+function afCancelWaits(flowId) {
+    for (const [block, handle] of afWaitPending) {
+        if (flowId && handle.flowId !== flowId) continue;
+        clearTimeout(handle.timer);
+        clearInterval(handle.timer);
+        afWaitPending.delete(block);
+    }
+}
+
+function afRunWaitBranch(flow, block, ctx) {
+    afWaitPending.delete(block);
+    const live = afFlows.find(x => x.id === flow.id);
+    if (!live || !live.enabled) return;
+    const prevCtx = afContext;
+    afContext = ctx;
+    try { afExecStatements(live, afInputStatement(block, 'DO')); }
+    finally { afContext = prevCtx; }
+}
+
+function afStartWaitFor(flow, block, secs) {
+    const ctx = { ...afContext };
+    const timer = setTimeout(() => afRunWaitBranch(flow, block, ctx), secs * 1000);
+    afWaitPending.set(block, { timer, flowId: flow.id });
+}
+
+function afWaitUntilMatches(block) {
+    const want = afInput(block, 'STATE') ? !!afEvalValue(afInput(block, 'STATE')) : true;
+    return !!afEvalValue(afInput(block, 'COND')) === want;
+}
+
+function afStartWaitUntil(flow, block) {
+    const ctx = { ...afContext };
+    const startedAt = Date.now();
+    const timer = setInterval(() => {
+        if (Date.now() - startedAt > AF_WAIT_TIMEOUT_MS) {
+            clearInterval(timer);
+            afWaitPending.delete(block);
+            afLog('err', '[' + flow.name + '] ' + aft('log.wait_timeout', 'wait until gave up: condition stayed false'));
+            return;
+        }
+        const live = afFlows.find(x => x.id === flow.id);
+        if (!live || !live.enabled) {
+            clearInterval(timer);
+            afWaitPending.delete(block);
+            return;
+        }
+        let ok = false;
+        const prevCtx = afContext;
+        afContext = ctx;
+        try { ok = afWaitUntilMatches(block); }
+        catch { ok = false; }
+        finally { afContext = prevCtx; }
+        if (!ok) return;
+        clearInterval(timer);
+        afRunWaitBranch(flow, block, ctx);
+    }, AF_WAIT_POLL_MS);
+    afWaitPending.set(block, { timer, flowId: flow.id });
+}
+
 function afExecStatements(flow, block) {
     let cur = block;
     while (cur) {
@@ -1946,6 +2038,31 @@ function afExecAction(flow, block) {
         case 'af_if_else': {
             const branch = afEvalValue(afInput(block, 'IF0')) ? 'DO0' : 'ELSE';
             afExecStatements(flow, afInputStatement(block, branch));
+            return;
+        }
+        case 'af_wait_for': {
+            if (afWaitPending.has(block)) {
+                afLog('info', '[' + flow.name + '] ' + aft('log.wait_busy', 'wait skipped: this block is already waiting'));
+                return;
+            }
+            const secs = Math.max(0, Math.min(AF_WAIT_MAX_SECS, Number(afEvalValue(afInput(block, 'SECS'))) || 0));
+            if (!afInputStatement(block, 'DO')) return;
+            afStartWaitFor(flow, block, secs);
+            afLog('ok', '[' + flow.name + '] ' + aftf('log.wait_started', { secs: String(secs) }, 'waiting ' + secs + 's'));
+            return;
+        }
+        case 'af_wait_until': {
+            if (afWaitPending.has(block)) {
+                afLog('info', '[' + flow.name + '] ' + aft('log.wait_busy', 'wait skipped: this block is already waiting'));
+                return;
+            }
+            if (!afInputStatement(block, 'DO')) return;
+            if (afWaitUntilMatches(block)) {
+                afExecStatements(flow, afInputStatement(block, 'DO'));
+                return;
+            }
+            afStartWaitUntil(flow, block);
+            afLog('ok', '[' + flow.name + '] ' + aft('log.wait_until_started', 'waiting until the condition becomes true'));
             return;
         }
         case 'af_set_condition': {
@@ -2605,6 +2722,7 @@ window.afBuildBlockContextMenu = function (target) {
 window.__afHandleMessage = function (action, payload) {
     switch (action) {
         case 'afFlows':
+            afCancelWaits();
             afFlows = Array.isArray(payload?.flows) ? payload.flows : [];
             for (const f of afFlows) {
                 if (!f.id) f.id = afNewId();

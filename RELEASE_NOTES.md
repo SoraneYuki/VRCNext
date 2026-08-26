@@ -1,6 +1,9 @@
-**2026.46.6**
+**2026.46.7**
 
 **Action Flow**
+* New **wait for** and **wait until** blocks under **Logic**. Both are C shaped with a **then do** branch.
+* **wait for** takes a number block and runs its branch after that many seconds. **wait until** takes a condition plus a **true/false** block and runs its branch as soon as the condition matches, checking once per second.
+* Blocks placed below a wait keep running right away, so a wait never blocks the rest of the flow. Each block can only have one wait pending at a time, and pending waits are dropped when the flow is edited, disabled or deleted.
 * New **set OSC bool**, **set OSC float** and **set OSC integer** blocks under **VRCN Actions**. Enter a parameter name or pick one detected by the **OSC Tool** for your current avatar.
 * Parameter names are sent as avatar parameters. Paths starting with / are sent unchanged, allowing custom addresses such as `/input/Jump` or `/chatbox/typing`. Values use the **true/false** and **number** blocks from **Logic**.
 * #147 New **is favorite (group) friend** block under **Friends**. Check whether a user is part of one of your VRChat favorite groups or VRCNext local groups.
