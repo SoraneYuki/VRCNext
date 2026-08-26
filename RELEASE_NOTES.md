@@ -1,6 +1,7 @@
 **2026.46.7**
 
 **Action Flow**
+* New **cooldown** block under **Logic**. Runs its branch right away, then blocks it for the given number of seconds, so a trigger that fires often cannot spam an action. The **cooldown / else** variant additionally runs an else branch while the cooldown is still active.
 * New **wait for** and **wait until** blocks under **Logic**. Both are C shaped with a **then do** branch.
 * **wait for** takes a number block and runs its branch after that many seconds. **wait until** takes a condition plus a **true/false** block and runs its branch as soon as the condition matches, checking once per second.
 * Blocks placed below a wait keep running right away, so a wait never blocks the rest of the flow. Each block can only have one wait pending at a time, and pending waits are dropped when the flow is edited, disabled or deleted.

@@ -290,6 +290,29 @@ function afDefineBlocks() {
         this.setTooltip(aft('block.wait_for_tooltip', 'Runs the branch after the given number of seconds. Blocks below this one keep running right away. Only one wait per block can be pending at a time.'));
     } };
 
+    B.Blocks['af_cooldown'] = { init() {
+        this.appendValueInput('SECS').setCheck('Number').appendField(aft('block.cooldown', 'cooldown'));
+        this.appendDummyInput().appendField(aft('block.wait_seconds', 'seconds'));
+        this.appendStatementInput('DO').appendField(aft('block.then_do', 'then do'));
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLOR_LOGIC);
+        this.setTooltip(aft('block.cooldown_tooltip', 'Runs the branch right away, then blocks it for the given number of seconds. Use it to stop a trigger that fires often from spamming an action.'));
+    } };
+
+    B.Blocks['af_cooldown_else'] = { init() {
+        this.appendValueInput('SECS').setCheck('Number').appendField(aft('block.cooldown', 'cooldown'));
+        this.appendDummyInput().appendField(aft('block.wait_seconds', 'seconds'));
+        this.appendStatementInput('DO').appendField(aft('block.then_do', 'then do'));
+        this.appendStatementInput('ELSE').appendField(aft('block.else', 'else'));
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLOR_LOGIC);
+        this.setTooltip(aft('block.cooldown_else_tooltip', 'Like cooldown, but the else branch runs while the cooldown is still active.'));
+    } };
+
     B.Blocks['af_wait_until'] = { init() {
         this.appendValueInput('COND').setCheck('Boolean').appendField(aft('block.wait_until', 'wait until'));
         this.appendValueInput('STATE').setCheck('Boolean').appendField(aft('block.wait_is', 'is'));
@@ -931,6 +954,8 @@ function afToolbox() {
                 { kind: 'block', type: 'af_if_else' },
                 { kind: 'block', type: 'af_wait_for' },
                 { kind: 'block', type: 'af_wait_until' },
+                { kind: 'block', type: 'af_cooldown' },
+                { kind: 'block', type: 'af_cooldown_else' },
                 { kind: 'block', type: 'af_compare' },
                 { kind: 'block', type: 'af_and' },
                 { kind: 'block', type: 'af_or' },
@@ -1238,8 +1263,41 @@ function afOnWorkspaceChange(ev) {
     afScheduleAutoSave();
 }
 
+const AF_COOLDOWN_TYPES = new Set(['af_cooldown', 'af_cooldown_else']);
+let afCooldownVisualTimer = null;
+
+function afCooldownIdsActive() {
+    const now = Date.now();
+    const ids = new Set();
+    for (const entry of afCooldowns.values()) {
+        if (entry.until > now && entry.blockId) ids.add(entry.blockId);
+    }
+    return ids;
+}
+
+function afRefreshCooldownVisuals() {
+    if (!afWorkspace) {
+        if (afCooldownVisualTimer) { clearInterval(afCooldownVisualTimer); afCooldownVisualTimer = null; }
+        return;
+    }
+    const active = afCooldownIdsActive();
+    for (const b of afWorkspace.getAllBlocks(false)) {
+        if (!AF_COOLDOWN_TYPES.has(b.type)) continue;
+        const svg = typeof b.getSvgRoot === 'function' ? b.getSvgRoot() : null;
+        if (!svg) continue;
+        svg.classList.toggle('af-cooldown-active', active.has(b.id));
+    }
+    if (active.size > 0 && !afCooldownVisualTimer) {
+        afCooldownVisualTimer = setInterval(afRefreshCooldownVisuals, 500);
+    } else if (active.size === 0 && afCooldownVisualTimer) {
+        clearInterval(afCooldownVisualTimer);
+        afCooldownVisualTimer = null;
+    }
+}
+
 function afApplyActionLockState() {
     if (!afWorkspace) return;
+    afRefreshCooldownVisuals();
     const overAction  = afCountActions() > FLOW_ACTION_LIMIT;
     const overTrigger = afCountGlobalTriggers() > TRIGGER_LIMIT;
     /* Task rate visual lock turns EVERY block (action + trigger) red across the
@@ -1416,6 +1474,7 @@ function afDeleteFlow() {
         onConfirm: () => {
             afFlows = afFlows.filter(f => f.id !== flow.id);
             afCancelWaits();
+            afResetCooldowns(flow.id);
             delete afTriggerState[flow.id];
             afCurrentFlowId = afFlows[0]?.id || null;
             afRenderFlowSelect();
@@ -1917,6 +1976,7 @@ const AF_WAIT_POLL_MS   = 1000;
 const AF_WAIT_TIMEOUT_MS = 30 * 60 * 1000;
 const AF_WAIT_MAX_SECS   = 3600;
 const afWaitPending = new Map();
+const afCooldowns = new Map();
 
 function afCancelWaits(flowId) {
     for (const [block, handle] of afWaitPending) {
@@ -1924,6 +1984,17 @@ function afCancelWaits(flowId) {
         clearTimeout(handle.timer);
         clearInterval(handle.timer);
         afWaitPending.delete(block);
+    }
+}
+
+function afCooldownKey(flow, block) {
+    return flow.id + ':' + (block.id || '');
+}
+
+function afResetCooldowns(flowId) {
+    for (const [key, entry] of afCooldowns) {
+        if (flowId && entry.flowId !== flowId) continue;
+        afCooldowns.delete(key);
     }
 }
 
@@ -2054,6 +2125,27 @@ function afExecAction(flow, block) {
             if (!afInputStatement(block, 'DO')) return;
             afStartWaitFor(flow, block, secs);
             afLog('ok', '[' + flow.name + '] ' + aftf('log.wait_started', { secs: String(secs) }, 'waiting ' + secs + 's'));
+            return;
+        }
+        case 'af_cooldown':
+        case 'af_cooldown_else': {
+            const branch = afInputStatement(block, 'DO');
+            const elseBranch = afInputStatement(block, 'ELSE');
+            if (!branch && !elseBranch) return;
+            const cdSecs = Math.max(0, Math.min(AF_WAIT_MAX_SECS, Number(afEvalValue(afInput(block, 'SECS'))) || 0));
+            const cdKey = afCooldownKey(flow, block);
+            const prev = afCooldowns.get(cdKey);
+            const now = Date.now();
+            if (prev && now - prev.at < cdSecs * 1000) {
+                const left = Math.ceil((cdSecs * 1000 - (now - prev.at)) / 1000);
+                afLog('info', '[' + flow.name + '] ' + aftf('log.cooldown_active', { secs: String(left) }, 'cooldown active, ' + left + 's left'));
+                if (elseBranch) afExecStatements(flow, elseBranch);
+                return;
+            }
+            if (!branch) return;
+            afCooldowns.set(cdKey, { at: now, flowId: flow.id, until: now + cdSecs * 1000, blockId: block.id || '' });
+            afRefreshCooldownVisuals();
+            afExecStatements(flow, branch);
             return;
         }
         case 'af_wait_until': {
@@ -2728,6 +2820,7 @@ window.__afHandleMessage = function (action, payload) {
     switch (action) {
         case 'afFlows':
             afCancelWaits();
+            afResetCooldowns();
             afFlows = Array.isArray(payload?.flows) ? payload.flows : [];
             for (const f of afFlows) {
                 if (!f.id) f.id = afNewId();

@@ -209,6 +209,15 @@
     fill: #ffe5e5 !important;
 }
 
+.af-blockly-host .af-cooldown-active > .blocklyPath {
+    fill: #cc2a2a !important;
+    stroke: #ff5555 !important;
+    stroke-width: 2px !important;
+}
+.af-blockly-host .af-cooldown-active .blocklyText {
+    fill: #ffe5e5 !important;
+}
+
 /* ---- Conditions sidebar panel — pinned to the bottom-left of the editor
    card, sized to match the (now-widened) Blockly toolbox so it visually
    continues the toolbox column. ---- */
