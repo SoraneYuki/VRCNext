@@ -1,6 +1,8 @@
 **2026.46.5**
 
 **Action Flow**
+* #147 New **is favorite (group) friend** block under **Friends**. Attach a user and pick a favorite friend group to check whether that user is in it.
+* The dropdown lists your VRChat favorite groups and your VRCNext local groups, with local ones marked.
 * New **set feature** block under **VRCN Actions**. Pick a VRCNext feature and set it to true or false, allowing flows and conditions to control features automatically.
 * Supports **VR Overlay**, **KikitanXD**, **YouTube Fix**, **Discord Presence**, **Voice Fight**, **FrameShot**, **Space Flight**, **Custom Chatbox**, **Media Relay**, **Status Schedule** and **Event Snipe**.
 * The block checks the current state first, so nothing happens if the feature is already in the requested state.

@@ -163,6 +163,19 @@ function afDefineBlocks() {
         return [[aft('block.no_friends', '(no friends loaded)'), '']];
     };
     const friendDropdownAny = () => [[aft('block.any_friend', '(any friend)'), '']].concat(friendDropdown());
+    /* Favorite friend groups: VRChat groups (Group 1-3) and VRCNext local groups. */
+    const favFriendGroupDropdown = () => {
+        try {
+            if (typeof favFriendGroups !== 'undefined' && Array.isArray(favFriendGroups) && favFriendGroups.length) {
+                return favFriendGroups.map(g => {
+                    const local = (typeof isLocalFavGroup === 'function') && isLocalFavGroup(g);
+                    const name  = g.displayName || g.name;
+                    return [local ? name + ' ' + aft('block.local_suffix', '(local)') : name, g.name];
+                });
+            }
+        } catch {}
+        return [[aft('block.no_fav_groups', '(no favorite groups loaded)'), '']];
+    };
 
     function makeTriggerHat(typeName, labelFn) {
         B.Blocks[typeName] = { init() {
@@ -392,6 +405,17 @@ function afDefineBlocks() {
         this.setOutput(true, 'Boolean');
         this.setInputsInline(true);
         this.setColour(COLOR_PARAM);
+    } };
+
+    B.Blocks['af_is_favorite_friend'] = { init() {
+        this.appendValueInput('USER').setCheck('User')
+            .appendField(aft('friend.is_favorite', 'is favorite'))
+            .appendField(new B.FieldDropdown(favFriendGroupDropdown), 'FAV_GROUP')
+            .appendField(aft('friend.is_favorite_suffix', 'friend'));
+        this.setOutput(true, 'Boolean');
+        this.setInputsInline(true);
+        this.setColour(COLOR_PARAM);
+        this.setTooltip(aft('friend.is_favorite_tooltip', 'True when the user is in this favorite friend group. Works with both VRChat groups and VRCNext local groups.'));
     } };
 
     B.Blocks['af_invite_from_friend'] = { init() {
@@ -881,6 +905,7 @@ function afToolbox() {
                 { kind: 'block', type: 'af_user_obj' },
                 { kind: 'block', type: 'af_own_user' },
                 { kind: 'block', type: 'af_is_friend' },
+                { kind: 'block', type: 'af_is_favorite_friend' },
                 { kind: 'block', type: 'af_invite_from_friend' },
                 { kind: 'block', type: 'af_invite_request_from_friend' },
             ]},
@@ -2169,6 +2194,14 @@ function afEvalValue(block) {
             if (!u || !u.id) return false;
             if (typeof vrcFriendsData === 'undefined') return false;
             return vrcFriendsData.some(fr => fr.id === u.id);
+        }
+        case 'af_is_favorite_friend': {
+            const favUser = afEvalUser(afInput(block, 'USER'));
+            if (!favUser || !favUser.id) return false;
+            if (typeof favFriendsData === 'undefined' || !Array.isArray(favFriendsData)) return false;
+            const wantGroup = String(f.FAV_GROUP || '');
+            if (!wantGroup) return false;
+            return favFriendsData.some(fav => fav.favoriteId === favUser.id && fav.groupName === wantGroup);
         }
         case 'af_invite_from_friend':
             return afContext.triggerKind === 'invite'
