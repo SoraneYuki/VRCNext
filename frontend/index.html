@@ -33,6 +33,7 @@
     <link rel="stylesheet" href="modules/tools/chatbox/chatbox.css">
     <link rel="stylesheet" href="modules/tools/media-relay/media-relay.css">
     <link rel="stylesheet" href="modules/tools/space-flight/space-flight.css">
+    <link rel="stylesheet" href="modules/tools/space-turn/space-turn.css">
     <link rel="stylesheet" href="modules/tools/frame-shot/frame-shot.css">
     <link rel="stylesheet" href="modules/tools/osc-tool/osc-tool.css">
     <link rel="stylesheet" href="modules/tools/avatar-scaling/avatar-scaling.css">
@@ -221,6 +222,7 @@
                                     <div class="tb-dd-item" onclick="showTab(26)"><span class="msi">photo_camera</span><span data-i18n="nav.frame_shot">FrameShot</span></div>
                                     <div class="tb-dd-item" onclick="showTab(20)"><span class="msi">watch</span><span data-i18n="nav.vr_overlay">VR Overlay</span></div>
                                     <div class="tb-dd-item" onclick="showTab(10)"><span class="msi">rocket_launch</span><span data-i18n="nav.space_flight">Space Flight</span></div>
+                                    <div class="tb-dd-item" onclick="showTab(28)"><span class="msi">rotate_right</span><span data-i18n="nav.space_turn">Space Turn</span></div>
                                     <div class="tb-dd-item" onclick="showTab(5)"><span class="msi">chat</span><span data-i18n="nav.custom_chatbox">Custom Chatbox</span></div>
                                 </div>
                             </div>
@@ -296,6 +298,7 @@
                     <button class="tb-sidebar-btn" id="badgeRelay" title="Media Relay" data-i18n-title="nav.media_relay" onclick="toggleRelay()"><span class="msi">cell_tower</span></button>
                     <button class="tb-sidebar-btn" id="badgeChatbox" title="Custom Chatbox" data-i18n-title="nav.custom_chatbox" onclick="toggleChatbox()"><span class="msi">chat</span></button>
                     <button class="tb-sidebar-btn" id="badgeSpace" title="Space Flight" data-i18n-title="nav.space_flight" onclick="sfConnect()"><span class="msi">rocket_launch</span></button>
+                    <button class="tb-sidebar-btn" id="badgeSpaceTurn" title="Space Turn" data-i18n-title="nav.space_turn" onclick="stConnect()"><span class="msi">rotate_right</span></button>
                     <button class="tb-sidebar-btn" id="badgeFrameShot" title="FrameShot" data-i18n-title="nav.frame_shot" onclick="fsConnect()"><span class="msi">photo_camera</span></button>
                     <button class="tb-sidebar-btn" id="badgeVoice" title="Voice Fight" data-i18n-title="nav.voice_fight" onclick="if(!vfRunning)vfOnTabOpen();vfConnect()"><span class="msi">mic</span></button>
                     <button class="tb-sidebar-btn" id="badgeDp" title="Discord Presence" data-i18n-title="nav.discord_presence" onclick="dpToggle()"><span class="msi">sensors</span></button>
@@ -446,6 +449,8 @@
 
             <!-- Tab 27: Status Schedule -->
             <div class="tab" id="tab27"></div>
+            <!-- Tab 28: Space Turn -->
+            <div class="tab" id="tab28" data-windows-only></div>
 
         </div>
     </div>
@@ -757,6 +762,7 @@
             tab25: 'modules/tools/action-flow/action-flow.html',
             tab26: 'modules/tools/frame-shot/frame-shot.html',
             tab27: 'modules/tools/status-schedule/status-schedule.html',
+            tab28: 'modules/tools/space-turn/space-turn.html',
         };
 
         const modalFragments = {
@@ -842,6 +848,7 @@
             'modules/tools/chatbox/chatbox.js',
             'core/VRInput/vr-input.js',
             'modules/tools/space-flight/space-flight.js',
+            'modules/tools/space-turn/space-turn.js',
             'modules/tools/frame-shot/frame-shot.js',
             'modules/tools/osc-tool/osc-tool.js',
             'modules/timeline/list-table.js',

@@ -2068,6 +2068,27 @@ public class AuthController
                 _core.Settings.SfRightGravityButton = SfIn("sfRightGravityBtn", _core.Settings.SfRightGravityButton);
             }
             _core.Settings.SfGravity = data["sfGravity"]?.Value<float>() ?? 9.8f;
+
+            // Space Turn settings
+            _core.Settings.StMultiplier  = data["stMultiplier"]?.Value<float>()  ?? _core.Settings.StMultiplier;
+            _core.Settings.StSnapDegrees = data["stSnapDegrees"]?.Value<float>() ?? _core.Settings.StSnapDegrees;
+            _core.Settings.StInvert      = data["stInvert"]?.Value<bool>()       ?? _core.Settings.StInvert;
+            _core.Settings.StSmoothing   = data["stSmoothing"]?.Value<float>()   ?? _core.Settings.StSmoothing;
+            _core.Settings.StAutoStartVR = data["stAutoStartVR"]?.Value<bool>()  ?? _core.Settings.StAutoStartVR;
+            if (vrIdx)
+            {
+                _core.Settings.StIdxLeftTurnButton   = SfIn("stLeftTurnBtn",   _core.Settings.StIdxLeftTurnButton);
+                _core.Settings.StIdxRightTurnButton  = SfIn("stRightTurnBtn",  _core.Settings.StIdxRightTurnButton);
+                _core.Settings.StIdxLeftResetButton  = SfIn("stLeftResetBtn",  _core.Settings.StIdxLeftResetButton);
+                _core.Settings.StIdxRightResetButton = SfIn("stRightResetBtn", _core.Settings.StIdxRightResetButton);
+            }
+            else
+            {
+                _core.Settings.StLeftTurnButton   = SfIn("stLeftTurnBtn",   _core.Settings.StLeftTurnButton);
+                _core.Settings.StRightTurnButton  = SfIn("stRightTurnBtn",  _core.Settings.StRightTurnButton);
+                _core.Settings.StLeftResetButton  = SfIn("stLeftResetBtn",  _core.Settings.StLeftResetButton);
+                _core.Settings.StRightResetButton = SfIn("stRightResetBtn", _core.Settings.StRightResetButton);
+            }
             _core.Settings.ChatboxAutoStart = data["chatboxAutoStart"]?.Value<bool>() ?? false;
             _core.Settings.SfAutoStart = data["sfAutoStart"]?.Value<bool>() ?? false;
             _core.Settings.DiscordPresenceAutoStart = data["discordPresenceAutoStart"]?.Value<bool>() ?? false;

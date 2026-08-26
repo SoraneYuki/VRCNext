@@ -86,6 +86,7 @@ function saveSettings() {
     }
     const _vriReady = typeof vriLoaded !== 'undefined' && vriLoaded;
     const _sfCur = _vriReady && typeof sfReadBtns === 'function' ? sfReadBtns() : {};
+    const _stCur = _vriReady && typeof stReadBtns === 'function' ? stReadBtns() : {};
     const _fsCur = _vriReady && typeof fsReadBtns === 'function' ? fsReadBtns() : {};
 
     const payload = {
@@ -172,6 +173,15 @@ function saveSettings() {
             sfRightGravityBtn:    _sfCur.sfRightGravity,
             ...(_vriReady ? { vrInputMode } : {}),
             sfGravity: parseFloat(document.getElementById('sfGravity')?.value) || 9.8,
+            stMultiplier:  parseFloat(document.getElementById('stMultiplier')?.value) || 1,
+            stSnapDegrees: parseFloat(document.getElementById('stSnapDegrees')?.value) || 0,
+            stInvert:      !!document.getElementById('stInvert')?.checked,
+            stSmoothing:   parseFloat(document.getElementById('stSmoothing')?.value) || 0,
+            stLeftTurnBtn:   _stCur.stLeftTurn,
+            stRightTurnBtn:  _stCur.stRightTurn,
+            stLeftResetBtn:  _stCur.stLeftReset,
+            stRightResetBtn: _stCur.stRightReset,
+            stAutoStartVR:   document.getElementById('setStAutoStartVR')?.checked ?? false,
             chatboxAutoStart: false, // legacy
             chatboxAutoStartVR:       document.getElementById('setCbAutoStartVR')?.checked        ?? false,
             chatboxAutoStartDesktop:  document.getElementById('setCbAutoStartDesktop')?.checked   ?? false,
@@ -708,11 +718,51 @@ function loadSettingsToUI(s) {
     }
     if (typeof sfRenderKeybind === 'function') sfRenderKeybind();
 
+    // Restore Space Turn settings
+    const _stMult = document.getElementById('stMultiplier');
+    if (_stMult) {
+        _stMult.value = s.StMultiplier ?? s.stMultiplier ?? 1;
+        const _stMultV = document.getElementById('stMultVal');
+        if (_stMultV) _stMultV.textContent = _stMult.value + 'x';
+    }
+    const _stSnap = document.getElementById('stSnapDegrees');
+    if (_stSnap) {
+        _stSnap.value = String(s.StSnapDegrees ?? s.stSnapDegrees ?? 0);
+        if (_stSnap._vnRefresh) _stSnap._vnRefresh();
+    }
+    const _stSmo = document.getElementById('stSmoothing');
+    if (_stSmo) {
+        _stSmo.value = s.StSmoothing ?? s.stSmoothing ?? 0;
+        const _stSmoV = document.getElementById('stSmoothVal');
+        if (_stSmoV) _stSmoV.textContent = _stSmo.value + '%';
+    }
+    const _stInv = document.getElementById('stInvert');
+    if (_stInv) _stInv.checked = !!(s.StInvert ?? s.stInvert ?? false);
+    if (typeof _stOtherBtns !== 'undefined') {
+        const _stIdx = (s.VrInputMode ?? s.vrInputMode ?? 0) === 1;
+        const _stLegacySet = {
+            stLeftTurn:   s.StLeftTurnButton   ?? s.stLeftTurnButton   ?? 2,
+            stRightTurn:  s.StRightTurnButton  ?? s.stRightTurnButton  ?? 0,
+            stLeftReset:  s.StLeftResetButton  ?? s.stLeftResetButton  ?? 0,
+            stRightReset: s.StRightResetButton ?? s.stRightResetButton ?? 0,
+        };
+        const _stIndexSet = {
+            stLeftTurn:   s.StIdxLeftTurnButton   ?? s.stIdxLeftTurnButton   ?? 0,
+            stRightTurn:  s.StIdxRightTurnButton  ?? s.stIdxRightTurnButton  ?? 0,
+            stLeftReset:  s.StIdxLeftResetButton  ?? s.stIdxLeftResetButton  ?? 0,
+            stRightReset: s.StIdxRightResetButton ?? s.stIdxRightResetButton ?? 0,
+        };
+        _stOtherBtns = _stIdx ? _stLegacySet : _stIndexSet;
+        if (typeof stWriteBtns === 'function') stWriteBtns(_stIdx ? _stIndexSet : _stLegacySet);
+    }
+    if (typeof stRenderKeybind === 'function') stRenderKeybind();
+
     // Restore VR/Desktop auto-start flags
     const _set = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
     _set('setCbAutoStartVR',      s.ChatboxAutoStartVR      ?? s.chatboxAutoStartVR      ?? false);
     _set('setCbAutoStartDesktop', s.ChatboxAutoStartDesktop ?? s.chatboxAutoStartDesktop ?? false);
     _set('setSfAutoStartVR',      s.SfAutoStartVR           ?? s.sfAutoStartVR           ?? false);
+    _set('setStAutoStartVR',      s.StAutoStartVR           ?? s.stAutoStartVR           ?? false);
     _set('setFsAutoStartVR',      s.FsAutoStartVR           ?? s.fsAutoStartVR           ?? false);
     const _fsLeftEl  = document.getElementById('fsLeftButton');
     const _fsRightEl = document.getElementById('fsRightButton');

@@ -1,5 +1,9 @@
 **2026.46.5**
 
+**Space Turn**
+
+**Space Sync**
+
 **Action Flow**
 * New **set OSC bool**, **set OSC float** and **set OSC integer** blocks under **VRCN Actions**. Enter a parameter name or pick one detected by the **OSC Tool** for your current avatar.
 * Parameter names are sent as avatar parameters. Paths starting with / are sent unchanged, allowing custom addresses such as `/input/Jump` or `/chatbox/typing`. Values use the **true/false** and **number** blocks from **Logic**.
@@ -10,6 +14,13 @@
 * Renamed toolbox categories: **Actions** is now **VRC Actions** and **Other Actions** is now **Webhook Actions**.
 * #153 New **send to webhook** blocks under **Webhook Actions** for sending custom text or **Get Info** values to Discord webhooks.
 * Three variants are available: custom text, a **Get Info** value, or custom text followed by that value.
+
+**Space Turn**
+* New **Space Turn** tool under **Tools > VR Tools**, modeled after Space Turn in OVR Advanced Settings. Hold the configured controller button and twist your hand to rotate your SteamVR playspace. The world pivots around your headset, so you stay in place.
+* Settings for **Turn Multiplier**, an **Invert direction** toggle, a **Smoothing** slider (0 keeps the raw controller signal, 100 filters out most jitter) and a **Comfort Mode** that rotates in fixed steps (15, 30, 45 or 90 degrees) instead of smoothly.
+* Uses the same per-hand keybind setup as **Space Flight**, including the SteamVR (Index) input mode, and can start automatically when launching VRChat in VR.
+* Space Turn and Space Flight share the same playspace, so dragging and turning can be used together. The Space Flight reset only clears the position and the Space Turn reset only clears the rotation, so one tool never undoes the other.
+* Space Turn is available as a toggle in the **VR Overlay** tools tab and as a feature in the Action Flow **set feature** block.
 
 **Changes**
 * Reduced the gap between toolbar rows in **Worlds**, **People**, **Groups**, **Avatars**, **Timeline** and **Time Spent** for more consistent spacing.

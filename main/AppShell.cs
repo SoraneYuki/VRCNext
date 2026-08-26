@@ -54,6 +54,7 @@ public partial class AppShell
     private TimelineController _timelineCtrl = null!;
     private VROverlayController _vroCtrl = null!;
     private SpaceFlightController _sfCtrl = null!;
+    private SpaceTurnController _stCtrl = null!;
     private FrameShotController _fsCtrl = null!;
     private DiscordController _discordCtrl = null!;
     private ChatboxController _chatboxCtrl = null!;
@@ -248,6 +249,7 @@ public partial class AppShell
         _timelineCtrl = new TimelineController(_core, _friends, _instance, _photos);
         _vroCtrl = new VROverlayController(_core, _friends);
         _sfCtrl = new SpaceFlightController(_core, _vroCtrl);
+        _stCtrl = new SpaceTurnController(_core, _vroCtrl);
 #if WINDOWS
         _core.SpeakToast = (evType, name, text) => _vroCtrl.SpeakToast(evType, name, text);
 #endif
@@ -289,7 +291,8 @@ public partial class AppShell
             _sfCtrl.IsConnected,
             _relayCtrl.IsRunning,
             _chatboxCtrl.IsEnabled,
-            _fsCtrl.IsConnected);
+            _fsCtrl.IsConnected,
+            _stCtrl.IsConnected);
         _fileWatcher.NewFile += _photos.OnNewFile;
         _ = SQLiteMigrator.PruneOrphanedTimelinePhotosAsync(
             _core.Timeline,
@@ -747,6 +750,7 @@ public partial class AppShell
         _worldStatsTimer?.Dispose();
         _memDiagTimer?.Dispose();
         _sfCtrl?.Dispose();
+        _stCtrl?.Dispose();
         _fsCtrl?.Dispose();
         _vfCtrl?.Dispose();
         _kxdCtrl?.Dispose();
@@ -1073,6 +1077,10 @@ public partial class AppShell
 
             case 6: // FrameShot
                 _fsCtrl.Toggle();
+                break;
+
+            case 7: // Space Turn
+                _stCtrl.Toggle();
                 break;
         }
         _vroCtrl.UpdateToolStates();

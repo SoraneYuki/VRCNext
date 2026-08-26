@@ -486,6 +486,7 @@ public partial class AppShell
                     SendToJS("log", new { msg = $"[STARTUP] Webhooks: {string.Join(", ", _settings.Webhooks.Select((w,i) => $"#{i+1} \"{w.Name}\" url={w.Url?.Length ?? 0}ch {(w.Enabled?"ON":"off")}"))}", color = "sec" });
                     _authCtrl.HandleReady();
                     _sfCtrl.ResendState();
+                    _stCtrl.ResendState();
                     _fsCtrl.ResendState();
                     FlushPendingDeepLink();
                     // Check for crash report from previous session — show modal after UI is ready
@@ -3007,6 +3008,14 @@ public partial class AppShell
                     _sfCtrl.HandleMessage(action, msg);
                     break;
 
+                // Space Turn
+                case "stConnect":
+                case "stDisconnect":
+                case "stReset":
+                case "stConfig":
+                    _stCtrl.HandleMessage(action, msg);
+                    break;
+
                 // FrameShot (in-VR photo)
                 case "fsConnect":
                 case "fsDisconnect":
@@ -4123,7 +4132,7 @@ public partial class AppShell
 
 #if !WINDOWS
     private static readonly string[] _windowsOnlyActionPrefixes =
-        { "vf", "kxd", "chatbox", "osc", "sf", "fs", "dp", "vc", "vro", "as" };
+        { "vf", "kxd", "chatbox", "osc", "sf", "st", "fs", "dp", "vc", "vro", "as" };
 
     private static bool IsWindowsOnlyAction(string action)
     {

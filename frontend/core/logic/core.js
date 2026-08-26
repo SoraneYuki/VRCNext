@@ -514,6 +514,8 @@ function updateTrustBar(slotId, u, avatarCount) {
 }
 // Space Flight
 let sfConnected = false;
+// Space Turn
+let stConnected = false;
 // FrameShot
 let fsConnected = false;
 // Custom Chatbox OSC
@@ -1045,6 +1047,7 @@ function getPageTitle(i) {
         t('page.action_flow', 'Action Flow'),
         t('page.frame_shot', 'FrameShot'),
         t('page.status_schedule', 'Status Schedule'),
+        t('page.space_turn', 'Space Turn'),
     ][i] ?? '';
 }
 

@@ -22,8 +22,22 @@ namespace VRCNext.Services
         public uint LeftDragButton   { get; set; } = 0;
         public uint RightDragButton  { get; set; } = (uint)EVRButtonId.k_EButton_Axis0; // 32
 
+        public bool DragEnabled { get; set; }
+        public bool TurnEnabled { get; set; }
+        public float TurnMultiplier { get; set; } = 1.0f;
+        public float TurnSnapDegrees { get; set; }
+        public bool TurnInvert { get; set; }
+        public float TurnSmoothing { get; set; }
+        private float _turnSmoothDelta;
+        public uint LeftTurnButton  { get; set; } = (uint)EVRButtonId.k_EButton_Grip; // 2
+        public uint RightTurnButton { get; set; } = 0;
+        public uint LeftTurnResetButton  { get; set; } = 0;
+        public uint RightTurnResetButton { get; set; } = 0;
+
         public bool IsConnected { get; private set; }
         public bool IsDragging { get; private set; }
+        public bool IsTurning { get; private set; }
+        public float RotationDeg { get; private set; }
         public float OffsetX { get; private set; }
         public float OffsetY { get; private set; }
         public float OffsetZ { get; private set; }
@@ -35,6 +49,26 @@ namespace VRCNext.Services
         private bool _disposed;
         private readonly Action<string> _log;
         private Action<object>? _onUpdate;
+        private Action<object>? _onTurnUpdate;
+
+        private bool _turnEmitPrimed;
+        private bool _turnEmitConnected;
+        private bool _turnEmitTurning;
+        private float _turnEmitRotation;
+        private bool _turnEmitLeftController;
+        private bool _turnEmitRightController;
+
+        private bool _leftTurning;
+        private bool _rightTurning;
+        private float _leftYawPrev;
+        private float _rightYawPrev;
+        private float _turnAccum;
+        private bool _leftTurnResetHeldPrev;
+        private bool _rightTurnResetHeldPrev;
+
+        // Playspace delta applied on top of the cached base poses: standing = _deltaR * base + _deltaT (raw space).
+        private float[] _deltaR = Identity3();
+        private Vector3 _deltaT;
 
         private bool _emitPrimed;
         private bool _emitConnected;
@@ -100,6 +134,7 @@ namespace VRCNext.Services
         }
 
         public void SetUpdateCallback(Action<object> cb) => _onUpdate = cb;
+        public void SetTurnUpdateCallback(Action<object> cb) => _onTurnUpdate = cb;
 
         public bool Connect()
         {
@@ -262,6 +297,9 @@ namespace VRCNext.Services
 
             IsConnected = false;
             IsDragging = false;
+            IsTurning = false;
+            DragEnabled = false;
+            TurnEnabled = false;
             _vrSystem = null;
             _hasBaseStandingPose = false;
             _hasBaseSeatedPose = false;
@@ -274,6 +312,7 @@ namespace VRCNext.Services
             _cts = new CancellationTokenSource();
             _running = true;
             _emitPrimed = false;
+            _turnEmitPrimed = false;
             StartVrserverMonitor(_cts.Token);
             _ = PollLoopAsync(_cts.Token);
         }
@@ -343,11 +382,26 @@ namespace VRCNext.Services
             ulong leftBtns  = ReadButtons(_leftIdx);
             ulong rightBtns = ReadButtons(_rightIdx);
 
+            ProcessTurn(leftBtns, rightBtns);
+
+            if (!DragEnabled)
+            {
+                _leftDragging = false;
+                _rightDragging = false;
+                _leftGravDragging = false;
+                _rightGravDragging = false;
+                _ballistic = false;
+                _leftResetHeldPrev = false;
+                _rightResetHeldPrev = false;
+                IsDragging = false;
+                return;
+            }
+
             // RESET — edge-triggered, fires once per press (any configured hand)
             bool leftResetHeld  = IsBitSet(leftBtns,  LeftResetButton);
             bool rightResetHeld = IsBitSet(rightBtns, RightResetButton);
-            if (leftResetHeld  && !_leftResetHeldPrev)  ResetOffset();
-            if (rightResetHeld && !_rightResetHeldPrev) ResetOffset();
+            if (leftResetHeld  && !_leftResetHeldPrev)  ResetPosition();
+            if (rightResetHeld && !_rightResetHeldPrev) ResetPosition();
             _leftResetHeldPrev  = leftResetHeld;
             _rightResetHeldPrev = rightResetHeld;
 
@@ -437,6 +491,176 @@ namespace VRCNext.Services
                 StepBallistic();
 
             IsDragging = _rightDragging || _leftDragging || gravNowDragging || _ballistic;
+        }
+
+        // SPACE TURN — hold the turn button and rotate the controller around the vertical axis.
+        // The playspace rotates with the hand, pivoting around the HMD so the user stays in place.
+        private void ProcessTurn(ulong leftBtns, ulong rightBtns)
+        {
+            if (!TurnEnabled)
+            {
+                _leftTurning = false;
+                _rightTurning = false;
+                _turnAccum = 0f;
+                _leftTurnResetHeldPrev = false;
+                _rightTurnResetHeldPrev = false;
+                IsTurning = false;
+                return;
+            }
+
+            bool leftResetHeld  = IsBitSet(leftBtns,  LeftTurnResetButton);
+            bool rightResetHeld = IsBitSet(rightBtns, RightTurnResetButton);
+            if (leftResetHeld  && !_leftTurnResetHeldPrev)  ResetRotation();
+            if (rightResetHeld && !_rightTurnResetHeldPrev) ResetRotation();
+            _leftTurnResetHeldPrev  = leftResetHeld;
+            _rightTurnResetHeldPrev = rightResetHeld;
+
+            // One hand at a time; the left hand takes priority while both turn buttons are held.
+            float delta = HandleHandTurn(ref _leftTurning, LeftTurnButton != 0 && IsBitSet(leftBtns, LeftTurnButton), _leftIdx, ref _leftYawPrev);
+            if (_leftTurning)
+                _rightTurning = false;
+            else
+                delta = HandleHandTurn(ref _rightTurning, RightTurnButton != 0 && IsBitSet(rightBtns, RightTurnButton), _rightIdx, ref _rightYawPrev);
+
+            IsTurning = _leftTurning || _rightTurning;
+            if (!IsTurning) { _turnAccum = 0f; _turnSmoothDelta = 0f; return; }
+
+            delta *= TurnMultiplier;
+            if (TurnInvert) delta = -delta;
+
+            // Smoothing: exponential low-pass on the per-frame yaw delta. 0 = raw, 100 = heavy filtering.
+            if (TurnSmoothing > 0f)
+            {
+                float alpha = 1f - (TurnSmoothing / 100f) * 0.95f;
+                _turnSmoothDelta += (delta - _turnSmoothDelta) * alpha;
+                delta = _turnSmoothDelta;
+                if (MathF.Abs(delta) < 0.00002f) { _turnSmoothDelta = 0f; return; }
+            }
+            else if (delta == 0f) return;
+
+            if (TurnSnapDegrees <= 0f)
+            {
+                ApplyTurn(delta);
+                return;
+            }
+
+            float snap = TurnSnapDegrees * MathF.PI / 180f;
+            _turnAccum += delta;
+            while (_turnAccum >= snap)  { ApplyTurn(snap);  _turnAccum -= snap; }
+            while (_turnAccum <= -snap) { ApplyTurn(-snap); _turnAccum += snap; }
+        }
+
+        // Returns the yaw change (radians) of this hand since the previous frame while its turn button is held.
+        private float HandleHandTurn(ref bool wasTurning, bool pressed, uint idx, ref float yawPrev)
+        {
+            if (!pressed || idx == OpenVR.k_unTrackedDeviceIndexInvalid)
+            {
+                wasTurning = false;
+                return 0f;
+            }
+
+            if (!TryGetRawYaw(idx, out var yaw)) return 0f;
+
+            if (!wasTurning)
+            {
+                wasTurning = true;
+                yawPrev = yaw;
+                return 0f;
+            }
+
+            float d = WrapAngle(yaw - yawPrev);
+            yawPrev = yaw;
+            return d;
+        }
+
+        private void ApplyTurn(float radians)
+        {
+            if (radians == 0f) return;
+
+            Vector3 pivot;
+            if (OpenVR.k_unTrackedDeviceIndex_Hmd < _rawPoses.Length && _rawPoses[OpenVR.k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
+            {
+                var hm = _rawPoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
+                pivot = new Vector3(hm.m3, hm.m7, hm.m11);
+            }
+            else
+            {
+                pivot = _deltaT;
+            }
+
+            var rot = RotY(radians);
+            var newR = Mul3(rot, _deltaR);
+            var newT = Apply3(rot, _deltaT - pivot) + pivot;
+
+            _deltaR = newR;
+            RotationDeg = WrapAngle((RotationDeg * MathF.PI / 180f) + radians) * 180f / MathF.PI;
+            ApplyOffset(newT);
+        }
+
+        private bool TryGetRawYaw(uint i, out float yaw)
+        {
+            yaw = 0f;
+            if (i >= _rawPoses.Length || !_rawPoses[i].bPoseIsValid || !_rawPoses[i].bDeviceIsConnected) return false;
+            var m = _rawPoses[i].mDeviceToAbsoluteTracking;
+            float fx = -m.m2, fz = -m.m10;
+            if (fx * fx + fz * fz < 0.0025f)
+            {
+                fx = m.m0; fz = m.m8;
+                if (fx * fx + fz * fz < 0.0025f) return false;
+                yaw = MathF.Atan2(fx, fz) - MathF.PI / 2f;
+                return true;
+            }
+            yaw = MathF.Atan2(fx, fz);
+            return true;
+        }
+
+        private static float WrapAngle(float a)
+        {
+            while (a > MathF.PI)  a -= 2f * MathF.PI;
+            while (a < -MathF.PI) a += 2f * MathF.PI;
+            return a;
+        }
+
+        private static float[] Identity3() => new float[] { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+
+        private static float[] RotY(float a)
+        {
+            float c = MathF.Cos(a), s = MathF.Sin(a);
+            return new float[] { c, 0, s, 0, 1, 0, -s, 0, c };
+        }
+
+        private static float[] Mul3(float[] a, float[] b)
+        {
+            var r = new float[9];
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
+                    r[i * 3 + j] = a[i * 3] * b[j] + a[i * 3 + 1] * b[3 + j] + a[i * 3 + 2] * b[6 + j];
+            return r;
+        }
+
+        private static Vector3 Apply3(float[] r, Vector3 v) => new Vector3(
+            r[0] * v.X + r[1] * v.Y + r[2] * v.Z,
+            r[3] * v.X + r[4] * v.Y + r[5] * v.Z,
+            r[6] * v.X + r[7] * v.Y + r[8] * v.Z);
+
+        private HmdMatrix34_t ComposeDelta(HmdMatrix34_t b)
+        {
+            var r = _deltaR;
+            return new HmdMatrix34_t
+            {
+                m0  = r[0] * b.m0 + r[1] * b.m4 + r[2] * b.m8,
+                m1  = r[0] * b.m1 + r[1] * b.m5 + r[2] * b.m9,
+                m2  = r[0] * b.m2 + r[1] * b.m6 + r[2] * b.m10,
+                m3  = r[0] * b.m3 + r[1] * b.m7 + r[2] * b.m11 + _deltaT.X,
+                m4  = r[3] * b.m0 + r[4] * b.m4 + r[5] * b.m8,
+                m5  = r[3] * b.m1 + r[4] * b.m5 + r[5] * b.m9,
+                m6  = r[3] * b.m2 + r[4] * b.m6 + r[5] * b.m10,
+                m7  = r[3] * b.m3 + r[4] * b.m7 + r[5] * b.m11 + _deltaT.Y,
+                m8  = r[6] * b.m0 + r[7] * b.m4 + r[8] * b.m8,
+                m9  = r[6] * b.m1 + r[7] * b.m5 + r[8] * b.m9,
+                m10 = r[6] * b.m2 + r[7] * b.m6 + r[8] * b.m10,
+                m11 = r[6] * b.m3 + r[7] * b.m7 + r[8] * b.m11 + _deltaT.Z,
+            };
         }
 
         private void StepBallistic()
@@ -530,21 +754,16 @@ namespace VRCNext.Services
             OffsetX = off.X;
             OffsetY = off.Y;
             OffsetZ = off.Z;
+            _deltaT = off;
 
             OpenVR.ChaperoneSetup.RevertWorkingCopy();
 
-            var standing = _baseStandingPose;
-            standing.m3 += off.X;
-            standing.m7 += off.Y;
-            standing.m11 += off.Z;
+            var standing = ComposeDelta(_baseStandingPose);
             OpenVR.ChaperoneSetup.SetWorkingStandingZeroPoseToRawTrackingPose(ref standing);
 
             if (_hasBaseSeatedPose)
             {
-                var seated = _baseSeatedPose;
-                seated.m3 += off.X;
-                seated.m7 += off.Y;
-                seated.m11 += off.Z;
+                var seated = ComposeDelta(_baseSeatedPose);
                 OpenVR.ChaperoneSetup.SetWorkingSeatedZeroPoseToRawTrackingPose(ref seated);
             }
 
@@ -554,6 +773,50 @@ namespace VRCNext.Services
 
             if (verbose)
                 _log($"[SteamVR] Offset ({off.X:F3},{off.Y:F3},{off.Z:F3})");
+        }
+
+        // Space Flight reset: clears the translation only, the Space Turn rotation is kept.
+        public void ResetPosition()
+        {
+            _leftDragging = false;
+            _rightDragging = false;
+            _leftGravDragging = false;
+            _rightGravDragging = false;
+            _ballistic = false;
+            _ballVel = Vector3.Zero;
+            _offsetVel = Vector3.Zero;
+            _prevOffset = Vector3.Zero;
+
+            if (RotationDeg == 0f)
+            {
+                ResetOffset();
+                return;
+            }
+
+            ApplyOffset(Vector3.Zero);
+            _log("[SteamVR] Reset position");
+        }
+
+        // Space Turn reset: rotates back to zero around the HMD, the Space Flight offset is kept.
+        public void ResetRotation()
+        {
+            _leftTurning = false;
+            _rightTurning = false;
+            _turnAccum = 0f;
+
+            if (RotationDeg == 0f) return;
+
+            if (OffsetX == 0f && OffsetY == 0f && OffsetZ == 0f)
+            {
+                ResetOffset();
+                return;
+            }
+
+            ApplyTurn(-RotationDeg * MathF.PI / 180f);
+            _deltaR = Identity3();
+            RotationDeg = 0f;
+            ApplyOffset(_deltaT);
+            _log("[SteamVR] Reset rotation");
         }
 
         public void ResetOffset()
@@ -573,6 +836,12 @@ namespace VRCNext.Services
             _ballVel = Vector3.Zero;
             _offsetVel = Vector3.Zero;
             _prevOffset = Vector3.Zero;
+            _deltaR = Identity3();
+            _deltaT = Vector3.Zero;
+            RotationDeg = 0f;
+            _leftTurning = false;
+            _rightTurning = false;
+            _turnAccum = 0f;
 
             if (OpenVR.ChaperoneSetup != null)
             {
@@ -625,14 +894,17 @@ namespace VRCNext.Services
 
         private void EmitState()
         {
+            EmitTurnState();
+            if (!DragEnabled && !_emitPrimed) return;
             var offsetX = MathF.Round(OffsetX, 3);
             var offsetY = MathF.Round(OffsetY, 3);
             var offsetZ = MathF.Round(OffsetZ, 3);
             var leftController = _leftIdx != OpenVR.k_unTrackedDeviceIndexInvalid;
             var rightController = _rightIdx != OpenVR.k_unTrackedDeviceIndexInvalid;
 
+            bool dragConnected = IsConnected && DragEnabled;
             if (_emitPrimed
-                && _emitConnected == IsConnected
+                && _emitConnected == dragConnected
                 && _emitDragging == IsDragging
                 && _emitOffsetX.Equals(offsetX)
                 && _emitOffsetY.Equals(offsetY)
@@ -642,7 +914,7 @@ namespace VRCNext.Services
                 return;
 
             _emitPrimed = true;
-            _emitConnected = IsConnected;
+            _emitConnected = dragConnected;
             _emitDragging = IsDragging;
             _emitOffsetX = offsetX;
             _emitOffsetY = offsetY;
@@ -652,7 +924,7 @@ namespace VRCNext.Services
 
             _onUpdate?.Invoke(new
             {
-                connected = IsConnected,
+                connected = dragConnected,
                 dragging = IsDragging,
                 offsetX = offsetX,
                 offsetY = offsetY,
@@ -661,6 +933,54 @@ namespace VRCNext.Services
                 rightController = rightController,
                 error = (string?)null
             });
+        }
+
+        private void EmitTurnState()
+        {
+            if (!TurnEnabled && !_turnEmitPrimed) return;
+            bool turnConnected = IsConnected && TurnEnabled;
+            var rotation = MathF.Round(RotationDeg, 1);
+            var leftController = _leftIdx != OpenVR.k_unTrackedDeviceIndexInvalid;
+            var rightController = _rightIdx != OpenVR.k_unTrackedDeviceIndexInvalid;
+
+            if (_turnEmitPrimed
+                && _turnEmitConnected == turnConnected
+                && _turnEmitTurning == IsTurning
+                && _turnEmitRotation.Equals(rotation)
+                && _turnEmitLeftController == leftController
+                && _turnEmitRightController == rightController)
+                return;
+
+            _turnEmitPrimed = true;
+            _turnEmitConnected = turnConnected;
+            _turnEmitTurning = IsTurning;
+            _turnEmitRotation = rotation;
+            _turnEmitLeftController = leftController;
+            _turnEmitRightController = rightController;
+
+            _onTurnUpdate?.Invoke(new
+            {
+                connected = turnConnected,
+                turning = IsTurning,
+                rotation = rotation,
+                leftController = leftController,
+                rightController = rightController,
+                error = (string?)null
+            });
+        }
+
+        public void ApplyTurnConfig(float turnMultiplier, float snapDegrees, bool invert, float smoothing,
+                                    uint leftTurnBtn, uint rightTurnBtn,
+                                    uint leftResetBtn, uint rightResetBtn)
+        {
+            TurnMultiplier       = Math.Clamp(turnMultiplier, 0.1f, 10f);
+            TurnSnapDegrees      = Math.Clamp(snapDegrees, 0f, 180f);
+            TurnInvert           = invert;
+            TurnSmoothing        = Math.Clamp(smoothing, 0f, 100f);
+            LeftTurnButton       = leftTurnBtn;
+            RightTurnButton      = rightTurnBtn;
+            LeftTurnResetButton  = leftResetBtn;
+            RightTurnResetButton = rightResetBtn;
         }
 
         public void ApplyConfig(float dragMultiplier, bool lockX, bool lockY, bool lockZ,

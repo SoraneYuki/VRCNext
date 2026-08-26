@@ -109,6 +109,12 @@ static class VRSubprocess
             obj["t"] = "sf_update";
             SendLine(obj);
         });
+        sf.SetTurnUpdateCallback(data =>
+        {
+            var obj = JObject.FromObject(data);
+            obj["t"] = "st_update";
+            SendLine(obj);
+        });
         sf.OnVRQuit += () => Environment.Exit(0);
 
         fs.OnStateUpdate += d =>
@@ -235,7 +241,7 @@ static class VRSubprocess
                 vro.SetToolStates(
                     B(cmd, "discord"), B(cmd, "voice"), B(cmd, "kikitan"),
                     B(cmd, "space"),   B(cmd, "relay"), B(cmd, "chatbox"),
-                    B(cmd, "frameShot"));
+                    B(cmd, "frameShot"), B(cmd, "spaceTurn"));
                 break;
 
             case "vro_add_notif":
@@ -329,6 +335,7 @@ static class VRSubprocess
                 bool ok = sf.Connect();
                 if (ok)
                 {
+                    sf.DragEnabled = true;
                     sf.ApplyConfig(F(cmd, "multiplier", 1f),
                         B(cmd, "lockX"), B(cmd, "lockY"), B(cmd, "lockZ"),
                         (uint)I(cmd, "leftResetBtn",  32),
@@ -344,7 +351,48 @@ static class VRSubprocess
             }
 
             case "sf_disconnect":
-                sf.Disconnect();
+                sf.DragEnabled = false;
+                if (!sf.TurnEnabled) sf.Disconnect();
+                break;
+
+            case "st_connect":
+            {
+                _toolConnected = true;
+                bool ok = sf.Connect();
+                if (ok)
+                {
+                    sf.TurnEnabled = true;
+                    sf.ApplyTurnConfig(F(cmd, "multiplier", 1f),
+                        F(cmd, "snapDegrees", 0f),
+                        B(cmd, "invert"),
+                        F(cmd, "smoothing", 0f),
+                        (uint)I(cmd, "leftTurnBtn",   2),
+                        (uint)I(cmd, "rightTurnBtn",  0),
+                        (uint)I(cmd, "leftResetBtn",  0),
+                        (uint)I(cmd, "rightResetBtn", 0));
+                    sf.StartPolling();
+                }
+                break;
+            }
+
+            case "st_disconnect":
+                sf.TurnEnabled = false;
+                if (!sf.DragEnabled) sf.Disconnect();
+                break;
+
+            case "st_config":
+                sf.ApplyTurnConfig(F(cmd, "multiplier", 1f),
+                    F(cmd, "snapDegrees", 0f),
+                    B(cmd, "invert"),
+                    F(cmd, "smoothing", 0f),
+                    (uint)I(cmd, "leftTurnBtn",   2),
+                    (uint)I(cmd, "rightTurnBtn",  0),
+                    (uint)I(cmd, "leftResetBtn",  0),
+                    (uint)I(cmd, "rightResetBtn", 0));
+                break;
+
+            case "st_reset":
+                sf.ResetRotation();
                 break;
 
             case "sf_config":
@@ -360,7 +408,7 @@ static class VRSubprocess
                 break;
 
             case "sf_reset":
-                sf.ResetOffset();
+                sf.ResetPosition();
                 break;
 
             case "fs_connect":

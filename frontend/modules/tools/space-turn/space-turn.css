@@ -1,0 +1,6 @@
+/* === Space Turn Module === */
+/* Reuses the Space Flight (.sf-*) layout styles; only the two-column keybind grid differs. */
+
+.st-ctrl-grid {
+    grid-template-columns: 90px 1fr 1fr;
+}

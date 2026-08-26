@@ -480,6 +480,21 @@ public class AppSettings
     public uint  SfIdxLeftGravityButton  { get; set; } = 0;
     public uint  SfIdxRightGravityButton { get; set; } = 0;
 
+    // Space Turn settings
+    public float StMultiplier   { get; set; } = 1f;
+    public float StSnapDegrees  { get; set; } = 0f;
+    public bool  StInvert       { get; set; }
+    public float StSmoothing    { get; set; } = 0f;
+    public bool  StAutoStartVR  { get; set; }
+    public uint  StLeftTurnButton     { get; set; } = 2; // Grip
+    public uint  StRightTurnButton    { get; set; } = 0;
+    public uint  StLeftResetButton    { get; set; } = 0;
+    public uint  StRightResetButton   { get; set; } = 0;
+    public uint  StIdxLeftTurnButton  { get; set; } = 0;
+    public uint  StIdxRightTurnButton { get; set; } = 0;
+    public uint  StIdxLeftResetButton { get; set; } = 0;
+    public uint  StIdxRightResetButton{ get; set; } = 0;
+
     // FrameShot settings
     public uint   FsLeftButton       { get; set; } = 2;  // EVRButtonId.k_EButton_Grip
     public uint   FsRightButton      { get; set; } = 2;  // EVRButtonId.k_EButton_Grip

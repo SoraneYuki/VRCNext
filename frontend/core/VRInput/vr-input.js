@@ -165,7 +165,7 @@ function vriZoneClick(el, idAttr, currentIds, onPick) {
 
 function _vriIdAttr(el) {
     if (!el) return 'data-btn-id';
-    for (const a of ['data-sf-btn-id', 'data-fs-btn-id', 'data-scale-btn-id']) {
+    for (const a of ['data-sf-btn-id', 'data-st-btn-id', 'data-fs-btn-id', 'data-scale-btn-id']) {
         if (el.hasAttribute(a)) return a;
     }
     return 'data-btn-id';
@@ -206,6 +206,7 @@ function vriApplyMode() {
 
     if (typeof vroApplyInputMode === 'function') vroApplyInputMode();
     if (typeof sfApplyInputMode  === 'function') sfApplyInputMode();
+    if (typeof stApplyInputMode  === 'function') stApplyInputMode();
     if (typeof fsApplyInputMode  === 'function') fsApplyInputMode();
 }
 
@@ -215,6 +216,7 @@ function vriSetMode(mode) {
     vrInputMode = m;
     if (typeof vroSwapKeybindSets === 'function') vroSwapKeybindSets();
     if (typeof sfSwapButtonSets   === 'function') sfSwapButtonSets();
+    if (typeof stSwapButtonSets   === 'function') stSwapButtonSets();
     if (typeof fsSwapButtonSets   === 'function') fsSwapButtonSets();
     document.querySelectorAll('select.vro-input-mode').forEach(sel => {
         sel.value = String(m);
