@@ -1,7 +1,4 @@
 {
-  "_language": "Korean",
-  "_code": "ko",
-  "_author": "roshikey",
   "nav.dashboard": "대시보드",
   "nav.worlds": "월드",
   "nav.groups": "그룹",
@@ -3579,6 +3576,5 @@
   "keybinds.modal.tile_down": "창을 아래쪽으로 스냅",
   "keybinds.modal.tile_corner": "창을 모서리로 스냅",
   "keybinds.modal.tile_min": "최소화",
-  "keybinds.modal.tile_max": "최대화",
-  "_generated": "2026-08-26T11:50:57.5038284Z"
+  "keybinds.modal.tile_max": "최대화"
 }
