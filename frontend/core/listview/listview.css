@@ -198,7 +198,7 @@
 #recentSeenGrid .tl-list-wrap, #searchPeopleResults .tl-list-wrap,
 #blockedList .tl-list-wrap, #mutedList .tl-list-wrap,
 #instancePlayersGrid .tl-list-wrap,
-.tl-container .tl-list-wrap { padding-top: 0; }
+.tl-container .tl-list-wrap { padding-top: 0; padding-bottom: 0; }
 
 .lv-tab-scroll > .avatar-grid,
 .lv-tab-scroll > .inv-grid { padding: 0; }

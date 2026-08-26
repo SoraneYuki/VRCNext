@@ -1,4 +1,4 @@
-#if WINDOWS
+﻿#if WINDOWS
 using System.Runtime.InteropServices;
 #endif
 using Newtonsoft.Json.Linq;
@@ -270,6 +270,24 @@ public class WindowController
         _ = DwmSetWindowAttribute(hWnd, 33, ref cornerPref, 4);
 #endif
     }
+
+    /// <summary>Re-applies the maximized window state saved on the previous shutdown.</summary>
+    public void RestoreMaximizedState()
+    {
+        if (_maximizedRestored) return;
+        _maximizedRestored = true;
+        var window = _core.Window;
+        if (window == null) return;
+        if (!_core.Settings.RememberWindowSize || !_core.Settings.SavedWindowMaximized) return;
+        try
+        {
+            if (!window.Maximized) window.SetMaximized(true);
+            _core.SendToJS("windowMaxState", true);
+        }
+        catch { }
+    }
+
+    private bool _maximizedRestored;
 
     // GetCenteredLocation (used by Run())
 

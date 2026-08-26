@@ -296,7 +296,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 4px 12px 8px;
     flex-shrink: 0;
     flex-wrap: nowrap;
     overflow-x: auto;

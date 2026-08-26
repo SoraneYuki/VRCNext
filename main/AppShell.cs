@@ -98,6 +98,7 @@ public partial class AppShell
 #else
     private int _lastNormalW, _lastNormalH;
     private int _lastNormalX = -1, _lastNormalY = -1;
+    private bool _lastMaximized;
 #endif
 
     // VR overlay world name+thumb cache (worldId → name, localUrl)
@@ -537,7 +538,9 @@ public partial class AppShell
         {
             try
             {
-                if (_window != null && !_window.Maximized && sz.Width >= 100)
+                if (_window == null) return;
+                _lastMaximized = _window.Maximized;
+                if (!_lastMaximized && sz.Width >= 100)
                 {
                     _lastNormalW = sz.Width;
                     _lastNormalH = sz.Height;
@@ -704,13 +707,14 @@ public partial class AppShell
             bool anySave = false;
 #if WINDOWS
             var (lastX, lastY, lastW, lastH, wasMax) = WindowController.LastWindowPlacement;
-            if (_settings.RememberWindowSize && !wasMax && lastW >= 100)
+            if (_settings.RememberWindowSize && lastW >= 100)
             {
-                _settings.SavedWindowWidth  = lastW;
-                _settings.SavedWindowHeight = lastH;
+                _settings.SavedWindowWidth     = lastW;
+                _settings.SavedWindowHeight    = lastH;
+                _settings.SavedWindowMaximized = wasMax;
                 anySave = true;
             }
-            if (_settings.RememberWindowPosition && !wasMax)
+            if (_settings.RememberWindowPosition)
             {
                 _settings.SavedWindowX = lastX;
                 _settings.SavedWindowY = lastY;
@@ -719,8 +723,9 @@ public partial class AppShell
 #else
             if (_settings.RememberWindowSize && _lastNormalW >= 100)
             {
-                _settings.SavedWindowWidth  = _lastNormalW;
-                _settings.SavedWindowHeight = _lastNormalH;
+                _settings.SavedWindowWidth     = _lastNormalW;
+                _settings.SavedWindowHeight    = _lastNormalH;
+                _settings.SavedWindowMaximized = _lastMaximized;
                 anySave = true;
             }
             if (_settings.RememberWindowPosition && _lastNormalX >= 0)

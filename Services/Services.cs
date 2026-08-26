@@ -695,6 +695,7 @@ public class AppSettings
     public int  SavedWindowHeight      { get; set; } = 700;
     public int  SavedWindowX           { get; set; } = -1;
     public int  SavedWindowY           { get; set; } = -1;
+    public bool SavedWindowMaximized   { get; set; } = false;
 
     // Auto-Backups
     public bool     RegBackupEnabled    { get; set; } = true;

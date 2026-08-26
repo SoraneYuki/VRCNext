@@ -478,6 +478,7 @@ public partial class AppShell
                     // Signal platform to JS (hides Windows-only tabs on Linux)
                     SendToJS("setPlatform", new { isLinux = !OperatingSystem.IsWindows() });
                     _windowCtrl.InstallChrome();
+                    _windowCtrl.RestoreMaximizedState();
                     // Debug: show what Load() did
                     if (AppSettings.LastLoadError != null)
                         SendToJS("log", new { msg = $"[LOAD ERROR] {AppSettings.LastLoadError}", color = "err" });

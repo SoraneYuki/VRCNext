@@ -84,13 +84,14 @@
     border-bottom-right-radius: 0;
     border-bottom: none;
     margin-bottom: 0;
+    padding-bottom: 4px;
 }
 .tab-toolbar-body {
     background: var(--tab-card-bg, var(--bg-input));
     border: 1px solid var(--brd);
     border-top: none;
     border-radius: 0 0 12px 12px;
-    padding: 10px 12px;
+    padding: 4px 12px 10px;
     margin-bottom: 14px;
 }
 .tab-toolbar-body > :last-child { margin-bottom: 0 !important; }

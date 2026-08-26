@@ -4,14 +4,14 @@ const TL_TABLE_DEFS = {
     personal: [
         { id: 'dt',      key: 'timeline.list.header.date_time', fallback: 'Date / Time', width: '155px', sort: 'timestamp' },
         { id: 'type',    key: 'timeline.list.header.type',      fallback: 'Type',        width: '185px', sort: 'type' },
-        { id: 'profile', key: 'timeline.list.header.profile',   fallback: 'Profile',     width: '80px',  sort: 'user_name' },
+        { id: 'profile', key: 'timeline.list.header.profile',   fallback: 'Profile',     width: '100px', sort: 'user_name' },
         { id: 'user',    key: 'timeline.list.header.user',      fallback: 'User',        width: '156px', sort: 'user_name' },
         { id: 'detail',  key: 'timeline.list.header.detail',    fallback: 'Detail',      width: '',      sort: 'message' },
     ],
     friends: [
         { id: 'dt',      key: 'timeline.list.header.date_time', fallback: 'Date / Time', width: '155px', sort: 'timestamp' },
         { id: 'type',    key: 'timeline.list.header.type',      fallback: 'Type',        width: '135px', sort: 'type' },
-        { id: 'profile', key: 'timeline.list.header.profile',   fallback: 'Profile',     width: '80px',  sort: 'friend_name' },
+        { id: 'profile', key: 'timeline.list.header.profile',   fallback: 'Profile',     width: '100px', sort: 'friend_name' },
         { id: 'user',    key: 'timeline.list.header.user',      fallback: 'User',        width: '156px', sort: 'friend_name' },
         { id: 'detail',  key: 'timeline.list.header.detail',    fallback: 'Detail',      width: '',      sort: 'world_name' },
     ],
@@ -21,7 +21,7 @@ const TL_TABLE_DEFS = {
         { id: 'event', key: 'gamelog.header.event',           fallback: 'Event',       width: '',      sort: 'message' },
     ],
     friendsList: [
-        { id: 'profile',    key: 'people.list.header.profile',     fallback: 'Profile',     width: '64px',  sort: 'profile' },
+        { id: 'profile',    key: 'people.list.header.profile',     fallback: 'Profile',     width: '100px', sort: 'profile' },
         { id: 'name',       key: 'people.list.header.username',    fallback: 'Username',    width: '',      sort: 'name' },
         { id: 'rank',       key: 'people.list.header.trust_rank',  fallback: 'Trust Rank',  width: '120px', sort: 'rank' },
         { id: 'status',     key: 'people.list.header.status',      fallback: 'Status',      width: '150px', sort: 'status' },
@@ -61,7 +61,7 @@ const TL_TABLE_DEFS = {
         { id: 'action',  key: 'people.list.header.action',   fallback: 'Action',   width: '130px', sort: 'name' },
     ],
     worldsList: [
-        { id: 'icon',     key: 'worlds.list.header.world',        fallback: 'World',        width: '64px',  sort: 'icon' },
+        { id: 'icon',     key: 'worlds.list.header.world',        fallback: 'World',        width: '100px', sort: 'icon' },
         { id: 'name',     key: 'worlds.list.header.name',         fallback: 'Name',         width: '',      sort: 'name' },
         { id: 'tags',     key: 'worlds.list.header.tags',         fallback: 'Tags',         width: '200px', sort: 'tags' },
         { id: 'favorites',key: 'worlds.list.header.favorites',    fallback: 'Favorites',    width: '110px', sort: 'favorites' },
@@ -80,7 +80,7 @@ const TL_TABLE_DEFS = {
         { id: 'players', key: 'groups.instances.header.players', fallback: 'Players', width: '110px', sort: 'players' },
     ],
     groupsList: [
-        { id: 'icon',    key: 'groups.list.header.group',        fallback: 'Group',        width: '64px',  sort: 'icon' },
+        { id: 'icon',    key: 'groups.list.header.group',        fallback: 'Group',        width: '100px', sort: 'icon' },
         { id: 'name',    key: 'groups.list.header.name',         fallback: 'Name',         width: '',      sort: 'name' },
         { id: 'short',   key: 'groups.list.header.short_name',   fallback: 'Short Name',   width: '160px', sort: 'short' },
         { id: 'members', key: 'groups.list.header.member_count', fallback: 'Member Count', width: '140px', sort: 'members' },
@@ -88,7 +88,7 @@ const TL_TABLE_DEFS = {
         { id: 'created', key: 'groups.list.header.created',      fallback: 'Created At',    width: '130px', sort: 'created' },
     ],
     avatarsList: [
-        { id: 'icon',    key: 'avatars.list.header.avatar',  fallback: 'Avatar',  width: '64px',  sort: 'icon' },
+        { id: 'icon',    key: 'avatars.list.header.avatar',  fallback: 'Avatar',  width: '100px', sort: 'icon' },
         { id: 'name',    key: 'avatars.list.header.name',    fallback: 'Name',    width: '',      sort: 'name' },
         { id: 'creator', key: 'avatars.list.header.creator', fallback: 'Creator', width: '180px', sort: 'creator' },
         { id: 'status',  key: 'avatars.list.header.status',  fallback: 'Status',  width: '110px', sort: 'status' },
