@@ -83,6 +83,8 @@ public class FrameShotController : IDisposable
                 if (!string.IsNullOrEmpty(path)) _photos.HandleExternalSave(path);
             };
 
+            h.OnFsQrLink += url => OpenQrLink(url);
+
             h.OnFsQuit += () =>
             {
                 if (!h.AnyConnected) _core.VrOverlay = null;
@@ -110,7 +112,7 @@ public class FrameShotController : IDisposable
                 var (auth, tfa) = _core.VrcApi.GetCookies();
                 host.InputMode = _core.Settings.VrInputMode;
                 host.EnsureRunning("", _core.HttpPort, auth, tfa);
-                host.FsConnect(FsBtn(_core.Settings.FsLeftButton, _core.Settings.FsIdxLeftButton), FsBtn(_core.Settings.FsRightButton, _core.Settings.FsIdxRightButton), _core.Settings.FsOutputDeviceId, _core.Settings.FsOutputDevice, _core.Settings.FsActivationRadius, FsBtn(_core.Settings.FsLeftRecordButton, _core.Settings.FsIdxLeftRecordButton), FsBtn(_core.Settings.FsRightRecordButton, _core.Settings.FsIdxRightRecordButton), _core.Settings.FsGifMaxResolution, _core.Settings.FsGifMaxFps, _core.Settings.FsUseHmdRotations, FsBtn(_core.Settings.FsLeftVideoButton, _core.Settings.FsIdxLeftVideoButton), FsBtn(_core.Settings.FsRightVideoButton, _core.Settings.FsIdxRightVideoButton), _core.Settings.FsVideoDeviceA, _core.Settings.FsVideoDeviceB, _core.Settings.FsVideoFps, _core.Settings.FsVideoQuality, _core.Settings.FsVideoBitrateQuality, _core.Settings.FsAudioKbps);
+                host.FsConnect(FsBtn(_core.Settings.FsLeftButton, _core.Settings.FsIdxLeftButton), FsBtn(_core.Settings.FsRightButton, _core.Settings.FsIdxRightButton), _core.Settings.FsOutputDeviceId, _core.Settings.FsOutputDevice, _core.Settings.FsActivationRadius, FsBtn(_core.Settings.FsLeftRecordButton, _core.Settings.FsIdxLeftRecordButton), FsBtn(_core.Settings.FsRightRecordButton, _core.Settings.FsIdxRightRecordButton), _core.Settings.FsGifMaxResolution, _core.Settings.FsGifMaxFps, _core.Settings.FsUseHmdRotations, FsBtn(_core.Settings.FsLeftVideoButton, _core.Settings.FsIdxLeftVideoButton), FsBtn(_core.Settings.FsRightVideoButton, _core.Settings.FsIdxRightVideoButton), _core.Settings.FsVideoDeviceA, _core.Settings.FsVideoDeviceB, _core.Settings.FsVideoFps, _core.Settings.FsVideoQuality, _core.Settings.FsVideoBitrateQuality, _core.Settings.FsAudioKbps, FsBtn(_core.Settings.FsLeftAcceptButton, _core.Settings.FsIdxLeftAcceptButton), FsBtn(_core.Settings.FsRightAcceptButton, _core.Settings.FsIdxRightAcceptButton));
                 _vroCtrl.UpdateToolStates();
                 break;
             }
@@ -165,7 +167,9 @@ public class FrameShotController : IDisposable
                 var vq  = msg["videoQuality"]?.Value<string>()          ?? "1080p";
                 var vbq = msg["videoBitrateQuality"]?.Value<string>()   ?? "medium";
                 var akb = msg["audioKbps"]?.Value<int>()                ?? 256;
-                _core.VrOverlay?.FsConfig(lb, rb, ar, lrb, rrb, gmd, gfp, uhr, lvb, rvb, vda, vdb, vfps, vq, vbq, akb);
+                var lab = (uint)(msg["leftAcceptButton"]?.Value<int>()  ?? 0);
+                var rab = (uint)(msg["rightAcceptButton"]?.Value<int>() ?? 0);
+                _core.VrOverlay?.FsConfig(lb, rb, ar, lrb, rrb, gmd, gfp, uhr, lvb, rvb, vda, vdb, vfps, vq, vbq, akb, lab, rab);
                 break;
             }
 
@@ -300,10 +304,30 @@ public class FrameShotController : IDisposable
             var (auth, tfa) = _core.VrcApi.GetCookies();
             host.InputMode = _core.Settings.VrInputMode;
             host.EnsureRunning("", _core.HttpPort, auth, tfa);
-            host.FsConnect(FsBtn(_core.Settings.FsLeftButton, _core.Settings.FsIdxLeftButton), FsBtn(_core.Settings.FsRightButton, _core.Settings.FsIdxRightButton), _core.Settings.FsOutputDeviceId, _core.Settings.FsOutputDevice, _core.Settings.FsActivationRadius, FsBtn(_core.Settings.FsLeftRecordButton, _core.Settings.FsIdxLeftRecordButton), FsBtn(_core.Settings.FsRightRecordButton, _core.Settings.FsIdxRightRecordButton), _core.Settings.FsGifMaxResolution, _core.Settings.FsGifMaxFps, _core.Settings.FsUseHmdRotations, FsBtn(_core.Settings.FsLeftVideoButton, _core.Settings.FsIdxLeftVideoButton), FsBtn(_core.Settings.FsRightVideoButton, _core.Settings.FsIdxRightVideoButton), _core.Settings.FsVideoDeviceA, _core.Settings.FsVideoDeviceB, _core.Settings.FsVideoFps, _core.Settings.FsVideoQuality, _core.Settings.FsVideoBitrateQuality, _core.Settings.FsAudioKbps);
+            host.FsConnect(FsBtn(_core.Settings.FsLeftButton, _core.Settings.FsIdxLeftButton), FsBtn(_core.Settings.FsRightButton, _core.Settings.FsIdxRightButton), _core.Settings.FsOutputDeviceId, _core.Settings.FsOutputDevice, _core.Settings.FsActivationRadius, FsBtn(_core.Settings.FsLeftRecordButton, _core.Settings.FsIdxLeftRecordButton), FsBtn(_core.Settings.FsRightRecordButton, _core.Settings.FsIdxRightRecordButton), _core.Settings.FsGifMaxResolution, _core.Settings.FsGifMaxFps, _core.Settings.FsUseHmdRotations, FsBtn(_core.Settings.FsLeftVideoButton, _core.Settings.FsIdxLeftVideoButton), FsBtn(_core.Settings.FsRightVideoButton, _core.Settings.FsIdxRightVideoButton), _core.Settings.FsVideoDeviceA, _core.Settings.FsVideoDeviceB, _core.Settings.FsVideoFps, _core.Settings.FsVideoQuality, _core.Settings.FsVideoBitrateQuality, _core.Settings.FsAudioKbps, FsBtn(_core.Settings.FsLeftAcceptButton, _core.Settings.FsIdxLeftAcceptButton), FsBtn(_core.Settings.FsRightAcceptButton, _core.Settings.FsIdxRightAcceptButton));
         }
         _vroCtrl.UpdateToolStates();
 #endif
+    }
+
+    private void OpenQrLink(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return;
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return;
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName        = uri.AbsoluteUri,
+                UseShellExecute = true,
+            });
+            _core.SendToJS("toast", new { ok = true, msg = uri.Host });
+        }
+        catch (Exception ex)
+        {
+            _core.SendToJS("log", new { msg = $"[FrameShot] QR link open failed: {ex.Message}", color = "err" });
+        }
     }
 
     public void Dispose()

@@ -395,7 +395,7 @@ public class VRChatLogWatcher : IDisposable
     {
         if (line.Length < 30) return;
 
-        if (!catchUp && AvatarSeen != null && line.Contains("avtr_"))
+        if (AvatarSeen != null && line.Contains("avtr_"))
             foreach (Match am in RxAvatarId.Matches(line))
                 AvatarSeen.Invoke(am.Value);
 

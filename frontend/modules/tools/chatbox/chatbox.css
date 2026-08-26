@@ -259,3 +259,96 @@
 .vrcn-resend-button:active {
     transform: scale(0.92);
 }
+
+.cb-ord-hint {
+    font-size: calc(10px + var(--fs-off, 0px));
+    color: var(--tx3);
+    margin-bottom: 4px;
+}
+
+.cb-line-order {
+    position: relative;
+}
+
+.cb-ord-block + .cb-ord-block > .cb-ord-row:first-child {
+    border-top: 1px solid var(--brd);
+}
+
+.cb-ord-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.cb-ord-handle {
+    font-size: calc(18px + var(--fs-off, 0px)) !important;
+    color: var(--tx3);
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+    opacity: .5;
+    transition: opacity .15s;
+}
+
+.cb-ord-row:hover .cb-ord-handle { opacity: 1; }
+.cb-ord-handle:active { cursor: grabbing; }
+
+.cb-ord-sub {
+    padding-left: 26px;
+}
+
+.cb-ord-dragging {
+    opacity: .3;
+}
+
+.cb-ord-divider {
+    font-size: calc(10px + var(--fs-off, 0px));
+    color: var(--tx3);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin: 12px 0 2px;
+}
+
+.cb-line-toggle {
+    margin-left: 0;
+    margin-right: -8px;
+    transform: scale(.78);
+    transform-origin: left center;
+    flex-shrink: 0;
+}
+
+.cb-line-off .cb-line-text {
+    color: var(--tx3);
+    text-decoration: line-through;
+}
+
+.cb-line-btn {
+    color: var(--tx3);
+    padding: 2px;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.cb-line-btn:hover {
+    color: var(--accent);
+    background: var(--bg-hover);
+    border-radius: 4px;
+}
+
+.cb-line-save:hover {
+    color: var(--ok, var(--accent));
+}
+
+.cb-line-editing {
+    gap: 6px;
+}
+
+.cb-line-input {
+    flex: 1;
+    min-width: 0;
+}

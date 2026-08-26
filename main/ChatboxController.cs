@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using VRCNext.Services;
 
 namespace VRCNext;
@@ -64,12 +64,20 @@ public class ChatboxController : IDisposable
                     var timeFormat = msg["timeFormat"]?.ToString() ?? "hh:mm tt";
                     var separator = msg["separator"]?.ToString() ?? " | ";
                     var intervalMs = msg["intervalMs"]?.Value<int>() ?? 5000;
-                    var customLines = msg["customLines"]?.ToObject<List<string>>() ?? new();
+                    var customLines = msg["customLines"]?.ToObject<List<CbCustomLine>>() ?? new();
                     var hideBackground = msg["hideBackground"]?.Value<bool>() ?? false;
+                    var showAfkTime = msg["showAfkTime"]?.Value<bool>() ?? true;
+                    var lineOrder = msg["lineOrder"]?.ToObject<List<string>>() ?? new(ChatboxService.DefaultLineOrder);
+                    var statCpu = msg["statCpu"]?.Value<bool>() ?? true;
+                    var statRam = msg["statRam"]?.Value<bool>() ?? true;
+                    var statGpu = msg["statGpu"]?.Value<bool>() ?? false;
+                    var statVram = msg["statVram"]?.Value<bool>() ?? false;
 
                     _chatbox.ApplyConfig(enabled, showTime, showMedia, showPlaytime,
                         showCustomText, showSystemStats, showAfk, afkMessage,
-                        suppressSound, timeFormat, separator, intervalMs, customLines, hideBackground);
+                        suppressSound, timeFormat, separator, intervalMs, customLines, hideBackground,
+                        lineOrder: lineOrder, showAfkTime: showAfkTime,
+                        statCpu: statCpu, statRam: statRam, statGpu: statGpu, statVram: statVram);
                     _vroCtrl.UpdateToolStates();
 
                     // Persist chatbox settings
@@ -86,6 +94,12 @@ public class ChatboxController : IDisposable
                     _core.Settings.CbIntervalMs = intervalMs;
                     _core.Settings.CbCustomLines = customLines;
                     _core.Settings.CbHideBackground = hideBackground;
+                    _core.Settings.CbShowAfkTime = showAfkTime;
+                    _core.Settings.CbLineOrder = lineOrder;
+                    _core.Settings.CbStatCpu = statCpu;
+                    _core.Settings.CbStatRam = statRam;
+                    _core.Settings.CbStatGpu = statGpu;
+                    _core.Settings.CbStatVram = statVram;
                     _core.Settings.Save();
                     if (_core.Settings.LastSaveError != null)
                         _core.SendToJS("toast", new { ok = false, msg = "Failed to save this setting, please report this error" });
@@ -214,7 +228,10 @@ public class ChatboxController : IDisposable
             _chatbox.SetUpdateCallback(data => { try { Invoke(() => _core.SendToJS("chatboxUpdate", data)); } catch (Exception ex) { CrashHandler.WriteEntry("Chatbox.SetUpdateCallback", ex); } });
             _chatbox.ApplyConfig(true, _core.Settings.CbShowTime, _core.Settings.CbShowMedia, _core.Settings.CbShowPlaytime,
                 _core.Settings.CbShowCustomText, _core.Settings.CbShowSystemStats, _core.Settings.CbShowAfk, _core.Settings.CbAfkMessage,
-                _core.Settings.CbSuppressSound, _core.Settings.CbTimeFormat, _core.Settings.CbSeparator, _core.Settings.CbIntervalMs, _core.Settings.CbCustomLines, _core.Settings.CbHideBackground);
+                _core.Settings.CbSuppressSound, _core.Settings.CbTimeFormat, _core.Settings.CbSeparator, _core.Settings.CbIntervalMs, _core.Settings.CbCustomLines, _core.Settings.CbHideBackground,
+                lineOrder: _core.Settings.CbLineOrder, showAfkTime: _core.Settings.CbShowAfkTime,
+                statCpu: _core.Settings.CbStatCpu, statRam: _core.Settings.CbStatRam,
+                statGpu: _core.Settings.CbStatGpu, statVram: _core.Settings.CbStatVram);
             _core.SendToJS("chatboxUpdate", new { enabled = true });
         }
     }

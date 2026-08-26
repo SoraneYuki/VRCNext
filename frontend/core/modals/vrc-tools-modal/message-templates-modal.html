@@ -1,0 +1,21 @@
+        <div class="modal-box" style="width:660px;max-width:92%;">
+            <div class="fd-modal-bar">
+                <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" data-i18n="msg_tpl.title">Message Templates</span></div>
+                <div class="fd-modal-bar-actions">
+                    <button class="btn-notif fd-action-btn" id="mtRefreshBtn" title="Refresh" data-i18n-title="common.refresh" onclick="mtLoad(_mtPool, true)"><span class="msi" style="font-size:20px;">refresh</span></button>
+                    <button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="closeMessageTemplatesModal()"><span class="msi" style="font-size:20px;">close</span></button>
+                </div>
+            </div>
+            <div class="modal-card">
+                <div class="modal-msg" style="margin:0 0 14px;" data-i18n="msg_tpl.desc">The canned messages VRChat offers when you invite someone, request an invite, or reply to either. Editing a slot puts it on a 60 minute cooldown.</div>
+
+                <div class="fd-tabs" style="margin-bottom:14px;">
+                    <button class="fd-tab active" id="mtTabMessage" onclick="mtSetPool('message')" data-i18n="msg_tpl.pool.message">Invite</button>
+                    <button class="fd-tab" id="mtTabResponse" onclick="mtSetPool('response')" data-i18n="msg_tpl.pool.response">Invite Response</button>
+                    <button class="fd-tab" id="mtTabRequest" onclick="mtSetPool('request')" data-i18n="msg_tpl.pool.request">Invite Request</button>
+                    <button class="fd-tab" id="mtTabRequestResponse" onclick="mtSetPool('requestResponse')" data-i18n="msg_tpl.pool.request_response">Request Response</button>
+                </div>
+
+                <div id="mtList" class="mt-list"></div>
+            </div>
+        </div>

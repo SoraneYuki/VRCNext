@@ -362,6 +362,10 @@
 .rsidebar.collapsed.logged-out .vrc-login-collapsed-btn { display: flex; justify-content: center; }
 .vrc-login-collapsed-icon { color: var(--err); }
 .rsidebar.collapsed #vrcLoginPrompt { display: none !important; }
+#vrcLoginPrompt { display: none; }
+.rsidebar.logged-out #vrcLoginPrompt { display: block; }
+.rsidebar.logged-out #vrcFriendsList,
+.rsidebar.logged-out #vrcFriendControls { display: none !important; }
 
 .vrc-section-label {
     display: flex;

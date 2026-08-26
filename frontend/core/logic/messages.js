@@ -61,42 +61,66 @@ window.external.receiveMessage(rawMsg => {
             case 'cursorFiles': _localHttpPort = payload.port || _localHttpPort; renderCursorThemeChips(payload.files); applyCursorTheme(currentCursorTheme); break;
             case 'customThemes': _localHttpPort = payload.port || _localHttpPort; _customThemes = payload.themes || []; applyCustomThemesFromSettings([..._activeCustomThemes]); break;
             case 'vrcLaunched': {
-                // Fired when the user launches VRChat from VRCNext (VR or Desktop)
+                // Fired when a VRChat session starts (VRCNext launch or detected externally)
                 if (window._isLinuxUi) break;
                 const vr = !!payload.vr;
-                const s = settings || {};
                 const chk = id => !!document.getElementById(id)?.checked;
+                const session = (window._autoStartToken = (window._autoStartToken || 0) + 1);
                 let delay = 300;
-                const trigger = (cond, fn) => { if (cond) { setTimeout(fn, delay); delay += 100; } };
+                const ensure = (cond, isRunning, start) => {
+                    if (!cond) return;
+                    const first = delay; delay += 100;
+                    let tries = 0;
+                    const tick = () => {
+                        if (window._autoStartToken !== session) return;
+                        if (isRunning()) return;
+                        if (tries >= 5) return;
+                        tries++;
+                        start();
+                        setTimeout(tick, 5000);
+                    };
+                    setTimeout(tick, first);
+                };
                 // Chatbox
-                trigger(vr ? chk('setCbAutoStartVR') : chk('setCbAutoStartDesktop'),
-                    () => { if (!chatboxEnabled) toggleChatbox(); });
+                ensure(vr ? chk('setCbAutoStartVR') : chk('setCbAutoStartDesktop'),
+                    () => typeof chatboxEnabled !== 'undefined' && chatboxEnabled,
+                    () => toggleChatbox());
                 // Space Flight (VR only)
-                trigger(vr && chk('setSfAutoStartVR'), sfConnect);
+                ensure(vr && chk('setSfAutoStartVR'),
+                    () => typeof sfConnected !== 'undefined' && sfConnected,
+                    () => sfConnect());
                 // FrameShot (VR only)
-                trigger(vr && chk('setFsAutoStartVR'),
+                ensure(vr && chk('setFsAutoStartVR'),
+                    () => typeof fsConnected !== 'undefined' && fsConnected,
                     () => { if (typeof fsConnect === 'function') fsConnect(); });
                 // Media Relay
-                trigger(vr ? chk('setAutoStartVR') : chk('setAutoStartDesktop'),
+                ensure(vr ? chk('setAutoStartVR') : chk('setAutoStartDesktop'),
+                    () => typeof relayOn !== 'undefined' && relayOn,
                     () => sendToCS({ action: 'startRelay' }));
                 // YouTube Fix
-                trigger(vr ? chk('setYtAutoStartVR') : chk('setYtAutoStartDesktop'),
+                ensure(vr ? chk('setYtAutoStartVR') : chk('setYtAutoStartDesktop'),
+                    () => !!document.getElementById('vcDot')?.classList.contains('online'),
                     () => { if (typeof toggleVc === 'function') toggleVc(); });
                 // Voice Fight
-                trigger(vr ? chk('setVfAutoStartVR') : chk('setVfAutoStartDesktop'),
+                ensure(vr ? chk('setVfAutoStartVR') : chk('setVfAutoStartDesktop'),
+                    () => typeof vfRunning !== 'undefined' && vfRunning,
                     () => { if (typeof vfConnect === 'function') vfConnect(); });
                 // Discord Presence
-                trigger(vr ? chk('setDpAutoStartVR') : chk('setDpAutoStartDesktop'),
-                    () => { if (!_dpRunning) sendToCS({ action: 'dpStart' }); });
+                ensure(vr ? chk('setDpAutoStartVR') : chk('setDpAutoStartDesktop'),
+                    () => typeof _dpRunning !== 'undefined' && _dpRunning,
+                    () => sendToCS({ action: 'dpStart' }));
                 // VR Overlay (VR only)
-                trigger(vr && chk('setVroAutoStartVR'),
+                ensure(vr && chk('setVroAutoStartVR'),
+                    () => typeof vroConnected !== 'undefined' && vroConnected,
                     () => { if (typeof vroConnect === 'function') vroConnect(); });
                 // Avatar Scaling
-                trigger(vr ? chk('setAsAutoStartVR') : chk('setAsAutoStartDesktop'),
-                    () => { if (!_asConnected) sendToCS({ action: 'asConnect' }); });
+                ensure(vr ? chk('setAsAutoStartVR') : chk('setAsAutoStartDesktop'),
+                    () => typeof _asConnected !== 'undefined' && _asConnected,
+                    () => sendToCS({ action: 'asConnect' }));
                 break;
             }
             case 'vrcClosed': {
+                window._autoStartToken = (window._autoStartToken || 0) + 1;
                 // Fired when VRChat closes and "Close with VRChat" is enabled.
                 // Mirror of vrcLaunched: shut down the VRCNext tools that are running.
                 let delay = 0;
@@ -256,7 +280,6 @@ window.external.receiveMessage(rawMsg => {
                 renderVrcProfile(payload);
                 if (currentInstanceData) renderCurrentInstance(currentInstanceData);
                 if (payload.currentAvatar) currentAvatarId = payload.currentAvatar;
-                document.getElementById('vrcLoginPrompt') && (document.getElementById('vrcLoginPrompt').style.display = 'none');
                 // Login state is reflected in the Accounts tab now that the old login card is gone.
                 if (typeof requestAccountsList === 'function') requestAccountsList();
                 if (typeof updateTbAppUserHeader === 'function') updateTbAppUserHeader();
@@ -349,7 +372,6 @@ window.external.receiveMessage(rawMsg => {
                 vrcFriendsLoaded = false;
                 renderVrcProfile(null);
                 { const _fl = document.getElementById('vrcFriendsList'); _fl.innerHTML = ''; _fl.__lastHtml = null; }
-                document.getElementById('vrcLoginPrompt') && (document.getElementById('vrcLoginPrompt').style.display = '');
                 { _hasVrcPlus = false; _hasVrcCredits = false; applyTbBadgeVisibility(); }
                 if (typeof updateTbAppUserHeader === 'function') updateTbAppUserHeader();
                 break;
@@ -469,6 +491,8 @@ window.external.receiveMessage(rawMsg => {
                         }
                     }
                 } else {
+                    if (payload.action === 'leaveGroup' && typeof groupBulkLeaveConsume === 'function'
+                        && groupBulkLeaveConsume(payload.success)) break;
                     showToast(payload.success, payload.message);
                     // Auto-refresh groups list on join/leave (from anywhere in the app)
                     if (payload.success && (payload.action === 'joinGroup' || payload.action === 'leaveGroup' || payload.groupJoined)) {
@@ -558,6 +582,7 @@ window.external.receiveMessage(rawMsg => {
                 }
                 break;
             case 'vrcUnfriendDone':
+                if (typeof friendBulkUnfriendConsume === 'function' && friendBulkUnfriendConsume()) break;
                 closeFriendDetail();
                 sendToCS({ action: 'vrcRefreshFriends' });
                 break;
@@ -852,6 +877,24 @@ window.external.receiveMessage(rawMsg => {
                 break;
             case 'vrcAvatarUpdateResult':
                 onAvatarUpdateResult(payload);
+                break;
+            case 'vrcWorldUpdateResult':
+                if (typeof onWorldUpdateResult === 'function') onWorldUpdateResult(payload);
+                break;
+            case 'vrcWorldImageResult':
+                if (typeof onWorldImageResult === 'function') onWorldImageResult(payload);
+                break;
+            case 'vrcAvatarDeleteResult':
+                if (typeof onAvatarDeleteResult === 'function') onAvatarDeleteResult(payload);
+                break;
+            case 'vrcWorldDeleteResult':
+                if (typeof onWorldDeleteResult === 'function') onWorldDeleteResult(payload);
+                break;
+            case 'vrcGroupCreateResult':
+                if (typeof onGroupCreateResult === 'function') onGroupCreateResult(payload);
+                break;
+            case 'vrcGroupDeleteResult':
+                if (typeof onGroupDeleteResult === 'function') onGroupDeleteResult(payload);
                 break;
             case 'vrcOnlineCount':
                 _dashOnlineCount = payload.count || 0;
@@ -1151,6 +1194,27 @@ case 'vrcNews':
                 else renderInvFetchError(payload.error);
                 break;
             case 'invUploadResult': handleInvUploadResult(payload); break;
+            case 'invPrintUploadResult': handleInvPrintUploadResult(payload); break;
+            case 'vrcMessageTemplates':
+                if (typeof onMessageTemplates === 'function') onMessageTemplates(payload);
+                break;
+            case 'vrcMessageTemplateResult':
+                if (typeof onMessageTemplateResult === 'function') onMessageTemplateResult(payload);
+                break;
+            case 'vrcLogFiles':
+                if (typeof onLogFiles === 'function') onLogFiles(payload);
+                break;
+            case 'debugKitExported':
+                if (payload.ok) {
+                    showToast(true, tf('debugkit.toast.done', { path: payload.path || '' }, 'Debug kit saved: {path}'));
+                    sendToCS({ action: 'revealInExplorer', path: payload.path });
+                } else {
+                    showToast(false, tf('debugkit.toast.failed', { error: payload.error || '' }, 'Debug kit export failed: {error}'));
+                }
+                break;
+            case 'vrcLogLines':
+                if (typeof onLogLines === 'function') onLogLines(payload);
+                break;
             case 'invDeleteResult': handleInvDeleteResult(payload); break;
             case 'invPrintDeleteResult': handleInvPrintDeleteResult(payload); break;
             case 'invInventory': handleInvInventoryResult(payload); break;

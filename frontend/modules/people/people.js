@@ -1,4 +1,4 @@
-/* === VRChat API === */
+﻿/* === VRChat API === */
 function vrcQuickLogin() {
     const u = document.getElementById('vrcQuickUser').value, p = document.getElementById('vrcQuickPass').value;
     if (!u || !p) return;
@@ -267,6 +267,12 @@ function _plGridId() {
     }[peopleFilter] || '';
 }
 
+function _plKeepScroll(gridId, render) {
+    const el = document.getElementById(gridId);
+    if (!el || !_peopleListMode() || typeof lvKeepScroll !== 'function') { render(); return; }
+    lvKeepScroll(el, render);
+}
+
 function _plLiveRerender() {
     const tab = document.getElementById('tab3');
     if (!tab || !tab.classList.contains('active')) return;
@@ -316,7 +322,7 @@ function setPeopleFilter(filter) {
         if (bar) bar.innerHTML = '';
     });
     const editBtn = document.getElementById('favFriendEditModeBtn');
-    if (editBtn) editBtn.style.display = filter === 'favorites' ? '' : 'none';
+    if (editBtn) editBtn.style.display = (filter === 'favorites' || filter === 'all') ? '' : 'none';
     refreshPeopleTab();
 }
 
@@ -600,7 +606,7 @@ function _plSort(list) {
     });
 }
 
-function buildPeopleListHtml(friends) {
+function buildPeopleListHtml(friends, staticHeader) {
     _plEnsureStats();
     let rows = '';
     friends.forEach(f => {
@@ -623,7 +629,7 @@ function buildPeopleListHtml(friends) {
             ? `<span class="${dotKind} ${dotCls}"></span><span class="pl-status-txt">${esc(statusTxt)}</span>`
             : '';
 
-        rows += tlTableRow('friendsList', ` onclick="openFriendDetail('${uid}')"`, {
+        rows += tlTableRow('friendsList', ` data-uid="${esc(f.id || '')}" onclick="openFriendDetail('${uid}')"`, {
             profile:   `<td class="pl-profile">${av}</td>`,
             name:      `<td class="pl-name">${esc(f.displayName || '')}</td>`,
             rank:      `<td>${rank ? `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>` : ''}</td>`,
@@ -640,7 +646,7 @@ function buildPeopleListHtml(friends) {
             lastseen:  `<td class="pl-date">${esc(_plDateTime(f.lastSeen))}</td>`,
         });
     });
-    return tlTableHtml('friendsList', rows);
+    return tlTableHtml('friendsList', rows, staticHeader);
 }
 
 const _PL_BAR_FILTER = {
@@ -692,7 +698,7 @@ function filterAllFriendsIfLive() {
         if (!t3 || !t3.classList.contains('active')) return;
         if (peopleFilter !== 'all' || _peopleAllPage !== 0) return;
         if ((document.getElementById('allFriendSearchInput')?.value || '').trim()) return;
-        filterAllFriends();
+        _plKeepScroll('allFriendsGrid', filterAllFriends);
     }, ALL_FRIENDS_LIVE_MS);
 }
 
@@ -723,7 +729,8 @@ function filterAllFriends() {
     el.classList.toggle('search-grid', !listMode);
     el.innerHTML = listMode
         ? buildPeopleListHtml(slice)
-        : slice.map(f => renderUserItem(f, `openFriendDetail('${jsq(f.id)}')`)).join('');
+        : slice.map(f => renderPeopleFriendCard(f)).join('');
+    if (listMode) lvEditDecorateList(el, 'people');
     plSetPaginator('peopleAllPaginatorBar', listMode
         ? plPaginator(page, totalPages, 'peopleAllGoPage', all.length)
         : buildPaginator(page, totalPages, 'peopleAllGoPage',
@@ -1022,6 +1029,18 @@ function ffCancelGroupName(btn) {
     if (actions) actions.style.display = 'none';
 }
 
+function renderPeopleFriendCard(f) {
+    const uid = jsq(f.id);
+    if (!_favFriendEditMode) return renderUserItem(f, `openFriendDetail('${uid}')`);
+    const isSel = _favFriendEditSelected.has(f.id);
+    const checkIcon = isSel
+        ? `<span class="msi" style="font-size:22px;color:var(--accent);">check_circle</span>`
+        : `<span class="msi" style="font-size:22px;color:rgba(255,255,255,0.7);">radio_button_unchecked</span>`;
+    return renderUserItem(f, `toggleFriendEditSelect('${uid}',this)`, {
+        trailing: `<div style="margin-left:auto;flex-shrink:0;">${checkIcon}</div>`,
+    });
+}
+
 function renderFavFriendCard(f) {
     const uid = jsq(f.id);
     if (_favFriendEditMode) {
@@ -1039,7 +1058,7 @@ function renderFavFriendCard(f) {
 let _favFriendsDirty = false;
 function filterFavFriendsIfVisible() {
     const tab = document.getElementById('tab3');
-    if (tab && tab.classList.contains('active')) filterFavFriends();
+    if (tab && tab.classList.contains('active')) _plKeepScroll('favFriendsGrid', filterFavFriends);
     else _favFriendsDirty = true;
 }
 
@@ -1060,13 +1079,14 @@ function filterFavFriends() {
         if (_favFriendEditMode) updateFriendEditBar();
         return;
     }
-    if (favListMode && !_favFriendEditMode) {
+    if (favListMode) {
         const sorted = _plSort(friends);
         const totalPages = Math.ceil(sorted.length / peopleListPageSize) || 1;
         if (_peopleFavPage >= totalPages) _peopleFavPage = totalPages - 1;
         if (_peopleFavPage < 0) _peopleFavPage = 0;
         const slice = sorted.slice(_peopleFavPage * peopleListPageSize, (_peopleFavPage + 1) * peopleListPageSize);
         el.innerHTML = buildPeopleListHtml(slice);
+        lvEditDecorateList(el, 'people');
         plSetPaginator('peopleFavPaginatorBar', plPaginator(_peopleFavPage, totalPages, 'peopleFavGoPage', sorted.length));
         return;
     }
@@ -1101,27 +1121,41 @@ function toggleFriendEditMode() {
     _favFriendEditSelected = new Set();
     const btn = document.getElementById('favFriendEditModeBtn');
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">check</span> <span>${t('friends.edit.done', 'Done')}</span>`; btn.classList.add('active'); }
-    const filterBtns = document.getElementById('peopleFilterBtns');
-    if (filterBtns) filterBtns.style.display = 'none';
     const bar = document.getElementById('favFriendEditBar');
     if (bar) bar.style.display = 'flex';
-    filterFavFriends();
+    _friendEditSyncActions();
+    _friendEditRerender();
     updateFavFriendGroupHeader();
+    updateFriendEditBar();
+}
+
+function _friendEditSyncActions() {
+    const isAll = _friendEditIsAllFilter();
+    const show = (id, on) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = on ? '' : 'none';
+    };
+    show('favFriendEditAddFavWrap', isAll);
+    show('favFriendEditMoveWrap', !isAll);
+    show('favFriendEditRemoveBtn', !isAll);
+    show('friendCreateLocalWrap', !isAll);
 }
 
 function exitFriendEditMode() {
+    const wasAll = _friendEditIsAllFilter();
     _favFriendEditMode = false;
     _favFriendEditSelected = new Set();
     const btn = document.getElementById('favFriendEditModeBtn');
     if (btn) { btn.innerHTML = `<span class="msi" style="font-size:16px;">edit</span> <span>${t('friends.edit.button', 'Edit')}</span>`; btn.classList.remove('active'); }
-    const filterBtns = document.getElementById('peopleFilterBtns');
-    if (filterBtns) filterBtns.style.display = '';
     const bar = document.getElementById('favFriendEditBar');
     if (bar) bar.style.display = 'none';
-    const picker = document.getElementById('favFriendEditMovePicker');
-    if (picker) { picker.style.display = 'none'; picker.innerHTML = ''; }
+    ['favFriendEditMovePicker', 'favFriendEditAddFavPicker'].forEach(id => {
+        const picker = document.getElementById(id);
+        if (picker) { picker.style.display = 'none'; picker.innerHTML = ''; }
+    });
     friendCancelCreateLocalGroup();
-    filterFavFriends();
+    if (wasAll) filterAllFriends();
+    else filterFavFriends();
     updateFavFriendGroupHeader();
 }
 
@@ -1196,18 +1230,12 @@ function toggleFriendEditSelect(id, el) {
 }
 
 function friendEditSelectAll() {
-    const q = (document.getElementById('favFriendSearchInput')?.value || '').toLowerCase();
-    const favMap = new Map(favFriendsData.map(f => [f.favoriteId, f]));
-    let friends = vrcFriendsData.filter(f => favMap.has(f.id));
-    if (favFriendGroupFilter) friends = friends.filter(f => favMap.get(f.id)?.groupName === favFriendGroupFilter);
-    if (q) friends = friends.filter(f => (f.displayName || '').toLowerCase().includes(q));
+    const friends = _friendEditVisibleList();
     const allSel = friends.length > 0 && friends.every(f => _favFriendEditSelected.has(f.id));
-    if (allSel) {
-        friends.forEach(f => _favFriendEditSelected.delete(f.id));
-    } else {
-        friends.forEach(f => _favFriendEditSelected.add(f.id));
-    }
-    filterFavFriends();
+    if (allSel) friends.forEach(f => _favFriendEditSelected.delete(f.id));
+    else friends.forEach(f => _favFriendEditSelected.add(f.id));
+    _friendEditRerender();
+    updateFriendEditBar();
 }
 
 function updateFriendEditBar() {
@@ -1216,15 +1244,85 @@ function updateFriendEditBar() {
     if (countEl) countEl.textContent = t('friends.edit.selected', '{count} selected').replace('{count}', count);
     const selectAllBtn = document.getElementById('favFriendEditSelectAllBtn');
     if (selectAllBtn) {
-        const q = (document.getElementById('favFriendSearchInput')?.value || '').toLowerCase();
-        const favMap = new Map(favFriendsData.map(f => [f.favoriteId, f]));
-        let friends = vrcFriendsData.filter(f => favMap.has(f.id));
-        if (favFriendGroupFilter) friends = friends.filter(f => favMap.get(f.id)?.groupName === favFriendGroupFilter);
-        if (q) friends = friends.filter(f => (f.displayName || '').toLowerCase().includes(q));
+        const friends = _friendEditVisibleList();
         const allSel = friends.length > 0 && friends.every(f => _favFriendEditSelected.has(f.id));
         selectAllBtn.textContent = allSel ? t('friends.edit.deselect_all', 'Deselect All') : t('friends.edit.select_all', 'Select All');
     }
     document.querySelectorAll('#favFriendEditBar .wd-edit-action').forEach(b => b.disabled = count === 0);
+}
+
+function _friendEditIsAllFilter() {
+    return peopleFilter === 'all';
+}
+
+function _friendEditVisibleList() {
+    if (_friendEditIsAllFilter()) {
+        const q = (document.getElementById('allFriendSearchInput')?.value || '').toLowerCase();
+        let all = q
+            ? vrcFriendsData.filter(f =>
+                (f.displayName || '').toLowerCase().includes(q) ||
+                (f.username || f.userName || '').toLowerCase().includes(q) ||
+                (f.id || '').toLowerCase().includes(q))
+            : [...vrcFriendsData];
+        if (_allFriendsStatusFilter !== 'all') all = all.filter(f => _allFriendCategory(f) === _allFriendsStatusFilter);
+        return all;
+    }
+    const q = (document.getElementById('favFriendSearchInput')?.value || '').toLowerCase();
+    const favMap = new Map(favFriendsData.map(f => [f.favoriteId, f]));
+    let friends = vrcFriendsData.filter(f => favMap.has(f.id));
+    if (favFriendGroupFilter) friends = friends.filter(f => favMap.get(f.id)?.groupName === favFriendGroupFilter);
+    if (q) friends = friends.filter(f => (f.displayName || '').toLowerCase().includes(q));
+    return friends;
+}
+
+function _friendEditRerender() {
+    if (_friendEditIsAllFilter()) filterAllFriends();
+    else filterFavFriends();
+}
+
+function friendEditShowAddFavMenu(btn) {
+    if (_favFriendEditSelected.size === 0) return;
+    const picker = document.getElementById('favFriendEditAddFavPicker');
+    if (!picker) return;
+    if (picker.style.display === 'block') { picker.style.display = 'none'; picker.innerHTML = ''; return; }
+    picker.innerHTML = favFriendGroups.map(g => {
+        const count = favFriendsData.filter(f => f.groupName === g.name).length;
+        const gn = jsq(g.name);
+        return `<div class="vn-select-option" onclick="friendEditAddToFavorites('${gn}')">
+            <span class="msi" style="font-size:14px;flex-shrink:0;">favorite</span>
+            <span style="flex:1;">${esc(g.displayName || g.name)}</span>
+            ${favGroupBadge(g)}
+            <span style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);flex-shrink:0;">${count}</span>
+        </div>`;
+    }).join('') || `<div class="vn-select-option" style="pointer-events:none;color:var(--tx3);">${esc(t('friends.favorites.no_groups', 'No favorite groups'))}</div>`;
+    picker.style.display = 'block';
+    setTimeout(() => {
+        const close = (e) => {
+            if (!picker.contains(e.target) && e.target !== btn) {
+                picker.style.display = 'none';
+                picker.innerHTML = '';
+                document.removeEventListener('click', close);
+            }
+        };
+        document.addEventListener('click', close);
+    }, 0);
+}
+
+function friendEditAddToFavorites(groupName) {
+    if (_favFriendEditSelected.size === 0) return;
+    const picker = document.getElementById('favFriendEditAddFavPicker');
+    if (picker) { picker.style.display = 'none'; picker.innerHTML = ''; }
+    const ids = [..._favFriendEditSelected];
+    let added = 0;
+    ids.forEach(userId => {
+        if (favFriendsData.some(f => f.favoriteId === userId)) return;
+        sendToCS({ action: 'vrcAddFavoriteFriend', userId, groupName });
+        added++;
+    });
+    exitFriendEditMode();
+    if (typeof showToast === 'function') {
+        showToast(added > 0, tf('friends.edit.add_to_favorites_done', { count: added }, 'Added {count} to favorites'));
+    }
 }
 
 function friendEditShowMoveMenu(btn) {
@@ -1269,6 +1367,59 @@ function friendEditMoveSelected(groupName) {
     exitFriendEditMode();
 }
 
+function friendEditUnfriendSelected() {
+    const ids = [..._favFriendEditSelected];
+    if (!ids.length) return;
+    const names = ids
+        .map(id => (vrcFriendsData.find(f => f.id === id)?.displayName) || id)
+        .slice(0, 6);
+    const more = ids.length - names.length;
+    const listHtml = names.map(n => `<div>${esc(n)}</div>`).join('')
+        + (more > 0 ? `<div>${esc(tf('friends.edit.bulk_unfriend_more', { count: more }, '+{count} more'))}</div>` : '');
+
+    document.getElementById('friendBulkUnfriendModal')?.remove();
+    const o = document.createElement('div');
+    o.className = 'modal-overlay';
+    o.style.display = 'flex';
+    o.id = 'friendBulkUnfriendModal';
+    o.style.zIndex = '10003';
+    o.onclick = e => { if (e.target === o) o.remove(); };
+    o.innerHTML = `<div class="modal-box">
+        ${renderModalBar(t('friends.edit.bulk_unfriend', 'Bulk Unfriend'), [modalCloseAction("document.getElementById('friendBulkUnfriendModal').remove()")])}
+        <div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">person_remove</span></div>
+        <div class="modal-msg">${tf('friends.edit.bulk_unfriend_confirm', { count: ids.length }, 'Unfriend {count} people? This cannot be undone.')}</div>
+        <div class="gr-bulk-list">${listHtml}</div>
+        <div class="modal-btns">
+            <button class="vrcn-button-round" onclick="document.getElementById('friendBulkUnfriendModal').remove()">${esc(t('common.cancel', 'Cancel'))}</button>
+            <button class="vrcn-button-round vrcn-btn-danger" onclick="friendEditUnfriendConfirmed()">${esc(t('friends.edit.bulk_unfriend', 'Bulk Unfriend'))}</button>
+        </div></div>`;
+    document.body.appendChild(o);
+}
+
+let _friendBulkUnfriendPending = 0;
+
+function friendEditUnfriendConfirmed() {
+    document.getElementById('friendBulkUnfriendModal')?.remove();
+    const ids = [..._favFriendEditSelected];
+    if (!ids.length) return;
+    _friendBulkUnfriendPending = ids.length;
+    ids.forEach(userId => sendToCS({ action: 'vrcUnfriend', userId }));
+    exitFriendEditMode();
+}
+
+function friendBulkUnfriendConsume() {
+    if (_friendBulkUnfriendPending <= 0) return false;
+    const total = _friendBulkUnfriendPending;
+    _friendBulkUnfriendPending--;
+    if (_friendBulkUnfriendPending === 0) {
+        if (typeof showToast === 'function') {
+            showToast(true, tf('friends.edit.bulk_unfriend_done', { count: total }, 'Unfriended {count} people'));
+        }
+        sendToCS({ action: 'vrcRefreshFriends' });
+    }
+    return true;
+}
+
 function friendEditRemoveSelected() {
     if (_favFriendEditSelected.size === 0) return;
     const toRemove = [..._favFriendEditSelected];
@@ -1279,3 +1430,10 @@ function friendEditRemoveSelected() {
     exitFriendEditMode();
 }
 
+lvEditRegister('people', {
+    attr: 'data-uid',
+    isActive: () => _favFriendEditMode,
+    isSelected: id => _favFriendEditSelected.has(id),
+    toggle: id => { if (_favFriendEditSelected.has(id)) _favFriendEditSelected.delete(id); else _favFriendEditSelected.add(id); },
+    onChange: () => updateFriendEditBar(),
+});

@@ -91,9 +91,9 @@ function renderSearchResults(type, results, offset, hasMore) {
 
     if (listMode) {
         let table = '';
-        if (type === 'worlds') table = buildWorldsListHtml(state.results);
-        else if (type === 'groups') table = buildGroupsListHtml(state.results);
-        else if (type === 'users') table = buildPeopleListHtml(state.results);
+        if (type === 'worlds') table = buildWorldsListHtml(state.results, true);
+        else if (type === 'groups') table = buildGroupsListHtml(state.results, true);
+        else if (type === 'users') table = buildPeopleListHtml(state.results, true);
         const more = state.hasMore
             ? `<div class="lv-more"><button class="vrcn-button load-more-btn" onclick="doSearch('${sType === 'people' ? 'people' : sType}',true)"><span class="msi" style="font-size:16px;">expand_more</span> ${esc(searchLoadMoreText())}</button></div>`
             : '';

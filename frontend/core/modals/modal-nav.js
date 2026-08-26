@@ -15,7 +15,8 @@ function _mnActionHtml(a, asText) {
     if (asText) {
         return `<button class="tb-modal-action${a.danger ? ' tb-modal-action-danger' : ''}"${a.disabled ? ' disabled' : ''} onclick="${a.onclick}">${esc(a.label || a.title || '')}</button>`;
     }
-    return `<button class="btn-notif fd-action-btn${a.danger ? ' fd-action-danger' : ''}"${a.disabled ? ' disabled' : ''} title="${esc(a.title || a.label || '')}" onclick="${a.onclick}"><span class="msi${a.iconClass ? ' ' + esc(a.iconClass) : ''}" style="font-size:20px;">${esc(a.icon)}</span></button>`;
+    const dangerCls = a.dangerSolid ? ' fd-action-danger fd-action-danger-solid' : (a.danger ? ' fd-action-danger' : '');
+    return `<button class="btn-notif fd-action-btn${dangerCls}"${a.disabled ? ' disabled' : ''} title="${esc(a.title || a.label || '')}" onclick="${a.onclick}"><span class="msi${a.iconClass ? ' ' + esc(a.iconClass) : ''}" style="font-size:20px;">${esc(a.icon)}</span></button>`;
 }
 
 function _mnActionsHtml(actions, asText) {
@@ -587,4 +588,27 @@ function vnPromptModal(opts) {
     document.getElementById(id + 'Ok').onclick = submit;
     input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); submit(); } };
     setTimeout(() => { input.focus(); input.select(); }, 50);
+}
+
+function vrcnConfirmDelete(opts) {
+    const id = opts.id || 'vrcnConfirmDeleteModal';
+    document.getElementById(id)?.remove();
+    const o = document.createElement('div');
+    o.className = 'modal-overlay';
+    o.style.display = 'flex';
+    o.id = id;
+    o.style.zIndex = '10003';
+    o.onclick = e => { if (e.target === o) o.remove(); };
+    o.innerHTML = `<div class="modal-box">
+        ${renderModalBar(opts.title, [modalCloseAction(`document.getElementById('${id}').remove()`)])}
+        <div class="modal-icon danger" style="margin-top:20px;"><span class="msi" style="font-size:22px;">${_esc(opts.icon || 'delete')}</span></div>
+        <div class="modal-msg">${_esc(opts.message)}</div>
+        ${opts.listHtml ? `<div class="gr-bulk-list">${opts.listHtml}</div>` : ''}
+        <div class="modal-btns">
+            <button class="vrcn-button-round" id="${id}Cancel">${_esc(typeof t === 'function' ? t('common.cancel', 'Cancel') : 'Cancel')}</button>
+            <button class="vrcn-button-round vrcn-btn-danger" id="${id}Ok">${_esc(opts.confirmLabel || 'Delete')}</button>
+        </div></div>`;
+    document.body.appendChild(o);
+    document.getElementById(id + 'Cancel').onclick = () => o.remove();
+    document.getElementById(id + 'Ok').onclick = () => { o.remove(); opts.onConfirm && opts.onConfirm(); };
 }

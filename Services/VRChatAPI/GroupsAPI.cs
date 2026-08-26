@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -574,5 +574,46 @@ public class GroupsAPI(VRChatApiService ctx)
         }
         catch (Exception ex) { ctx.Log($"GetGroupInstances exception: {ex.Message}"); }
         return new JArray();
+    }
+
+    public async Task<(bool ok, string error, string groupId)> CreateGroupAsync(string name, string shortCode, string description, string joinState, string privacy, string roleTemplate, string? iconId, string? bannerId)
+    {
+        if (!ctx.IsLoggedIn) return (false, "Not logged in", "");
+        try
+        {
+            var body = new JObject
+            {
+                ["name"]         = name,
+                ["shortCode"]    = shortCode,
+                ["description"]  = description,
+                ["joinState"]    = joinState,
+                ["privacy"]      = privacy,
+                ["roleTemplate"] = roleTemplate,
+            };
+            if (!string.IsNullOrEmpty(iconId))   body["iconId"]   = iconId;
+            if (!string.IsNullOrEmpty(bannerId)) body["bannerId"] = bannerId;
+            var resp = await ctx._http.PostAsync($"{VRChatApiService.BASE}/groups",
+                new StringContent(body.ToString(Newtonsoft.Json.Formatting.None), Encoding.UTF8, "application/json"));
+            var respBody = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"CreateGroup {shortCode}: {(int)resp.StatusCode}");
+            if (resp.IsSuccessStatusCode)
+                return (true, "", JObject.Parse(respBody)["id"]?.ToString() ?? "");
+            return (false, VRChatApiService.TryGetApiError(respBody) ?? $"API error {(int)resp.StatusCode}", "");
+        }
+        catch (Exception ex) { ctx.Log($"CreateGroup exception: {ex.Message}"); return (false, ex.Message, ""); }
+    }
+
+    public async Task<(bool ok, string error)> DeleteGroupAsync(string groupId)
+    {
+        if (!ctx.IsLoggedIn) return (false, "Not logged in");
+        try
+        {
+            var resp = await ctx._http.DeleteAsync($"{VRChatApiService.BASE}/groups/{groupId}");
+            var body = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"DeleteGroup {groupId}: {(int)resp.StatusCode}");
+            if (resp.IsSuccessStatusCode) return (true, "");
+            return (false, VRChatApiService.TryGetApiError(body) ?? $"API error {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"DeleteGroup exception: {ex.Message}"); return (false, ex.Message); }
     }
 }

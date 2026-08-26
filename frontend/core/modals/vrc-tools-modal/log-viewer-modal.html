@@ -1,0 +1,42 @@
+        <div class="modal-box" style="width:1080px;max-width:96%;">
+            <div class="fd-modal-bar">
+                <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" data-i18n="log_viewer.title">VRChat Log Viewer</span></div>
+                <div class="fd-modal-bar-actions">
+                    <button class="btn-notif fd-action-btn" title="Open log folder" data-i18n-title="log_viewer.open_folder" onclick="sendToCS({action:'openShortcutFolder',folder:'vrchat_data'})"><span class="msi" style="font-size:20px;">folder_open</span></button>
+                    <button class="btn-notif fd-action-btn" title="Refresh" data-i18n-title="common.refresh" onclick="lvRefresh()"><span class="msi" style="font-size:20px;">refresh</span></button>
+                    <button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="closeLogViewerModal()"><span class="msi" style="font-size:20px;">close</span></button>
+                </div>
+            </div>
+            <div class="modal-card">
+                <div class="lgv-toolbar">
+                    <select id="lgvFile" class="vrcn-dropdown" onchange="lgvLoad()" style="min-width:280px;"></select>
+                    <div class="search-bar-row lgv-search">
+                        <span class="msi search-ico">search</span>
+                        <input type="text" id="lgvSearch" class="search-input" data-i18n-placeholder="log_viewer.search" placeholder="Search message, category, or stack trace" oninput="lgvOnSearch(this.value)">
+                    </div>
+                </div>
+                <div class="lgv-toolbar">
+                    <div class="lgv-catwrap">
+                        <button class="vrcn-button" id="lgvCatBtn" onclick="lgvToggleCatMenu()"><span class="msi" style="font-size:15px;">filter_list</span> <span id="lgvCatLabel" data-i18n="log_viewer.all_categories">All categories</span><span class="msi" style="font-size:15px;">expand_more</span></button>
+                        <div id="lgvCatMenu" class="vn-select-panel lgv-catmenu" style="display:none;"></div>
+                    </div>
+                    <button class="vrcn-button lgv-lvl-btn lgv-lvl-debug active" id="lgvLvlDebug" onclick="lgvToggleLevel('Debug')"><span class="lgv-dot"></span><span data-i18n="log_viewer.level.debug">Debug</span></button>
+                    <button class="vrcn-button lgv-lvl-btn lgv-lvl-warn active" id="lgvLvlWarning" onclick="lgvToggleLevel('Warning')"><span class="lgv-dot"></span><span data-i18n="log_viewer.level.warning">Warning</span></button>
+                    <button class="vrcn-button lgv-lvl-btn lgv-lvl-error active" id="lgvLvlError" onclick="lgvToggleLevel('Error')"><span class="lgv-dot"></span><span data-i18n="log_viewer.level.error">Error</span></button>
+                    <span class="vrcn-edit-spacer"></span>
+                    <span class="lgv-status" id="lgvSelCount"></span>
+                    <span class="lgv-status" id="lgvStatus"></span>
+                    <button class="vrcn-button" onclick="lgvCopy()"><span class="msi" style="font-size:15px;">content_copy</span> <span data-i18n="common.copy">Copy</span></button>
+                </div>
+                <div class="lgv-table">
+                    <div class="lgv-head">
+                        <div class="lgv-check"><span class="msi lgv-selall" id="lgvSelAll" onclick="lgvToggleSelectAll()">radio_button_unchecked</span></div>
+                        <div data-i18n="log_viewer.column_time">Time</div>
+                        <div data-i18n="log_viewer.column_level">Level</div>
+                        <div data-i18n="log_viewer.column_category">Category</div>
+                        <div data-i18n="log_viewer.column_message">Message</div>
+                    </div>
+                    <div class="lgv-body" id="lgvBody"></div>
+                </div>
+            </div>
+        </div>

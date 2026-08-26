@@ -19,6 +19,23 @@ const INV_UPLOAD_REQS = {
         directBlob: true,
         get hint() { return t('avatars.upload.reqs.image', 'PNG/JPG, max 3 MB, max 2000x2000'); }
     },
+    worldImage: {
+        maxMB: 3,
+        ratioW: null,
+        ratioH: null,
+        minPx: 1,
+        maxPx: 2000,
+        directBlob: true,
+        get hint() { return t('worlds.upload.reqs.image', 'PNG/JPG, max 3 MB, max 2000x2000'); }
+    },
+    prints: {
+        maxMB: 10,
+        ratioW: null,
+        ratioH: null,
+        minPx: 64,
+        maxPx: 2048,
+        get hint() { return t('inventory.upload.reqs.prints', 'PNG/JPG, max 10 MB, up to 2048x2048'); }
+    },
     photos: {
         maxMB: 8,
         ratioW: null,
@@ -805,6 +822,17 @@ function iuDoUpload() {
         }
         const reader = new FileReader();
         reader.onload = event => {
+            if (_iuTab === 'prints') {
+                const world = (typeof currentInstanceData !== 'undefined' && currentInstanceData) || null;
+                sendToCS({
+                    action: 'invUploadPrint',
+                    data: event.target.result,
+                    note: '',
+                    worldId: world?.worldId || '',
+                    worldName: world?.worldName || world?.name || '',
+                });
+                return;
+            }
             sendToCS({
                 action: 'invUploadFromData',
                 tag: INV_TABS[_iuTab]?.tag,

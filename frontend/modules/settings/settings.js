@@ -188,6 +188,8 @@ function saveSettings() {
             fsUseHmdRotations:        !!document.getElementById('fsUseHmdRotations')?.checked,
             fsLeftVideoButton:        _fsCur.fsLeftVideo,
             fsRightVideoButton:       _fsCur.fsRightVideo,
+            fsLeftAcceptButton:       _fsCur.fsLeftAccept,
+            fsRightAcceptButton:      _fsCur.fsRightAccept,
             fsVideoDeviceA:           (typeof fsCurrentVideoDeviceA === 'function') ? fsCurrentVideoDeviceA() : (document.getElementById('fsVideoDeviceA')?.value ?? ''),
             fsVideoDeviceB:           (typeof fsCurrentVideoDeviceB === 'function') ? fsCurrentVideoDeviceB() : (document.getElementById('fsVideoDeviceB')?.value ?? ''),
             fsVideoFps:               parseInt(document.getElementById('fsVideoFps')?.value           ?? '30', 10),
@@ -648,7 +650,13 @@ function loadSettingsToUI(s) {
     const cbInt = s.CbIntervalMs || s.cbIntervalMs || 5000;
     const cbIntEl = document.getElementById('cbInterval');
     if (cbIntEl) cbIntEl.value = String(cbInt);
-    chatboxCustomLines = s.CbCustomLines || s.cbCustomLines || [];
+    document.getElementById('cbShowAfkTime').checked = s.CbShowAfkTime ?? s.cbShowAfkTime ?? true;
+    document.getElementById('cbStatCpu').checked = s.CbStatCpu ?? s.cbStatCpu ?? true;
+    document.getElementById('cbStatRam').checked = s.CbStatRam ?? s.cbStatRam ?? true;
+    document.getElementById('cbStatGpu').checked = s.CbStatGpu ?? s.cbStatGpu ?? false;
+    document.getElementById('cbStatVram').checked = s.CbStatVram ?? s.cbStatVram ?? false;
+    cbApplyLineOrder(s.CbLineOrder || s.cbLineOrder);
+    chatboxCustomLines = _cbNormalizeLines(s.CbCustomLines || s.cbCustomLines || []);
     renderChatboxLines();
 
     if (typeof vriInit === 'function') vriInit(s.VrInputMode ?? s.vrInputMode ?? 0);
@@ -724,6 +732,10 @@ function loadSettingsToUI(s) {
     const _fsRV  = document.getElementById('fsRightVideo');
     if (_fsLV) _fsLV.value = String(s.FsLeftVideoButton  ?? s.fsLeftVideoButton  ?? 0);
     if (_fsRV) _fsRV.value = String(s.FsRightVideoButton ?? s.fsRightVideoButton ?? 0);
+    const _fsLA  = document.getElementById('fsLeftAccept');
+    const _fsRA  = document.getElementById('fsRightAccept');
+    if (_fsLA) _fsLA.value = String(s.FsLeftAcceptButton  ?? s.fsLeftAcceptButton  ?? 0);
+    if (_fsRA) _fsRA.value = String(s.FsRightAcceptButton ?? s.fsRightAcceptButton ?? 0);
     if (typeof _fsOtherBtns !== 'undefined') {
         const _fsIdx = (s.VrInputMode ?? s.vrInputMode ?? 0) === 1;
         const _fsLegacySet = {
@@ -733,6 +745,8 @@ function loadSettingsToUI(s) {
             fsRightRecord: s.FsRightRecordButton ?? s.fsRightRecordButton ?? 0,
             fsLeftVideo:   s.FsLeftVideoButton   ?? s.fsLeftVideoButton   ?? 0,
             fsRightVideo:  s.FsRightVideoButton  ?? s.fsRightVideoButton  ?? 0,
+            fsLeftAccept:  s.FsLeftAcceptButton  ?? s.fsLeftAcceptButton  ?? 0,
+            fsRightAccept: s.FsRightAcceptButton ?? s.fsRightAcceptButton ?? 0,
         };
         const _fsIndexSet = {
             fsLeftButton:  s.FsIdxLeftButton        ?? s.fsIdxLeftButton        ?? 0,
@@ -741,6 +755,8 @@ function loadSettingsToUI(s) {
             fsRightRecord: s.FsIdxRightRecordButton ?? s.fsIdxRightRecordButton ?? 0,
             fsLeftVideo:   s.FsIdxLeftVideoButton   ?? s.fsIdxLeftVideoButton   ?? 0,
             fsRightVideo:  s.FsIdxRightVideoButton  ?? s.fsIdxRightVideoButton  ?? 0,
+            fsLeftAccept:  s.FsIdxLeftAcceptButton  ?? s.fsIdxLeftAcceptButton  ?? 0,
+            fsRightAccept: s.FsIdxRightAcceptButton ?? s.fsIdxRightAcceptButton ?? 0,
         };
         _fsOtherBtns = _fsIdx ? _fsLegacySet : _fsIndexSet;
         if (_fsIdx && typeof fsWriteBtns === 'function') fsWriteBtns(_fsIndexSet);

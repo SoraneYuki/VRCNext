@@ -8,29 +8,6 @@
                         <button class="vrcn-button sub-tab-btn" id="peopleFilterBlocked" onclick="setPeopleFilter('blocked')"><span class="msi" style="font-size:16px;">block</span> <span data-i18n="profiles.people.filters.blocked">Blocked</span></button>
                         <button class="vrcn-button sub-tab-btn" id="peopleFilterMuted" onclick="setPeopleFilter('muted')"><span class="msi" style="font-size:16px;">volume_off</span> <span data-i18n="profiles.people.filters.muted">Muted</span></button>
                     </div>
-                    <div id="favFriendEditBar" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;flex:1;margin-left:8px;">
-                        <span id="favFriendEditCount" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);white-space:nowrap;">0 selected</span>
-                        <button id="favFriendEditSelectAllBtn" class="vrcn-button" onclick="friendEditSelectAll()" data-i18n="friends.edit.select_all">Select All</button>
-                        <div style="position:relative;">
-                            <button id="favFriendEditMoveBtn" class="vrcn-button wd-edit-action" disabled onclick="friendEditShowMoveMenu(this)">
-                                <span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="friends.edit.move_to">Move to...</span>
-                            </button>
-                            <div id="favFriendEditMovePicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
-                        </div>
-                        <button id="favFriendEditRemoveBtn" class="vrcn-button wd-edit-action" disabled onclick="friendEditRemoveSelected()">
-                            <span class="msi" style="font-size:14px;">favorite_border</span> <span data-i18n="friends.edit.remove">Remove from Favorites</span>
-                        </button>
-                        <div style="position:relative;">
-                            <button id="friendCreateLocalBtn" class="vrcn-button" onclick="friendShowCreateLocalGroup(this)"><span class="msi" style="font-size:14px;">create_new_folder</span> <span data-i18n="favorites.create_local_group">Create Local Group</span></button>
-                            <div id="friendCreateLocalPanel" class="vn-select-panel" style="display:none;min-width:220px;z-index:1200;padding:8px;">
-                                <input type="text" id="friendCreateLocalInput" class="vrcn-input" maxlength="64" placeholder="Group name" data-i18n-placeholder="favorites.local_group_name" style="width:100%;margin-bottom:6px;" onkeydown="if(event.key==='Enter')friendSaveLocalGroup()">
-                                <div style="display:flex;gap:6px;justify-content:flex-end;">
-                                    <button class="vrcn-button" onclick="friendCancelCreateLocalGroup()" data-i18n="common.cancel">Cancel</button>
-                                    <button class="vrcn-button vrcn-btn-primary" onclick="friendSaveLocalGroup()" data-i18n="common.create">Create</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div style="display:flex;gap:6px;align-items:center;">
                         <button id="favFriendEditModeBtn" class="vrcn-button" onclick="toggleFriendEditMode()" data-i18n-title="friends.favorites.edit_title" title="Edit favorites">
                             <span class="msi" style="font-size:16px;">edit</span> <span id="favFriendEditModeBtnLabel" data-i18n="friends.edit.button">Edit</span>
@@ -114,3 +91,36 @@
                 <div id="peopleRecentPaginatorBar" class="tl-paginator-bar"></div>
                 <div id="peopleBlockedPaginatorBar" class="tl-paginator-bar"></div>
                 <div id="peopleMutedPaginatorBar" class="tl-paginator-bar"></div>
+                <div id="favFriendEditBar" class="vrcn-edit-bar" style="display:none;">
+                    <span id="favFriendEditCount" class="vrcn-edit-count">0 selected</span>
+                    <button id="favFriendEditSelectAllBtn" class="vrcn-button" onclick="friendEditSelectAll()" data-i18n="friends.edit.select_all">Select All</button>
+                    <span class="vrcn-edit-spacer"></span>
+                    <div style="position:relative;" id="favFriendEditAddFavWrap">
+                        <button id="favFriendEditAddFavBtn" class="vrcn-button wd-edit-action" disabled onclick="friendEditShowAddFavMenu(this)">
+                            <span class="msi" style="font-size:14px;">favorite</span> <span data-i18n="friends.edit.add_to_favorites">Add to Favorites</span>
+                        </button>
+                        <div id="favFriendEditAddFavPicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
+                    </div>
+                    <div style="position:relative;" id="favFriendEditMoveWrap">
+                        <button id="favFriendEditMoveBtn" class="vrcn-button wd-edit-action" disabled onclick="friendEditShowMoveMenu(this)">
+                            <span class="msi" style="font-size:14px;">drive_file_move</span> <span data-i18n="friends.edit.move_to">Move to...</span>
+                        </button>
+                        <div id="favFriendEditMovePicker" class="vn-select-panel" style="display:none;min-width:180px;z-index:1200;"></div>
+                    </div>
+                    <button id="favFriendEditRemoveBtn" class="vrcn-button wd-edit-action" disabled onclick="friendEditRemoveSelected()">
+                        <span class="msi" style="font-size:14px;">favorite_border</span> <span data-i18n="friends.edit.remove">Remove from Favorites</span>
+                    </button>
+                    <div style="position:relative;" id="friendCreateLocalWrap">
+                        <button id="friendCreateLocalBtn" class="vrcn-button" onclick="friendShowCreateLocalGroup(this)"><span class="msi" style="font-size:14px;">create_new_folder</span> <span data-i18n="favorites.create_local_group">Create Local Group</span></button>
+                        <div id="friendCreateLocalPanel" class="vn-select-panel" style="display:none;min-width:220px;z-index:1200;padding:8px;">
+                            <input type="text" id="friendCreateLocalInput" class="vrcn-input" maxlength="64" placeholder="Group name" data-i18n-placeholder="favorites.local_group_name" style="width:100%;margin-bottom:6px;" onkeydown="if(event.key==='Enter')friendSaveLocalGroup()">
+                            <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                <button class="vrcn-button" onclick="friendCancelCreateLocalGroup()" data-i18n="common.cancel">Cancel</button>
+                                <button class="vrcn-button vrcn-btn-primary" onclick="friendSaveLocalGroup()" data-i18n="common.create">Create</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="favFriendEditUnfriendBtn" class="vrcn-button vrcn-btn-danger wd-edit-action" disabled onclick="friendEditUnfriendSelected()">
+                        <span class="msi" style="font-size:14px;">person_remove</span> <span data-i18n="friends.edit.bulk_unfriend">Bulk Unfriend</span>
+                    </button>
+                </div>

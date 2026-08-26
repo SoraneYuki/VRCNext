@@ -23,9 +23,16 @@ public class RelayController : IDisposable
 
     // VRChat process monitor + startup-app tracking (Close / Start always with VRChat)
     private System.Threading.Timer? _vrcMonitorTimer;
-    private bool _vrcWasRunning;
-    private DateTime _vrcLaunchByUsAt = DateTime.MinValue;
-    private readonly List<string> _launchedExeNames = new();
+    private int      _vrcSessionPid;
+    private DateTime _vrcSessionProcStart = DateTime.MinValue;
+    private DateTime _vrcSessionFirstSeen;
+    private bool     _vrcSessionByUs;
+    private bool     _vrcSessionVr;
+    private bool     _vrcSessionModeResolved;
+    private bool     _vrcSessionHandled;
+    private (bool vr, DateTime at, int priorPid)? _pendingLaunch;
+    private int _vrcCheckBusy;
+    private readonly Dictionary<string, DateTime> _launchedExeNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _launchedLock = new();
 
     // Sleep/wake detection + resume retry
@@ -66,7 +73,16 @@ public class RelayController : IDisposable
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
         // Monitor VRChat process to drive "Close with VRChat" / "Start always with VRChat"
-        _vrcWasRunning = IsVrcRunning();
+        var (seedPid, seedStart) = GetVrcProcInfo();
+        if (seedPid != 0)
+        {
+            _vrcSessionPid          = seedPid;
+            _vrcSessionProcStart    = seedStart;
+            _vrcSessionFirstSeen    = DateTime.UtcNow;
+            _vrcSessionVr           = IsSteamVrRunning();
+            _vrcSessionModeResolved = true;
+            _vrcSessionHandled      = true;
+        }
         _vrcMonitorTimer = new System.Threading.Timer(_ => CheckVrcState(), null,
             TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3));
     }
@@ -206,9 +222,6 @@ public class RelayController : IDisposable
                             break;
                         }
                     }
-                    _vrcLaunchByUsAt = DateTime.UtcNow;
-                    var llExtraApps = llVr ? _core.Settings.ExtraExeVR : _core.Settings.ExtraExeDesktop;
-                    LaunchExtraApps(llExtraApps, log: true, vr: llVr);
 #else
                     // On Linux, launch via Steam so Proton is applied automatically
                     var joinUriLnx   = !string.IsNullOrEmpty(llLoc) ? VRChatApiService.BuildLaunchUri(llLoc) : "";
@@ -237,6 +250,10 @@ public class RelayController : IDisposable
                         Process.Start(new ProcessStartInfo { FileName = steamUrl, UseShellExecute = true });
                     }
 #endif
+                    int plPriorPid = 0;
+                    try { plPriorPid = GetVrcProcInfo().pid; } catch { }
+                    _pendingLaunch = (llVr, DateTime.UtcNow, plPriorPid);
+
                     var modeLabel = llVr ? "VR" : "Desktop";
                     var locLabel  = !string.IsNullOrEmpty(llLoc) ? $" → {llLoc}" : "";
                     _core.SendToJS("vrcActionResult", new { action = "join", success = true, message = $"Launching VRChat ({modeLabel})..." });
@@ -483,8 +500,8 @@ public class RelayController : IDisposable
                 if (!string.IsNullOrEmpty(exeName))
                     lock (_launchedLock)
                     {
-                        if (!_launchedExeNames.Contains(exeName, StringComparer.OrdinalIgnoreCase))
-                            _launchedExeNames.Add(exeName);
+                        if (!_launchedExeNames.ContainsKey(exeName))
+                            _launchedExeNames[exeName] = DateTime.Now;
                     }
 
                 if (log) _core.SendToJS("log", new { msg = $"Launched: {Path.GetFileName(path)}", color = "ok" });
@@ -542,45 +559,105 @@ public class RelayController : IDisposable
 
     // VRChat process monitor (Close / Start always with VRChat)
 
+    private const int VrDetectGraceSec = 15;
+
     private void CheckVrcState()
     {
-        bool running;
-        try { running = IsVrcRunning(); }
-        catch { return; }
-        if (running == _vrcWasRunning) return;
-        _vrcWasRunning = running;
-
-        LogVrcLaunchState(running);
-        Invoke(() => _core.SendToJS("vrcRunningChanged", new { running }));
-
-        if (running)
+        if (System.Threading.Interlocked.Exchange(ref _vrcCheckBusy, 1) == 1) return;
+        try
         {
-            // VRChat just started. If we launched it ourselves the startup apps
-            // were already handled by the launch path, so skip.
-            bool launchedByUs = (DateTime.UtcNow - _vrcLaunchByUsAt).TotalSeconds < 120;
-            _vrcLaunchByUsAt = DateTime.MinValue;
-            if (launchedByUs) return;
+            int pid; DateTime procStart;
+            try { (pid, procStart) = GetVrcProcInfo(); }
+            catch { return; }
 
-            if (!_core.Settings.StartAlwaysWithVrc) return;
+            bool changed = pid != _vrcSessionPid
+                || (pid != 0 && _vrcSessionProcStart != DateTime.MinValue
+                    && procStart != DateTime.MinValue && procStart != _vrcSessionProcStart);
 
-            bool vr = IsSteamVrRunning();
-            var apps = vr ? _core.Settings.ExtraExeVR : _core.Settings.ExtraExeDesktop;
-            Invoke(() =>
+            if (changed)
             {
-                _core.SendToJS("log", new { msg = "VRChat started outside VRCNext — launching startup apps...", color = "sec" });
-                LaunchExtraApps(apps, log: true, vr: vr);
-                _core.SendToJS("vrcLaunched", new { vr });
-            });
-        }
-        else
-        {
-            // VRChat just closed.
-            if (_core.Settings.CloseWithVrc)
-            {
-                CloseTrackedExtraApps();
-                Invoke(() => _core.SendToJS("vrcClosed", new { }));
+                if (_vrcSessionPid != 0) EndVrcSession();
+                if (pid != 0) BeginVrcSession(pid, procStart);
             }
+
+            if (_vrcSessionPid != 0 && !_vrcSessionHandled)
+                TryHandleVrcSessionStart();
         }
+        finally { System.Threading.Interlocked.Exchange(ref _vrcCheckBusy, 0); }
+    }
+
+    private void BeginVrcSession(int pid, DateTime procStart)
+    {
+        _vrcSessionPid          = pid;
+        _vrcSessionProcStart    = procStart;
+        _vrcSessionFirstSeen    = DateTime.UtcNow;
+        _vrcSessionHandled      = false;
+        _vrcSessionModeResolved = false;
+        _vrcSessionByUs         = false;
+        _vrcSessionVr           = false;
+
+        if (_pendingLaunch is { } pl)
+        {
+            bool fresh = (DateTime.UtcNow - pl.at).TotalSeconds < 180;
+            if (fresh && pl.priorPid != pid)
+            {
+                _vrcSessionByUs         = true;
+                _vrcSessionVr           = pl.vr;
+                _vrcSessionModeResolved = true;
+            }
+            _pendingLaunch = null;
+        }
+
+        LogVrcLaunchState(true);
+        Invoke(() => _core.SendToJS("vrcRunningChanged", new { running = true }));
+    }
+
+    private void EndVrcSession()
+    {
+        _vrcSessionPid          = 0;
+        _vrcSessionProcStart    = DateTime.MinValue;
+        _vrcSessionHandled      = false;
+        _vrcSessionModeResolved = false;
+
+        LogVrcLaunchState(false);
+        Invoke(() => _core.SendToJS("vrcRunningChanged", new { running = false }));
+
+        if (_core.Settings.CloseWithVrc)
+        {
+            CloseTrackedExtraApps();
+            Invoke(() => _core.SendToJS("vrcClosed", new { }));
+        }
+    }
+
+    private void TryHandleVrcSessionStart()
+    {
+        if (!_vrcSessionModeResolved)
+        {
+            if (IsSteamVrRunning())
+            {
+                _vrcSessionVr = true;
+                _vrcSessionModeResolved = true;
+            }
+            else if ((DateTime.UtcNow - _vrcSessionFirstSeen).TotalSeconds >= VrDetectGraceSec)
+            {
+                _vrcSessionVr = false;
+                _vrcSessionModeResolved = true;
+            }
+            else return;
+        }
+
+        _vrcSessionHandled = true;
+        bool vr    = _vrcSessionVr;
+        bool byUs  = _vrcSessionByUs;
+        bool launchApps = byUs || _core.Settings.StartAlwaysWithVrc;
+        var apps = vr ? _core.Settings.ExtraExeVR : _core.Settings.ExtraExeDesktop;
+
+        Invoke(() =>
+        {
+            _core.SendToJS("log", new { msg = $"VRChat session detected ({(vr ? "VR" : "Desktop")}{(byUs ? ", launched by VRCNext" : "")}) — running auto-start...", color = "sec" });
+            if (launchApps) LaunchExtraApps(apps, log: true, vr: vr);
+            _core.SendToJS("vrcLaunched", new { vr });
+        });
     }
 
     private void LogVrcLaunchState(bool running)
@@ -590,20 +667,28 @@ public class RelayController : IDisposable
 
     private void CloseTrackedExtraApps()
     {
-        List<string> names;
+        List<KeyValuePair<string, DateTime>> tracked;
         lock (_launchedLock)
         {
-            names = new List<string>(_launchedExeNames);
+            tracked = _launchedExeNames.ToList();
             _launchedExeNames.Clear();
         }
         int closed = 0;
-        foreach (var name in names)
+        foreach (var kv in tracked)
         {
             try
             {
-                foreach (var p in Process.GetProcessesByName(name))
+                foreach (var p in Process.GetProcessesByName(kv.Key))
                 {
-                    try { if (!p.HasExited) { p.Kill(entireProcessTree: true); closed++; } }
+                    try
+                    {
+                        if (p.HasExited) continue;
+                        bool ours = true;
+                        try { ours = p.StartTime >= kv.Value.AddSeconds(-5); } catch { }
+                        if (!ours) continue;
+                        p.Kill(entireProcessTree: true);
+                        closed++;
+                    }
                     catch { }
                     finally { try { p.Dispose(); } catch { } }
                 }
@@ -664,6 +749,40 @@ public class RelayController : IDisposable
     {
         try { return Process.GetProcessesByName("vrserver").Any(p => { try { return !p.HasExited; } catch { return false; } }); }
         catch { return false; }
+    }
+
+    private static (int pid, DateTime started) GetVrcProcInfo()
+    {
+        try
+        {
+            int bestPid = 0;
+            var bestStart = DateTime.MinValue;
+            void Scan(string name)
+            {
+                foreach (var p in Process.GetProcessesByName(name))
+                {
+                    try
+                    {
+                        if (p.HasExited) continue;
+                        DateTime st;
+                        try { st = p.StartTime; } catch { st = DateTime.MinValue; }
+                        if (bestPid == 0 || (st != DateTime.MinValue && (bestStart == DateTime.MinValue || st < bestStart)))
+                        {
+                            bestPid = p.Id;
+                            bestStart = st;
+                        }
+                    }
+                    catch { }
+                    finally { try { p.Dispose(); } catch { } }
+                }
+            }
+            Scan("VRChat");
+#if !WINDOWS
+            Scan("VRChat.exe");
+#endif
+            return (bestPid, bestStart);
+        }
+        catch { return (0, DateTime.MinValue); }
     }
 
     // WebSocket lifecycle

@@ -1,4 +1,4 @@
-/* === Timeline List Tables — column order + sorting === */
+﻿/* === Timeline List Tables — column order + sorting === */
 
 const TL_TABLE_DEFS = {
     personal: [
@@ -67,6 +67,8 @@ const TL_TABLE_DEFS = {
         { id: 'favorites',key: 'worlds.list.header.favorites',    fallback: 'Favorites',    width: '110px', sort: 'favorites' },
         { id: 'users',    key: 'worlds.list.header.users',        fallback: 'Users',        width: '100px', sort: 'users' },
         { id: 'visits',   key: 'worlds.list.header.visits',       fallback: 'Visits',       width: '110px', sort: 'visits' },
+        { id: 'published',key: 'worlds.meta.published',           fallback: 'Published',    width: '130px', sort: 'published' },
+        { id: 'updated',  key: 'worlds.meta.updated',             fallback: 'Updated',      width: '130px', sort: 'updated' },
         { id: 'time',     key: 'people.list.header.time_spent',   fallback: 'Time Spent',   width: '120px', sort: 'time' },
         { id: 'lastseen', key: 'worlds.list.header.last_visited', fallback: 'Last Visited', width: '160px', sort: 'lastseen' },
     ],
@@ -82,6 +84,8 @@ const TL_TABLE_DEFS = {
         { id: 'name',    key: 'groups.list.header.name',         fallback: 'Name',         width: '',      sort: 'name' },
         { id: 'short',   key: 'groups.list.header.short_name',   fallback: 'Short Name',   width: '160px', sort: 'short' },
         { id: 'members', key: 'groups.list.header.member_count', fallback: 'Member Count', width: '140px', sort: 'members' },
+        { id: 'joined',  key: 'groups.list.header.joined',       fallback: 'Joined Group',  width: '130px', sort: 'joined' },
+        { id: 'created', key: 'groups.list.header.created',      fallback: 'Created At',    width: '130px', sort: 'created' },
     ],
     avatarsList: [
         { id: 'icon',    key: 'avatars.list.header.avatar',  fallback: 'Avatar',  width: '64px',  sort: 'icon' },
@@ -91,6 +95,9 @@ const TL_TABLE_DEFS = {
         { id: 'pc',      key: 'avatars.list.header.pc',      fallback: 'PC',      width: '80px',  sort: 'pc' },
         { id: 'android', key: 'avatars.list.header.android', fallback: 'Android', width: '90px',  sort: 'android' },
         { id: 'ios',     key: 'avatars.list.header.ios',     fallback: 'iOS',     width: '80px',  sort: 'ios' },
+        { id: 'created', key: 'avatars.list.header.created', fallback: 'Created At',   width: '130px', sort: 'created' },
+        { id: 'updated', key: 'avatars.list.header.updated', fallback: 'Last Updated', width: '130px', sort: 'updated' },
+        { id: 'tags',    key: 'avatars.list.header.tags',    fallback: 'Tags',         width: '200px', sort: 'tags' },
     ],
 };
 

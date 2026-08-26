@@ -145,8 +145,6 @@ function onVrcRunningChanged(payload) {
 function renderVrcFriends(friends, counts) {
     _rvfLastRun = Date.now();
     const el = document.getElementById('vrcFriendsList');
-    const lp = document.getElementById('vrcLoginPrompt');
-    if (lp) lp.style.display = 'none';
     document.getElementById('vrcFriendRefreshBtn')?.classList.remove('spinning');
     vrcFriendsData = friends || [];
     friends = vrcFriendsData;

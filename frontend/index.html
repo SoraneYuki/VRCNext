@@ -128,7 +128,7 @@
     <div class="sidebar" id="sidebarEl">
         <div class="sidebar-resizer" id="sidebarResizer" data-side="left"></div>
         <div class="sidebar-sep"></div>
-        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.44.0</div></div></div>
+        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.46.0</div></div></div>
         <div class="nav vrcn-scrollbar" id="navEl"></div>
         <div class="play-area"><button class="btn-play" onclick="playVRChat()" data-i18n-title="sidebar.play_vrchat" title="Play VRChat"><span class="play-icon-wrap"><span class="msi play-icon">play_arrow</span></span><span class="play-copy pl"><strong class="play-title" data-i18n="sidebar.play_vrchat">Play VRChat</strong><span class="play-sub" id="playSubText"></span></span><span class="msi play-arrow pl">chevron_right</span></button></div>
     </div>
@@ -187,6 +187,8 @@
                                 <div class="tb-dd-sub-drop">
                                     <button class="tb-dd-item" data-keep-modal onclick="openVrcConfigModal()"><span class="msi">tune</span><span data-i18n="tb.vrchat.config">VRChat Config</span></button>
                                     <button class="tb-dd-item" data-keep-modal onclick="openVrcLaunchOptionsModal()"><span class="msi">terminal</span><span data-i18n="tb.vrchat.launch_options">VRChat Launch Options</span></button>
+                                    <button class="tb-dd-item" data-keep-modal onclick="openMessageTemplatesModal()"><span class="msi">edit_note</span><span data-i18n="tb.vrchat.message_templates">Message Templates</span></button>
+                                    <button class="tb-dd-item" data-keep-modal onclick="openLogViewerModal()"><span class="msi">description</span><span data-i18n="tb.vrchat.log_viewer">Log Viewer</span></button>
                                 </div>
                             </div>
                             <div class="tb-dd-submenu">
@@ -260,6 +262,8 @@
                             <div class="tb-dd-sep"></div>
                             <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://github.com/shinyflvre/VRCNext/issues/new?template=bug_report.yml'})"><span class="msi">bug_report</span><span data-i18n="tb.help.report_bug">Report Bug</span></div>
                             <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://github.com/shinyflvre/VRCNext/issues/new?template=feature_request.yml'})"><span class="msi">lightbulb</span><span data-i18n="tb.help.feature_request">Feature Request</span></div>
+                            <div class="tb-dd-sep"></div>
+                            <div class="tb-dd-item" onclick="sendToCS({action:'exportDebugKit'})"><span class="msi">folder_zip</span><span data-i18n="tb.help.export_debug_kit">Export Debug Kit</span></div>
                         </div>
                     </div>
                     <div class="tb-sep" id="tbClockSep" style="display:none;"></div>
@@ -465,16 +469,15 @@
                     <button type="button" class="fd-tab vrc-fs-tab" id="vrcFriendTabGroups" onclick="setFriendsSidebarTab('groups')" title="Groups" data-i18n-title="nav.groups"><span class="msi">groups</span><span class="vrcn-badge fd-tab-badge" id="vrcFriendTabGroupsCount">0</span></button>
                 </div>
             </div>
-            <div id="vrcFriendsList">
-                <div class="vrc-login-box" id="vrcLoginPrompt">
-                    <div style="font-size:calc(14px + var(--fs-off, 0px));margin-bottom:8px;color:var(--tx3);font-weight:700;">VRChat</div>
-                    <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:12px;" data-i18n="profiles.friends.login_prompt">Login to VRChat to see friends online</div>
-                    <input type="text" id="vrcQuickUser" placeholder="Username" data-i18n-placeholder="settings.api.username" onkeydown="if(event.key==='Enter')document.getElementById('vrcQuickPass').focus()">
-                    <input type="password" id="vrcQuickPass" placeholder="Password" data-i18n-placeholder="settings.api.password" onkeydown="if(event.key==='Enter')vrcQuickLogin()">
-                    <button class="vrcn-button" onclick="vrcQuickLogin()" style="width:100%;justify-content:center;"><span class="msi" style="font-size:16px;">login</span> <span data-i18n="common.connect">Connect</span></button>
-                    <div id="vrcQuickError" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);margin-top:6px;min-height:16px;"></div>
-                </div>
+            <div class="vrc-login-box" id="vrcLoginPrompt">
+                <div style="font-size:calc(14px + var(--fs-off, 0px));margin-bottom:8px;color:var(--tx3);font-weight:700;">VRChat</div>
+                <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:12px;" data-i18n="profiles.friends.login_prompt">Login to VRChat to see friends online</div>
+                <input type="text" id="vrcQuickUser" placeholder="Username" data-i18n-placeholder="settings.api.username" onkeydown="if(event.key==='Enter')document.getElementById('vrcQuickPass').focus()">
+                <input type="password" id="vrcQuickPass" placeholder="Password" data-i18n-placeholder="settings.api.password" onkeydown="if(event.key==='Enter')vrcQuickLogin()">
+                <button class="vrcn-button" onclick="vrcQuickLogin()" style="width:100%;justify-content:center;"><span class="msi" style="font-size:16px;">login</span> <span data-i18n="common.connect">Connect</span></button>
+                <div id="vrcQuickError" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);margin-top:6px;min-height:16px;"></div>
             </div>
+            <div id="vrcFriendsList"></div>
         </div>
     </div>
     </div><!-- /.app-body -->
@@ -632,6 +635,8 @@
 
     <!-- VRChat Launch Options Modal -->
     <div class="modal-overlay" id="modalVrcLaunchOptions" style="display:none;" onclick="if(event.target===this)this.style.display='none'"></div>
+    <div class="modal-overlay" id="modalMessageTemplates" style="display:none;" onclick="if(event.target===this)closeMessageTemplatesModal()"></div>
+    <div class="modal-overlay" id="modalLogViewer" style="display:none;" onclick="if(event.target===this)closeLogViewerModal()"></div>
 
     <!-- Notification Toast (top-right, action feedback) -->
     <div id="notifToastArea" class="notif-toast-area"></div>
@@ -771,6 +776,8 @@
             modalFriendPicker:  'core/modals/friend-picker/friend-picker.html',
             modalVrcConfig:        'core/modals/vrc-tools-modal/vrc-config-modal.html',
             modalVrcLaunchOptions: 'core/modals/vrc-tools-modal/vrc-launch-options-modal.html',
+            modalMessageTemplates: 'core/modals/vrc-tools-modal/message-templates-modal.html',
+            modalLogViewer:        'core/modals/vrc-tools-modal/log-viewer-modal.html',
             dashLayoutModal:    'modules/dashboard/dash-layout.html',
             avFavPickerPanel:   'modules/avatars/fav-picker.html',
             themeEditorPanel:   'modules/settings/theme-editor.html',

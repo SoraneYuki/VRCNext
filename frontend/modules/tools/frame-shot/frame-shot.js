@@ -7,10 +7,11 @@ const FS_MODE_SELECTS = {
     frame: { left: 'fsLeftButton', right: 'fsRightButton', allowNone: false },
     gif:   { left: 'fsLeftRecord', right: 'fsRightRecord', allowNone: true  },
     video: { left: 'fsLeftVideo',  right: 'fsRightVideo',  allowNone: true  },
+    accept:{ left: 'fsLeftAccept', right: 'fsRightAccept', allowNone: true  },
 };
 
-const FS_BTN_IDS = ['fsLeftButton', 'fsRightButton', 'fsLeftRecord', 'fsRightRecord', 'fsLeftVideo', 'fsRightVideo'];
-const FS_BTN_DEFAULTS = { fsLeftButton: 2, fsRightButton: 2, fsLeftRecord: 0, fsRightRecord: 0, fsLeftVideo: 0, fsRightVideo: 0 };
+const FS_BTN_IDS = ['fsLeftButton', 'fsRightButton', 'fsLeftRecord', 'fsRightRecord', 'fsLeftVideo', 'fsRightVideo', 'fsLeftAccept', 'fsRightAccept'];
+const FS_BTN_DEFAULTS = { fsLeftButton: 2, fsRightButton: 2, fsLeftRecord: 0, fsRightRecord: 0, fsLeftVideo: 0, fsRightVideo: 0, fsLeftAccept: 0, fsRightAccept: 0 };
 
 let _fsOtherBtns   = {};
 let _fsPendingBtns = null;
@@ -53,7 +54,7 @@ function fsSetMode(mode) {
 }
 
 function fsRenderKeybind() {
-    const pills = { frame: 'fsModeFrame', gif: 'fsModeGif', video: 'fsModeVideo' };
+    const pills = { frame: 'fsModeFrame', gif: 'fsModeGif', video: 'fsModeVideo', accept: 'fsModeAccept' };
     for (const [m, id] of Object.entries(pills)) {
         document.getElementById(id)?.classList.toggle('active', m === _fsKeybindMode);
     }
@@ -138,6 +139,8 @@ function fsSendConfig() {
         videoQuality:      document.getElementById('fsVideoQuality')?.value               ?? '1080p',
         videoBitrateQuality: document.getElementById('fsVideoBitrateQuality')?.value      ?? 'medium',
         audioKbps:         parseInt(document.getElementById('fsAudioKbps')?.value         ?? '256', 10),
+        leftAcceptButton:  parseInt(document.getElementById('fsLeftAccept')?.value        ?? '0', 10),
+        rightAcceptButton: parseInt(document.getElementById('fsRightAccept')?.value       ?? '0', 10),
     });
 }
 

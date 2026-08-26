@@ -169,6 +169,31 @@ public class InventoryAPI(VRChatApiService ctx)
         return all;
     }
 
+    public async Task<(bool ok, JObject? print, string error)> UploadPrintAsync(
+        byte[] png, string note, DateTime timestampUtc, string worldId, string worldName)
+    {
+        if (!ctx.IsLoggedIn) return (false, null, "Not logged in");
+        try
+        {
+            using var form = new MultipartFormDataContent();
+            var image = new ByteArrayContent(png);
+            image.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("image/png");
+            form.Add(image, "image", "print.png");
+            form.Add(new StringContent(timestampUtc.ToString("o", System.Globalization.CultureInfo.InvariantCulture)), "timestamp");
+            if (!string.IsNullOrWhiteSpace(note))      form.Add(new StringContent(note), "note");
+            if (!string.IsNullOrWhiteSpace(worldId))   form.Add(new StringContent(worldId), "worldId");
+            if (!string.IsNullOrWhiteSpace(worldName)) form.Add(new StringContent(worldName), "worldName");
+
+            ctx.Log($"UploadPrint size={png.Length} world={worldId}");
+            var resp = await ctx._http.PostAsync($"{VRChatApiService.BASE}/prints", form);
+            var body = await resp.Content.ReadAsStringAsync();
+            ctx.Log($"UploadPrint [{(int)resp.StatusCode}] preview={body[..Math.Min(200, body.Length)]}");
+            if (resp.IsSuccessStatusCode) return (true, JObject.Parse(body), "");
+            return (false, null, VRChatApiService.TryGetApiError(body) ?? $"HTTP {(int)resp.StatusCode}");
+        }
+        catch (Exception ex) { ctx.Log($"UploadPrint exception: {ex.Message}"); return (false, null, ex.Message); }
+    }
+
     public async Task<bool> DeletePrintAsync(string printId)
     {
         if (!ctx.IsLoggedIn) return false;

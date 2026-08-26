@@ -131,3 +131,61 @@ document.addEventListener('wheel', e => {
     e.preventDefault();
     box.scrollLeft += (e.deltaY || e.deltaX);
 }, { passive: false });
+
+const _lvEditConfigs = {};
+let _lvEditBound = false;
+
+function lvEditRegister(key, cfg) {
+    _lvEditConfigs[key] = cfg;
+    if (_lvEditBound) return;
+    _lvEditBound = true;
+    document.addEventListener('click', e => {
+        for (const k in _lvEditConfigs) {
+            const c = _lvEditConfigs[k];
+            if (!c.isActive()) continue;
+            const row = e.target.closest(`tr.tl-list-row[${c.attr}]`);
+            if (!row) continue;
+            e.preventDefault();
+            e.stopPropagation();
+            const id = row.getAttribute(c.attr);
+            c.toggle(id);
+            lvEditDecorateRow(row, c.isSelected(id));
+            if (c.onChange) c.onChange();
+            return;
+        }
+    }, true);
+}
+
+function lvEditCheckHtml(selected) {
+    return selected
+        ? '<span class="msi lv-row-check-on">check_circle</span>'
+        : '<span class="msi lv-row-check-off">radio_button_unchecked</span>';
+}
+
+function lvEditDecorateRow(row, selected) {
+    const cell = row.querySelector('td');
+    if (cell) {
+        let chk = cell.querySelector('.lv-row-check');
+        if (!chk) {
+            cell.insertAdjacentHTML('afterbegin', '<span class="lv-row-check"></span>');
+            chk = cell.querySelector('.lv-row-check');
+        }
+        chk.innerHTML = lvEditCheckHtml(selected);
+    }
+    row.classList.toggle('lv-row-selected', selected);
+}
+
+function lvEditDecorateList(rootEl, key) {
+    const c = _lvEditConfigs[key];
+    if (!rootEl || !c) return;
+    const on = c.isActive();
+    rootEl.querySelectorAll(`tr.tl-list-row[${c.attr}]`).forEach(row => {
+        if (!on) {
+            row.querySelector('.lv-row-check')?.remove();
+            row.classList.remove('lv-row-selected');
+            return;
+        }
+        lvEditDecorateRow(row, c.isSelected(row.getAttribute(c.attr)));
+    });
+    rootEl.classList.toggle('lv-edit', on);
+}

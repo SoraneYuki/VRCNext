@@ -5,6 +5,9 @@ let _cbPauseTimer = null;
 let _cbPauseRemaining = 0;
 const CB_MAX_HISTORY = 100;
 const CB_PAUSE_SECONDS = 10;
+const CB_LINE_IDS = ['time', 'media', 'stats', 'custom'];
+let _cbEditLineIndex = -1;
+let _cbDragCleanup = null;
 
 function chatboxButtonHtml() {
     return chatboxEnabled
@@ -49,9 +52,52 @@ function toggleChatbox() {
     updateChatboxConfig();
 }
 
+function _cbChecked(id, fallback) {
+    const el = document.getElementById(id);
+    return el ? el.checked : fallback;
+}
+
+function _cbNormalizeLines(list) {
+    if (!Array.isArray(list)) return [];
+    return list
+        .map(l => typeof l === 'string'
+            ? { text: l, enabled: true }
+            : { text: String((l && (l.Text ?? l.text)) || ''), enabled: (l && (l.Enabled ?? l.enabled)) !== false })
+        .filter(l => l.text.length > 0);
+}
+
+function _cbNormalizeOrder(order) {
+    const out = [];
+    (Array.isArray(order) ? order : []).forEach(id => {
+        const key = String(id || '').toLowerCase();
+        if (CB_LINE_IDS.includes(key) && !out.includes(key)) out.push(key);
+    });
+    CB_LINE_IDS.forEach(key => { if (!out.includes(key)) out.push(key); });
+    return out;
+}
+
+function cbReadLineOrder() {
+    const list = document.getElementById('cbLineOrder');
+    if (!list) return _cbNormalizeOrder(chatboxLineOrder);
+    return _cbNormalizeOrder([...list.children].map(b => b.dataset.line));
+}
+
+function cbApplyLineOrder(order) {
+    chatboxLineOrder = _cbNormalizeOrder(order);
+    const list = document.getElementById('cbLineOrder');
+    if (!list) return;
+    chatboxLineOrder.forEach(id => {
+        const block = list.querySelector(`.cb-ord-block[data-line="${id}"]`);
+        if (block) list.appendChild(block);
+    });
+    _cbInitLineOrderDrag();
+}
+
 function updateChatboxConfig() {
     const showAfk = document.getElementById('cbShowAfk').checked;
+    const showStats = document.getElementById('cbShowSystemStats').checked;
     document.getElementById('cbAfkCard').style.display = showAfk ? '' : 'none';
+    chatboxLineOrder = cbReadLineOrder();
     sendToCS({
         action: 'chatboxConfig',
         enabled: chatboxEnabled,
@@ -59,14 +105,20 @@ function updateChatboxConfig() {
         showMedia: document.getElementById('cbShowMedia').checked,
         showPlaytime: document.getElementById('cbShowPlaytime').checked,
         showCustomText: document.getElementById('cbShowCustom').checked,
-        showSystemStats: document.getElementById('cbShowSystemStats').checked,
+        showSystemStats: showStats,
         showAfk: showAfk,
+        showAfkTime: _cbChecked('cbShowAfkTime', true),
+        statCpu: _cbChecked('cbStatCpu', true),
+        statRam: _cbChecked('cbStatRam', true),
+        statGpu: _cbChecked('cbStatGpu', false),
+        statVram: _cbChecked('cbStatVram', false),
         afkMessage: document.getElementById('cbAfkMessage').value || t('chatbox.afk.default_message', 'Currently AFK'),
         suppressSound: document.getElementById('cbSuppressSound').checked,
         timeFormat: document.getElementById('cbTimeFormat').value,
         separator: document.getElementById('cbSeparator').value,
         intervalMs: parseInt(document.getElementById('cbInterval').value, 10) || 5000,
-        customLines: chatboxCustomLines,
+        lineOrder: chatboxLineOrder,
+        customLines: chatboxCustomLines.map(l => ({ text: l.text, enabled: l.enabled })),
         hideBackground: document.getElementById('cbHideBackground').checked,
     });
 }
@@ -75,14 +127,48 @@ function addChatboxLine() {
     const inp = document.getElementById('cbNewLine');
     const text = inp.value.trim();
     if (!text) return;
-    chatboxCustomLines.push(text);
+    chatboxCustomLines.push({ text, enabled: true });
     inp.value = '';
+    _cbEditLineIndex = -1;
     renderChatboxLines();
     updateChatboxConfig();
 }
 
 function removeChatboxLine(i) {
     chatboxCustomLines.splice(i, 1);
+    _cbEditLineIndex = -1;
+    renderChatboxLines();
+    updateChatboxConfig();
+}
+
+function toggleChatboxLine(i, on) {
+    if (!chatboxCustomLines[i]) return;
+    chatboxCustomLines[i].enabled = !!on;
+    renderChatboxLines();
+    updateChatboxConfig();
+}
+
+function startEditChatboxLine(i) {
+    if (!chatboxCustomLines[i]) return;
+    _cbEditLineIndex = i;
+    renderChatboxLines();
+    const inp = document.getElementById('cbEditLine');
+    if (inp) { inp.focus(); inp.select(); }
+}
+
+function cancelEditChatboxLine() {
+    _cbEditLineIndex = -1;
+    renderChatboxLines();
+}
+
+function saveEditChatboxLine(i) {
+    const inp = document.getElementById('cbEditLine');
+    const line = chatboxCustomLines[i];
+    _cbEditLineIndex = -1;
+    if (!inp || !line) { renderChatboxLines(); return; }
+    const text = inp.value.trim();
+    if (!text || text === line.text) { renderChatboxLines(); return; }
+    line.text = text;
     renderChatboxLines();
     updateChatboxConfig();
 }
@@ -94,12 +180,152 @@ function renderChatboxLines() {
         el.innerHTML = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:6px 0;">${t('chatbox.custom_lines.empty', 'No custom lines added')}</div>`;
         return;
     }
-    el.innerHTML = chatboxCustomLines.map((line, i) =>
-        `<div class="cb-line-item">
-            <span class="cb-line-text">${esc(line)}</span>
+    el.innerHTML = chatboxCustomLines.map((line, i) => {
+        if (i === _cbEditLineIndex) {
+            return `<div class="cb-line-item cb-line-editing">
+                <input type="text" id="cbEditLine" class="vrcn-edit-field cb-line-input" value="${esc(line.text)}"
+                    onkeydown="if(event.key==='Enter'){saveEditChatboxLine(${i});}else if(event.key==='Escape'){cancelEditChatboxLine();}">
+                <button class="cb-line-btn cb-line-save" onclick="saveEditChatboxLine(${i})" title="${esc(t('common.save', 'Save'))}"><span class="msi" style="font-size:14px;">check</span></button>
+                <button class="cb-line-btn" onclick="cancelEditChatboxLine()" title="${esc(t('common.cancel', 'Cancel'))}"><span class="msi" style="font-size:14px;">close</span></button>
+            </div>`;
+        }
+        return `<div class="cb-line-item${line.enabled ? '' : ' cb-line-off'}">
+            <label class="toggle cb-line-toggle"><input type="checkbox" ${line.enabled ? 'checked' : ''} onchange="toggleChatboxLine(${i}, this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+            <span class="cb-line-text">${esc(line.text)}</span>
+            <button class="cb-line-btn" onclick="startEditChatboxLine(${i})" title="${esc(t('common.edit', 'Edit'))}"><span class="msi" style="font-size:14px;">edit</span></button>
             <button class="cb-line-del" onclick="removeChatboxLine(${i})" title="${esc(t('common.remove', 'Remove'))}"><span class="msi" style="font-size:14px;">close</span></button>
-        </div>`
-    ).join('');
+        </div>`;
+    }).join('');
+}
+
+function _cbInitLineOrderDrag() {
+    const list = document.getElementById('cbLineOrder');
+    if (!list) return;
+    if (_cbDragCleanup) { _cbDragCleanup(); _cbDragCleanup = null; }
+
+    const ANIM_MS = 200;
+    const EASE = 'cubic-bezier(.2,.7,.3,1)';
+    let drag = null;
+
+    function snap() {
+        const map = new Map();
+        list.querySelectorAll('.cb-ord-block').forEach(el => map.set(el, el.getBoundingClientRect().top));
+        return map;
+    }
+
+    function flip(prev) {
+        list.querySelectorAll('.cb-ord-block').forEach(el => {
+            if (!prev.has(el)) return;
+            const dy = prev.get(el) - el.getBoundingClientRect().top;
+            if (!dy) return;
+            el.animate(
+                [{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }],
+                { duration: ANIM_MS, easing: EASE }
+            );
+        });
+    }
+
+    function resolveTarget(clientY, dragged) {
+        let best = null;
+        for (const block of list.children) {
+            if (block === dragged) continue;
+            const rect = block.getBoundingClientRect();
+            if (clientY < rect.top + rect.height / 2) return { mode: 'before', target: block };
+            best = { mode: 'after', target: block };
+        }
+        return best;
+    }
+
+    function onDown(e) {
+        if (e.button !== 0) return;
+        const handle = e.target.closest('.cb-ord-handle');
+        if (!handle) return;
+        const block = handle.closest('.cb-ord-block');
+        if (!block) return;
+        e.preventDefault();
+
+        const rect = block.getBoundingClientRect();
+        const ghost = block.cloneNode(true);
+        Object.assign(ghost.style, {
+            position: 'fixed',
+            top: rect.top + 'px',
+            left: rect.left + 'px',
+            width: rect.width + 'px',
+            pointerEvents: 'none',
+            zIndex: '10020',
+            opacity: '0.92',
+            boxShadow: '0 14px 40px rgba(0,0,0,.55)',
+            borderRadius: '8px',
+            background: 'var(--bg-card)',
+            padding: '2px 10px',
+            transform: 'scale(1.01)',
+        });
+        document.body.appendChild(ghost);
+        block.classList.add('cb-ord-dragging');
+
+        drag = {
+            block, ghost,
+            offsetX: e.clientX - rect.left,
+            offsetY: e.clientY - rect.top,
+            lastKey: null,
+        };
+
+        handle.setPointerCapture?.(e.pointerId);
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+        window.addEventListener('pointercancel', onUp);
+        document.body.style.cursor = 'grabbing';
+    }
+
+    function onMove(e) {
+        if (!drag) return;
+        drag.ghost.style.top = (e.clientY - drag.offsetY) + 'px';
+        drag.ghost.style.left = (e.clientX - drag.offsetX) + 'px';
+
+        const drop = resolveTarget(e.clientY, drag.block);
+        const key = drop ? `${drop.mode}:${drop.target.dataset.line}` : 'none';
+        if (key === drag.lastKey) return;
+        drag.lastKey = key;
+
+        const prev = snap();
+        if (drop) {
+            if (drop.mode === 'before') list.insertBefore(drag.block, drop.target);
+            else list.insertBefore(drag.block, drop.target.nextSibling);
+        }
+        flip(prev);
+    }
+
+    function onUp() {
+        if (!drag) return;
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('pointercancel', onUp);
+        document.body.style.cursor = '';
+
+        const { block, ghost } = drag;
+        drag = null;
+
+        const finalRect = block.getBoundingClientRect();
+        const ghostRect = ghost.getBoundingClientRect();
+        const dx = finalRect.left - ghostRect.left;
+        const dy = finalRect.top - ghostRect.top;
+
+        ghost.animate(
+            [
+                { transform: 'translate(0,0) scale(1.01)', opacity: 0.92 },
+                { transform: `translate(${dx}px,${dy}px) scale(1)`, opacity: 1 },
+            ],
+            { duration: ANIM_MS, easing: EASE, fill: 'forwards' }
+        ).onfinish = () => {
+            ghost.remove();
+            block.classList.remove('cb-ord-dragging');
+            chatboxLineOrder = cbReadLineOrder();
+            updateChatboxConfig();
+        };
+    }
+
+    list.addEventListener('pointerdown', onDown);
+    _cbDragCleanup = () => list.removeEventListener('pointerdown', onDown);
 }
 
 function handleChatboxUpdate(data) {

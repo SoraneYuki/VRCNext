@@ -122,6 +122,11 @@ public partial class AppShell
     private readonly List<string> _vrcndbSubmitQueue = new();
     private readonly HashSet<string> _vrcndbSubmittedIds = new();
     private System.Threading.Timer? _vrcndbSubmitTimer;
+    private DateTime? _vrcndbFirstQueuedAt;
+    private readonly System.Threading.SemaphoreSlim _vrcndbFlushGate = new(1, 1);
+    private const int VrcndbBatchSize  = 40;
+    private const int VrcndbQuietMs    = 30_000;
+    private const int VrcndbMaxWaitSec = 60;
     private readonly List<string> _vrcndbRecheckQueue = new();
     private readonly HashSet<string> _vrcndbRecheckedIds = new();
     private System.Threading.Timer? _vrcndbRecheckTimer;
@@ -353,27 +358,41 @@ public partial class AppShell
     private void QueueVrcndbSubmit(string avatarId)
     {
         if (!_settings.VrcndbSubmitAvatars) return;
+        bool flushNow;
         lock (_vrcndbSubmitQueue)
         {
             if (!_vrcndbSubmittedIds.Add(avatarId)) return;
             _vrcndbSubmitQueue.Add(avatarId);
+            _vrcndbFirstQueuedAt ??= DateTime.UtcNow;
+            flushNow = _vrcndbSubmitQueue.Count >= VrcndbBatchSize
+                    || (DateTime.UtcNow - _vrcndbFirstQueuedAt.Value).TotalSeconds >= VrcndbMaxWaitSec;
         }
         _vrcndbSubmitTimer?.Dispose();
-        _vrcndbSubmitTimer = new System.Threading.Timer(_ => _ = Task.Run(FlushVrcndbSubmitQueue), null, 30_000, Timeout.Infinite);
+        _vrcndbSubmitTimer = new System.Threading.Timer(_ => _ = Task.Run(FlushVrcndbSubmitQueue), null, VrcndbQuietMs, Timeout.Infinite);
+        if (flushNow) _ = Task.Run(FlushVrcndbSubmitQueue);
     }
 
     private async Task FlushVrcndbSubmitQueue()
     {
-        List<string> batch;
-        lock (_vrcndbSubmitQueue)
+        if (!await _vrcndbFlushGate.WaitAsync(0)) return;
+        try
         {
-            if (_vrcndbSubmitQueue.Count == 0) return;
-            batch = new List<string>(_vrcndbSubmitQueue);
-            _vrcndbSubmitQueue.Clear();
+            while (true)
+            {
+                List<string> batch;
+                lock (_vrcndbSubmitQueue)
+                {
+                    if (_vrcndbSubmitQueue.Count == 0) { _vrcndbFirstQueuedAt = null; return; }
+                    var take = Math.Min(100, _vrcndbSubmitQueue.Count);
+                    batch = _vrcndbSubmitQueue.GetRange(0, take);
+                    _vrcndbSubmitQueue.RemoveRange(0, take);
+                    _vrcndbFirstQueuedAt = _vrcndbSubmitQueue.Count > 0 ? DateTime.UtcNow : null;
+                }
+                await PostToVrcndb("ingest.php", batch, "submit");
+                await Task.Delay(500);
+            }
         }
-        const int chunk = 100;
-        for (int i = 0; i < batch.Count; i += chunk)
-            await PostToVrcndb("ingest.php", batch.GetRange(i, Math.Min(chunk, batch.Count - i)), "submit");
+        finally { _vrcndbFlushGate.Release(); }
     }
 
     private void QueueVrcndbRecheck(IEnumerable<string> ids)
@@ -655,6 +674,9 @@ public partial class AppShell
                             var wid = w["id"]?.ToString() ?? "";
                             var url = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                             w["imageUrl"] = url; w["thumbnailImageUrl"] = url;
+                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid);
+                            w["created_at"] = DateTimeHelper.Iso(w["created_at"]);
+                            w["updated_at"] = DateTimeHelper.Iso(w["updated_at"]);
                             var stats = _core.TimeEngine.GetWorldStats(wid);
                             w["worldTimeSeconds"]  = stats.totalSeconds;
                             w["worldVisitCount"]   = stats.visitCount;
@@ -1189,6 +1211,9 @@ public partial class AppShell
                                             unityPackages     = Array.Empty<object>(),
                                             performance       = AvtrdbPerf(a),
                                             compatibility     = (a["compatibility"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
+                                            tags              = (a["tags"]?["author_tags"] as JArray ?? new JArray()).Select(x => "author_tag_" + x.ToString()).ToArray(),
+                                            created_at        = DateTimeHelper.Iso(a["created_at"]),
+                                            updated_at        = DateTimeHelper.Iso(a["updated_at"]),
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
@@ -1203,6 +1228,9 @@ public partial class AppShell
                                             description       = a["description"]?.ToString() ?? "",
                                             compatibility     = (a["platforms"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
                                             performance       = AvtrIcuPerf(a),
+                                            tags              = (a["tags"] as JArray ?? new JArray()).Select(x => x.ToString()).ToArray(),
+                                            created_at        = DateTimeHelper.Iso(a["created_at"]),
+                                            updated_at        = DateTimeHelper.Iso(a["updated_at"]),
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
@@ -1217,6 +1245,9 @@ public partial class AppShell
                                             description       = a["description"]?.ToString() ?? "",
                                             compatibility     = VrcndbCompat(a),
                                         performance       = a["performance"],
+                                            tags              = (a["tags"] as JArray ?? new JArray()).Select(x => x.ToString()).ToArray(),
+                                            created_at        = DateTimeHelper.Iso(a["created_at"]),
+                                            updated_at        = DateTimeHelper.Iso(a["updated_at"]),
                                         })
                                         .Where(x => !string.IsNullOrEmpty(x.id))
                                         .ToList();
@@ -1236,16 +1267,16 @@ public partial class AppShell
 
                                     list = new List<object>();
                                     foreach (var a in dbEntries)
-                                        list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, a.unityPackages, a.performance, a.compatibility, sources = Srcs(a.id, "avtrdb") });
+                                        list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, a.unityPackages, a.performance, a.compatibility, a.tags, a.created_at, a.updated_at, sources = Srcs(a.id, "avtrdb") });
                                     foreach (var a in icuEntries)
                                     {
                                         if (!dbIds.Contains(a.id))
-                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, sources = Srcs(a.id, "avtricu") });
+                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, a.tags, a.created_at, a.updated_at, sources = Srcs(a.id, "avtricu") });
                                     }
                                     foreach (var a in vrcnEntries)
                                     {
                                         if (!dbIds.Contains(a.id) && !icuIds.Contains(a.id))
-                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, sources = new[] { "vrcn" } });
+                                            list.Add(new { a.id, a.name, a.thumbnailImageUrl, a.imageUrl, a.authorName, releaseStatus = "public", a.description, unityPackages = Array.Empty<object>(), a.compatibility, a.performance, a.tags, a.created_at, a.updated_at, sources = new[] { "vrcn" } });
                                     }
                                     vrcndbIds.AddRange(dbIds);
                                     vrcndbIds.AddRange(icuIds);
@@ -1267,8 +1298,8 @@ public partial class AppShell
                                         performance       = AvtrdbPerf(a),
                                         compatibility     = (a["compatibility"] as JArray ?? new JArray()).Select(p => p.ToString()).ToArray(),
                                         tags              = (a["tags"]?["author_tags"] as JArray ?? new JArray()).Select(x => "author_tag_" + x.ToString()).ToArray(),
-                                        created_at        = a["created_at"]?.ToString() ?? "",
-                                        updated_at        = a["updated_at"]?.ToString() ?? "",
+                                        created_at        = DateTimeHelper.Iso(a["created_at"]),
+                                        updated_at        = DateTimeHelper.Iso(a["updated_at"]),
                                         sources           = new[] { "avtrdb" },
                                     }).ToList();
                                     vrcndbIds.AddRange(raw.Cast<JObject>().Select(a => a["vrc_id"]?.ToString() ?? a["id"]?.ToString() ?? ""));
@@ -1465,6 +1496,7 @@ public partial class AppShell
                             var wid2 = w["id"]?.ToString() ?? "";
                             var wurl = ImageCacheHelper.GetWorldUrl(wid2, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                             var wStats = _core.TimeEngine.GetWorldStats(wid2);
+                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid2);
                             return new {
                             id = wid2, name = w["name"]?.ToString() ?? "",
                             imageUrl = wurl, thumbnailImageUrl = wurl,
@@ -1472,6 +1504,8 @@ public partial class AppShell
                             capacity = w["capacity"]?.Value<int>() ?? 0, favorites = w["favorites"]?.Value<int>() ?? 0,
                             visits = w["visits"]?.Value<int>() ?? 0, description = w["description"]?.ToString() ?? "",
                             tags = w["tags"]?.ToObject<List<string>>() ?? new(),
+                            created_at = DateTimeHelper.Iso(w["created_at"]),
+                            updated_at = DateTimeHelper.Iso(w["updated_at"]),
                             worldTimeSeconds = wStats.totalSeconds,
                             worldVisitCount  = wStats.visitCount,
                             worldLastVisited = wStats.lastVisited,
@@ -1811,7 +1845,7 @@ public partial class AppShell
                                         avId, avName, ex.AuthorName, ex.AuthorId,
                                         ex.ThumbnailImageUrl, ex.ImageUrl,
                                         avStatus, ex.Version,
-                                        ex.CreatedAt, ex.UpdatedAt,
+                                        DateTimeHelper.Iso(ex.CreatedAt), DateTimeHelper.Iso(ex.UpdatedAt),
                                         avDesc, avTags,
                                         ex.HasPC, ex.HasQuest, ex.HasImpostor,
                                         ex.PcPerf, ex.QuestPerf);
@@ -1843,8 +1877,8 @@ public partial class AppShell
                                 id = avdId, name = avdCached.Name, authorName = avdCached.AuthorName,
                                 authorId = avdCached.AuthorId, thumbnailImageUrl = ImageCacheHelper.GetAvatarUrl(avdId, avdCached.ThumbnailImageUrl),
                                 imageUrl = ImageCacheHelper.GetAvatarUrl(avdId, avdCached.ImageUrl), releaseStatus = avdCached.ReleaseStatus,
-                                version = avdCached.Version, created_at = avdCached.CreatedAt,
-                                updated_at = avdCached.UpdatedAt, description = avdCached.Description,
+                                version = avdCached.Version, created_at = DateTimeHelper.Iso(avdCached.CreatedAt),
+                                updated_at = DateTimeHelper.Iso(avdCached.UpdatedAt), description = avdCached.Description,
                                 tags = avdCached.Tags, hasPC = avdCached.HasPC, hasQuest = avdCached.HasQuest,
                                 hasIos = avdCached.HasIos,
                                 hasImpostor = avdCached.HasImpostor,
@@ -1879,8 +1913,8 @@ public partial class AppShell
                                 avatar["imageUrl"]?.ToString() ?? "",
                                 avatar["releaseStatus"]?.ToString() ?? "",
                                 avatar["version"]?.Value<int>() ?? 0,
-                                avatar["created_at"]?.ToString() ?? "",
-                                avatar["updated_at"]?.ToString() ?? "",
+                                DateTimeHelper.Iso(avatar["created_at"]),
+                                DateTimeHelper.Iso(avatar["updated_at"]),
                                 avatar["description"]?.ToString() ?? "",
                                 avatar["tags"]?.ToObject<List<string>>() ?? new(),
                                 hasPC, hasQuest, hasImpostor, pcPerf, questPerf, hasIos, iosPerf);
@@ -1894,8 +1928,8 @@ public partial class AppShell
                                 imageUrl         = ImageCacheHelper.GetAvatarUrl(avatar["id"]?.ToString(), avatar["imageUrl"]?.ToString() ?? avatar["thumbnailImageUrl"]?.ToString()),
                                 releaseStatus    = avatar["releaseStatus"]?.ToString()       ?? "",
                                 version          = avatar["version"]?.Value<int>()           ?? 0,
-                                created_at       = avatar["created_at"]?.ToString()          ?? "",
-                                updated_at       = avatar["updated_at"]?.ToString()          ?? "",
+                                created_at       = DateTimeHelper.Iso(avatar["created_at"]),
+                                updated_at       = DateTimeHelper.Iso(avatar["updated_at"]),
                                 description      = avatar["description"]?.ToString()         ?? "",
                                 tags             = avatar["tags"]?.ToObject<List<string>>()  ?? new(),
                                 hasPC,
@@ -1975,6 +2009,141 @@ public partial class AppShell
                             catch (Exception ex)
                             {
                                 Invoke(() => SendToJS("vrcAvatarGalleryResult", new { ok = false, avatarId = galUpAvId, error = ex.Message }));
+                            }
+                        });
+                    }
+                    break;
+                }
+
+                case "vrcDeleteAvatar":
+                {
+                    var delAvId = msg["avatarId"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(delAvId))
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, error) = await _core.Avatars.DeleteAvatarAsync(delAvId);
+                            if (ok)
+                            {
+                                ModalCacheHelper.Invalidate(delAvId);
+                                RemoveFromCachedList(CacheHandler.KeyAvatars, "avatars", delAvId);
+                                await _authCtrl.FetchAndCacheAvatarsAsync();
+                            }
+                            Invoke(() => SendToJS("vrcAvatarDeleteResult", new { ok, error, avatarId = delAvId }));
+                        });
+                    break;
+                }
+
+                case "vrcDeleteWorld":
+                {
+                    var delWId = msg["worldId"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(delWId))
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, error) = await _core.World.DeleteWorldAsync(delWId);
+                            if (ok) ModalCacheHelper.Invalidate(delWId);
+                            Invoke(() => SendToJS("vrcWorldDeleteResult", new { ok, error, worldId = delWId }));
+                        });
+                    break;
+                }
+
+                case "vrcDeleteGroup":
+                {
+                    var delGId = msg["groupId"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(delGId))
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, error) = await _core.Groups.DeleteGroupAsync(delGId);
+                            if (ok)
+                            {
+                                ModalCacheHelper.Invalidate(delGId);
+                                _groups.MarkDeleted(delGId);
+                            }
+                            Invoke(() => SendToJS("vrcGroupDeleteResult", new { ok, error, groupId = delGId }));
+                        });
+                    break;
+                }
+
+                case "vrcUpdateWorld":
+                {
+                    var wuId   = msg["worldId"]?.ToString()               ?? "";
+                    var wuName = msg["name"]?.ToString()                  ?? "";
+                    var wuDesc = msg["description"]?.ToString()           ?? "";
+                    var wuTags = msg["tags"]?.ToObject<List<string>>()    ?? new();
+                    if (!string.IsNullOrEmpty(wuId))
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, error) = await _core.World.UpdateWorldAsync(wuId, wuName, wuDesc, wuTags);
+                            if (ok)
+                            {
+                                var ex = _core.TimeEngine.GetWorldDetail(wuId);
+                                if (ex != null)
+                                {
+                                    _core.TimeEngine.SaveWorldDetail(
+                                        worldId:             wuId,
+                                        name:                wuName,
+                                        thumb:               ex.WorldThumb,
+                                        description:         wuDesc,
+                                        imageUrl:            ex.ImageUrl,
+                                        authorName:          ex.AuthorName,
+                                        authorId:            ex.AuthorId,
+                                        published:           ex.Published,
+                                        updated:             ex.Updated,
+                                        capacity:            ex.Capacity,
+                                        recommendedCapacity: ex.RecommendedCapacity,
+                                        tags:                wuTags,
+                                        favorites:           ex.Favorites,
+                                        visits:              ex.Visits,
+                                        pcSize:              ex.PcSize,
+                                        androidSize:         ex.AndroidSize,
+                                        iosSize:             ex.IosSize,
+                                        heat:                ex.Heat,
+                                        popularity:          ex.Popularity,
+                                        publicOccupants:     ex.PublicOccupants,
+                                        privateOccupants:    ex.PrivateOccupants,
+                                        version:             ex.Version);
+                                }
+                                ModalCacheHelper.Invalidate(wuId);
+                            }
+                            Invoke(() => SendToJS("vrcWorldUpdateResult", new
+                            {
+                                ok,
+                                error,
+                                worldId     = wuId,
+                                name        = ok ? wuName : (string?)null,
+                                description = ok ? wuDesc : (string?)null,
+                                tags        = ok ? wuTags : (List<string>?)null,
+                            }));
+                        });
+                    break;
+                }
+
+                case "vrcUploadWorldImage":
+                {
+                    var wImgId     = msg["worldId"]?.ToString() ?? "";
+                    var wImgDataB64 = msg["data"]?.ToString()   ?? "";
+                    if (!string.IsNullOrEmpty(wImgId) && !string.IsNullOrEmpty(wImgDataB64))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var rawWorld = await _core.World.GetWorldFreshAsync(wImgId);
+                                var rawImageUrl = rawWorld?["imageUrl"]?.ToString()
+                                    ?? rawWorld?["thumbnailImageUrl"]?.ToString() ?? "";
+                                if (string.IsNullOrEmpty(rawImageUrl))
+                                {
+                                    Invoke(() => SendToJS("vrcWorldImageResult", new { ok = false, worldId = wImgId, imageUrl = "", error = "Could not retrieve world image URL" }));
+                                    return;
+                                }
+                                var imgRaw = wImgDataB64.Contains(",") ? wImgDataB64.Split(',')[1] : wImgDataB64;
+                                var bytes = Convert.FromBase64String(imgRaw);
+                                var (ok, imageUrl, error) = await _core.World.UploadWorldMainImageAsync(wImgId, rawImageUrl, bytes);
+                                if (ok) ModalCacheHelper.Invalidate(wImgId);
+                                Invoke(() => SendToJS("vrcWorldImageResult", new { ok, worldId = wImgId, imageUrl, error }));
+                            }
+                            catch (Exception ex)
+                            {
+                                Invoke(() => SendToJS("vrcWorldImageResult", new { ok = false, worldId = wImgId, imageUrl = "", error = ex.Message }));
                             }
                         });
                     }
@@ -2129,6 +2298,9 @@ public partial class AppShell
                             var wid = w["id"]?.ToString() ?? "";
                             var url = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
                             w["imageUrl"] = url; w["thumbnailImageUrl"] = url;
+                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid);
+                            w["created_at"] = DateTimeHelper.Iso(w["created_at"]);
+                            w["updated_at"] = DateTimeHelper.Iso(w["updated_at"]);
                             var stats = _core.TimeEngine.GetWorldStats(wid);
                             w["worldTimeSeconds"] = stats.totalSeconds;
                             w["worldVisitCount"]  = stats.visitCount;
@@ -2276,6 +2448,54 @@ public partial class AppShell
                             SendToJS("log", new { msg = $"Export save failed: {ex.Message}", color = "err" });
                         }
                     }
+                    break;
+                }
+
+                case "exportDebugKit":
+                {
+                    var dkPick = Dialog.FolderPicker();
+                    if (!dkPick.IsOk || string.IsNullOrEmpty(dkPick.Path)) break;
+                    var dkDir = dkPick.Path;
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            var vrcnLogs = Path.Combine(
+                                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                                "VRCNext", "Logs");
+                            var crashDir = Path.Combine(vrcnLogs, "Crashes");
+                            var vrcDir   = VRCNext.Services.Helpers.VrcPathsHelper.AppDataDir();
+
+                            IEnumerable<string> Latest(string dir, string pattern, int count) =>
+                                Directory.Exists(dir)
+                                    ? Directory.GetFiles(dir, pattern)
+                                        .Select(f => new FileInfo(f))
+                                        .OrderByDescending(f => f.LastWriteTimeUtc)
+                                        .Take(count)
+                                        .Select(f => f.FullName)
+                                    : Enumerable.Empty<string>();
+
+                            var zipPath = Path.Combine(dkDir, $"vrcn-log-{DateTime.Now:dd-MM-yyyy}.zip");
+                            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, System.IO.Compression.ZipArchiveMode.Create))
+                            {
+                                void Add(string folder, string file)
+                                {
+                                    var entry = zip.CreateEntry(folder + "/" + Path.GetFileName(file), System.IO.Compression.CompressionLevel.Optimal);
+                                    using var src = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                                    using var dst = entry.Open();
+                                    src.CopyTo(dst);
+                                }
+                                foreach (var f in Latest(crashDir, "crash_*.txt", 5))    Add("crashes", f);
+                                foreach (var f in Latest(vrcnLogs, "vrcn-log-*.txt", 5)) Add("vrcn", f);
+                                foreach (var f in Latest(vrcDir, "output_log_*.txt", 2)) Add("vrchat", f);
+                            }
+                            Invoke(() => SendToJS("debugKitExported", new { ok = true, path = zipPath }));
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(() => SendToJS("debugKitExported", new { ok = false, error = ex.Message }));
+                        }
+                    });
                     break;
                 }
 
@@ -2489,7 +2709,14 @@ public partial class AppShell
                         if (_settings.FfcEnabled)
                         {
                             var cachedFavWorlds = _cache.LoadRaw(CacheHandler.KeyFavWorlds);
-                            if (cachedFavWorlds != null) Invoke(() => SendToJS("vrcFavoriteWorlds", cachedFavWorlds));
+                            if (cachedFavWorlds != null)
+                            {
+                                if (cachedFavWorlds is JObject cfw)
+                                    foreach (var cw in cfw["worlds"] as JArray ?? new JArray())
+                                        if (cw is JObject cwo)
+                                            EnrichWorldDatesFromCache(_core.TimeEngine, cwo, cwo["id"]?.ToString() ?? "");
+                                Invoke(() => SendToJS("vrcFavoriteWorlds", cachedFavWorlds));
+                            }
                         }
                         _authCtrl.ClearFavGroupsCache(); // ensure fresh visibility state from API
                         await _authCtrl.FetchAndCacheFavWorldsAsync();
@@ -2722,6 +2949,7 @@ public partial class AppShell
                     await _groups.HandleMessage(action, msg);
                     break;
 
+                case "vrcCreateGroup":
                 case "vrcCreateGroupPost":
                 case "vrcUpdateGroupPost":
                 case "vrcDeleteGroupPost":
@@ -2990,6 +3218,145 @@ public partial class AppShell
                 case "vrcHideNotification":
                 case "vrcGetRespondMessages":
                 case "vrcUpdateRespondMessage":
+                case "vrcGetLogFiles":
+                {
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            var dir = VRCNext.Services.Helpers.VrcPathsHelper.AppDataDir();
+                            var files = Directory.Exists(dir)
+                                ? Directory.GetFiles(dir, "output_log_*.txt")
+                                    .Select(f => new FileInfo(f))
+                                    .OrderByDescending(f => f.LastWriteTimeUtc)
+                                    .Take(50)
+                                    .Select(f => new
+                                    {
+                                        name = f.Name,
+                                        sizeBytes = f.Length,
+                                        modified = f.LastWriteTimeUtc.ToString("o"),
+                                    })
+                                    .ToList<object>()
+                                : new List<object>();
+                            Invoke(() => SendToJS("vrcLogFiles", new { dir, files }));
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(() => SendToJS("vrcLogFiles", new { dir = "", files = new object[0], error = ex.Message }));
+                        }
+                    });
+                    break;
+                }
+
+                case "vrcReadLogFile":
+                {
+                    var lvName   = msg["file"]?.ToString() ?? "";
+                    var lvQuery  = msg["query"]?.ToString() ?? "";
+                    var lvLevels = msg["levels"]?.ToObject<List<string>>() ?? new List<string>();
+                    var lvCats   = msg["categories"]?.ToObject<List<string>>() ?? new List<string>();
+                    var lvMax    = Math.Clamp(msg["max"]?.Value<int>() ?? 2000, 100, 20000);
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            var dir = VRCNext.Services.Helpers.VrcPathsHelper.AppDataDir();
+                            var safe = Path.GetFileName(lvName);
+                            if (string.IsNullOrEmpty(safe)
+                                || !safe.StartsWith("output_log_", StringComparison.OrdinalIgnoreCase)
+                                || !safe.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Invoke(() => SendToJS("vrcLogLines", new { file = lvName, entries = new object[0], error = "Invalid log file" }));
+                                return;
+                            }
+                            var path = Path.Combine(dir, safe);
+                            if (!File.Exists(path))
+                            {
+                                Invoke(() => SendToJS("vrcLogLines", new { file = safe, entries = new object[0], error = "File not found" }));
+                                return;
+                            }
+
+                            var all = new List<VrcLogEntry>();
+                            VrcLogEntry? current = null;
+                            var lineNo = 0;
+                            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            using (var sr = new StreamReader(fs))
+                            {
+                                string? line;
+                                while ((line = sr.ReadLine()) != null)
+                                {
+                                    lineNo++;
+                                    var header = ParseVrcLogHeader(line);
+                                    if (header != null)
+                                    {
+                                        if (current != null) all.Add(current);
+                                        current = new VrcLogEntry
+                                        {
+                                            timestamp = header.Value.timestamp,
+                                            level     = header.Value.level,
+                                            message   = StripVrcRichText(header.Value.message),
+                                            category  = ExtractVrcLogCategory(header.Value.message),
+                                            raw       = line,
+                                            lineNumber = lineNo,
+                                        };
+                                        continue;
+                                    }
+                                    if (current != null) current.continuation.Add(line);
+                                }
+                            }
+                            if (current != null) all.Add(current);
+
+                            var categories = all.Select(e => e.category)
+                                .Where(c => !string.IsNullOrEmpty(c))
+                                .Distinct(StringComparer.Ordinal)
+                                .OrderBy(c => c, StringComparer.OrdinalIgnoreCase)
+                                .ToList();
+
+                            IEnumerable<VrcLogEntry> filtered = all;
+                            if (lvLevels.Count > 0)
+                                filtered = filtered.Where(e => lvLevels.Contains(e.level, StringComparer.OrdinalIgnoreCase));
+                            if (lvCats.Count > 0)
+                                filtered = filtered.Where(e => lvCats.Contains(e.category, StringComparer.Ordinal));
+                            if (!string.IsNullOrWhiteSpace(lvQuery))
+                                filtered = filtered.Where(e =>
+                                    e.message.Contains(lvQuery, StringComparison.OrdinalIgnoreCase)
+                                    || e.category.Contains(lvQuery, StringComparison.OrdinalIgnoreCase)
+                                    || e.continuation.Any(c => c.Contains(lvQuery, StringComparison.OrdinalIgnoreCase)));
+
+                            var list = filtered.ToList();
+                            var matched = list.Count;
+                            var truncated = matched > lvMax;
+                            var shown = truncated ? list.Skip(matched - lvMax).ToList() : list;
+
+                            Invoke(() => SendToJS("vrcLogLines", new
+                            {
+                                file = safe,
+                                entries = shown.Select(e => new
+                                {
+                                    e.timestamp,
+                                    e.level,
+                                    e.category,
+                                    e.message,
+                                    e.raw,
+                                    e.lineNumber,
+                                    contLines = e.continuation,
+                                }),
+                                categories,
+                                matched,
+                                total = all.Count,
+                                truncated,
+                                error = "",
+                            }));
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(() => SendToJS("vrcLogLines", new { file = lvName, entries = new object[0], error = ex.Message }));
+                        }
+                    });
+                    break;
+                }
+
+                case "vrcGetMessageTemplates":
+                case "vrcUpdateMessageTemplate":
                 case "vrcRespondToNotification":
                 case "vrcRespondToNotificationWithPhoto":
                     await _notifications.HandleMessage(action, msg);
@@ -3223,6 +3590,39 @@ public partial class AppShell
                             var ok = await _core.Files.DeleteInventoryFileAsync(delFileId);
                             if (ok) _cache.Delete(CacheHandler.KeyInventory);
                             Invoke(() => SendToJS("invDeleteResult", new { success = ok, fileId = delFileId }));
+                        });
+                    }
+                    break;
+                }
+
+                case "invUploadPrint":
+                {
+                    var printData      = msg["data"]?.ToString()      ?? "";
+                    var printNote      = msg["note"]?.ToString()      ?? "";
+                    var printWorldId   = msg["worldId"]?.ToString()   ?? "";
+                    var printWorldName = msg["worldName"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(printData))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var raw = printData.Contains(",") ? printData.Split(',')[1] : printData;
+                                var bytes = Convert.FromBase64String(raw);
+                                var (ok, print, error) = await _core.Inventory.UploadPrintAsync(
+                                    bytes, printNote, DateTime.UtcNow, printWorldId, printWorldName);
+                                if (ok) _cache.Delete(CacheHandler.KeyInventory);
+                                Invoke(() => SendToJS("invPrintUploadResult", new
+                                {
+                                    success = ok,
+                                    error,
+                                    printId = print?["id"]?.ToString() ?? "",
+                                }));
+                            }
+                            catch (Exception ex)
+                            {
+                                Invoke(() => SendToJS("invPrintUploadResult", new { success = false, error = ex.Message, printId = "" }));
+                            }
                         });
                     }
                     break;
@@ -3744,10 +4144,13 @@ public partial class AppShell
     }
 
     private void EnrichAvatarFromCache(JObject a, string avatarId)
+        => EnrichAvatarFromCache(_core.TimeEngine, a, avatarId);
+
+    internal static void EnrichAvatarFromCache(UnifiedTimeEngine engine, JObject a, string avatarId)
     {
         if (a == null || string.IsNullOrEmpty(avatarId)) return;
         UnifiedTimeEngine.AvatarDetailCache? c;
-        try { c = _core.TimeEngine.GetAvatarDetail(avatarId); }
+        try { c = engine.GetAvatarDetail(avatarId); }
         catch { return; }
         if (c == null) return;
 
@@ -3763,9 +4166,9 @@ public partial class AppShell
         Str("authorId", c.AuthorId);
         Str("releaseStatus", c.ReleaseStatus);
         Str("description", c.Description);
-        Str("created_at", c.CreatedAt);
-        Str("updated_at", c.UpdatedAt);
-        if (a["tags"] == null && c.Tags.Count > 0) a["tags"] = JArray.FromObject(c.Tags);
+        Str("created_at", DateTimeHelper.Iso(c.CreatedAt));
+        Str("updated_at", DateTimeHelper.Iso(c.UpdatedAt));
+        if ((a["tags"] as JArray)?.Count is null or 0 && c.Tags.Count > 0) a["tags"] = JArray.FromObject(c.Tags);
 
         var (livePc, liveQuest, liveIos) = ResolveAvatarPerf(a);
         var pcPerf    = livePc.Length    > 0 ? livePc    : ValidPerf(c.PcPerf);
@@ -3785,34 +4188,160 @@ public partial class AppShell
         }
     }
 
-    private void CacheAvatarDetailFrom(JObject avatar)
+    private void RemoveFromCachedList(string cacheKey, string arrayProp, string entityId)
     {
         try
         {
-            var id = avatar["id"]?.ToString() ?? "";
+            if (!_settings.FfcEnabled) return;
+            if (_cache.LoadRaw(cacheKey) is not JObject root) return;
+            if (root[arrayProp] is not JArray arr) return;
+            var kept = new JArray();
+            bool removed = false;
+            foreach (var item in arr.OfType<JObject>())
+            {
+                if (item["id"]?.ToString() == entityId) { removed = true; continue; }
+                kept.Add(item);
+            }
+            if (!removed) return;
+            root[arrayProp] = kept;
+            _cache.Save(cacheKey, root);
+        }
+        catch { }
+    }
+
+
+    private sealed class VrcLogEntry
+    {
+        public string timestamp { get; set; } = "";
+        public string level     { get; set; } = "";
+        public string category  { get; set; } = "";
+        public string message   { get; set; } = "";
+        public string raw       { get; set; } = "";
+        public int    lineNumber { get; set; }
+        public List<string> continuation { get; } = new();
+    }
+
+    private static readonly string[] VrcLogLevels = { "Debug", "Warning", "Error" };
+
+    private static (string timestamp, string level, string message)? ParseVrcLogHeader(string line)
+    {
+        if (line.Length < 20) return null;
+        var stamp = line[..19];
+        if (!DateTime.TryParseExact(stamp, "yyyy.MM.dd HH:mm:ss",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out _))
+            return null;
+
+        var rest = line[19..].TrimStart();
+        foreach (var level in VrcLogLevels)
+        {
+            if (!rest.StartsWith(level, StringComparison.Ordinal)) continue;
+            var afterLevel = rest[level.Length..].TrimStart();
+            if (!afterLevel.StartsWith('-')) return null;
+            return (stamp, level, afterLevel[1..].TrimStart());
+        }
+        return null;
+    }
+
+    private static string ExtractVrcLogCategory(string message)
+    {
+        var trimmed = message.TrimStart();
+        if (!trimmed.StartsWith('[')) return "";
+        var close = trimmed.IndexOf(']');
+        if (close < 0) return "";
+        return StripVrcRichText(trimmed[1..close]).Trim();
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex VrcRichTextRe = new(
+        @"</?(?:color|b|i|u|s|size|material|quad|align|alpha|cspace|font|indent|line-height|link|lowercase|uppercase|smallcaps|margin|mark|mspace|noparse|nobr|page|pos|space|sprite|strikethrough|style|sub|sup|voffset|width)(?:=[^>]*)?>",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static string StripVrcRichText(string text)
+    {
+        if (string.IsNullOrEmpty(text) || text.IndexOf('<') < 0) return text;
+        return VrcRichTextRe.Replace(text, "");
+    }
+
+    internal static void EnrichWorldDatesFromCache(UnifiedTimeEngine engine, JObject w, string worldId)
+    {
+        if (w == null || string.IsNullOrEmpty(worldId)) return;
+        UnifiedTimeEngine.WorldDetailCache? c;
+        try { c = engine.GetWorldDetail(worldId); }
+        catch { return; }
+        if (c == null) return;
+        if (string.IsNullOrEmpty(w["created_at"]?.ToString()) && !string.IsNullOrEmpty(c.Published)) w["created_at"] = c.Published;
+        if (string.IsNullOrEmpty(w["updated_at"]?.ToString()) && !string.IsNullOrEmpty(c.Updated)) w["updated_at"] = c.Updated;
+    }
+
+    private void CacheAvatarDetailFrom(JObject avatar)
+        => CacheAvatarDetailFrom(_core.TimeEngine, avatar);
+
+    internal static void CacheAvatarDetailFrom(UnifiedTimeEngine engine, JObject avatar,
+        bool? platformPC = null, bool? platformQuest = null, bool? platformIos = null)
+    {
+        try
+        {
+            var id = avatar?["id"]?.ToString() ?? "";
             if (string.IsNullOrEmpty(id)) return;
-            var packages = (avatar["unityPackages"] as JArray)?.OfType<JObject>().ToList() ?? new List<JObject>();
-            if (packages.Count == 0) return;
+
+            UnifiedTimeEngine.AvatarDetailCache? old = null;
+            try { old = engine.GetAvatarDetail(id); } catch { }
+
+            var packages = (avatar!["unityPackages"] as JArray)?.OfType<JObject>().ToList() ?? new List<JObject>();
             var realPkgs = packages.Where(p => p["variant"]?.ToString() != "impostor").ToList();
-            var hasPC    = realPkgs.Any(p => p["platform"]?.ToString() == "standalonewindows");
-            var hasQuest = realPkgs.Any(p => p["platform"]?.ToString() == "android");
-            var hasIos   = realPkgs.Any(p => p["platform"]?.ToString() == "ios");
-            var hasImpostor = packages.Any(p => p["variant"]?.ToString() == "impostor");
             var (pcPerf, questPerf, iosPerf) = ResolveAvatarPerf(avatar);
-            if (pcPerf.Length == 0 && questPerf.Length == 0 && iosPerf.Length == 0) return;
-            _core.TimeEngine.SaveAvatarDetail(
+
+            var hasPC       = platformPC    ?? (realPkgs.Any(p => p["platform"]?.ToString() == "standalonewindows") || pcPerf.Length > 0);
+            var hasQuest    = platformQuest ?? (realPkgs.Any(p => p["platform"]?.ToString() == "android")           || questPerf.Length > 0);
+            var hasIos      = platformIos   ?? (realPkgs.Any(p => p["platform"]?.ToString() == "ios")               || iosPerf.Length > 0);
+            var hasImpostor = packages.Any(p => p["variant"]?.ToString() == "impostor");
+
+            if (old != null)
+            {
+                if (packages.Count == 0)
+                {
+                    hasPC       = hasPC       || old.HasPC;
+                    hasQuest    = hasQuest    || old.HasQuest;
+                    hasIos      = hasIos      || old.HasIos;
+                    hasImpostor = hasImpostor || old.HasImpostor;
+                }
+                if (pcPerf.Length == 0)    pcPerf    = old.PcPerf;
+                if (questPerf.Length == 0) questPerf = old.QuestPerf;
+                if (iosPerf.Length == 0)   iosPerf   = old.IosPerf;
+            }
+
+            string Pick(string key, string? fallback)
+            {
+                var v = avatar[key]?.ToString() ?? "";
+                return string.IsNullOrEmpty(v) ? (fallback ?? "") : v;
+            }
+
+            var tags = avatar["tags"]?.ToObject<List<string>>() ?? new List<string>();
+            if (tags.Count == 0 && old != null) tags = old.Tags;
+
+            var createdAt = DateTimeHelper.Iso(Pick("created_at", old?.CreatedAt));
+            var updatedAt = DateTimeHelper.Iso(Pick("updated_at", old?.UpdatedAt));
+
+            var hasMeta = createdAt.Length > 0 || updatedAt.Length > 0 || tags.Count > 0;
+            var hasPerf = pcPerf.Length > 0 || questPerf.Length > 0 || iosPerf.Length > 0;
+            if (!hasMeta && !hasPerf) return;
+
+            var version = avatar["version"]?.Value<int>() ?? 0;
+            if (version == 0 && old != null) version = old.Version;
+
+            engine.SaveAvatarDetail(
                 id,
-                avatar["name"]?.ToString() ?? "",
-                avatar["authorName"]?.ToString() ?? "",
-                avatar["authorId"]?.ToString() ?? "",
-                avatar["thumbnailImageUrl"]?.ToString() ?? "",
-                avatar["imageUrl"]?.ToString() ?? "",
-                avatar["releaseStatus"]?.ToString() ?? "",
-                avatar["version"]?.Value<int>() ?? 0,
-                avatar["created_at"]?.ToString() ?? "",
-                avatar["updated_at"]?.ToString() ?? "",
-                avatar["description"]?.ToString() ?? "",
-                avatar["tags"]?.ToObject<List<string>>() ?? new(),
+                Pick("name", old?.Name),
+                Pick("authorName", old?.AuthorName),
+                Pick("authorId", old?.AuthorId),
+                Pick("thumbnailImageUrl", old?.ThumbnailImageUrl),
+                Pick("imageUrl", old?.ImageUrl),
+                Pick("releaseStatus", old?.ReleaseStatus),
+                version,
+                createdAt,
+                updatedAt,
+                Pick("description", old?.Description),
+                tags,
                 hasPC, hasQuest, hasImpostor, pcPerf, questPerf, hasIos, iosPerf);
         }
         catch { }
@@ -3828,6 +4357,9 @@ public partial class AppShell
                 name = avatar["name"]?.ToString() ?? "",
                 authorName = avatar["authorName"]?.ToString() ?? "",
                 releaseStatus = avatar["releaseStatus"]?.ToString() ?? "",
+                created_at = DateTimeHelper.Iso(avatar["created_at"]),
+                updated_at = DateTimeHelper.Iso(avatar["updated_at"]),
+                tags = (avatar["tags"] as JArray)?.Select(x => x.ToString()).ToArray() ?? Array.Empty<string>(),
                 performance = new { pc, quest, ios },
             };
         }
@@ -3914,32 +4446,21 @@ public partial class AppShell
     {
         try
         {
-            var id = a["id"]?.ToString() ?? "";
+            var id = a?["id"]?.ToString() ?? "";
             if (!id.StartsWith("avtr_", StringComparison.Ordinal)) return;
-            if (_core.TimeEngine.GetAvatarDetail(id) != null) return;
+
+            var compat = (a!["compatibility"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>();
+            if (compat.Count == 0)
+            {
+                CacheAvatarDetailFrom(_core.TimeEngine, a);
+                return;
+            }
 
             var (pc, quest, ios) = ResolveAvatarPerf(a);
-            if (pc.Length == 0 && quest.Length == 0 && ios.Length == 0) return;
-
-            var compat = (a["compatibility"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>();
-            var hasPC    = pc.Length > 0    || compat.Contains("pc") || compat.Contains("standalonewindows");
-            var hasQuest = quest.Length > 0 || compat.Contains("android") || compat.Contains("quest");
-            var hasIos   = ios.Length > 0   || compat.Contains("ios");
-
-            _core.TimeEngine.SaveAvatarDetail(
-                id,
-                a["name"]?.ToString() ?? "",
-                a["authorName"]?.ToString() ?? "",
-                a["authorId"]?.ToString() ?? "",
-                a["thumbnailImageUrl"]?.ToString() ?? "",
-                a["imageUrl"]?.ToString() ?? "",
-                a["releaseStatus"]?.ToString() ?? "public",
-                0,
-                a["created_at"]?.ToString() ?? "",
-                a["updated_at"]?.ToString() ?? "",
-                a["description"]?.ToString() ?? "",
-                (a["tags"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>(),
-                hasPC, hasQuest, false, pc, quest, hasIos, ios);
+            CacheAvatarDetailFrom(_core.TimeEngine, a,
+                platformPC:    pc.Length > 0    || compat.Contains("pc") || compat.Contains("standalonewindows"),
+                platformQuest: quest.Length > 0 || compat.Contains("android") || compat.Contains("quest"),
+                platformIos:   ios.Length > 0   || compat.Contains("ios"));
         }
         catch { }
     }

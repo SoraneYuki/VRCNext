@@ -119,6 +119,8 @@ static class VRSubprocess
         };
         fs.OnPhotoSaved += path =>
             SendLine(new JObject { ["t"] = "fs_photo_saved", ["path"] = path });
+        fs.OnQrLink += url =>
+            SendLine(new JObject { ["t"] = "fs_qr_link", ["url"] = url });
         fs.OnVRQuit += () => Environment.Exit(0);
 
         _idleExitTimer = new System.Threading.Timer(_ =>
@@ -383,7 +385,9 @@ static class VRSubprocess
                         I(cmd, "videoFps", 30),
                         S(cmd, "videoQuality", "1080p"),
                         S(cmd, "videoBitrateQuality", "medium"),
-                        I(cmd, "audioKbps", 256));
+                        I(cmd, "audioKbps", 256),
+                        (uint)I(cmd, "leftAcceptButton",  0),
+                        (uint)I(cmd, "rightAcceptButton", 0));
                     fs.SetOutputDevice(VRCNext.Services.Helpers.AudioSelection.From(S(cmd, "outputDeviceId"), S(cmd, "outputDeviceName")));
                     fs.StartPolling();
                 }
@@ -411,7 +415,9 @@ static class VRSubprocess
                     I(cmd, "videoFps", 30),
                     S(cmd, "videoQuality", "1080p"),
                     S(cmd, "videoBitrateQuality", "medium"),
-                    I(cmd, "audioKbps", 256));
+                    I(cmd, "audioKbps", 256),
+                    (uint)I(cmd, "leftAcceptButton",  0),
+                    (uint)I(cmd, "rightAcceptButton", 0));
                 break;
 
             case "fs_set_output":

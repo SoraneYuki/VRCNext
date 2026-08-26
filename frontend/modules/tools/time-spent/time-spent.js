@@ -11,6 +11,13 @@ let _tsPersonQuery = '';
 let _tsSearchTimer = null;
 let _tsWorldPage = 0;
 let _tsPersonPage = 0;
+let _tsGroupPage = 0;
+let _tsGroupQuery = '';
+let _tsTotalGroups = 0;
+let _tsAllUniqueGroups = 0;
+let _tsGlobalGroupSeconds = 0;
+let _tsGlobalGroupJoins = 0;
+let _tsGlobalTopGroupName = '';
 let _tsReqId = 0;
 let _tsTotalWorlds = 0;
 let _tsTotalPersons = 0;
@@ -79,8 +86,9 @@ function tsFilterSearch(value) {
     _tsSetPaginator('');
     clearTimeout(_tsSearchTimer);
     _tsSearchTimer = setTimeout(() => {
-        if (_tsView === 'worlds') { _tsWorldQuery = search; _tsWorldPage = 0; }
-        else                      { _tsPersonQuery = search; _tsPersonPage = 0; }
+        if (_tsView === 'worlds')      { _tsWorldQuery = search;  _tsWorldPage = 0; }
+        else if (_tsView === 'groups') { _tsGroupQuery = search;  _tsGroupPage = 0; }
+        else                           { _tsPersonQuery = search; _tsPersonPage = 0; }
         _tsLoad();
     }, 300);
 }
@@ -89,13 +97,17 @@ function tsRefresh() {
     _tsData = null;
     _tsWorldPage = 0;
     _tsPersonPage = 0;
+    _tsGroupPage = 0;
     _tsWorldQuery = '';
     _tsPersonQuery = '';
+    _tsGroupQuery = '';
     clearTimeout(_tsSearchTimer);
     const wi = document.getElementById('tsWorldSearchInput');
     const pi = document.getElementById('tsPersonSearchInput');
+    const gi = document.getElementById('tsGroupSearchInput');
     if (wi) wi.value = '';
     if (pi) pi.value = '';
+    if (gi) gi.value = '';
     _tsLoad();
 }
 
@@ -118,8 +130,8 @@ function _tsLoad() {
     if (summary && !summary.querySelector('.ts-stat'))
         summary.innerHTML = `<div class="ts-stat-row">${'<div class="ts-sk-stat"></div>'.repeat(4)}</div>`;
 
-    const query = _tsView === 'worlds' ? _tsWorldQuery : _tsPersonQuery;
-    const page  = _tsView === 'worlds' ? _tsWorldPage  : _tsPersonPage;
+    const query = _tsView === 'worlds' ? _tsWorldQuery : _tsView === 'groups' ? _tsGroupQuery : _tsPersonQuery;
+    const page  = _tsView === 'worlds' ? _tsWorldPage  : _tsView === 'groups' ? _tsGroupPage  : _tsPersonPage;
     sendToCS({ action: 'vrcGetTimeSpent', view: _tsView, query: query.trim(), page, reqId: ++_tsReqId });
 }
 
@@ -131,6 +143,13 @@ function tsOnData(payload) {
     _tsTotalPersons      = payload.totalPersons  ?? 0;
     _tsAllUniqueWorlds   = payload.allUniqueWorlds  ?? _tsTotalWorlds;
     _tsAllUniquePersons  = payload.allUniquePersons ?? _tsTotalPersons;
+    _tsTotalGroups       = payload.totalGroups      ?? 0;
+    _tsAllUniqueGroups   = payload.allUniqueGroups  ?? _tsTotalGroups;
+    if (payload.globalGroupSeconds !== undefined) {
+        _tsGlobalGroupSeconds = payload.globalGroupSeconds ?? 0;
+        _tsGlobalGroupJoins   = payload.globalGroupJoins   ?? 0;
+        _tsGlobalTopGroupName = payload.globalTopGroupName ?? '';
+    }
 
     // Store global stats — only update when present (backfill SendPage re-sends everything)
     if (payload.globalFriendCount !== undefined) {
@@ -160,16 +179,18 @@ function tsSetView(view) {
     _tsView = view;
     _tsWorldPage = 0;
     _tsPersonPage = 0;
+    _tsGroupPage = 0;
     document.getElementById('tsBtnWorlds')?.classList.toggle('active', view === 'worlds');
     document.getElementById('tsBtnPersons')?.classList.toggle('active', view === 'persons');
-    document.getElementById('tsSearchWorlds')?.style.setProperty('display', view === 'worlds' ? '' : 'none');
-    document.getElementById('tsSearchPersons')?.style.setProperty('display', view === 'persons' ? '' : 'none');
+    document.getElementById('tsBtnGroups')?.classList.toggle('active', view === 'groups');
+    _tsShowSearch();
     _tsLoad();
 }
 
 function _tsShowSearch() {
     document.getElementById('tsSearchWorlds')?.style.setProperty('display', _tsView === 'worlds' ? '' : 'none');
     document.getElementById('tsSearchPersons')?.style.setProperty('display', _tsView === 'persons' ? '' : 'none');
+    document.getElementById('tsSearchGroups')?.style.setProperty('display', _tsView === 'groups' ? '' : 'none');
 }
 
 function tsRender() {
@@ -179,6 +200,7 @@ function tsRender() {
     if (!tab || !tab.classList.contains('active')) return;
 
     if (_tsView === 'worlds') tsRenderWorlds();
+    else if (_tsView === 'groups') tsRenderGroups();
     else tsRenderPersons();
 }
 
@@ -405,3 +427,95 @@ function rerenderTimeSpentTranslations() {
 }
 
 document.documentElement.addEventListener('languagechange', rerenderTimeSpentTranslations);
+
+function tsRenderGroups() {
+    const summary = document.getElementById('tsSummary');
+    if (!summary) return;
+
+    summary.innerHTML = `
+        <div class="ts-stat-row">
+            <div class="ts-stat">
+                <span class="msi ts-stat-icon">schedule</span>
+                <div class="ts-stat-val">${tsFmtTimeDH(_tsGlobalGroupSeconds)}</div>
+                <div class="ts-stat-label">${t('timespent.summary.total_group_time', 'Total Group Time')}</div>
+            </div>
+            <div class="ts-stat">
+                <span class="msi ts-stat-icon">groups</span>
+                <div class="ts-stat-val">${_tsAllUniqueGroups}</div>
+                <div class="ts-stat-label">${t('timespent.summary.unique_groups', 'Unique Groups')}</div>
+            </div>
+            <div class="ts-stat">
+                <span class="msi ts-stat-icon">favorite</span>
+                <div class="ts-stat-val">${_tsGlobalTopGroupName ? esc(_tsGlobalTopGroupName) : '-'}</div>
+                <div class="ts-stat-label">${t('timespent.summary.favourite_group', 'Favourite Group')}</div>
+            </div>
+            <div class="ts-stat">
+                <span class="msi ts-stat-icon">login</span>
+                <div class="ts-stat-val">${_tsGlobalGroupJoins.toLocaleString()}</div>
+                <div class="ts-stat-label">${t('timespent.summary.group_joins', 'Group Joins')}</div>
+            </div>
+        </div>`;
+
+    _tsShowSearch();
+    tsRenderGroupItems();
+}
+
+function tsRenderGroupItems() {
+    const groups = _tsData?.groups || [];
+    const tsList = document.getElementById('tsList');
+    if (!tsList) return;
+
+    if (_tsAllUniqueGroups === 0) {
+        tsList.innerHTML = `<div class="ts-empty"><span class="msi" style="font-size:28px;color:var(--tx3);">groups</span><div>${t('timespent.empty.no_group_data', 'No group data yet.')}<br><span style="font-size:calc(11px + var(--fs-off, 0px));">${t('timespent.empty.no_group_data_hint', 'Join a group instance to start collecting stats.')}</span></div></div>`;
+        _tsSetPaginator('');
+        return;
+    }
+
+    if (groups.length === 0) {
+        tsList.innerHTML = `<div class="ts-empty"><span class="msi" style="font-size:28px;color:var(--tx3);">search_off</span><div>${t('timespent.empty.no_group_match', 'No groups match your search.')}</div></div>`;
+        _tsSetPaginator('');
+        return;
+    }
+
+    const totalPages = Math.ceil(_tsTotalGroups / TS_PAGE_SIZE) || 1;
+    const maxSec = _tsData.maxGroupSeconds || groups[0].seconds || 1;
+    const rows = groups.map((group, i) => {
+        const pct = ((group.seconds / maxSec) * 100).toFixed(2);
+        const rank = group.rank ?? (_tsGroupPage * TS_PAGE_SIZE + i + 1);
+        const icon = group.iconUrl
+            ? `<img class="ts-item-thumb" src="${esc(imgThumb(group.iconUrl, 96))}" onerror="this.style.display='none'">`
+            : `<div class="ts-item-thumb ts-thumb-placeholder"><span class="msi" style="font-size:18px;color:var(--tx3);">groups</span></div>`;
+        const click = group.groupId ? `onclick="navOpenModal('group','${esc(group.groupId)}','${esc(group.groupName || '')}')" style="cursor:pointer"` : '';
+        const joins = tf(`timespent.join.${group.joins === 1 ? 'one' : 'other'}`, { count: group.joins }, `${group.joins} join${group.joins === 1 ? '' : 's'}`);
+        const label = group.groupName || group.shortCode || t('timespent.unknown_group', 'Unknown Group');
+
+        return `
+        <div class="ts-item" ${click}>
+            <div class="ts-item-rank">#${rank}</div>
+            ${icon}
+            <div class="ts-item-body">
+                <div class="ts-item-name">${esc(label)}</div>
+                <div class="ts-item-meta">
+                    <span class="msi" style="font-size:12px;color:var(--tx3);">login</span>
+                    <span>${joins}</span>
+                </div>
+                <div class="ts-bar-wrap">
+                    <div class="ts-bar" style="width:${pct}%"></div>
+                </div>
+            </div>
+            <div class="ts-item-time">${tsFmtTime(group.seconds)}</div>
+        </div>`;
+    }).join('');
+
+    tsList.innerHTML = `<div class="ts-items">${rows}</div>`;
+    _tsSetPaginator(totalPages > 1
+        ? buildPaginator(_tsGroupPage, totalPages, 'tsGroupGoPage')
+        : '');
+}
+
+function tsGroupGoPage(page) {
+    if (page < 0) return;
+    _tsGroupPage = page;
+    _tsLoad();
+    document.getElementById('tsList')?.scrollTo(0, 0);
+}
