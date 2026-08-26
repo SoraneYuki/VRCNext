@@ -3371,6 +3371,8 @@
   "action_flow.game.is_running": "игра запущена",
   "action_flow.game.is_running_tooltip": "Истина пока VRChat.exe работает на этом компьютере. Проверяется каждые 5 секунд.",
   "action_flow.toolbox.get_info": "Получить инфо",
+  "action_flow.info.bundle_list": "сгруппированный список сообщений:",
+  "action_flow.info.bundle_list_tooltip": "Собирает несколько блоков Get Info в одно сообщение. Каждая запись становится отдельной строкой. Подключается к send notification или send to webhook.",
   "action_flow.action.switch_to_avatar": "сменить аватар на",
   "action_flow.action.switch_to_avatar_tooltip": "Переключает на указанный ID аватара. Аватар должен быть вашим или публичным.",
   "action_flow.action.set_home_world": "сделать текущий мир домашним",

@@ -3418,6 +3418,8 @@
   "action_flow.game.is_running": "is game running",
   "action_flow.game.is_running_tooltip": "True while VRChat.exe is running on this machine. Polled every 5 seconds.",
   "action_flow.toolbox.get_info": "Get Info",
+  "action_flow.info.bundle_list": "bundled message list:",
+  "action_flow.info.bundle_list_tooltip": "Collects several Get Info blocks into one message. Each entry becomes its own line. Plug it into a send notification or send to webhook block.",
   "action_flow.action.switch_to_avatar": "switch to avatar",
   "action_flow.action.switch_to_avatar_tooltip": "Switches to the given avatar ID. The avatar has to be your own or public.",
   "action_flow.action.set_home_world": "set current world as home world",

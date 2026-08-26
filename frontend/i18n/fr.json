@@ -3351,6 +3351,8 @@
   "action_flow.game.is_running": "jeu en cours",
   "action_flow.game.is_running_tooltip": "Vrai tant que VRChat.exe tourne sur cette machine. Vérifié toutes les 5 secondes.",
   "action_flow.toolbox.get_info": "Obtenir des infos",
+  "action_flow.info.bundle_list": "liste de messages groupée :",
+  "action_flow.info.bundle_list_tooltip": "Regroupe plusieurs blocs Get Info en un seul message. Chaque entrée occupe sa propre ligne. À brancher dans send notification ou send to webhook.",
   "action_flow.action.switch_to_avatar": "passer à l’avatar",
   "action_flow.action.switch_to_avatar_tooltip": "Passe à l’ID d’avatar indiqué. L’avatar doit vous appartenir ou être public.",
   "action_flow.action.set_home_world": "définir le monde actuel comme monde d’accueil",

@@ -904,6 +904,46 @@ function afDefineBlocks() {
         this.setTooltip(aft('action.send_advanced_notification_tooltip', 'Sends a notification with your own text followed by the value of the attached Get Info block.'));
     } };
 
+    const AF_BUNDLE_MAX = 20;
+    B.Blocks['af_bundle_list'] = {
+        init() {
+            this.appendDummyInput('HEAD').appendField(aft('info.bundle_list', 'bundled message list:'));
+            this.itemCount_ = 1;
+            this.updateShape_();
+            this.setOutput(true, 'String');
+            this.setColour(COLOR_INFO);
+            this.setTooltip(aft('info.bundle_list_tooltip', 'Collects several Get Info blocks into one message. Each entry becomes its own line. Plug it into a send notification or send to webhook block.'));
+        },
+        saveExtraState() {
+            return { itemCount: this.itemCount_ };
+        },
+        loadExtraState(state) {
+            this.itemCount_ = Math.max(1, Math.min(AF_BUNDLE_MAX, (state && state.itemCount) || 1));
+            this.updateShape_();
+        },
+        updateShape_() {
+            for (let i = 0; i < this.itemCount_; i++) {
+                if (!this.getInput('ITEM' + i)) this.appendValueInput('ITEM' + i).appendField('>');
+            }
+            let i = this.itemCount_;
+            while (this.getInput('ITEM' + i)) { this.removeInput('ITEM' + i); i++; }
+        },
+        onchange(e) {
+            if (!this.workspace || this.isInFlyout) return;
+            if (afAutoSaveSuppressed) return;
+            if (e && e.isUiEvent) return;
+            let used = 0;
+            for (let i = 0; i < this.itemCount_; i++) {
+                const inp = this.getInput('ITEM' + i);
+                if (inp && inp.connection && inp.connection.targetBlock()) used = i + 1;
+            }
+            const want = Math.max(1, Math.min(AF_BUNDLE_MAX, used + 1));
+            if (want === this.itemCount_) return;
+            this.itemCount_ = want;
+            this.updateShape_();
+        },
+    };
+
     const INFO_BLOCKS = [
         ['af_get_world_name',     'info.world_name',     'current world name',     'info.world_name_tooltip',     'Name of the world you are currently in.'],
         ['af_get_avatar_name',    'info.avatar_name',    'current avatar name',    'info.avatar_name_tooltip',    'Name of the avatar you are currently wearing.'],
@@ -976,6 +1016,7 @@ function afToolbox() {
                 { kind: 'block', type: 'af_close_vrchat' },
             ]},
             { kind: 'category', name: aft('toolbox.get_info', 'Get Info'), colour: COLOR_INFO, contents: [
+                { kind: 'block', type: 'af_bundle_list' },
                 { kind: 'block', type: 'af_get_world_name' },
                 { kind: 'block', type: 'af_get_avatar_name' },
                 { kind: 'block', type: 'af_get_instance_name' },
@@ -2421,6 +2462,18 @@ function afEvalValue(block) {
     if (!block) return null;
     const f = block.fields || {};
     switch (block.type) {
+        case 'af_bundle_list': {
+            const lines = [];
+            for (let i = 0; i < 20; i++) {
+                const child = afInput(block, 'ITEM' + i);
+                if (!child) continue;
+                const val = afEvalValue(child);
+                if (val === null || val === undefined) continue;
+                const text = typeof val === 'object' ? String(val.displayName || val.name || val.id || '') : String(val);
+                if (text !== '') lines.push(text);
+            }
+            return lines.join('\n');
+        }
         case 'af_bool':   return f.BOOL === 'TRUE';
         case 'af_number': return Number(f.VALUE);
         case 'af_get_condition': {

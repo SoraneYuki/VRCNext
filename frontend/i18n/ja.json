@@ -3350,6 +3350,8 @@
   "action_flow.game.is_running": "ゲーム起動中",
   "action_flow.game.is_running_tooltip": "VRChat.exe が起動している間は真。5秒ごとにチェック。",
   "action_flow.toolbox.get_info": "情報取得",
+  "action_flow.info.bundle_list": "まとめメッセージリスト:",
+  "action_flow.info.bundle_list_tooltip": "複数の Get Info ブロックを1つのメッセージにまとめます。各項目は独立した行になります。send notification や send to webhook に差し込めます。",
   "action_flow.action.switch_to_avatar": "アバターを切り替え",
   "action_flow.action.switch_to_avatar_tooltip": "指定したアバターIDに切り替えます。アバターは自分のものか公開されている必要があります。",
   "action_flow.action.set_home_world": "現在のワールドをホームワールドに設定",

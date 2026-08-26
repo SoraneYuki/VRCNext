@@ -1,6 +1,8 @@
 **2026.46.7**
 
 **Action Flow**
+* New **bundled message list** block under **Get Info**. Stack several Get Info blocks in it and they are sent as one message, one entry per line.
+* It grows a new slot as soon as you fill the last one, and fits into **send notification**, **send notification "Info:"**, **send to webhook** and **send to webhook "Info:"**.
 * New **cooldown** block under **Logic**. Runs its branch right away, then blocks it for the given number of seconds, so a trigger that fires often cannot spam an action. The **cooldown / else** variant additionally runs an else branch while the cooldown is still active.
 * New **wait for** and **wait until** blocks under **Logic**. Both are C shaped with a **then do** branch.
 * **wait for** takes a number block and runs its branch after that many seconds. **wait until** takes a condition plus a **true/false** block and runs its branch as soon as the condition matches, checking once per second.
