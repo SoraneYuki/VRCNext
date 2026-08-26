@@ -2007,7 +2007,7 @@
   "groups.create.toast.created": "Grupo creado",
   "groups.create.toast.failed": "No se pudo crear el grupo",
   "groups.create.toast.vrcplus_required": "Crear grupos requiere una suscripción a VRChat+.",
-  "groups.create.toast.image_failed": "No se pudo cargar la imagen",
+  "groups.create.image_selected": "Imagen seleccionada",
   "groups.create.desc": "Completa los detalles a la derecha. La vista previa muestra cómo se verá tu grupo.",
   "groups.create.choose_banner": "Elegir banner",
   "groups.create.no_image": "Ninguna imagen seleccionada",

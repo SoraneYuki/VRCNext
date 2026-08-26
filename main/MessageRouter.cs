@@ -2949,7 +2949,6 @@ public partial class AppShell
                     await _groups.HandleMessage(action, msg);
                     break;
 
-                case "vrcPickGroupImage":
                 case "vrcCreateGroup":
                 case "vrcCreateGroupPost":
                 case "vrcUpdateGroupPost":

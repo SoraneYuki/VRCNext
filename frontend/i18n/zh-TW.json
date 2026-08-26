@@ -2057,7 +2057,7 @@
   "groups.create.toast.created": "群組已建立",
   "groups.create.toast.failed": "無法建立群組",
   "groups.create.toast.vrcplus_required": "建立群組需要 VRChat+ 訂閱。",
-  "groups.create.toast.image_failed": "無法載入圖片",
+  "groups.create.image_selected": "已選擇圖片",
   "groups.create.desc": "在右側填寫詳細資訊。預覽會顯示群組的最終樣子。",
   "groups.create.choose_banner": "選擇橫幅",
   "groups.create.no_image": "未選擇圖片",

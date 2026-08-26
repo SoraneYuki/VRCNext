@@ -2022,7 +2022,7 @@
   "groups.create.toast.created": "Gruppe erstellt",
   "groups.create.toast.failed": "Gruppe konnte nicht erstellt werden",
   "groups.create.toast.vrcplus_required": "Zum Erstellen von Gruppen ist ein VRChat+ Abo nötig.",
-  "groups.create.toast.image_failed": "Bild konnte nicht geladen werden",
+  "groups.create.image_selected": "Bild ausgewählt",
   "groups.create.desc": "Trage rechts die Details ein. Die Vorschau zeigt, wie deine Gruppe aussehen wird.",
   "groups.create.choose_banner": "Banner wählen",
   "groups.create.no_image": "Kein Bild ausgewählt",

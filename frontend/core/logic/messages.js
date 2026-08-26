@@ -892,9 +892,6 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcGroupCreateResult':
                 if (typeof onGroupCreateResult === 'function') onGroupCreateResult(payload);
                 break;
-            case 'vrcGroupImagePicked':
-                if (typeof onGroupImagePicked === 'function') onGroupImagePicked(payload);
-                break;
             case 'vrcGroupDeleteResult':
                 if (typeof onGroupDeleteResult === 'function') onGroupDeleteResult(payload);
                 break;

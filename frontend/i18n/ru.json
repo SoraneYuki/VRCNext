@@ -1991,7 +1991,7 @@
   "groups.create.toast.created": "Группа создана",
   "groups.create.toast.failed": "Не удалось создать группу",
   "groups.create.toast.vrcplus_required": "Для создания групп нужна подписка VRChat+.",
-  "groups.create.toast.image_failed": "Не удалось загрузить изображение",
+  "groups.create.image_selected": "Изображение выбрано",
   "groups.create.desc": "Заполните данные справа. Предпросмотр показывает, как будет выглядеть группа.",
   "groups.create.choose_banner": "Выбрать баннер",
   "groups.create.no_image": "Изображение не выбрано",

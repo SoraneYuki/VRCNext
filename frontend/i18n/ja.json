@@ -2006,7 +2006,7 @@
   "groups.create.toast.created": "グループを作成しました",
   "groups.create.toast.failed": "グループを作成できませんでした",
   "groups.create.toast.vrcplus_required": "グループの作成にはVRChat+の登録が必要です。",
-  "groups.create.toast.image_failed": "画像を読み込めませんでした",
+  "groups.create.image_selected": "画像を選択済み",
   "groups.create.desc": "右側に詳細を入力してください。プレビューでグループの見た目を確認できます。",
   "groups.create.choose_banner": "バナーを選択",
   "groups.create.no_image": "画像が選択されていません",

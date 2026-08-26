@@ -552,11 +552,11 @@ function _glDate(value) {
 }
 
 /* === Create Group === */
-let _cgIconDataUrl = null, _cgBannerDataUrl = null;
+let _cgIconFileId = null, _cgBannerFileId = null;
 
 function openCreateGroupModal() {
-    _cgIconDataUrl = null;
-    _cgBannerDataUrl = null;
+    _cgIconFileId = null;
+    _cgBannerFileId = null;
     let overlay = document.getElementById('groupCreateOverlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -694,33 +694,32 @@ function cgSyncPreview() {
 function closeCreateGroupModal() {
     const overlay = document.getElementById('groupCreateOverlay');
     if (overlay) overlay.style.display = 'none';
-    _cgIconDataUrl = null;
-    _cgBannerDataUrl = null;
+    _cgIconFileId = null;
+    _cgBannerFileId = null;
 }
 
 function cgPickImage(kind) {
-    sendToCS({ action: 'vrcPickGroupImage', kind });
+    openImagePicker(kind === 'icon' ? 'create-group-icon' : 'create-group-banner');
 }
 
 function cgClearImage(kind) {
-    if (kind === 'icon') _cgIconDataUrl = null; else _cgBannerDataUrl = null;
-    _cgApplyImage(kind, null, '');
+    if (kind === 'icon') _cgIconFileId = null; else _cgBannerFileId = null;
+    _cgApplyImage(kind, null);
 }
 
-function _cgApplyImage(kind, dataUrl, fileName) {
+function _cgApplyImage(kind, url) {
     const box = document.getElementById(kind === 'icon' ? 'cgPrevIcon' : 'cgPrevBanner');
-    if (box) { box.style.backgroundImage = dataUrl ? `url("${dataUrl}")` : ''; box.classList.toggle('has-img', !!dataUrl); }
+    if (box) { box.style.backgroundImage = url ? `url("${url}")` : ''; box.classList.toggle('has-img', !!url); }
     const clr = document.getElementById('cgClear_' + kind);
-    if (clr) clr.style.display = dataUrl ? '' : 'none';
+    if (clr) clr.style.display = url ? '' : 'none';
     const nameEl = document.getElementById(kind === 'icon' ? 'cgIconName' : 'cgBannerName');
-    if (nameEl) nameEl.value = dataUrl ? (fileName || '') : '';
+    if (nameEl) nameEl.value = url ? t('groups.create.image_selected', 'Image selected') : '';
 }
 
-function onGroupImagePicked(data) {
-    if (!data || !document.getElementById('groupCreateOverlay')) return;
-    if (data.error || !data.dataUrl) { showToast(false, data.error || t('groups.create.toast.image_failed', 'Could not load image')); return; }
-    if (data.kind === 'icon') _cgIconDataUrl = data.dataUrl; else _cgBannerDataUrl = data.dataUrl;
-    _cgApplyImage(data.kind, data.dataUrl, data.fileName || '');
+function cgApplyPickedImage(kind, fileId, url) {
+    if (!document.getElementById('groupCreateOverlay') || !fileId) return;
+    if (kind === 'icon') _cgIconFileId = fileId; else _cgBannerFileId = fileId;
+    _cgApplyImage(kind, url);
 }
 
 function _cgSetError(msg) {
@@ -750,8 +749,8 @@ function submitCreateGroup() {
     if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;vertical-align:middle;margin-right:4px;">hourglass_empty</span>${esc(t('groups.create.submitting', 'Creating...'))}`; }
 
     const payload = { action: 'vrcCreateGroup', name, shortCode, description, joinState, privacy, roleTemplate };
-    if (_cgIconDataUrl) payload.iconBase64 = _cgIconDataUrl;
-    if (_cgBannerDataUrl) payload.bannerBase64 = _cgBannerDataUrl;
+    if (_cgIconFileId) payload.iconId = _cgIconFileId;
+    if (_cgBannerFileId) payload.bannerId = _cgBannerFileId;
     sendToCS(payload);
 }
 

@@ -2007,7 +2007,7 @@
   "groups.create.toast.created": "群组已创建",
   "groups.create.toast.failed": "无法创建群组",
   "groups.create.toast.vrcplus_required": "创建群组需要 VRChat+ 订阅。",
-  "groups.create.toast.image_failed": "无法加载图片",
+  "groups.create.image_selected": "已选择图片",
   "groups.create.desc": "在右侧填写详细信息。预览显示群组的最终效果。",
   "groups.create.choose_banner": "选择横幅",
   "groups.create.no_image": "未选择图片",

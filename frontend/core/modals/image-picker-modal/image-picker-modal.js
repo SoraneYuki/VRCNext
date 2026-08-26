@@ -110,6 +110,7 @@ function applyImagePicker() {
     // Groups: VRChat group API requires file IDs (iconId/bannerId), not URLs
     else if (type === 'group-icon')     sendToCS({ action: 'vrcUpdateGroup', groupId: targetId, iconId:   fileId });
     else if (type === 'group-banner')   sendToCS({ action: 'vrcUpdateGroup', groupId: targetId, bannerId: fileId });
+    else if (type === 'create-group-icon' || type === 'create-group-banner') { if (typeof cgApplyPickedImage === 'function') cgApplyPickedImage(type.endsWith('-icon') ? 'icon' : 'banner', fileId, url); }
 
     closeImagePicker();
 }

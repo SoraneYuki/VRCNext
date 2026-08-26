@@ -2045,7 +2045,7 @@
   "groups.create.toast.created": "그룹이 생성되었습니다",
   "groups.create.toast.failed": "그룹을 만들 수 없습니다",
   "groups.create.toast.vrcplus_required": "그룹을 만들려면 VRChat+ 구독이 필요합니다.",
-  "groups.create.toast.image_failed": "이미지를 불러올 수 없습니다",
+  "groups.create.image_selected": "이미지 선택됨",
   "groups.create.desc": "오른쪽에 세부 정보를 입력하세요. 미리보기에서 그룹이 어떻게 보일지 확인할 수 있습니다.",
   "groups.create.choose_banner": "배너 선택",
   "groups.create.no_image": "선택된 이미지 없음",
