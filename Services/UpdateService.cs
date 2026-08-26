@@ -5,8 +5,8 @@ namespace VRCNext.Services;
 
 public class UpdateService
 {
-    private const string RepoUrl = "https://github.com/shinyflvre/VRCNext";
-    private const string ApiLatest = "https://api.github.com/repos/shinyflvre/VRCNext/releases/latest";
+    private const string RepoUrl = "https://github.com/SoraneYuki/VRCNext";
+    private const string ApiLatest = "https://api.github.com/repos/SoraneYuki/VRCNext/releases/latest";
 
     private UpdateManager? _mgr;
     private UpdateInfo?    _pending;

@@ -1,10 +1,10 @@
-#define MyAppName      "VRCNext"
-#define MyAppVersion   "2026.1.0"
-#define MyAppPublisher "VRCNext"
-#define MyAppURL       "https://vrcnext.app"
+#define MyAppName      "SoraneYuki VRCNext"
+#define MyAppVersion   "2026.46.5"
+#define MyAppPublisher "SoraneYuki"
+#define MyAppURL       "https://github.com/SoraneYuki/VRCNext"
 
 [Setup]
-AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+AppId={{99451B8E-A96F-4D38-8D1D-C90BDB9D5FA7}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
@@ -14,7 +14,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 OutputDir=..\installer
-OutputBaseFilename=VRCNext_Setup_{#MyAppVersion}_x64
+OutputBaseFilename=SoraneYuki-VRCNext_Setup_{#MyAppVersion}_x64
 SetupIconFile=..\logo.ico
 WizardImageFile=installer_banner.png
 WizardSmallImageFile=installer_small.png
@@ -31,7 +31,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [Files]
-Source: "..\releases\VRCNext-win-Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "..\releases\SoraneYuki.VRCNext-win-Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Run]
-Filename: "{tmp}\VRCNext-win-Setup.exe"; Flags: waituntilterminated; StatusMsg: "Installing VRCNext..."
+Filename: "{tmp}\SoraneYuki.VRCNext-win-Setup.exe"; Flags: waituntilterminated; StatusMsg: "Installing SoraneYuki VRCNext..."

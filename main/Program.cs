@@ -69,7 +69,7 @@ static class Program
         using (mainMutex)
         {
             if (OperatingSystem.IsWindows())
-                SetCurrentProcessExplicitAppUserModelID("com.shinyflvre.vrcnext");
+                SetCurrentProcessExplicitAppUserModelID("com.soraneyuki.vrcnext");
             CrashHandler.Register();
             Velopack.VelopackApp.Build().Run();
             new AppShell(args).Run();

@@ -85,7 +85,7 @@ function settingsCheckUpdate() {
 
 function settingsInstallUpdate() {
     if (window._isLinuxUi) {
-        sendToCS({ action: 'openUrl', url: 'https://github.com/shinyflvre/VRCNext/releases/latest' });
+        sendToCS({ action: 'openUrl', url: 'https://github.com/SoraneYuki/VRCNext/releases/latest' });
         return;
     }
     if (_updateInstalling) return;
@@ -131,7 +131,7 @@ function toggleUpdatePanel() {
 
 function startUpdate() {
     if (window._isLinuxUi) {
-        sendToCS({ action: 'openUrl', url: 'https://github.com/shinyflvre/VRCNext/releases/latest' });
+        sendToCS({ action: 'openUrl', url: 'https://github.com/SoraneYuki/VRCNext/releases/latest' });
         return;
     }
     if (_updateInstalling) return;
@@ -229,7 +229,7 @@ function onShowChangelog(payload) {
     if (body) {
         body.innerHTML = _changelogNotes
             ? changelogMdToHtml(_changelogNotes)
-            : `<div class="cl-md-empty">${t('changelog.load_failed', 'Could not load the release notes.')}<br><a href="#" onclick="sendToCS({action:'openUrl',url:'https://github.com/shinyflvre/VRCNext/releases'});return false;">${t('changelog.view_on_github', 'View them on GitHub')}</a></div>`;
+            : `<div class="cl-md-empty">${t('changelog.load_failed', 'Could not load the release notes.')}<br><a href="#" onclick="sendToCS({action:'openUrl',url:'https://github.com/SoraneYuki/VRCNext/releases'});return false;">${t('changelog.view_on_github', 'View them on GitHub')}</a></div>`;
         body.scrollTop = 0;
     }
     const modal = document.getElementById('modalChangelog');

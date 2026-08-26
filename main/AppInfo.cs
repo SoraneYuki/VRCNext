@@ -2,10 +2,10 @@
 
 public static class AppInfo
 {
-    public const string Version = "Y2026.46.4";
-    public const string ContactEmail = "none";
-    public const string Website = "none";
-    public const string UserAgent = $"VRCNext Yuki Edit /{Version} ({ContactEmail})";
+    public const string Version = "2026.46.5";
+    public const string ContactAddress = "https://github.com/SoraneYuki/VRCNext";
+    public const string Website = "github.com/SoraneYuki/VRCNext";
+    public const string UserAgent = $"SoraneYuki-VRCNext/{Version} ({ContactAddress})";
 
     public static string SelfExecutable
     {

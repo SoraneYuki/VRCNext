@@ -97,7 +97,7 @@
 
   <!-- Embed custom icon into apphost (VRCNext.exe) after each build on Windows -->
   <Target Name="StampIconIntoAppHost" AfterTargets="Build" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\tools\stamp_icon.ps1&quot;" />
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\tools\stamp_icon.ps1&quot; -exe &quot;$(TargetDir)$(AssemblyName).exe&quot; -ico &quot;$(MSBuildProjectDirectory)\logo.ico&quot;" />
   </Target>
 
 </Project>

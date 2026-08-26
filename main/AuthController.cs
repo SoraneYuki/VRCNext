@@ -690,9 +690,9 @@ public class AuthController
             client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
             client.Timeout = TimeSpan.FromSeconds(15);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
-            var resp = await client.GetAsync($"https://api.github.com/repos/shinyflvre/VRCNext/releases/tags/v{AppInfo.Version}");
+            var resp = await client.GetAsync($"https://api.github.com/repos/SoraneYuki/VRCNext/releases/tags/v{AppInfo.Version}");
             if (!resp.IsSuccessStatusCode)
-                resp = await client.GetAsync("https://api.github.com/repos/shinyflvre/VRCNext/releases/latest");
+                resp = await client.GetAsync("https://api.github.com/repos/SoraneYuki/VRCNext/releases/latest");
             if (!resp.IsSuccessStatusCode) return "";
             var body = await resp.Content.ReadAsStringAsync();
             var notes = JObject.Parse(body)["body"]?.ToString() ?? "";
