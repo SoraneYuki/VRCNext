@@ -187,6 +187,7 @@ function afDefineBlocks() {
         return [[aft('block.no_friends', '(no friends loaded)'), '']];
     };
     const friendDropdownAny = () => [[aft('block.any_friend', '(any friend)'), '']].concat(friendDropdown());
+    const friendDropdownTrigger = () => [[aft('block.trigger_friend', '(triggering friend)'), '']].concat(friendDropdown());
     const favFriendGroupDropdown = () => {
         try {
             if (typeof favFriendGroups !== 'undefined' && Array.isArray(favFriendGroups) && favFriendGroups.length) {
@@ -966,7 +967,7 @@ function afDefineBlocks() {
         B.Blocks[typeName] = { init() {
             this.appendDummyInput()
                 .appendField(aft(labelKey, labelFallback))
-                .appendField(new B.FieldDropdown(friendDropdownAny), 'FRIEND_ID');
+                .appendField(new B.FieldDropdown(friendDropdownTrigger), 'FRIEND_ID');
             this.setOutput(true, 'String');
             this.setInputsInline(true);
             this.setColour(COLOR_FRIEND);
@@ -982,10 +983,23 @@ function afDefineBlocks() {
     makeFriendInfoBlock('af_friend_presence',    'friend_info.presence',    "friend is",
                         'friend_info.presence_tooltip',    'Whether the picked friend is In Game, Active on Website or Offline.');
 
+    function makePlayerImageBlock(typeName, labelKey, labelFallback, tipKey, tipFallback) {
+        B.Blocks[typeName] = { init() {
+            this.appendDummyInput().appendField(aft(labelKey, labelFallback));
+            this.setOutput(true, 'Icon');
+            this.setColour(COLOR_FRIEND);
+            this.setTooltip(aft(tipKey, tipFallback));
+        } };
+    }
+    makePlayerImageBlock('af_get_joined_player_image', 'info.joined_player_image', 'joined player image',
+        'info.joined_player_image_tooltip', 'Profile picture of the player from the trigger, for example the one who just joined your instance. Pair it with joined player name.');
+    makePlayerImageBlock('af_get_left_player_image', 'info.left_player_image', 'left player image',
+        'info.left_player_image_tooltip', 'Profile picture of the player who just left your instance. Empty when the trigger was not a leave.');
+
     B.Blocks['af_friend_icon'] = { init() {
         this.appendDummyInput()
             .appendField(aft('friend_info.icon', "friend's icon"))
-            .appendField(new B.FieldDropdown(friendDropdownAny), 'FRIEND_ID');
+            .appendField(new B.FieldDropdown(friendDropdownTrigger), 'FRIEND_ID');
         this.setOutput(true, 'Icon');
         this.setInputsInline(true);
         this.setColour(COLOR_FRIEND);
@@ -1083,6 +1097,8 @@ function afToolbox() {
                 { kind: 'block', type: 'af_get_time' },
                 { kind: 'block', type: 'af_get_joined_player_name' },
                 { kind: 'block', type: 'af_get_left_player_name' },
+                { kind: 'block', type: 'af_get_joined_player_image' },
+                { kind: 'block', type: 'af_get_left_player_image' },
                 { kind: 'block', type: 'af_get_instance_type_label' },
             ]},
             { kind: 'category', name: aft('toolbox.friends', 'Friends'), colour: COLOR_PARAM, contents: [
@@ -2534,10 +2550,34 @@ function afFindIcon(block, depth) {
     return null;
 }
 
+function afEnrichUser(ctx) {
+    if (!ctx || !ctx.id) return ctx;
+    const live = (typeof vrcFriendsData !== 'undefined') && vrcFriendsData.find(x => x.id === ctx.id);
+    const base = live || afObservedInstanceUsers()?.get(ctx.id) || afWatchState.lastInstanceUsers?.get(ctx.id);
+    if (!base) return ctx;
+    return Object.assign({}, base, {
+        _worldName:   ctx._worldName   || base._worldName,
+        _friendImage: ctx._friendImage || base._friendImage,
+    });
+}
+
+function afUserIconValue(u) {
+    if (!u) return null;
+    const url = String(u.image || u._friendImage || '');
+    const id  = String(u.id || '');
+    if (!url && !id) return null;
+    return { __afIcon: true, id, url };
+}
+
+function afTriggerUserIcon() {
+    return afUserIconValue(afEnrichUser(afContext.triggeringUser || null));
+}
+
 function afFriendFromField(f) {
     const id = String((f && f.FRIEND_ID) || '').trim();
-    if (id) return afLookupUser(id) || afContext.triggeringUser || null;
-    return afContext.triggeringUser || null;
+    const ctx = afContext.triggeringUser || null;
+    if (id) return afLookupUser(id) || ctx;
+    return afEnrichUser(ctx);
 }
 
 function afValueText(val) {
@@ -2566,9 +2606,7 @@ function afEvalValue(block) {
         }
         case 'af_text': return String(f.TEXT || '');
         case 'af_friend_icon': {
-            const u = afFriendFromField(f);
-            if (!u) return null;
-            return { __afIcon: true, id: String(u.id || ''), url: String(u.image || '') };
+            return afUserIconValue(afFriendFromField(f));
         }
         case 'af_friend_status': {
             const u = afFriendFromField(f);
@@ -2821,6 +2859,9 @@ function afEvalValue(block) {
             const tu = afContext.triggeringUser;
             return tu ? String(tu.displayName || afInstanceUserName(tu.id) || tu.id || '') : '';
         }
+        case 'af_get_joined_player_image': return afTriggerUserIcon();
+        case 'af_get_left_player_image':
+            return afContext.triggerAction === 'leave' ? afTriggerUserIcon() : null;
         case 'af_get_instance_type_label': {
             const ci = afCurInst();
             if (!ci) return '';

@@ -2,6 +2,7 @@
 
 **Action Flow**
 * Four new friend blocks under **Get Info**, in their own darker orange: **friend's status is**, **friend's status text is**, **friend's current world is** and **friend is** (In Game, Active on Website or Offline).
+* New **joined player image** and **left player image** blocks, the picture counterparts to the existing **joined player name** and **left player name** blocks.
 * New **friend's icon** block in the same group. Drop it into a **send notification** or **send to webhook** block and the friend's profile picture becomes the image of that message, in the in-app card, the system tray notification, the VR overlay notification and the Discord webhook.
 * Each has its own friend dropdown, with **(any friend)** to use the friend that fired the trigger, and they return text that fits straight into a message or a bundled message list.
 * New **bundled message list** block under **Get Info**. Stack several Get Info blocks in it and they are sent as one message, one entry per line.
