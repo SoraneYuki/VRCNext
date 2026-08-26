@@ -1,7 +1,11 @@
 **2026.46.5**
 
 **Action Flow**
-* #153 New **send to webhook** blocks under **Other Actions**. They work exactly like the send notification blocks, but post to a Discord webhook instead, which makes them suitable for long term logging.
+* New **set feature** block under the new **VRCN Actions** category. Pick a VRCNext feature and set it to true or false, so flows and conditions can start and stop features on their own.
+* Covers **VR Overlay**, **KikitanXD**, **YouTube Fix**, **Discord Presence**, **Voice Fight**, **FrameShot**, **Space Flight**, **Custom Chatbox**, **Media Relay**, **Status Schedule** and **Event Snipe**.
+* The block reads the feature's current state first, so setting it to a state it is already in does nothing.
+* Renamed the toolbox categories: **Actions** is now **VRC Actions**, **Other Actions** is now **Webhook Actions**.
+* #153 New **send to webhook** blocks under **Webhook Actions**. They work exactly like the send notification blocks, but post to a Discord webhook instead, which makes them suitable for long term logging.
 * Three variants: your own text, the value of an attached **Get Info** block, or your own text followed by that value.
 
 **Improvements**

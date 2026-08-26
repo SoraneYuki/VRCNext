@@ -14,6 +14,7 @@ const COLOR_TRIGGER = '#c27dff';
 const COLOR_GAME    = '#2c4e8a';
 const COLOR_OTHER   = '#43c59e';
 const COLOR_INFO    = '#f0a14e';
+const COLOR_VRCN    = '#4ec9f0';
 
 const WORLD_CHANGE_DELAY_MS = 15 * 1000;
 const EVENT_TICK_MS = 5 * 1000;
@@ -33,6 +34,7 @@ const TASK_EXEMPT_TYPES = new Set([
     'af_send_webhook',
     'af_send_webhook_value',
     'af_send_advanced_webhook',
+    'af_set_feature',
     'af_close_vrchat',
 ]);
 const ACTION_TYPES = new Set([
@@ -56,9 +58,43 @@ const ACTION_TYPES = new Set([
     'af_send_webhook',
     'af_send_webhook_value',
     'af_send_advanced_webhook',
+    'af_set_feature',
 ]);
 
 const aft  = (k, f) => (typeof t  === 'function' ? t ('action_flow.' + k, f)        : f);
+/* Features the "set feature" block can toggle. Each entry is
+   [id, label, isOn(), turnOn(), turnOff()] and reuses the same path as the sidebar button. */
+const AF_FEATURES = [
+    ['vr_overlay',       'VR Overlay',       () => typeof vroConnected   !== 'undefined' && vroConnected,
+        () => vroConnect(), () => vroConnect()],
+    ['kikitan_xd',       'KikitanXD',        () => typeof kxdRunning     !== 'undefined' && kxdRunning,
+        () => kxdConnect(), () => kxdConnect()],
+    ['youtube_fix',      'YouTube Fix',      () => !!document.getElementById('vcDot')?.classList.contains('online'),
+        () => sendToCS({ action: 'vcStart' }), () => sendToCS({ action: 'vcStop' })],
+    ['discord_presence', 'Discord Presence', () => typeof _dpRunning     !== 'undefined' && _dpRunning,
+        () => sendToCS({ action: 'dpStart' }), () => sendToCS({ action: 'dpStop' })],
+    ['voice_fight',      'Voice Fight',      () => typeof vfRunning      !== 'undefined' && vfRunning,
+        () => { if (typeof vfOnTabOpen === 'function') vfOnTabOpen(); vfConnect(); },
+        () => sendToCS({ action: 'vfStop' })],
+    ['frame_shot',       'FrameShot',        () => typeof fsConnected    !== 'undefined' && fsConnected,
+        () => fsConnect(), () => sendToCS({ action: 'fsDisconnect' })],
+    ['space_flight',     'Space Flight',     () => typeof sfConnected    !== 'undefined' && sfConnected,
+        () => sfConnect(), () => sendToCS({ action: 'sfDisconnect' })],
+    ['custom_chatbox',   'Custom Chatbox',   () => typeof chatboxEnabled !== 'undefined' && chatboxEnabled,
+        () => toggleChatbox(), () => toggleChatbox()],
+    ['media_relay',      'Media Relay',      () => typeof relayOn        !== 'undefined' && relayOn,
+        () => sendToCS({ action: 'startRelay' }), () => sendToCS({ action: 'stopRelay' })],
+    ['status_schedule',  'Status Schedule',  () => typeof ssEnabledState !== 'undefined' && ssEnabledState,
+        () => ssSetEnabled(true), () => ssSetEnabled(false)],
+    ['event_snipe',      'Event Snipe',      () => typeof _snipeRunning  !== 'undefined' && _snipeRunning,
+        () => snipeToggle(), () => sendToCS({ action: 'vrcStopSnipe' })],
+];
+const afFeatureLabel = (id, fallback) => aft('feature.' + id, fallback);
+const FEATURE_DROPDOWN_FACTORY = () => AF_FEATURES.map(x => [afFeatureLabel(x[0], x[1]), x[0]]);
+const BOOL_DROPDOWN_FACTORY = () => [
+    [aft('block.true',  'true'),  'true'],
+    [aft('block.false', 'false'), 'false'],
+];
 const aftf = (k, v, f) => (typeof tf === 'function' ? tf('action_flow.' + k, v || {}, f) : f);
 const STATUS_DROPDOWN_FACTORY = () => [
     [aft('status.online',         'Online'),         'active'],
@@ -663,6 +699,19 @@ function afDefineBlocks() {
         this.setTooltip(aft('action.send_friend_instance_info_tooltip', 'Sends a friend instance info to a Discord webhook. Keep friend on (any friend) to use the friend from a "when a friend joins an instance" trigger.'));
     } };
 
+    B.Blocks['af_set_feature'] = { init() {
+        this.appendDummyInput()
+            .appendField(aft('action.set_feature', 'set feature'))
+            .appendField(new B.FieldDropdown(FEATURE_DROPDOWN_FACTORY), 'FEATURE')
+            .appendField(aft('action.set_feature_to', 'to'))
+            .appendField(new B.FieldDropdown(BOOL_DROPDOWN_FACTORY), 'STATE');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLOR_VRCN);
+        this.setTooltip(aft('action.set_feature_tooltip', 'Turns a VRCNext feature on or off. true starts it, false stops it. Does nothing when the feature is already in that state.'));
+    } };
+
     B.Blocks['af_send_webhook'] = { init() {
         this.appendDummyInput()
             .appendField(aft('action.send_webhook', 'send to webhook'))
@@ -858,7 +907,7 @@ function afToolbox() {
                 { kind: 'block', type: 'af_get_instance_type' },
                 { kind: 'block', type: 'af_instance_type_obj' },
             ]},
-            { kind: 'category', name: aft('toolbox.actions', 'Actions'), colour: COLOR_ACTION, contents: [
+            { kind: 'category', name: aft('toolbox.actions', 'VRC Actions'), colour: COLOR_ACTION, contents: [
                 { kind: 'block', type: 'af_set_status' },
                 { kind: 'block', type: 'af_set_bio_text' },
                 { kind: 'block', type: 'af_switch_own_avatar' },
@@ -873,7 +922,10 @@ function afToolbox() {
                 { kind: 'block', type: 'af_send_notification_value' },
                 { kind: 'block', type: 'af_send_advanced_notification' },
             ]},
-            { kind: 'category', name: aft('toolbox.other', 'Other Actions'), colour: COLOR_OTHER, contents: [
+            { kind: 'category', name: aft('toolbox.vrcn_actions', 'VRCN Actions'), colour: COLOR_VRCN, contents: [
+                { kind: 'block', type: 'af_set_feature' },
+            ]},
+            { kind: 'category', name: aft('toolbox.other', 'Webhook Actions'), colour: COLOR_OTHER, contents: [
                 { kind: 'block', type: 'af_send_own_instance_info' },
                 { kind: 'block', type: 'af_send_own_advanced_instance_info' },
                 { kind: 'block', type: 'af_send_friend_instance_info' },
@@ -1919,6 +1971,32 @@ function afExecAction(flow, block) {
             if (!text) { afLog('err', '[' + flow.name + '] ' + aft('log.webhook_skipped', 'webhook skipped: nothing to send')); break; }
             if (typeof sendToCS === 'function') sendToCS({ action: 'afTextWebhook', url, text, flow: flow.name });
             afLog('ok', '[' + flow.name + '] ' + aftf('log.webhook_sent', { text }, 'sent to webhook "' + text + '"'));
+            break;
+        }
+        case 'af_set_feature': {
+            /* Exempt from rate limit: toggles a local VRCNext feature, no VRChat API call. */
+            const featId = String(f.FEATURE || '');
+            const want   = String(f.STATE || 'true') === 'true';
+            const entry  = AF_FEATURES.find(x => x[0] === featId);
+            if (!entry) { afLog('err', '[' + flow.name + '] ' + aft('log.feature_unknown', 'set feature skipped: unknown feature')); break; }
+            const featLabel = afFeatureLabel(entry[0], entry[1]);
+            const featState = aft(want ? 'block.true' : 'block.false', want ? 'true' : 'false');
+            let isOn;
+            try { isOn = !!entry[2](); }
+            catch {
+                afLog('err', '[' + flow.name + '] ' + aftf('log.feature_unavailable', { feature: featLabel }, 'set feature skipped: ' + featLabel + ' is not available'));
+                break;
+            }
+            if (isOn === want) {
+                afLog('ok', '[' + flow.name + '] ' + aftf('log.feature_unchanged', { feature: featLabel, state: featState }, featLabel + ' already ' + featState));
+                break;
+            }
+            try { (want ? entry[3] : entry[4])(); }
+            catch {
+                afLog('err', '[' + flow.name + '] ' + aftf('log.feature_unavailable', { feature: featLabel }, 'set feature skipped: ' + featLabel + ' is not available'));
+                break;
+            }
+            afLog('ok', '[' + flow.name + '] ' + aftf('log.feature_set', { feature: featLabel, state: featState }, 'set ' + featLabel + ' to ' + featState));
             break;
         }
         case 'af_close_vrchat': {
