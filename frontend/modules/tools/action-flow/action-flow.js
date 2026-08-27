@@ -2535,9 +2535,11 @@ function afInputStatement(block, name) {
     return block.inputs && block.inputs[name] && block.inputs[name].block;
 }
 
+const AF_ICON_TYPES = new Set(['af_friend_icon', 'af_get_joined_player_image', 'af_get_left_player_image']);
+
 function afFindIcon(block, depth) {
     if (!block || (depth || 0) > 6) return null;
-    if (block.type === 'af_friend_icon') {
+    if (AF_ICON_TYPES.has(block.type)) {
         const val = afEvalValue(block);
         return (val && val.__afIcon) ? val : null;
     }
