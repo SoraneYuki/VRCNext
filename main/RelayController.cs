@@ -823,9 +823,16 @@ public class RelayController : IDisposable
             if (!_core.VrcApi.IsLoggedIn) return;
             _ = Task.Run(async () =>
             {
+                var prevAvatar = _core.VrcApi.CurrentAvatarId ?? "";
                 var full = await _core.Auth.RefreshCurrentUserAsync();
                 if (full != null)
+                {
+                    var newAvatar = full["currentAvatar"]?.ToString() ?? "";
+                    if (_core.Settings.VrcndbSyncWears && !string.IsNullOrEmpty(prevAvatar)
+                        && !string.IsNullOrEmpty(newAvatar) && newAvatar != prevAvatar)
+                        PopularityReporter.Report(newAvatar, "client", "wear");
                     Invoke(() => OnOwnUserUpdated?.Invoke(full));
+                }
             });
         };
 
