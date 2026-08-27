@@ -1,7 +1,7 @@
 **2026.46.9**
 
 **Fixed Bugs**
-
+* Fixed the **joined player image** and **left player image** blocks in **Action Flow** not showing up. Only the **friend's icon** block was recognised as a picture, so the two player image blocks were dropped from the message entirely, in the notification card, the system tray notification, the VR overlay and the Discord webhook.
 
 **2026.46.8**
 
