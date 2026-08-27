@@ -262,7 +262,7 @@ function applyLibraryWorldIds(dict) {
         if (existingBadge) existingBadge.outerHTML = badgeHtml;
         else wrap.insertAdjacentHTML('beforeend', badgeHtml);
     }
-    if (newIds.length) sendToCS({ action: 'vrcResolveWorlds', worldIds: [...new Set(newIds)].slice(0, 30) });
+    if (newIds.length) _queueWorldIds(newIds);
     _renderLibIconSelects();
 }
 
@@ -293,9 +293,42 @@ function addNewLibraryFile(item) {
     if (typeof navUpdateBadges === 'function') navUpdateBadges();
 }
 
+const LIB_WORLD_BATCH = 30;
+const LIB_WORLD_BATCH_DELAY_MS = 1200;
+const _libWorldQueue = new Set();
+let _libWorldBatchTimer = null;
+let _libWorldBatchInFlight = false;
+
+function _queueWorldIds(ids) {
+    let added = false;
+    for (const id of ids || []) {
+        if (!id || worldInfoCache[id] || _libWorldQueue.has(id)) continue;
+        _libWorldQueue.add(id);
+        added = true;
+    }
+    if (added) _pumpWorldQueue();
+}
+
+function _pumpWorldQueue(force) {
+    if (_libWorldBatchTimer && !force) return;
+    if (_libWorldBatchInFlight && !force) return;
+    clearTimeout(_libWorldBatchTimer);
+    _libWorldBatchTimer = null;
+    for (const id of _libWorldQueue) if (worldInfoCache[id]) _libWorldQueue.delete(id);
+    if (_libWorldQueue.size === 0) { _libWorldBatchInFlight = false; return; }
+    const batch = [..._libWorldQueue].slice(0, LIB_WORLD_BATCH);
+    _libWorldBatchInFlight = true;
+    sendToCS({ action: 'vrcResolveWorlds', worldIds: batch });
+    _libWorldBatchTimer = setTimeout(() => {
+        _libWorldBatchTimer = null;
+        for (const id of batch) _libWorldQueue.delete(id);
+        _libWorldBatchInFlight = false;
+        _pumpWorldQueue(true);
+    }, LIB_WORLD_BATCH_DELAY_MS);
+}
+
 function _resolveWorldIds(files) {
-    const unknown = [...new Set((files || []).filter(x => x.worldId && !worldInfoCache[x.worldId]).map(x => x.worldId))];
-    if (unknown.length > 0) sendToCS({ action: 'vrcResolveWorlds', worldIds: unknown.slice(0, 30) });
+    _queueWorldIds((files || []).filter(x => x.worldId).map(x => x.worldId));
 }
 
 // Page rendering.
@@ -1031,7 +1064,9 @@ function onWorldsResolved(dict) {
     if (!dict || typeof dict !== 'object') return;
     Object.entries(dict).forEach(([id, w]) => {
         worldInfoCache[id] = { id, name: w.name || '', thumbnailImageUrl: w.thumbnailImageUrl || w.imageUrl || '' };
+        _libWorldQueue.delete(id);
     });
+    if (typeof _renderLibIconSelects === 'function') _renderLibIconSelects();
     Object.assign(dashWorldCache, dict);
     renderDashboard();
     if (typeof scheduleRenderVrcFriends === 'function' && vrcFriendsData?.length) scheduleRenderVrcFriends();

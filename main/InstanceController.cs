@@ -568,6 +568,27 @@ public class InstanceController
                                 var world = await _core.World.GetWorldAsync(wid);
                                 if (world == null) return (wid, null as object);
                                 var wThumb = ImageCacheHelper.GetWorldUrl(wid, world["imageUrl"]?.ToString() ?? world["thumbnailImageUrl"]?.ToString());
+                                var prev = _core.TimeEngine.GetWorldDetail(wid);
+                                _core.TimeEngine.SaveWorldDetail(wid,
+                                    world["name"]?.ToString() ?? "",
+                                    world["thumbnailImageUrl"]?.ToString() ?? world["imageUrl"]?.ToString() ?? "",
+                                    world["description"]?.ToString() ?? "",
+                                    world["imageUrl"]?.ToString() ?? "",
+                                    world["authorName"]?.ToString() ?? "",
+                                    world["authorId"]?.ToString() ?? "",
+                                    DateTimeHelper.Iso(world["created_at"]),
+                                    DateTimeHelper.Iso(world["updated_at"]),
+                                    world["capacity"]?.Value<int>() ?? 0,
+                                    world["recommendedCapacity"]?.Value<int>() ?? 0,
+                                    world["tags"]?.ToObject<List<string>>() ?? new List<string>(),
+                                    world["favorites"]?.Value<int>() ?? 0,
+                                    world["visits"]?.Value<int>() ?? 0,
+                                    prev?.PcSize ?? 0, prev?.AndroidSize ?? 0, prev?.IosSize ?? 0,
+                                    world["heat"]?.Value<int>() ?? 0,
+                                    world["popularity"]?.Value<int>() ?? 0,
+                                    world["publicOccupants"]?.Value<int>() ?? 0,
+                                    world["privateOccupants"]?.Value<int>() ?? 0,
+                                    world["version"]?.Value<int>() ?? 0);
                                 return (wid, (object)new
                                 {
                                     name             = world["name"]?.ToString() ?? "",
