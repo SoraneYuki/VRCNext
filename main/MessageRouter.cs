@@ -1108,6 +1108,7 @@ public partial class AppShell
                         _ = Task.Run(async () =>
                         {
                             var ok5 = await _core.Avatars.SelectAvatarAsync(selAvatarId);
+                            if (ok5 && _settings.VrcndbSyncWears) PopularityReporter.Report(selAvatarId, "client", "wear");
                             Invoke(() =>
                             {
                                 SendToJS("vrcAvatarSelected", new { avatarId = ok5 ? selAvatarId : "" });
@@ -2883,11 +2884,13 @@ public partial class AppShell
                             var snap = await _core.Avatars.GetAvatarAsync(avId) ?? new JObject();
                             var (lok, lerr, lid) = _core.LocalFavorites.AddItem(avGroup, "avatar", avId, snap);
                             if (lok) _cache.Delete(CacheHandler.KeyFavAvatars);
+                            if (lok && _settings.VrcndbSyncLikes) PopularityReporter.SyncFavoriteLikes(new[] { avId });
                             Invoke(() => SendToJS("vrcAvatarFavoriteResult", new { ok = lok, avatarId = avId, groupName = avGroup, newFvrtId = lok ? lid : "", error = lok ? "" : lerr }));
                             return;
                         }
                         var (avOk, avResult) = await _core.Avatars.AddAvatarFavoriteAsync(avId, avGroup, avType, avOldFvrt);
                         if (avOk) _cache.Delete(CacheHandler.KeyFavAvatars);
+                        if (avOk && _settings.VrcndbSyncLikes) PopularityReporter.SyncFavoriteLikes(new[] { avId });
                         Invoke(() => SendToJS("vrcAvatarFavoriteResult", new { ok = avOk, avatarId = avId, groupName = avGroup, newFvrtId = avOk ? avResult : "", error = avOk ? "" : avResult }));
                     });
                     break;
@@ -3106,6 +3109,9 @@ public partial class AppShell
                 case "oscDisconnect":
                 case "oscSend":
                 case "oscSendRaw":
+                case "pulsoidLink":
+                case "pulsoidUnlink":
+                case "pulsoidGetState":
                 case "oscSetTabVisible":
                 case "oscEnableOutputs":
                     _chatboxCtrl.HandleMessage(action, msg);

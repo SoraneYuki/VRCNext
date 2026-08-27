@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Diagnostics;
+using Newtonsoft.Json.Linq;
 using VRCNext.Services;
 
 namespace VRCNext;
@@ -72,12 +73,17 @@ public class ChatboxController : IDisposable
                     var statRam = msg["statRam"]?.Value<bool>() ?? true;
                     var statGpu = msg["statGpu"]?.Value<bool>() ?? false;
                     var statVram = msg["statVram"]?.Value<bool>() ?? false;
+                    var showPulse = msg["showPulse"]?.Value<bool>() ?? false;
+                    var pulseFormat = msg["pulseFormat"]?.ToString() ?? "\u2665 {bpm} BPM";
 
                     _chatbox.ApplyConfig(enabled, showTime, showMedia, showPlaytime,
                         showCustomText, showSystemStats, showAfk, afkMessage,
                         suppressSound, timeFormat, separator, intervalMs, customLines, hideBackground,
                         lineOrder: lineOrder, showAfkTime: showAfkTime,
-                        statCpu: statCpu, statRam: statRam, statGpu: statGpu, statVram: statVram);
+                        statCpu: statCpu, statRam: statRam, statGpu: statGpu, statVram: statVram,
+                        showPulse: showPulse, pulseFormat: pulseFormat);
+                    _chatbox.PulseProvider = () => _pulsoid != null && _pulsoid.HasFreshData ? _pulsoid.CurrentBpm : 0;
+                    ApplyPulsoid(showPulse && enabled, _core.Settings.CbPulsoidToken);
                     _vroCtrl.UpdateToolStates();
 
                     // Persist chatbox settings
@@ -100,6 +106,8 @@ public class ChatboxController : IDisposable
                     _core.Settings.CbStatRam = statRam;
                     _core.Settings.CbStatGpu = statGpu;
                     _core.Settings.CbStatVram = statVram;
+                    _core.Settings.CbShowPulse = showPulse;
+                    _core.Settings.CbPulseFormat = pulseFormat;
                     _core.Settings.Save();
                     if (_core.Settings.LastSaveError != null)
                         _core.SendToJS("toast", new { ok = false, msg = "Failed to save this setting, please report this error" });
@@ -200,6 +208,49 @@ public class ChatboxController : IDisposable
                 }
                 break;
 
+            case "pulsoidLink":
+            {
+                if (string.IsNullOrWhiteSpace(PulsoidService.ClientId))
+                {
+                    _core.SendToJS("pulsoidLinkResult", new { ok = false, error = "no_client_id" });
+                    break;
+                }
+                _pulsoid ??= NewPulsoid();
+                _pulsoidLinkCts?.Cancel();
+                _pulsoidLinkCts = new CancellationTokenSource();
+                var linkCt = _pulsoidLinkCts.Token;
+                _ = Task.Run(async () =>
+                {
+                    var (ok, token, error) = await _pulsoid.LinkAccountAsync(
+                        PulsoidService.ClientId,
+                        url => { try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { } },
+                        linkCt);
+                    Invoke(() =>
+                    {
+                        if (ok)
+                        {
+                            _core.Settings.CbPulsoidToken = token;
+                            _core.Settings.Save();
+                            ApplyPulsoid(true, token);
+                        }
+                        _core.SendToJS("pulsoidLinkResult", new { ok, token, error });
+                    });
+                });
+                break;
+            }
+
+            case "pulsoidUnlink":
+                _pulsoidLinkCts?.Cancel();
+                _core.Settings.CbPulsoidToken = "";
+                _core.Settings.Save();
+                ApplyPulsoid(false, "");
+                _core.SendToJS("pulsoidLinkResult", new { ok = false, token = "", error = "" });
+                break;
+
+            case "pulsoidGetState":
+                SendPulsoidState();
+                break;
+
             case "oscSetTabVisible":
                 _oscTabVisible = msg["visible"]?.Value<bool>() ?? true;
                 break;
@@ -254,6 +305,41 @@ public class ChatboxController : IDisposable
         catch (Exception ex) { CrashHandler.WriteEntry("Osc.FlushOscParams", ex); }
     }
 
+    private PulsoidService? _pulsoid;
+    private CancellationTokenSource? _pulsoidLinkCts;
+
+    private PulsoidService NewPulsoid()
+    {
+        var svc = new PulsoidService(s => Invoke(() => _core.SendToJS("log", new { msg = s, color = "sec" })));
+        svc.StateChanged += () => Invoke(SendPulsoidState);
+        return svc;
+    }
+
+    private void ApplyPulsoid(bool wanted, string token)
+    {
+        if (!wanted || string.IsNullOrWhiteSpace(token))
+        {
+            _pulsoid?.Stop();
+            SendPulsoidState();
+            return;
+        }
+        _pulsoid ??= NewPulsoid();
+        _pulsoid.Start(token);
+        SendPulsoidState();
+    }
+
+    private void SendPulsoidState()
+    {
+        _core.SendToJS("pulsoidState", new
+        {
+            connected  = _pulsoid?.IsConnected ?? false,
+            bpm        = (_pulsoid?.HasFreshData ?? false) ? _pulsoid!.CurrentBpm : 0,
+            error      = _pulsoid?.LastError ?? "",
+            linked     = !string.IsNullOrEmpty(_core.Settings.CbPulsoidToken),
+            canLink    = !string.IsNullOrWhiteSpace(PulsoidService.ClientId),
+        });
+    }
+
     // Toggle (called from VR overlay)
 
     public void Toggle()
@@ -262,6 +348,7 @@ public class ChatboxController : IDisposable
         {
             _chatbox.Stop();
             _chatbox = null;
+            ApplyPulsoid(false, "");
             _core.SendToJS("chatboxUpdate", new { enabled = false });
         }
         else
@@ -273,7 +360,10 @@ public class ChatboxController : IDisposable
                 _core.Settings.CbSuppressSound, _core.Settings.CbTimeFormat, _core.Settings.CbSeparator, _core.Settings.CbIntervalMs, _core.Settings.CbCustomLines, _core.Settings.CbHideBackground,
                 lineOrder: _core.Settings.CbLineOrder, showAfkTime: _core.Settings.CbShowAfkTime,
                 statCpu: _core.Settings.CbStatCpu, statRam: _core.Settings.CbStatRam,
-                statGpu: _core.Settings.CbStatGpu, statVram: _core.Settings.CbStatVram);
+                statGpu: _core.Settings.CbStatGpu, statVram: _core.Settings.CbStatVram,
+                showPulse: _core.Settings.CbShowPulse, pulseFormat: _core.Settings.CbPulseFormat);
+            _chatbox.PulseProvider = () => _pulsoid != null && _pulsoid.HasFreshData ? _pulsoid.CurrentBpm : 0;
+            ApplyPulsoid(_core.Settings.CbShowPulse, _core.Settings.CbPulsoidToken);
             _core.SendToJS("chatboxUpdate", new { enabled = true });
         }
     }
@@ -282,6 +372,7 @@ public class ChatboxController : IDisposable
 
     public void Dispose()
     {
+        _pulsoid?.Dispose();
         _chatbox?.Dispose();
         _chatbox = null;
         _osc?.Dispose();

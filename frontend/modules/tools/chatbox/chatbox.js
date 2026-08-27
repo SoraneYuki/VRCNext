@@ -5,7 +5,7 @@ let _cbPauseTimer = null;
 let _cbPauseRemaining = 0;
 const CB_MAX_HISTORY = 100;
 const CB_PAUSE_SECONDS = 10;
-const CB_LINE_IDS = ['time', 'media', 'stats', 'custom'];
+const CB_LINE_IDS = ['time', 'media', 'stats', 'pulse', 'custom'];
 let _cbEditLineIndex = -1;
 let _cbDragCleanup = null;
 
@@ -112,6 +112,8 @@ function updateChatboxConfig() {
         statRam: _cbChecked('cbStatRam', true),
         statGpu: _cbChecked('cbStatGpu', false),
         statVram: _cbChecked('cbStatVram', false),
+        showPulse: _cbChecked('cbShowPulse', false),
+        pulseFormat: document.getElementById('cbPulseFormat')?.value || '\u2665 {bpm} BPM',
         afkMessage: document.getElementById('cbAfkMessage').value || t('chatbox.afk.default_message', 'Currently AFK'),
         suppressSound: document.getElementById('cbSuppressSound').checked,
         timeFormat: document.getElementById('cbTimeFormat').value,
@@ -326,6 +328,54 @@ function _cbInitLineOrderDrag() {
 
     list.addEventListener('pointerdown', onDown);
     _cbDragCleanup = () => list.removeEventListener('pointerdown', onDown);
+}
+
+function cbPulsoidLink() {
+    const btn = document.getElementById('cbPulseLinkBtn');
+    if (btn) { btn.disabled = true; btn.innerHTML = `<span class="msi" style="font-size:16px;">hourglass_empty</span> ${esc(t('chatbox.pulse.linking', 'Waiting for approval...'))}`; }
+    sendToCS({ action: 'pulsoidLink' });
+}
+
+function cbPulsoidUnlink() {
+    sendToCS({ action: 'pulsoidUnlink' });
+}
+
+function cbResetPulseLinkBtn() {
+    const btn = document.getElementById('cbPulseLinkBtn');
+    if (btn) { btn.disabled = false; btn.innerHTML = `<span class="msi" style="font-size:16px;">link</span> ${esc(t('chatbox.pulse.link', 'Link Pulsoid account'))}`; }
+}
+
+function handlePulsoidLinkResult(p) {
+    cbResetPulseLinkBtn();
+    if (p && p.ok) {
+        showToast(true, t('chatbox.pulse.linked', 'Pulsoid account linked'));
+        const el = document.getElementById('cbShowPulse');
+        if (el && !el.checked) { el.checked = true; updateChatboxConfig(); }
+        return;
+    }
+    if (!p || !p.error) return;
+    if (p.error === 'no_client_id') showToast(false, t('chatbox.pulse.err_no_client', 'Account linking is not available in this build'));
+    else if (p.error === 'expired_token') showToast(false, t('chatbox.pulse.err_expired', 'Linking timed out, please try again'));
+    else if (p.error !== 'cancelled') showToast(false, t('chatbox.pulse.err_generic', 'Could not link the Pulsoid account'));
+}
+
+function handlePulsoidState(p) {
+    const linkBtn   = document.getElementById('cbPulseLinkBtn');
+    const unlinkBtn = document.getElementById('cbPulseUnlinkBtn');
+    const linked    = !!(p && p.linked);
+    if (linkBtn)   linkBtn.style.display   = linked ? 'none' : '';
+    if (unlinkBtn) unlinkBtn.style.display = linked ? '' : 'none';
+    if (linkBtn && p && p.canLink === false) linkBtn.style.display = 'none';
+    const dot = document.getElementById('cbPulseDot');
+    const txt = document.getElementById('cbPulseStatus');
+    if (!dot || !txt) return;
+    const on  = !!(p && p.connected);
+    const bpm = (p && p.bpm) || 0;
+    dot.className = 'sf-dot ' + (on ? 'online' : 'offline');
+    if (on && bpm > 0)      txt.textContent = tf('chatbox.pulse.status.bpm', { bpm }, bpm + ' BPM');
+    else if (on)            txt.textContent = t('chatbox.pulse.status.waiting', 'Connected, waiting for data');
+    else if (p && p.error)  txt.textContent = p.error;
+    else                    txt.textContent = t('chatbox.pulse.status.off', 'Not connected');
 }
 
 function handleChatboxUpdate(data) {

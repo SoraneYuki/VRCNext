@@ -1148,6 +1148,12 @@ case 'vrcNews':
             case 'oscParam':
                 handleOscParam(payload);
                 break;
+            case 'pulsoidState':
+                if (typeof handlePulsoidState === 'function') handlePulsoidState(payload);
+                break;
+            case 'pulsoidLinkResult':
+                if (typeof handlePulsoidLinkResult === 'function') handlePulsoidLinkResult(payload);
+                break;
             case 'oscParams':
                 handleOscParamBatch(payload);
                 break;

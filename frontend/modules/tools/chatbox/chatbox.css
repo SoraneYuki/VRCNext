@@ -352,3 +352,19 @@
     flex: 1;
     min-width: 0;
 }
+
+.cb-pulse-box {
+    padding: 8px 10px 10px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.cb-pulse-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: calc(11px + var(--fs-off, 0px));
+    color: var(--tx2);
+}
+
+.cb-pulse-actions { display: flex; gap: 8px; flex-wrap: wrap; }

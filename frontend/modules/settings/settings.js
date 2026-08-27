@@ -335,6 +335,8 @@ function saveSettings() {
             avtrIcuSubmitAvatars: document.getElementById('setAvtrIcuSubmit').checked,
             vrcndbSubmitAvatars: document.getElementById('setVrcndbSubmit').checked,
             vrcndbReportDeleted: document.getElementById('setVrcndbReport').checked,
+            vrcndbSyncLikes: document.getElementById('setVrcndbSyncLikes').checked,
+            vrcndbSyncWears: document.getElementById('setVrcndbSyncWears').checked,
             dashSectionOrder:  (typeof _dashLayout !== 'undefined') ? _dashLayout.order  : [],
             dashSectionHidden: (typeof _dashLayout !== 'undefined') ? _dashLayout.hidden : [],
             dashRows: (typeof _dashLayout !== 'undefined' && Array.isArray(_dashLayout.rows))
@@ -665,6 +667,9 @@ function loadSettingsToUI(s) {
     document.getElementById('cbStatRam').checked = s.CbStatRam ?? s.cbStatRam ?? true;
     document.getElementById('cbStatGpu').checked = s.CbStatGpu ?? s.cbStatGpu ?? false;
     document.getElementById('cbStatVram').checked = s.CbStatVram ?? s.cbStatVram ?? false;
+    document.getElementById('cbShowPulse').checked = s.CbShowPulse ?? s.cbShowPulse ?? false;
+    const cbPulseFmtEl = document.getElementById('cbPulseFormat');
+    if (cbPulseFmtEl) cbPulseFmtEl.value = s.CbPulseFormat || s.cbPulseFormat || '♥ {bpm} BPM';
     cbApplyLineOrder(s.CbLineOrder || s.cbLineOrder);
     chatboxCustomLines = _cbNormalizeLines(s.CbCustomLines || s.cbCustomLines || []);
     renderChatboxLines();
@@ -970,6 +975,8 @@ function loadSettingsToUI(s) {
     document.getElementById('setAvtrIcuSubmit').checked = s.AvtrIcuSubmitAvatars ?? s.avtrIcuSubmitAvatars ?? false;
     document.getElementById('setVrcndbSubmit').checked = s.VrcndbSubmitAvatars ?? s.vrcndbSubmitAvatars ?? false;
     document.getElementById('setVrcndbReport').checked = s.VrcndbReportDeleted ?? s.vrcndbReportDeleted ?? false;
+    document.getElementById('setVrcndbSyncLikes').checked = s.VrcndbSyncLikes ?? s.vrcndbSyncLikes ?? true;
+    document.getElementById('setVrcndbSyncWears').checked = s.VrcndbSyncWears ?? s.vrcndbSyncWears ?? true;
 
     // Memory Trim
     document.getElementById('setMemoryTrimEnabled').checked = s.MemoryTrimEnabled ?? s.memoryTrimEnabled ?? true;

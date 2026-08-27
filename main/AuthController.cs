@@ -204,6 +204,7 @@ public class AuthController
             case "saveVrcndbConsent":
                 _core.Settings.VrcndbSubmitAvatars = msg["submit"]?.Value<bool>() ?? true;
                 _core.Settings.VrcndbReportDeleted = msg["report"]?.Value<bool>() ?? true;
+                _core.Settings.VrcndbSyncLikes     = msg["syncLikes"]?.Value<bool>() ?? _core.Settings.VrcndbSyncLikes;
                 _core.Settings.VrcndbConsentShown  = true;
                 _core.Settings.Save();
                 break;
@@ -2214,6 +2215,8 @@ public class AuthController
             // VRCNDb
             _core.Settings.VrcndbSubmitAvatars = data["vrcndbSubmitAvatars"]?.Value<bool>() ?? false;
             _core.Settings.VrcndbReportDeleted = data["vrcndbReportDeleted"]?.Value<bool>() ?? false;
+            _core.Settings.VrcndbSyncLikes     = data["vrcndbSyncLikes"]?.Value<bool>() ?? true;
+            _core.Settings.VrcndbSyncWears     = data["vrcndbSyncWears"]?.Value<bool>() ?? true;
             _core.Settings.VrcndbConsentShown  = data["vrcndbConsentShown"]?.Value<bool>() ?? _core.Settings.VrcndbConsentShown;
 
             // Memory Trim
@@ -2666,6 +2669,7 @@ public class AuthController
 
             var allAvatarsRaw = new List<object>();
             var allAvatarsJs  = new List<object>();
+            var favLikeIds    = new List<string>();
             foreach (var g in groupList)
             {
                 if (!perGroup.TryGetValue(g.name, out var groupAvatars)) continue;
@@ -2688,6 +2692,7 @@ public class AuthController
                     var tags      = (a["tags"] as JArray ?? new JArray()).Select(x => x?.ToString() ?? "").ToArray();
                     allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, created_at = created, updated_at = updated, tags, unityPackages = pkgs });
                     allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = g.name, favoriteId = fvrtId, created_at = created, updated_at = updated, tags, unityPackages = pkgs });
+                    favLikeIds.Add(id);
                 }
             }
 
@@ -2710,10 +2715,12 @@ public class AuthController
                 var tags      = (a["tags"] as JArray ?? new JArray()).Select(x => x?.ToString() ?? "").ToArray();
                 allAvatarsRaw.Add(new { id, name, imageUrl = rawUrl, thumbnailImageUrl = rawUrl, authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, created_at = created, updated_at = updated, tags, unityPackages = pkgs });
                 allAvatarsJs.Add(new  { id, name, imageUrl = img,    thumbnailImageUrl = img,    authorName = author, releaseStatus = release, favoriteGroup = it.GroupName, favoriteId = it.Id, created_at = created, updated_at = updated, tags, unityPackages = pkgs });
+                favLikeIds.Add(id);
             }
 
             if (_core.Settings.FfcEnabled) _core.Cache.Save(CacheHandler.KeyFavAvatars, new { avatars = allAvatarsRaw, groups = groupList });
             Invoke(() => _core.SendToJS("vrcFavoriteAvatars", new { avatars = allAvatarsJs, groups = groupList }));
+            if (_core.Settings.VrcndbSyncLikes) PopularityReporter.SyncFavoriteLikes(favLikeIds);
         }
         catch (Exception ex)
         {
@@ -2795,14 +2802,18 @@ public class AuthController
 
         if (_core.Cache.LoadRaw(CacheHandler.KeyFavAvatars) is JObject favAvatarsObj)
         {
+            var favLikeIds = new List<string>();
             foreach (var a in favAvatarsObj["avatars"] as JArray ?? new JArray())
                 if (a is JObject ao)
                 {
                     ao["imageUrl"] = ImageCacheHelper.GetAvatarUrl(ao["id"]?.ToString(), ao["imageUrl"]?.ToString() ?? ao["thumbnailImageUrl"]?.ToString());
                     ao["thumbnailImageUrl"] = ao["imageUrl"];
                     AppShell.EnrichAvatarFromCache(_core.TimeEngine, ao, ao["id"]?.ToString() ?? "");
+                    var fid = ao["id"]?.ToString() ?? "";
+                    if (fid.Length > 0) favLikeIds.Add(fid);
                 }
             _core.SendToJS("vrcFavoriteAvatars", favAvatarsObj);
+            if (_core.Settings.VrcndbSyncLikes) PopularityReporter.SyncFavoriteLikes(favLikeIds);
         }
 
         if (_core.Cache.LoadRaw(CacheHandler.KeyFavFriends) is JObject favFriendsObj)

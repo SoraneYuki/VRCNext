@@ -1,12 +1,10 @@
-**2026.46.9**
+**2026.46.10**
+
+**VRCNDB**
+
+**New Features**
+* Added **Sync Likes** to the **VRCNDb Community Database** settings (**Avatar Search** > **Support**). When enabled, your **favorited avatars** (local and VRChat groups) count as a **like** on the community database, which helps show which avatars are popular. It is **completely anonymous**, **opt-out** (on by default), syncs on every startup and whenever you add a favorite, and submits avatars that are not in the database yet.
+* Added **Sync Wears** in the same panel. When enabled, **wearing an avatar** counts toward its **wear** count on VRCNDb, so the site can show which avatars are actually worn and trending. Also **completely anonymous** and **opt-out** (on by default).
 
 **Fixed Bugs**
 * Fixed the **joined player image** and **left player image** blocks in **Action Flow** not showing up. Only the **friend's icon** block was recognised as a picture, so the two player image blocks were dropped from the message entirely, in the notification card, the system tray notification, the VR overlay and the Discord webhook.
-
-**2026.46.8**
-
-**Improvements**
-* Resolving a world now also stores its full details in the local database, so description, tags, capacity, visits, favorites and occupants are already there the first time you open that world.
-
-**Fixed Bugs**
-* Fixed **Media Library > All Worlds** showing raw world IDs without a picture for most entries. Only the first 30 worlds were ever looked up and the rest were dropped. All worlds are now resolved in batches, and the filter list fills in as the names arrive.

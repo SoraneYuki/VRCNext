@@ -807,6 +807,16 @@
                                 <span data-i18n="settings.vrcndb.deleted_toggle">Report deleted avatars to VRCNDb</span>
                                 <label class="toggle"><input type="checkbox" id="setVrcndbReport" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                             </div>
+                            <div class="set-desc" style="margin-top:14px;" data-i18n="settings.vrcndb.synclikes_desc">When enabled, your favorited avatars count as a "like" on VRCNDb. This is completely anonymous and is an opt-out setting. It simply helps show which avatars are trendy. Syncs on every start and whenever you add a new favorite.</div>
+                            <div class="sf-toggle-row">
+                                <span data-i18n="settings.vrcndb.synclikes_toggle">Sync favorite likes to VRCNDb</span>
+                                <label class="toggle"><input type="checkbox" id="setVrcndbSyncLikes" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                            </div>
+                            <div class="set-desc" style="margin-top:14px;" data-i18n="settings.vrcndb.syncwears_desc">When enabled, wearing an avatar counts toward its "wear" count on VRCNDb. This is completely anonymous and is an opt-out setting. It helps show which avatars are actually worn and trending.</div>
+                            <div class="sf-toggle-row">
+                                <span data-i18n="settings.vrcndb.syncwears_toggle">Sync worn avatars to VRCNDb</span>
+                                <label class="toggle"><input type="checkbox" id="setVrcndbSyncWears" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                            </div>
                         </div>
                         <div id="vrcndbTabReports" style="display:none;">
                             <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.vrcndb.reports.desc">Avatar IDs submitted to VRCNDb during this session.</div>
