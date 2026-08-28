@@ -917,7 +917,7 @@ function buildPersonalListHtml(events, staticHeader) {
 
         rows += tlTableRow('personal', ` data-tlid="${esc(ev.id)}" onclick="openTlDetail('${ei}')"`, {
             dt:      `<td class="tl-list-dt">${esc(`${tlFormatShortDate(ev.timestamp)} | ${tlFormatTime(ev.timestamp)}`)}</td>`,
-            type:    `<td class="tl-list-type"><span class="msi tl-list-icon" style="color:${color}">${meta.icon}</span><span>${esc(listTypeLabel)}</span></td>`,
+            type:    `<td class="tl-list-type"><span class="msi tl-list-icon" style="color:${color}">${(tlNotifStyle(ev) || meta).icon}</span><span>${esc(listTypeLabel)}</span></td>`,
             profile: `<td class="tl-list-profile">${_tlPersonalProfHtml(ev)}</td>`,
             user:    `<td class="tl-list-user">${userHtml || tlListNaHtml()}</td>`,
             detail:  `<td class="tl-list-detail">${detail || tlListNaHtml()}</td>`,

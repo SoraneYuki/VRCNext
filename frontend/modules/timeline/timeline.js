@@ -121,7 +121,19 @@ const TL_TYPE_COLOR = {
     profile:       '#5C6BC0',
 };
 
+function tlNotifStyle(ev) {
+    if (!ev || ev.type !== 'notification') return null;
+    const nt = ev.notifType || '';
+    if (nt === 'friendRequest') return { color: 'var(--ok)', icon: 'person_add' };
+    if (nt.indexOf('group.') === 0) return { color: '#ffa061', icon: 'groups' };
+    if (nt === 'invite' || nt === 'inviteResponse' || nt === 'requestInvite' || nt === 'requestInviteResponse')
+        return { color: '#32b1e3', icon: 'mail' };
+    return null;
+}
+
 function getTlEventColor(ev) {
+    const ns = tlNotifStyle(ev);
+    if (ns) return ns.color;
     if (ev.type === 'instance_join') {
         if (!ev.timestamp || !ev.location) return 'var(--err)'; // Fehler: fehlende Daten
         if (!ev.tracked)                   return '#FF9800';     // Legacy
@@ -1041,7 +1053,7 @@ function renderTlCard(ev) {
     const meetCount = ev.type === 'meet_again' ? (ev.meetCount || 0) : 0;
     const typeLabel = meetCount > 0 ? `${meta.label} (${meetCount})` : meta.label;
     const header = `<div class="tl-card-header">
-        <span class="msi tl-type-icon" style="color:${color}">${meta.icon}</span>
+        <span class="msi tl-type-icon" style="color:${color}">${(tlNotifStyle(ev) || meta).icon}</span>
         <span class="tl-type-label">${esc(typeLabel)}</span>
         <div class="tl-time-col"><span class="tl-time">${esc(time)}</span><span class="tl-date">${esc(date)}</span></div>
     </div>`;
@@ -1597,7 +1609,7 @@ function renderFtCard(ev) {
     const ei    = jsq(ev.id);
 
     const header = `<div class="tl-card-header">
-        <span class="msi tl-type-icon" style="color:${color}">${meta.icon}</span>
+        <span class="msi tl-type-icon" style="color:${color}">${(tlNotifStyle(ev) || meta).icon}</span>
         <span class="tl-type-label">${esc(meta.label)}</span>
         <div class="tl-time-col"><span class="tl-time">${esc(time)}</span><span class="tl-date">${esc(date)}</span></div>
     </div>`;

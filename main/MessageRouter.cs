@@ -3235,6 +3235,9 @@ public partial class AppShell
                 case "vrcHideNotification":
                 case "vrcGetRespondMessages":
                 case "vrcUpdateRespondMessage":
+                    await _notifications.HandleMessage(action, msg);
+                    break;
+
                 case "vrcGetLogFiles":
                 {
                     _ = Task.Run(() =>
