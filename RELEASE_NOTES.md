@@ -6,5 +6,10 @@
 * Added **Sync Wears** in the same panel. When enabled, **wearing an avatar** counts toward its **wear** count on VRCNDb, so the site can show which avatars are actually worn and trending. Also **completely anonymous** and **opt-out** (on by default).
 * Let WS add wear counts.
 
+**Custom Chatbox**
+* New **Heart Rate** module powered by **HypeRate**. Install the free HypeRate app on an Apple Watch, a Wear OS watch, a phone or a supported chest strap, enter the ID it shows you, and your live BPM appears in the VRChat chatbox.
+* The line can be reordered and toggled like every other chatbox line, and the format is yours to choose with {bpm} standing in for the value.
+* The connection reconnects on its own with a growing delay, and the line disappears when no reading arrives for a minute, so a dead watch never leaves a stale number in your chatbox.
+
 **Fixed Bugs**
 * Fixed the **joined player image** and **left player image** blocks in **Action Flow** not showing up. Only the **friend's icon** block was recognised as a picture, so the two player image blocks were dropped from the message entirely, in the notification card, the system tray notification, the VR overlay and the Discord webhook.

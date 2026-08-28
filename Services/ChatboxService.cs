@@ -41,6 +41,9 @@ namespace VRCNext
         public bool ShowPlaytime { get; set; } = true;
         public bool ShowCustomText { get; set; } = true;
         public bool ShowSystemStats { get; set; }
+        public bool ShowPulse { get; set; }
+        public string PulseFormat { get; set; } = "\u2665 {bpm} BPM";
+        public Func<int>? PulseProvider { get; set; }
         public bool StatCpu { get; set; } = true;
         public bool StatRam { get; set; } = true;
         public bool StatGpu { get; set; }
@@ -57,7 +60,7 @@ namespace VRCNext
         public List<string> LineOrder { get; set; } = new(DefaultLineOrder);
         private int _customLineIndex;
 
-        public static readonly string[] DefaultLineOrder = { "time", "media", "stats", "custom" };
+        public static readonly string[] DefaultLineOrder = { "time", "media", "stats", "pulse", "custom" };
 
         // Media state
         public string CurrentTitle { get; private set; } = "";
@@ -193,6 +196,7 @@ namespace VRCNext
                     "time"   => ShowTime ? FormatClock() : null,
                     "media"  => BuildMediaPart(),
                     "stats"  => BuildStatsPart(),
+                    "pulse"  => BuildPulsePart(),
                     "custom" => NextCustomLine(),
                     _        => null,
                 };
@@ -202,6 +206,16 @@ namespace VRCNext
             var result = string.Join(Separator, parts);
             if (result.Length > limit) result = result[..limit];
             return HideChatboxBackground ? result + "\u0003\u001f" : result;
+        }
+
+        private string? BuildPulsePart()
+        {
+            if (!ShowPulse || PulseProvider == null) return null;
+            int bpm;
+            try { bpm = PulseProvider(); } catch { return null; }
+            if (bpm <= 0) return null;
+            var fmt = string.IsNullOrWhiteSpace(PulseFormat) ? "\u2665 {bpm} BPM" : PulseFormat;
+            return fmt.Replace("{bpm}", bpm.ToString(CultureInfo.InvariantCulture));
         }
 
         private List<string> EffectiveLineOrder()
@@ -533,9 +547,12 @@ namespace VRCNext
             bool suppressSound, string timeFormat, string separator,
             int intervalMs, List<CbCustomLine> customLines, bool hideBackground = false,
             List<string>? lineOrder = null, bool showAfkTime = true,
-            bool statCpu = true, bool statRam = true, bool statGpu = false, bool statVram = false)
+            bool statCpu = true, bool statRam = true, bool statGpu = false, bool statVram = false,
+            bool showPulse = false, string? pulseFormat = null)
         {
             var was = Enabled; Enabled = enabled;
+            ShowPulse = showPulse;
+            if (!string.IsNullOrWhiteSpace(pulseFormat)) PulseFormat = pulseFormat;
             ShowTime = showTime; ShowMedia = showMedia; ShowPlaytime = showPlaytime;
             ShowCustomText = showCustomText; ShowSystemStats = showSystemStats;
             ShowAfk = showAfk; ShowAfkTime = showAfkTime;

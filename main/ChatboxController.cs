@@ -72,12 +72,18 @@ public class ChatboxController : IDisposable
                     var statRam = msg["statRam"]?.Value<bool>() ?? true;
                     var statGpu = msg["statGpu"]?.Value<bool>() ?? false;
                     var statVram = msg["statVram"]?.Value<bool>() ?? false;
+                    var showPulse = msg["showPulse"]?.Value<bool>() ?? false;
+                    var pulseFormat = msg["pulseFormat"]?.ToString() ?? "\u2665 {bpm} BPM";
+                    var hypeRateId = msg["hypeRateId"]?.ToString() ?? "";
 
                     _chatbox.ApplyConfig(enabled, showTime, showMedia, showPlaytime,
                         showCustomText, showSystemStats, showAfk, afkMessage,
                         suppressSound, timeFormat, separator, intervalMs, customLines, hideBackground,
                         lineOrder: lineOrder, showAfkTime: showAfkTime,
-                        statCpu: statCpu, statRam: statRam, statGpu: statGpu, statVram: statVram);
+                        statCpu: statCpu, statRam: statRam, statGpu: statGpu, statVram: statVram,
+                        showPulse: showPulse, pulseFormat: pulseFormat);
+                    _chatbox.PulseProvider = () => _hypeRate != null && _hypeRate.HasFreshData ? _hypeRate.CurrentBpm : 0;
+                    ApplyHypeRate(showPulse && enabled, hypeRateId);
                     _vroCtrl.UpdateToolStates();
 
                     // Persist chatbox settings
@@ -100,6 +106,9 @@ public class ChatboxController : IDisposable
                     _core.Settings.CbStatRam = statRam;
                     _core.Settings.CbStatGpu = statGpu;
                     _core.Settings.CbStatVram = statVram;
+                    _core.Settings.CbShowPulse = showPulse;
+                    _core.Settings.CbPulseFormat = pulseFormat;
+                    _core.Settings.CbHypeRateId = hypeRateId;
                     _core.Settings.Save();
                     if (_core.Settings.LastSaveError != null)
                         _core.SendToJS("toast", new { ok = false, msg = "Failed to save this setting, please report this error" });
@@ -200,6 +209,10 @@ public class ChatboxController : IDisposable
                 }
                 break;
 
+            case "hypeRateGetState":
+                SendHypeRateState();
+                break;
+
             case "oscSetTabVisible":
                 _oscTabVisible = msg["visible"]?.Value<bool>() ?? true;
                 break;
@@ -254,6 +267,36 @@ public class ChatboxController : IDisposable
         catch (Exception ex) { CrashHandler.WriteEntry("Osc.FlushOscParams", ex); }
     }
 
+    private HypeRateService? _hypeRate;
+
+    private void ApplyHypeRate(bool wanted, string deviceId)
+    {
+        if (!wanted || string.IsNullOrWhiteSpace(deviceId) || string.IsNullOrWhiteSpace(BuildSecrets.HypeRateApiKey))
+        {
+            _hypeRate?.Stop();
+            SendHypeRateState();
+            return;
+        }
+        if (_hypeRate == null)
+        {
+            _hypeRate = new HypeRateService(s => Invoke(() => _core.SendToJS("log", new { msg = s, color = "sec" })));
+            _hypeRate.StateChanged += () => Invoke(SendHypeRateState);
+        }
+        _hypeRate.Start(deviceId, BuildSecrets.HypeRateApiKey);
+        SendHypeRateState();
+    }
+
+    private void SendHypeRateState()
+    {
+        _core.SendToJS("hypeRateState", new
+        {
+            connected = _hypeRate?.IsConnected ?? false,
+            bpm       = (_hypeRate?.HasFreshData ?? false) ? _hypeRate!.CurrentBpm : 0,
+            error     = _hypeRate?.LastError ?? "",
+            available = !string.IsNullOrWhiteSpace(BuildSecrets.HypeRateApiKey),
+        });
+    }
+
     // Toggle (called from VR overlay)
 
     public void Toggle()
@@ -262,6 +305,7 @@ public class ChatboxController : IDisposable
         {
             _chatbox.Stop();
             _chatbox = null;
+            ApplyHypeRate(false, "");
             _core.SendToJS("chatboxUpdate", new { enabled = false });
         }
         else
@@ -273,7 +317,10 @@ public class ChatboxController : IDisposable
                 _core.Settings.CbSuppressSound, _core.Settings.CbTimeFormat, _core.Settings.CbSeparator, _core.Settings.CbIntervalMs, _core.Settings.CbCustomLines, _core.Settings.CbHideBackground,
                 lineOrder: _core.Settings.CbLineOrder, showAfkTime: _core.Settings.CbShowAfkTime,
                 statCpu: _core.Settings.CbStatCpu, statRam: _core.Settings.CbStatRam,
-                statGpu: _core.Settings.CbStatGpu, statVram: _core.Settings.CbStatVram);
+                statGpu: _core.Settings.CbStatGpu, statVram: _core.Settings.CbStatVram,
+                showPulse: _core.Settings.CbShowPulse, pulseFormat: _core.Settings.CbPulseFormat);
+            _chatbox.PulseProvider = () => _hypeRate != null && _hypeRate.HasFreshData ? _hypeRate.CurrentBpm : 0;
+            ApplyHypeRate(_core.Settings.CbShowPulse, _core.Settings.CbHypeRateId);
             _core.SendToJS("chatboxUpdate", new { enabled = true });
         }
     }
@@ -282,6 +329,7 @@ public class ChatboxController : IDisposable
 
     public void Dispose()
     {
+        _hypeRate?.Dispose();
         _chatbox?.Dispose();
         _chatbox = null;
         _osc?.Dispose();

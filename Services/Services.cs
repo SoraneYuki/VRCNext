@@ -449,7 +449,10 @@ public class AppSettings
     public List<CbCustomLine> CbCustomLines { get; set; } = new();
     public bool CbHideBackground { get; set; } = false;
     public bool CbShowAfkTime { get; set; } = true;
-    public List<string> CbLineOrder { get; set; } = new() { "time", "media", "stats", "custom" };
+    public List<string> CbLineOrder { get; set; } = new() { "time", "media", "stats", "pulse", "custom" };
+    public bool CbShowPulse { get; set; }
+    public string CbHypeRateId { get; set; } = "";
+    public string CbPulseFormat { get; set; } = "\u2665 {bpm} BPM";
     public bool CbStatCpu { get; set; } = true;
     public bool CbStatRam { get; set; } = true;
     public bool CbStatGpu { get; set; }

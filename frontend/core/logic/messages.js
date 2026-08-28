@@ -1148,6 +1148,9 @@ case 'vrcNews':
             case 'oscParam':
                 handleOscParam(payload);
                 break;
+            case 'hypeRateState':
+                if (typeof handleHypeRateState === 'function') handleHypeRateState(payload);
+                break;
             case 'oscParams':
                 handleOscParamBatch(payload);
                 break;

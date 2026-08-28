@@ -5,7 +5,7 @@ let _cbPauseTimer = null;
 let _cbPauseRemaining = 0;
 const CB_MAX_HISTORY = 100;
 const CB_PAUSE_SECONDS = 10;
-const CB_LINE_IDS = ['time', 'media', 'stats', 'custom'];
+const CB_LINE_IDS = ['time', 'media', 'stats', 'pulse', 'custom'];
 let _cbEditLineIndex = -1;
 let _cbDragCleanup = null;
 
@@ -112,6 +112,9 @@ function updateChatboxConfig() {
         statRam: _cbChecked('cbStatRam', true),
         statGpu: _cbChecked('cbStatGpu', false),
         statVram: _cbChecked('cbStatVram', false),
+        showPulse: _cbChecked('cbShowPulse', false),
+        pulseFormat: document.getElementById('cbPulseFormat')?.value || '\u2665 {bpm} BPM',
+        hypeRateId: document.getElementById('cbHypeRateId')?.value.trim() || '',
         afkMessage: document.getElementById('cbAfkMessage').value || t('chatbox.afk.default_message', 'Currently AFK'),
         suppressSound: document.getElementById('cbSuppressSound').checked,
         timeFormat: document.getElementById('cbTimeFormat').value,
@@ -196,6 +199,11 @@ function renderChatboxLines() {
             <button class="cb-line-del" onclick="removeChatboxLine(${i})" title="${esc(t('common.remove', 'Remove'))}"><span class="msi" style="font-size:14px;">close</span></button>
         </div>`;
     }).join('');
+}
+
+function cbToggleModule(el) {
+    const block = el.closest('.cb-ord-block');
+    if (block) block.classList.toggle('cb-open');
 }
 
 function _cbInitLineOrderDrag() {
@@ -326,6 +334,20 @@ function _cbInitLineOrderDrag() {
 
     list.addEventListener('pointerdown', onDown);
     _cbDragCleanup = () => list.removeEventListener('pointerdown', onDown);
+}
+
+function handleHypeRateState(p) {
+    const dot = document.getElementById('cbPulseDot');
+    const txt = document.getElementById('cbPulseStatus');
+    if (!dot || !txt) return;
+    const on  = !!(p && p.connected);
+    const bpm = (p && p.bpm) || 0;
+    dot.className = 'sf-dot ' + (on ? 'online' : 'offline');
+    if (p && p.available === false) txt.textContent = t('chatbox.pulse.status.unavailable', 'Not available in this build');
+    else if (on && bpm > 0)         txt.textContent = tf('chatbox.pulse.status.bpm', { bpm }, bpm + ' BPM');
+    else if (on)                    txt.textContent = t('chatbox.pulse.status.waiting', 'Connected, waiting for data');
+    else if (p && p.error)          txt.textContent = p.error;
+    else                            txt.textContent = t('chatbox.pulse.status.off', 'Not connected');
 }
 
 function handleChatboxUpdate(data) {
