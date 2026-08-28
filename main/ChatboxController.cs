@@ -66,6 +66,7 @@ public class ChatboxController : IDisposable
                     var intervalMs = msg["intervalMs"]?.Value<int>() ?? 5000;
                     var customLines = msg["customLines"]?.ToObject<List<CbCustomLine>>() ?? new();
                     var hideBackground = msg["hideBackground"]?.Value<bool>() ?? false;
+                    var customTemplate = msg["customTemplate"]?.ToString() ?? "";
                     var showAfkTime = msg["showAfkTime"]?.Value<bool>() ?? true;
                     var lineOrder = msg["lineOrder"]?.ToObject<List<string>>() ?? new(ChatboxService.DefaultLineOrder);
                     var statCpu = msg["statCpu"]?.Value<bool>() ?? true;
@@ -75,15 +76,26 @@ public class ChatboxController : IDisposable
                     var showPulse = msg["showPulse"]?.Value<bool>() ?? false;
                     var pulseFormat = msg["pulseFormat"]?.ToString() ?? "\u2665 {bpm} BPM";
                     var hypeRateId = msg["hypeRateId"]?.ToString() ?? "";
+                    var showWindow = msg["showWindow"]?.Value<bool>() ?? false;
+                    var windowFormat = msg["windowFormat"]?.ToString() ?? "";
+                    var showWeather = msg["showWeather"]?.Value<bool>() ?? false;
+                    var weatherCity = msg["weatherCity"]?.ToString() ?? "";
+                    var weatherUnit = msg["weatherUnit"]?.ToString() ?? "celsius";
+                    var weatherFormat = msg["weatherFormat"]?.ToString() ?? "";
 
                     _chatbox.ApplyConfig(enabled, showTime, showMedia, showPlaytime,
                         showCustomText, showSystemStats, showAfk, afkMessage,
                         suppressSound, timeFormat, separator, intervalMs, customLines, hideBackground,
+                        customTemplate: customTemplate,
                         lineOrder: lineOrder, showAfkTime: showAfkTime,
                         statCpu: statCpu, statRam: statRam, statGpu: statGpu, statVram: statVram,
-                        showPulse: showPulse, pulseFormat: pulseFormat);
+                        showPulse: showPulse, pulseFormat: pulseFormat,
+                        showWindow: showWindow, windowFormat: windowFormat,
+                        showWeather: showWeather, weatherFormat: weatherFormat);
                     _chatbox.PulseProvider = () => _hypeRate != null && _hypeRate.HasFreshData ? _hypeRate.CurrentBpm : 0;
+                    _chatbox.WeatherProvider = CurrentWeather;
                     ApplyHypeRate(showPulse && enabled, hypeRateId);
+                    ApplyWeather(showWeather && enabled, weatherCity, weatherUnit);
                     _vroCtrl.UpdateToolStates();
 
                     // Persist chatbox settings
@@ -97,6 +109,7 @@ public class ChatboxController : IDisposable
                     _core.Settings.CbSuppressSound = suppressSound;
                     _core.Settings.CbTimeFormat = timeFormat;
                     _core.Settings.CbSeparator = separator;
+                    _core.Settings.CbCustomTemplate = customTemplate;
                     _core.Settings.CbIntervalMs = intervalMs;
                     _core.Settings.CbCustomLines = customLines;
                     _core.Settings.CbHideBackground = hideBackground;
@@ -109,6 +122,12 @@ public class ChatboxController : IDisposable
                     _core.Settings.CbShowPulse = showPulse;
                     _core.Settings.CbPulseFormat = pulseFormat;
                     _core.Settings.CbHypeRateId = hypeRateId;
+                    _core.Settings.CbShowWindow = showWindow;
+                    _core.Settings.CbWindowFormat = windowFormat;
+                    _core.Settings.CbShowWeather = showWeather;
+                    _core.Settings.CbWeatherCity = weatherCity;
+                    _core.Settings.CbWeatherUnit = weatherUnit;
+                    _core.Settings.CbWeatherFormat = weatherFormat;
                     _core.Settings.Save();
                     if (_core.Settings.LastSaveError != null)
                         _core.SendToJS("toast", new { ok = false, msg = "Failed to save this setting, please report this error" });
@@ -213,6 +232,10 @@ public class ChatboxController : IDisposable
                 SendHypeRateState();
                 break;
 
+            case "weatherGetState":
+                SendWeatherState();
+                break;
+
             case "oscSetTabVisible":
                 _oscTabVisible = msg["visible"]?.Value<bool>() ?? true;
                 break;
@@ -267,6 +290,44 @@ public class ChatboxController : IDisposable
         catch (Exception ex) { CrashHandler.WriteEntry("Osc.FlushOscParams", ex); }
     }
 
+    private WeatherService? _weather;
+
+    private (string icon, string temp)? CurrentWeather()
+    {
+        if (_weather == null || !_weather.HasData) return null;
+        var temp = Math.Round(_weather.Temperature).ToString(System.Globalization.CultureInfo.InvariantCulture) + _weather.UnitSuffix;
+        return (WeatherService.CodeToEmoji(_weather.WeatherCode), temp);
+    }
+
+    private void ApplyWeather(bool wanted, string city, string unit)
+    {
+        if (!wanted || string.IsNullOrWhiteSpace(city))
+        {
+            _weather?.Stop();
+            SendWeatherState();
+            return;
+        }
+        if (_weather == null)
+        {
+            _weather = new WeatherService(s => Invoke(() => _core.SendToJS("log", new { msg = s, color = "sec" })));
+            _weather.StateChanged += () => Invoke(SendWeatherState);
+        }
+        _weather.Start(city, unit);
+        SendWeatherState();
+    }
+
+    private void SendWeatherState()
+    {
+        var w = CurrentWeather();
+        _core.SendToJS("weatherState", new
+        {
+            ok    = w != null,
+            city  = _weather?.CityLabel ?? "",
+            text  = w != null ? w.Value.icon + " " + w.Value.temp : "",
+            error = _weather?.LastError ?? "",
+        });
+    }
+
     private HypeRateService? _hypeRate;
 
     private void ApplyHypeRate(bool wanted, string deviceId)
@@ -306,6 +367,7 @@ public class ChatboxController : IDisposable
             _chatbox.Stop();
             _chatbox = null;
             ApplyHypeRate(false, "");
+            ApplyWeather(false, "", "celsius");
             _core.SendToJS("chatboxUpdate", new { enabled = false });
         }
         else
@@ -315,12 +377,17 @@ public class ChatboxController : IDisposable
             _chatbox.ApplyConfig(true, _core.Settings.CbShowTime, _core.Settings.CbShowMedia, _core.Settings.CbShowPlaytime,
                 _core.Settings.CbShowCustomText, _core.Settings.CbShowSystemStats, _core.Settings.CbShowAfk, _core.Settings.CbAfkMessage,
                 _core.Settings.CbSuppressSound, _core.Settings.CbTimeFormat, _core.Settings.CbSeparator, _core.Settings.CbIntervalMs, _core.Settings.CbCustomLines, _core.Settings.CbHideBackground,
+                customTemplate: _core.Settings.CbCustomTemplate,
                 lineOrder: _core.Settings.CbLineOrder, showAfkTime: _core.Settings.CbShowAfkTime,
                 statCpu: _core.Settings.CbStatCpu, statRam: _core.Settings.CbStatRam,
                 statGpu: _core.Settings.CbStatGpu, statVram: _core.Settings.CbStatVram,
-                showPulse: _core.Settings.CbShowPulse, pulseFormat: _core.Settings.CbPulseFormat);
+                showPulse: _core.Settings.CbShowPulse, pulseFormat: _core.Settings.CbPulseFormat,
+                showWindow: _core.Settings.CbShowWindow, windowFormat: _core.Settings.CbWindowFormat,
+                showWeather: _core.Settings.CbShowWeather, weatherFormat: _core.Settings.CbWeatherFormat);
             _chatbox.PulseProvider = () => _hypeRate != null && _hypeRate.HasFreshData ? _hypeRate.CurrentBpm : 0;
+            _chatbox.WeatherProvider = CurrentWeather;
             ApplyHypeRate(_core.Settings.CbShowPulse, _core.Settings.CbHypeRateId);
+            ApplyWeather(_core.Settings.CbShowWeather, _core.Settings.CbWeatherCity, _core.Settings.CbWeatherUnit);
             _core.SendToJS("chatboxUpdate", new { enabled = true });
         }
     }
@@ -330,6 +397,7 @@ public class ChatboxController : IDisposable
     public void Dispose()
     {
         _hypeRate?.Dispose();
+        _weather?.Dispose();
         _chatbox?.Dispose();
         _chatbox = null;
         _osc?.Dispose();

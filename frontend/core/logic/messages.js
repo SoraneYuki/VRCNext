@@ -1151,6 +1151,9 @@ case 'vrcNews':
             case 'hypeRateState':
                 if (typeof handleHypeRateState === 'function') handleHypeRateState(payload);
                 break;
+            case 'weatherState':
+                if (typeof handleWeatherState === 'function') handleWeatherState(payload);
+                break;
             case 'oscParams':
                 handleOscParamBatch(payload);
                 break;

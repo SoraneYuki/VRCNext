@@ -659,6 +659,9 @@ function loadSettingsToUI(s) {
     const cbSep = s.CbSeparator || s.cbSeparator || ' | ';
     const cbSepEl = document.getElementById('cbSeparator');
     if (cbSepEl) cbSepEl.value = cbSep;
+    const cbTplEl = document.getElementById('cbTemplate');
+    if (cbTplEl) cbTplEl.value = s.CbCustomTemplate || s.cbCustomTemplate || '';
+    if (typeof cbSyncTemplateUi === 'function') cbSyncTemplateUi();
     const cbInt = s.CbIntervalMs || s.cbIntervalMs || 5000;
     const cbIntEl = document.getElementById('cbInterval');
     if (cbIntEl) cbIntEl.value = String(cbInt);
@@ -670,6 +673,16 @@ function loadSettingsToUI(s) {
     document.getElementById('cbShowPulse').checked = s.CbShowPulse ?? s.cbShowPulse ?? false;
     const cbHrIdEl = document.getElementById('cbHypeRateId');
     if (cbHrIdEl) cbHrIdEl.value = s.CbHypeRateId || s.cbHypeRateId || '';
+    document.getElementById('cbShowWindow').checked = s.CbShowWindow ?? s.cbShowWindow ?? false;
+    const cbWinFmtEl = document.getElementById('cbWindowFormat');
+    if (cbWinFmtEl) cbWinFmtEl.value = s.CbWindowFormat || s.cbWindowFormat || '';
+    document.getElementById('cbShowWeather').checked = s.CbShowWeather ?? s.cbShowWeather ?? false;
+    const cbWCityEl = document.getElementById('cbWeatherCity');
+    if (cbWCityEl) cbWCityEl.value = s.CbWeatherCity || s.cbWeatherCity || '';
+    const cbWUnitEl = document.getElementById('cbWeatherUnit');
+    if (cbWUnitEl) cbWUnitEl.value = s.CbWeatherUnit || s.cbWeatherUnit || 'celsius';
+    const cbWFmtEl = document.getElementById('cbWeatherFormat');
+    if (cbWFmtEl) cbWFmtEl.value = s.CbWeatherFormat || s.cbWeatherFormat || '';
     const cbPulseFmtEl = document.getElementById('cbPulseFormat');
     if (cbPulseFmtEl) cbPulseFmtEl.value = s.CbPulseFormat || s.cbPulseFormat || '\u2665 {bpm} BPM';
     cbApplyLineOrder(s.CbLineOrder || s.cbLineOrder);

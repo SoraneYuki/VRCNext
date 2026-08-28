@@ -5,7 +5,7 @@ let _cbPauseTimer = null;
 let _cbPauseRemaining = 0;
 const CB_MAX_HISTORY = 100;
 const CB_PAUSE_SECONDS = 10;
-const CB_LINE_IDS = ['time', 'media', 'stats', 'pulse', 'custom'];
+const CB_LINE_IDS = ['time', 'media', 'stats', 'pulse', 'weather', 'window', 'custom'];
 let _cbEditLineIndex = -1;
 let _cbDragCleanup = null;
 
@@ -93,7 +93,26 @@ function cbApplyLineOrder(order) {
     _cbInitLineOrderDrag();
 }
 
+function cbInsertToken(token) {
+    const el = document.getElementById('cbTemplate');
+    if (!el) return;
+    const start = el.selectionStart ?? el.value.length;
+    const end   = el.selectionEnd   ?? el.value.length;
+    el.value = el.value.slice(0, start) + token + el.value.slice(end);
+    const caret = start + token.length;
+    el.focus();
+    el.setSelectionRange(caret, caret);
+    updateChatboxConfig();
+}
+
+function cbSyncTemplateUi() {
+    const wrap = document.getElementById('cbTemplateWrap');
+    const sep  = document.getElementById('cbSeparator');
+    if (wrap && sep) wrap.style.display = sep.value === 'custom' ? '' : 'none';
+}
+
 function updateChatboxConfig() {
+    cbSyncTemplateUi();
     const showAfk = document.getElementById('cbShowAfk').checked;
     const showStats = document.getElementById('cbShowSystemStats').checked;
     document.getElementById('cbAfkCard').style.display = showAfk ? '' : 'none';
@@ -115,10 +134,17 @@ function updateChatboxConfig() {
         showPulse: _cbChecked('cbShowPulse', false),
         pulseFormat: document.getElementById('cbPulseFormat')?.value || '\u2665 {bpm} BPM',
         hypeRateId: document.getElementById('cbHypeRateId')?.value.trim() || '',
+        showWindow: _cbChecked('cbShowWindow', false),
+        windowFormat: document.getElementById('cbWindowFormat')?.value || '',
+        showWeather: _cbChecked('cbShowWeather', false),
+        weatherCity: document.getElementById('cbWeatherCity')?.value.trim() || '',
+        weatherUnit: document.getElementById('cbWeatherUnit')?.value || 'celsius',
+        weatherFormat: document.getElementById('cbWeatherFormat')?.value || '',
         afkMessage: document.getElementById('cbAfkMessage').value || t('chatbox.afk.default_message', 'Currently AFK'),
         suppressSound: document.getElementById('cbSuppressSound').checked,
         timeFormat: document.getElementById('cbTimeFormat').value,
         separator: document.getElementById('cbSeparator').value,
+        customTemplate: document.getElementById('cbTemplate')?.value || '',
         intervalMs: parseInt(document.getElementById('cbInterval').value, 10) || 5000,
         lineOrder: chatboxLineOrder,
         customLines: chatboxCustomLines.map(l => ({ text: l.text, enabled: l.enabled })),
@@ -348,6 +374,18 @@ function handleHypeRateState(p) {
     else if (on)                    txt.textContent = t('chatbox.pulse.status.waiting', 'Connected, waiting for data');
     else if (p && p.error)          txt.textContent = p.error;
     else                            txt.textContent = t('chatbox.pulse.status.off', 'Not connected');
+}
+
+function handleWeatherState(p) {
+    const dot = document.getElementById('cbWeatherDot');
+    const txt = document.getElementById('cbWeatherStatus');
+    if (!dot || !txt) return;
+    const ok = !!(p && p.ok);
+    dot.className = 'sf-dot ' + (ok ? 'online' : 'offline');
+    if (ok)                                 txt.textContent = (p.city ? p.city + ' \u00b7 ' : '') + p.text;
+    else if (p && p.error === 'city_not_found') txt.textContent = t('chatbox.weather.status.not_found', 'City not found');
+    else if (p && p.error)                  txt.textContent = p.error;
+    else                                    txt.textContent = t('chatbox.weather.status.off', 'No city set');
 }
 
 function handleChatboxUpdate(data) {

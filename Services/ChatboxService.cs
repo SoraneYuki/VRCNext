@@ -42,8 +42,13 @@ namespace VRCNext
         public bool ShowCustomText { get; set; } = true;
         public bool ShowSystemStats { get; set; }
         public bool ShowPulse { get; set; }
-        public string PulseFormat { get; set; } = "\u2665 {bpm} BPM";
+        public string PulseFormat { get; set; } = "\U0001F49A {bpm} BPM";
         public Func<int>? PulseProvider { get; set; }
+        public bool ShowWindow { get; set; }
+        public string WindowFormat { get; set; } = "\U0001FA9F On desktop \"{app}\"";
+        public bool ShowWeather { get; set; }
+        public string WeatherFormat { get; set; } = "{icon} {temp}";
+        public Func<(string icon, string temp)?>? WeatherProvider { get; set; }
         public bool StatCpu { get; set; } = true;
         public bool StatRam { get; set; } = true;
         public bool StatGpu { get; set; }
@@ -55,12 +60,14 @@ namespace VRCNext
         public bool HideChatboxBackground { get; set; } = false;
         public string TimeFormat { get; set; } = "hh:mm tt";
         public string Separator { get; set; } = " | ";
+        public const string CustomSeparatorKey = "custom";
+        public string CustomTemplate { get; set; } = "";
         public int IntervalMs { get; set; } = 5000;
         public List<CbCustomLine> CustomLines { get; set; } = new();
         public List<string> LineOrder { get; set; } = new(DefaultLineOrder);
         private int _customLineIndex;
 
-        public static readonly string[] DefaultLineOrder = { "time", "media", "stats", "pulse", "custom" };
+        public static readonly string[] DefaultLineOrder = { "time", "media", "stats", "pulse", "weather", "window", "custom" };
 
         // Media state
         public string CurrentTitle { get; private set; } = "";
@@ -188,6 +195,13 @@ namespace VRCNext
                 return HideChatboxBackground ? msg + "\u0003\u001f" : msg;
             }
 
+            if (Separator == CustomSeparatorKey)
+            {
+                var tpl = BuildFromTemplate();
+                if (tpl.Length > limit) tpl = tpl[..limit];
+                return HideChatboxBackground ? tpl + "\u0003\u001f" : tpl;
+            }
+
             var parts = new List<string>();
             foreach (var segment in EffectiveLineOrder())
             {
@@ -197,6 +211,8 @@ namespace VRCNext
                     "media"  => BuildMediaPart(),
                     "stats"  => BuildStatsPart(),
                     "pulse"  => BuildPulsePart(),
+                    "weather" => BuildWeatherPart(),
+                    "window" => BuildWindowPart(),
                     "custom" => NextCustomLine(),
                     _        => null,
                 };
@@ -216,6 +232,86 @@ namespace VRCNext
             if (bpm <= 0) return null;
             var fmt = string.IsNullOrWhiteSpace(PulseFormat) ? "\u2665 {bpm} BPM" : PulseFormat;
             return fmt.Replace("{bpm}", bpm.ToString(CultureInfo.InvariantCulture));
+        }
+
+        private string? BuildWindowPart()
+        {
+            if (!ShowWindow) return null;
+            var app = VRCNext.Services.Helpers.ForegroundAppHelper.GetActiveAppName();
+            if (string.IsNullOrWhiteSpace(app)) return null;
+            var fmt = string.IsNullOrWhiteSpace(WindowFormat) ? "{app}" : WindowFormat;
+            return fmt.Replace("{app}", app);
+        }
+
+        private string? BuildWeatherPart()
+        {
+            if (!ShowWeather || WeatherProvider == null) return null;
+            (string icon, string temp)? w;
+            try { w = WeatherProvider(); } catch { return null; }
+            if (w == null) return null;
+            var fmt = string.IsNullOrWhiteSpace(WeatherFormat) ? "{icon} {temp}" : WeatherFormat;
+            return fmt.Replace("{icon}", w.Value.icon).Replace("{temp}", w.Value.temp);
+        }
+
+        private string? PartFor(string key) => key switch
+        {
+            "time"                            => ShowTime ? FormatClock() : null,
+            "media" or "playing" or "music"   => BuildMediaPart(),
+            "system" or "stats" or "sysinfo"  => BuildStatsPart(),
+            "pulse" or "heart" or "bpm" or "heartrate" or "heart rate" => BuildPulsePart(),
+            "weather"                         => BuildWeatherPart(),
+            "window" or "app"                 => BuildWindowPart(),
+            "custom" or "customtext" or "custom text" => NextCustomLine(),
+            _                                 => null,
+        };
+
+        /// <summary>
+        /// Renders the user template. Placeholders look like [time] or [custom text]; anything else is
+        /// literal. Glue around a placeholder that resolves to nothing is dropped, so a line never ends
+        /// up with a dangling separator.
+        /// </summary>
+        private string BuildFromTemplate()
+        {
+            var lines = (CustomTemplate ?? "").Replace("\r\n", "\n").Split('\n');
+            var outLines = new List<string>();
+
+            foreach (var line in lines)
+            {
+                var sb = new System.Text.StringBuilder();
+                var emitted = false;
+                var pending = "";
+                var pos = 0;
+
+                while (pos < line.Length)
+                {
+                    var open = line.IndexOf('[', pos);
+                    if (open < 0) break;
+                    var close = line.IndexOf(']', open + 1);
+                    if (close < 0) break;
+
+                    pending += line[pos..open];
+                    var key = line[(open + 1)..close].Trim().ToLowerInvariant();
+                    string? value = null;
+                    try { value = PartFor(key); } catch { }
+
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        if (emitted) sb.Append(pending);
+                        sb.Append(value);
+                        emitted = true;
+                    }
+                    pending = "";
+                    pos = close + 1;
+                }
+
+                var tail = pending + (pos < line.Length ? line[pos..] : "");
+                if (tail.Any(char.IsLetterOrDigit)) sb.Append(tail);
+
+                var text = sb.ToString().Trim();
+                if (text.Length > 0) outLines.Add(text);
+            }
+
+            return string.Join("\n", outLines);
         }
 
         private List<string> EffectiveLineOrder()
@@ -268,7 +364,7 @@ namespace VRCNext
             if (active.Count == 0) return null;
             var line = active[_customLineIndex % active.Count];
             _customLineIndex = (_customLineIndex + 1) % active.Count;
-            return line.Text;
+            return "\U0001F4AD " + line.Text;
         }
 
         private static string FormatTime(TimeSpan ts) =>
@@ -546,13 +642,20 @@ namespace VRCNext
             bool showCustomText, bool showSystemStats, bool showAfk, string afkMessage,
             bool suppressSound, string timeFormat, string separator,
             int intervalMs, List<CbCustomLine> customLines, bool hideBackground = false,
+            string? customTemplate = null,
             List<string>? lineOrder = null, bool showAfkTime = true,
             bool statCpu = true, bool statRam = true, bool statGpu = false, bool statVram = false,
-            bool showPulse = false, string? pulseFormat = null)
+            bool showPulse = false, string? pulseFormat = null,
+            bool showWindow = false, string? windowFormat = null,
+            bool showWeather = false, string? weatherFormat = null)
         {
             var was = Enabled; Enabled = enabled;
             ShowPulse = showPulse;
             if (!string.IsNullOrWhiteSpace(pulseFormat)) PulseFormat = pulseFormat;
+            ShowWindow = showWindow;
+            if (!string.IsNullOrWhiteSpace(windowFormat)) WindowFormat = windowFormat;
+            ShowWeather = showWeather;
+            if (!string.IsNullOrWhiteSpace(weatherFormat)) WeatherFormat = weatherFormat;
             ShowTime = showTime; ShowMedia = showMedia; ShowPlaytime = showPlaytime;
             ShowCustomText = showCustomText; ShowSystemStats = showSystemStats;
             ShowAfk = showAfk; ShowAfkTime = showAfkTime;
@@ -561,6 +664,7 @@ namespace VRCNext
             SuppressNotifSound = suppressSound;
             if (!string.IsNullOrWhiteSpace(timeFormat)) TimeFormat = timeFormat;
             if (separator != null) Separator = separator;
+            CustomTemplate = customTemplate ?? "";
             IntervalMs = Math.Max(intervalMs, MIN_INTERVAL_MS);
             CustomLines = customLines ?? new();
             LineOrder = (lineOrder != null && lineOrder.Count > 0) ? lineOrder : new List<string>(DefaultLineOrder);

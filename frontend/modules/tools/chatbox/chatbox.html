@@ -54,6 +54,27 @@
                                 </div>
                                 </div>
                             </div>
+                            <div class="cb-ord-block" data-line="weather">
+                                <div class="sf-toggle-row cb-ord-row"><div class="cb-ord-left"><span class="msi cb-ord-handle">drag_indicator</span><span class="msi cb-toggle-icon">wb_sunny</span><span data-i18n="chatbox.modules.weather">Weather</span><span class="msi cb-ord-caret" onclick="cbToggleModule(this)" title="Show options">expand_more</span></div><label class="toggle"><input type="checkbox" id="cbShowWeather" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                                <div class="cb-ord-body">
+                                <div class="cb-pulse-box">
+                                    <div class="cb-form-row"><label data-i18n="chatbox.weather.city">City</label><input type="text" id="cbWeatherCity" class="vrcn-edit-field" placeholder="Berlin" oninput="updateChatboxConfig()"></div>
+                                    <div class="cb-form-row"><label data-i18n="chatbox.weather.unit">Unit</label><select id="cbWeatherUnit" class="cb-select" onchange="updateChatboxConfig()"><option value="celsius" data-i18n="chatbox.weather.celsius">Celsius (&deg;C)</option><option value="fahrenheit" data-i18n="chatbox.weather.fahrenheit">Fahrenheit (&deg;F)</option></select></div>
+                                    <div class="cb-form-row"><label data-i18n="chatbox.pulse.format">Format</label><input type="text" id="cbWeatherFormat" class="vrcn-edit-field" placeholder="{icon} {temp}" oninput="updateChatboxConfig()"></div>
+                                    <div class="cb-pulse-status"><span class="sf-dot offline" id="cbWeatherDot"></span><span id="cbWeatherStatus" data-i18n="chatbox.weather.status.off">No city set</span></div>
+                                    <div class="cb-ord-hint" data-i18n="chatbox.weather.hint">Enter your city, nothing else is needed. Use {icon} and {temp} in the format. Data by Open-Meteo, refreshed every 10 minutes.</div>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="cb-ord-block" data-line="window">
+                                <div class="sf-toggle-row cb-ord-row"><div class="cb-ord-left"><span class="msi cb-ord-handle">drag_indicator</span><span class="msi cb-toggle-icon">web_asset</span><span data-i18n="chatbox.modules.window">Window Activity</span><span class="msi cb-ord-caret" onclick="cbToggleModule(this)" title="Show options">expand_more</span></div><label class="toggle"><input type="checkbox" id="cbShowWindow" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                                <div class="cb-ord-body">
+                                <div class="cb-pulse-box">
+                                    <div class="cb-form-row"><label data-i18n="chatbox.pulse.format">Format</label><input type="text" id="cbWindowFormat" class="vrcn-edit-field" placeholder="" oninput="updateChatboxConfig()"></div>
+                                    <div class="cb-ord-hint" data-i18n="chatbox.window.hint">Shows the app you currently have in focus. Use {app} in the format. Everyone in your instance can read this, so keep that in mind.</div>
+                                </div>
+                                </div>
+                            </div>
                             <div class="cb-ord-block" data-line="custom">
                                 <div class="sf-toggle-row cb-ord-row"><div class="cb-ord-left"><span class="msi cb-ord-handle">drag_indicator</span><span class="msi cb-toggle-icon">edit_note</span><span data-i18n="chatbox.modules.custom_text">Custom Text</span></div><label class="toggle"><input type="checkbox" id="cbShowCustom" checked onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                             </div>
@@ -66,7 +87,20 @@
                     <div class="vrcn-panel-card">
                         <div class="vrcn-panel-card-header"><span class="msi" style="font-size:16px;">tune</span> <span data-i18n="chatbox.format.title">Format</span></div>
                         <div class="cb-form-row"><label data-i18n="chatbox.format.time">Time</label><select id="cbTimeFormat" class="cb-select" onchange="updateChatboxConfig()"><option value="hh:mm tt" data-i18n="chatbox.format.time.12h">12h (02:45 PM)</option><option value="HH:mm" data-i18n="chatbox.format.time.24h">24h (14:45)</option><option value="hh:mm:ss tt" data-i18n="chatbox.format.time.12h_sec">12h + sec</option><option value="HH:mm:ss" data-i18n="chatbox.format.time.24h_sec">24h + sec</option></select></div>
-                        <div class="cb-form-row"><label data-i18n="chatbox.format.separator">Separator</label><select id="cbSeparator" class="cb-select" onchange="updateChatboxConfig()"><option value=" | " data-i18n="chatbox.format.separator.pipe">| pipe</option><option value=" · " data-i18n="chatbox.format.separator.dot">· dot</option><option value=" ♪ " data-i18n="chatbox.format.separator.note">♪ note</option><option value=" — " data-i18n="chatbox.format.separator.dash">— dash</option><option value="&#10;" data-i18n="chatbox.format.separator.new_line">↵ new line</option></select></div>
+                        <div class="cb-form-row"><label data-i18n="chatbox.format.separator">Separator</label><select id="cbSeparator" class="cb-select" onchange="updateChatboxConfig()"><option value=" | " data-i18n="chatbox.format.separator.pipe">| pipe</option><option value=" · " data-i18n="chatbox.format.separator.dot">· dot</option><option value=" ♪ " data-i18n="chatbox.format.separator.note">♪ note</option><option value=" — " data-i18n="chatbox.format.separator.dash">— dash</option><option value="&#10;" data-i18n="chatbox.format.separator.new_line">↵ new line</option><option value="custom" data-i18n="chatbox.format.separator.custom">&#9998; custom</option></select></div>
+                        <div id="cbTemplateWrap" style="display:none;">
+                            <div class="cb-ord-hint" data-i18n="chatbox.format.template.hint">Build the whole chatbox yourself. Every line becomes a chatbox line, anything else is written as is. Click a placeholder to insert it.</div>
+                            <div class="cb-token-list">
+                                <button type="button" class="cb-token" onclick="cbInsertToken('[time]')"><code>&#91;time&#93;</code><span data-i18n="chatbox.token.time">Local time</span></button>
+                                <button type="button" class="cb-token" onclick="cbInsertToken('[playing]')"><code>&#91;playing&#93;</code><span data-i18n="chatbox.token.playing">Now playing</span></button>
+                                <button type="button" class="cb-token" onclick="cbInsertToken('[system]')"><code>&#91;system&#93;</code><span data-i18n="chatbox.token.system">System info</span></button>
+                                <button type="button" class="cb-token" onclick="cbInsertToken('[heart]')"><code>&#91;heart&#93;</code><span data-i18n="chatbox.token.heart">Heart rate</span></button>
+                                <button type="button" class="cb-token" onclick="cbInsertToken('[weather]')"><code>&#91;weather&#93;</code><span data-i18n="chatbox.token.weather">Weather</span></button>
+                                <button type="button" class="cb-token" onclick="cbInsertToken('[window]')"><code>&#91;window&#93;</code><span data-i18n="chatbox.token.window">Focused app</span></button>
+                                <button type="button" class="cb-token" onclick="cbInsertToken('[custom text]')"><code>&#91;custom text&#93;</code><span data-i18n="chatbox.token.custom">Custom text</span></button>
+                            </div>
+                            <textarea id="cbTemplate" class="vrcn-edit-field cb-template" rows="9" placeholder="[time] | [custom text]&#10;[system] | [playing]" oninput="updateChatboxConfig()"></textarea>
+                        </div>
                         <div class="cb-form-row"><label data-i18n="chatbox.format.update_rate">Update Rate</label><select id="cbInterval" class="cb-select" onchange="updateChatboxConfig()"><option value="3000" data-i18n="chatbox.format.interval.3s">3s (relaxed)</option><option value="5000" data-i18n="chatbox.format.interval.5s">5s (recommended)</option><option value="8000" data-i18n="chatbox.format.interval.8s">8s (slow)</option><option value="10000" data-i18n="chatbox.format.interval.10s">10s (minimal)</option><option value="15000" data-i18n="chatbox.format.interval.15s">15s (very slow)</option></select></div>
                     </div>
 

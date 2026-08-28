@@ -445,14 +445,21 @@ public class AppSettings
     public bool CbSuppressSound { get; set; } = true;
     public string CbTimeFormat { get; set; } = "hh:mm tt";
     public string CbSeparator { get; set; } = " | ";
+    public string CbCustomTemplate { get; set; } = "";
     public int CbIntervalMs { get; set; } = 5000;
     public List<CbCustomLine> CbCustomLines { get; set; } = new();
     public bool CbHideBackground { get; set; } = false;
     public bool CbShowAfkTime { get; set; } = true;
-    public List<string> CbLineOrder { get; set; } = new() { "time", "media", "stats", "pulse", "custom" };
+    public List<string> CbLineOrder { get; set; } = new() { "time", "media", "stats", "pulse", "weather", "window", "custom" };
     public bool CbShowPulse { get; set; }
     public string CbHypeRateId { get; set; } = "";
-    public string CbPulseFormat { get; set; } = "\u2665 {bpm} BPM";
+    public string CbPulseFormat { get; set; } = "\U0001F49A {bpm} BPM";
+    public bool CbShowWindow { get; set; }
+    public string CbWindowFormat { get; set; } = "\U0001FA9F On desktop \"{app}\"";
+    public bool CbShowWeather { get; set; }
+    public string CbWeatherCity { get; set; } = "";
+    public string CbWeatherUnit { get; set; } = "celsius";
+    public string CbWeatherFormat { get; set; } = "{icon} {temp}";
     public bool CbStatCpu { get; set; } = true;
     public bool CbStatRam { get; set; } = true;
     public bool CbStatGpu { get; set; }

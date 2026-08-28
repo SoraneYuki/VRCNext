@@ -1,15 +1,20 @@
-**2026.46.11**
-
-**VRCNDB**
-**New Features**
-* Added **Sync Likes** to the **VRCNDb Community Database** settings (**Avatar Search** > **Support**). When enabled, your **favorited avatars** (local and VRChat groups) count as a **like** on the community database, which helps show which avatars are popular. It is **completely anonymous**, **opt-out** (on by default), syncs on every startup and whenever you add a favorite, and submits avatars that are not in the database yet.
-* Added **Sync Wears** in the same panel. When enabled, **wearing an avatar** counts toward its **wear** count on VRCNDb, so the site can show which avatars are actually worn and trending. Also **completely anonymous** and **opt-out** (on by default).
-* Let WS add wear counts.
+**2026.47.0**
 
 **Custom Chatbox**
-* New **Heart Rate** module powered by **HypeRate**. Install the free HypeRate app on an Apple Watch, a Wear OS watch, a phone or a supported chest strap, enter the ID it shows you, and your live BPM appears in the VRChat chatbox.
-* The line can be reordered and toggled like every other chatbox line, and the format is yours to choose with {bpm} standing in for the value.
-* The connection reconnects on its own with a growing delay, and the line disappears when no reading arrives for a minute, so a dead watch never leaves a stale number in your chatbox.
+* **Format > Separator** now has a **Custom** option: write your own chatbox layout in a text field. Each line becomes a chatbox line, and you control the order and separators.
+* Placeholders: `[time]`, `[playing]`, `[system]`, `[heart]`, `[weather]`, `[window]`, `[custom text]`. Empty placeholders remove their separator too, so no dangling pipes.
+* New **Weather** module: enter your city, pick °C or °F, and get the current temperature with an icon. No account or API key needed (Open-Meteo, refreshes every 10 min).
+* New **Window Activity** module: shows your focused app, e.g. `On desktop "Visual Studio Code"`.
+* New **Heart Rate** module via **HypeRate**: install the free app on a watch, phone or supported chest strap, enter your ID, and your live BPM shows in VRChat. Format it with `{bpm}`, reorder and toggle it like any other line. It reconnects automatically and hides itself after a minute without a reading, so no stale numbers.
+* Modules with sub-settings (Now Playing, System Info, Heart Rate, Weather, Window Activity) can now be collapsed.
+* Chatbox lines now have icons matching MagicChatbox: thought bubble, heart, window, and a weather icon that follows current conditions.
 
-**Fixed Bugs**
-* Fixed the **joined player image** and **left player image** blocks in **Action Flow** not showing up. Only the **friend's icon** block was recognised as a picture, so the two player image blocks were dropped from the message entirely, in the notification card, the system tray notification, the VR overlay and the Discord webhook.
+**Improvements**
+* **Ctrl + D** and right-click **Open Profile** now support **legacy user IDs** (e.g. `https://vrchat.com/home/user/qYZJsbJRqA` or just `qYZJsbJRqA`).
+
+**VRCNDB**
+* Added **Sync Likes** (**Avatar Search > Support**): your favorited avatars count as likes on the community database, helping surface popular avatars. Anonymous, on by default, syncs at startup and when you add a favorite, and submits avatars missing from the database.
+* Added **Sync Wears**: wearing an avatar counts toward its wear count, so the site can show what's actually being worn. Also anonymous and on by default.
+
+**Fixed**
+* **Joined/left player image** blocks in **Action Flow** now work. Previously only the friend's icon block counted as an image, so those two were dropped from notification cards, tray notifications, the VR overlay and Discord webhooks.

@@ -49,7 +49,18 @@
         return out;
     }
 
-    function detectVrcClipboard(text) {
+    function isLegacyUserId(id, lenient) {
+        return /^[0-9A-Za-z]{10}$/.test(id) && (lenient || /[0-9A-Z]/.test(id.slice(1)));
+    }
+
+    function detectLegacyUser(text, lenient) {
+        const url = text.match(/vrchat\.com\/home\/user\/([0-9A-Za-z]{10})(?=$|[/?#\s"'<>])/i);
+        if (url) return { type: 'user', id: url[1] };
+        if (isLegacyUserId(text, lenient)) return { type: 'user', id: text, bare: true };
+        return null;
+    }
+
+    function detectVrcClipboard(text, lenient) {
         text = (text || '').trim();
         if (!text) return null;
         let m;
@@ -70,7 +81,7 @@
         }
 
         const hit = scanVrcIds(text).find(h => VRC_PREFIX_TYPES[h.prefix]);
-        if (!hit) return null;
+        if (!hit) return detectLegacyUser(text, lenient);
         return { type: VRC_PREFIX_TYPES[hit.prefix], id: hit.id, bare: text === hit.id };
     }
     const VRC_CTX_META = {
@@ -103,11 +114,11 @@
     }
 
     window.VrcnDirectAccess = {
-        detect: detectVrcClipboard,
+        detect: text => detectVrcClipboard(text, true),
         getLabel: getVrcContextLabel,
         open: openVrcContextTarget,
         openFromText(text) {
-            const vrcData = detectVrcClipboard(text);
+            const vrcData = detectVrcClipboard(text, true);
             return openVrcContextTarget(vrcData) ? vrcData : null;
         },
     };
