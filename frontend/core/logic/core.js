@@ -1890,7 +1890,6 @@ function showTab(i) {
     if (i === 25) { if (typeof afOnTabOpen === 'function') afOnTabOpen(); }
     if (i === 27) { if (typeof onStatusScheduleTabOpen === 'function') onStatusScheduleTabOpen(); }
     if (i === 26) { if (typeof fsEnsureDeviceLists === 'function') fsEnsureDeviceLists(); }
-    if (i === 5) sendToCS({ action: 'pulsoidGetState' });
     if (typeof oscConnected !== 'undefined' && oscConnected) sendToCS({ action: 'oscSetTabVisible', visible: i === 11 });
 
     if (_prevTabEl) {

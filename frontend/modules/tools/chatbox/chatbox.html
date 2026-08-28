@@ -39,18 +39,6 @@
                                 <div class="sf-toggle-row cb-ord-row cb-ord-sub"><div class="cb-ord-left"><span class="msi cb-toggle-icon">monitor</span><span data-i18n="chatbox.sysinfo.gpu">GPU Usage</span></div><label class="toggle"><input type="checkbox" id="cbStatGpu" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                                 <div class="sf-toggle-row cb-ord-row cb-ord-sub"><div class="cb-ord-left"><span class="msi cb-toggle-icon">video_settings</span><span data-i18n="chatbox.sysinfo.vram">Video Memory (VRAM)</span></div><label class="toggle"><input type="checkbox" id="cbStatVram" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                             </div>
-                            <div class="cb-ord-block" data-line="pulse" style="display:none;">
-                                <div class="sf-toggle-row cb-ord-row"><div class="cb-ord-left"><span class="msi cb-ord-handle">drag_indicator</span><span class="msi cb-toggle-icon">favorite</span><span data-i18n="chatbox.modules.pulse">Pulsoid Pulse</span></div><label class="toggle"><input type="checkbox" id="cbShowPulse" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                                <div class="cb-pulse-box">
-                                    <div class="cb-pulse-actions">
-                                        <button class="vrcn-button" id="cbPulseLinkBtn" onclick="cbPulsoidLink()"><span class="msi" style="font-size:16px;">link</span> <span data-i18n="chatbox.pulse.link">Link Pulsoid account</span></button>
-                                        <button class="vrcn-button" id="cbPulseUnlinkBtn" style="display:none;" onclick="cbPulsoidUnlink()"><span class="msi" style="font-size:16px;">link_off</span> <span data-i18n="chatbox.pulse.unlink">Unlink</span></button>
-                                    </div>
-                                    <div class="cb-pulse-status"><span class="sf-dot offline" id="cbPulseDot"></span><span id="cbPulseStatus" data-i18n="chatbox.pulse.status.off">Not connected</span></div>
-                                    <div class="cb-form-row"><label data-i18n="chatbox.pulse.format">Format</label><input type="text" id="cbPulseFormat" class="vrcn-edit-field" placeholder="&#9829; {bpm} BPM" oninput="updateChatboxConfig()"></div>
-                                    <div class="cb-ord-hint" data-i18n="chatbox.pulse.hint">Linking opens Pulsoid in your browser and is free. Use {bpm} in the format for the value.</div>
-                                </div>
-                            </div>
                             <div class="cb-ord-block" data-line="custom">
                                 <div class="sf-toggle-row cb-ord-row"><div class="cb-ord-left"><span class="msi cb-ord-handle">drag_indicator</span><span class="msi cb-toggle-icon">edit_note</span><span data-i18n="chatbox.modules.custom_text">Custom Text</span></div><label class="toggle"><input type="checkbox" id="cbShowCustom" checked onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                             </div>

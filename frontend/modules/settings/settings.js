@@ -667,9 +667,6 @@ function loadSettingsToUI(s) {
     document.getElementById('cbStatRam').checked = s.CbStatRam ?? s.cbStatRam ?? true;
     document.getElementById('cbStatGpu').checked = s.CbStatGpu ?? s.cbStatGpu ?? false;
     document.getElementById('cbStatVram').checked = s.CbStatVram ?? s.cbStatVram ?? false;
-    document.getElementById('cbShowPulse').checked = s.CbShowPulse ?? s.cbShowPulse ?? false;
-    const cbPulseFmtEl = document.getElementById('cbPulseFormat');
-    if (cbPulseFmtEl) cbPulseFmtEl.value = s.CbPulseFormat || s.cbPulseFormat || '♥ {bpm} BPM';
     cbApplyLineOrder(s.CbLineOrder || s.cbLineOrder);
     chatboxCustomLines = _cbNormalizeLines(s.CbCustomLines || s.cbCustomLines || []);
     renderChatboxLines();
