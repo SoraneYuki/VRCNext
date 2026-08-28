@@ -1310,7 +1310,6 @@ public partial class AppShell
         finally { try { ctx.Response.Close(); } catch { } }
     }
 
-    // Joins a client supplied relative path onto a base directory and rejects anything that escapes it.
     private static string? ResolveUnder(string baseDir, string rel)
     {
         try
@@ -1322,7 +1321,6 @@ public partial class AppShell
         catch { return null; }
     }
 
-    // The Windows frontend runs from file:// (Origin "null"), Linux from this listener's own origin.
     private static void ApplyCors(System.Net.HttpListenerContext ctx)
     {
         var origin = ctx.Request.Headers["Origin"];

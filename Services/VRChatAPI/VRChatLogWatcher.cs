@@ -340,7 +340,6 @@ public class VRChatLogWatcher : IDisposable
             using var fs = new FileStream(_currentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             if (fs.Length < _lastPosition) { _lastPosition = 0; lock (_lock) _players.Clear(); }
             if (fs.Length == _lastPosition) return;
-            // Only consume up to the last complete line; a line VRChat is still writing stays for the next poll.
             var end = FindLastNewlineEnd(fs, _lastPosition);
             if (end <= _lastPosition) return;
             fs.Seek(_lastPosition, SeekOrigin.Begin);
@@ -353,7 +352,6 @@ public class VRChatLogWatcher : IDisposable
         catch (Exception ex) { Log($"LogWatcher: Read error: {ex.Message}"); }
     }
 
-    // Returns the offset just past the last '\n' at or after `from`, or `from` when there is none.
     private static long FindLastNewlineEnd(FileStream fs, long from)
     {
         var buf = new byte[64 * 1024];
