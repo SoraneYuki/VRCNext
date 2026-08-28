@@ -135,6 +135,7 @@ function updateChatboxConfig() {
         showPulse: _cbChecked('cbShowPulse', false),
         pulseFormat: document.getElementById('cbPulseFormat')?.value || '\u2665 {bpm} BPM',
         hypeRateId: document.getElementById('cbHypeRateId')?.value.trim() || '',
+        afHeartRate: _cbChecked('cbAfHeartRate', false),
         showWindow: _cbChecked('cbShowWindow', false),
         windowFormat: document.getElementById('cbWindowFormat')?.value || '',
         showWeather: _cbChecked('cbShowWeather', false),
@@ -363,12 +364,15 @@ function _cbInitLineOrderDrag() {
     _cbDragCleanup = () => list.removeEventListener('pointerdown', onDown);
 }
 
+let hypeRateBpm = 0;
+
 function handleHypeRateState(p) {
+    const on  = !!(p && p.connected);
+    const bpm = (p && p.bpm) || 0;
+    hypeRateBpm = bpm;
     const dot = document.getElementById('cbPulseDot');
     const txt = document.getElementById('cbPulseStatus');
     if (!dot || !txt) return;
-    const on  = !!(p && p.connected);
-    const bpm = (p && p.bpm) || 0;
     dot.className = 'sf-dot ' + (on ? 'online' : 'offline');
     if (p && p.available === false) txt.textContent = t('chatbox.pulse.status.unavailable', 'Not available in this build');
     else if (on && bpm > 0)         txt.textContent = tf('chatbox.pulse.status.bpm', { bpm }, bpm + ' BPM');

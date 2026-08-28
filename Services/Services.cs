@@ -455,6 +455,7 @@ public class AppSettings
     public List<string> CbLineOrder { get; set; } = new() { "time", "media", "stats", "pulse", "weather", "window", "custom" };
     public bool CbShowPulse { get; set; }
     public string CbHypeRateId { get; set; } = "";
+    public bool CbAfHeartRate { get; set; }
     public string CbPulseFormat { get; set; } = "\U0001F49A {bpm} BPM";
     public bool CbShowWindow { get; set; }
     public string CbWindowFormat { get; set; } = "\U0001FA9F On desktop \"{app}\"";

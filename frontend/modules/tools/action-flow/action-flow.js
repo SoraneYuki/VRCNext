@@ -245,6 +245,13 @@ function afDefineBlocks() {
         };
     }
 
+    B.Blocks['af_trigger_every_second'] = { init() {
+        this.appendDummyInput().appendField(aft('trigger.every_second', 'do every second'));
+        this.appendStatementInput('DO').appendField(DO);
+        this.setColour(COLOR_VRCN);
+        this.hat = 'cap';
+        this.setTooltip(aft('trigger.every_second_tooltip', 'Runs once per second. Works only with VRCN Actions and Logic blocks, does not work with VRC Actions or Webhook Actions (those are skipped).'));
+    } };
     makeTriggerHat('af_trigger_interval_30s',         b => b.appendDummyInput().appendField(aft('trigger.every_30s', 'every 30 seconds')));
     makeTriggerHat('af_trigger_interval_minutes',     b => b.appendDummyInput().appendField(aft('trigger.every', 'every')).appendField(new B.FieldNumber(5, 1, 1440, 1), 'MIN').appendField(aft('trigger.minutes', 'minutes')));
     makeTriggerHat('af_trigger_world_change',         b => b.appendDummyInput().appendField(aft('trigger.world_change', 'when I switch world (15s delay)')));
@@ -697,7 +704,7 @@ function afDefineBlocks() {
         this.appendDummyInput().appendField(aft('action.send_notification', 'send notification')).appendField('"').appendField(new B.FieldTextInput(aft('action.send_notification_default', 'Hello')), 'TEXT').appendField('"');
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour(COLOR_ACTION);
+        this.setColour(COLOR_VRCN);
     } };
 
     B.Blocks['af_answer_invite'] = { init() {
@@ -890,7 +897,7 @@ function afDefineBlocks() {
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour(COLOR_ACTION);
+        this.setColour(COLOR_VRCN);
         this.setTooltip(aft('action.send_notification_value_tooltip', 'Sends a notification containing the value of the attached Get Info block.'));
     } };
 
@@ -902,7 +909,7 @@ function afDefineBlocks() {
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour(COLOR_ACTION);
+        this.setColour(COLOR_VRCN);
         this.setTooltip(aft('action.send_advanced_notification_tooltip', 'Sends a notification with your own text followed by the value of the attached Get Info block.'));
     } };
 
@@ -1027,6 +1034,13 @@ function afDefineBlocks() {
             this.setTooltip(aft(tipKey, tipFb));
         } };
     }
+
+    B.Blocks['af_get_heart_rate_int'] = { init() {
+        this.appendDummyInput().appendField(aft('info.heart_rate', 'heart rate') + ' (int)');
+        this.setOutput(true, 'Number');
+        this.setColour(COLOR_VRCN);
+        this.setTooltip(aft('info.heart_rate_tooltip', 'Current heart rate in BPM from the HypeRate connection of the Custom Chatbox. 0 when no data is available. Enable "Allow Action Flow using Heart Rate" in the Custom Chatbox to use it while the chatbox is off.'));
+    } };
 }
 
 function afToolbox() {
@@ -1100,6 +1114,7 @@ function afToolbox() {
                 { kind: 'block', type: 'af_get_joined_player_image' },
                 { kind: 'block', type: 'af_get_left_player_image' },
                 { kind: 'block', type: 'af_get_instance_type_label' },
+                { kind: 'block', type: 'af_get_heart_rate_int' },
             ]},
             { kind: 'category', name: aft('toolbox.friends', 'Friends'), colour: COLOR_PARAM, contents: [
                 { kind: 'block', type: 'af_friend_obj' },
@@ -1144,11 +1159,13 @@ function afToolbox() {
                 { kind: 'block', type: 'af_request_invite' },
                 { kind: 'block', type: 'af_answer_invite' },
                 { kind: 'block', type: 'af_answer_invite_request' },
+            ]},
+            { kind: 'category', name: aft('toolbox.vrcn_actions', 'VRCN Actions'), colour: COLOR_VRCN, contents: [
+                { kind: 'block', type: 'af_trigger_every_second' },
+                { kind: 'sep' },
                 { kind: 'block', type: 'af_send_notification' },
                 { kind: 'block', type: 'af_send_notification_value' },
                 { kind: 'block', type: 'af_send_advanced_notification' },
-            ]},
-            { kind: 'category', name: aft('toolbox.vrcn_actions', 'VRCN Actions'), colour: COLOR_VRCN, contents: [
                 { kind: 'block', type: 'af_set_feature' },
                 { kind: 'block', type: 'af_osc_set_bool' },
                 { kind: 'block', type: 'af_osc_set_float' },
@@ -1755,10 +1772,50 @@ function afEsc(s) { const d = document.createElement('div'); d.textContent = Str
 function afStartTicker() {
     if (afTickTimer) return;
     afTickTimer = setInterval(afTick, EVENT_TICK_MS);
+    afSecondTimer = setInterval(afSecondTick, 1000);
     setTimeout(afTick, 2000);
 }
 
+let afSecondTimer = null;
+/* Per flow id: { blocked: Set<blockId>, warned: Set<blockId> } for the "do every second" trigger. Kept out of the flow objects so it is never saved. */
+const afSecondState = {};
+
+/* Block types the "do every second" trigger must never run: everything from
+   the VRC Actions and Webhook Actions categories (all of them hit an API). */
+const AF_EVERY_SECOND_BLOCKED = new Set([
+    'af_set_status', 'af_set_bio_text', 'af_switch_own_avatar', 'af_switch_favorite_avatar',
+    'af_switch_avatar_id', 'af_set_home_world', 'af_invite_friend', 'af_request_invite',
+    'af_answer_invite', 'af_answer_invite_request',
+    'af_send_own_instance_info', 'af_send_own_advanced_instance_info', 'af_send_friend_instance_info',
+    'af_send_webhook', 'af_send_webhook_value', 'af_send_advanced_webhook',
+]);
+
+function afCollectEverySecondBlocked(block, out) {
+    let cur = block;
+    while (cur) {
+        if (AF_EVERY_SECOND_BLOCKED.has(cur.type) && cur.id) out.add(cur.id);
+        if (cur.inputs) for (const k in cur.inputs) afCollectEverySecondBlocked(cur.inputs[k].block, out);
+        cur = cur.next?.block;
+    }
+    return out;
+}
+
+function afSecondTick() {
+    for (const flow of afFlows) {
+        if (!flow.enabled || !flow.workspace) continue;
+        const roots = flow.workspace.blocks?.blocks;
+        if (!Array.isArray(roots)) continue;
+        for (const root of roots) {
+            if (root && root.type === 'af_trigger_every_second') {
+                try { afFireTrigger(flow, root, 'every second'); }
+                catch (e) { afLog('err', '[' + flow.name + '] ' + (e.message || e)); }
+            }
+        }
+    }
+}
+
 const TRIGGER_TYPES = new Set([
+    'af_trigger_every_second',
     'af_trigger_interval_30s',
     'af_trigger_interval_minutes',
     'af_trigger_world_change',
@@ -1949,7 +2006,12 @@ function afFireTrigger(flow, block, reason, triggeringUser, notificationId, trig
         triggerAction: triggerAction || null,
     };
     try {
-        afLog('info', '[' + flow.name + '] ' + aftf('log.trigger_fired', { reason }, 'trigger fired (' + reason + ')'));
+        if (block.type === 'af_trigger_every_second') {
+            const st = afSecondState[flow.id] = afSecondState[flow.id] || { warned: new Set() };
+            st.blocked = afCollectEverySecondBlocked(afInputStatement(block, 'DO'), new Set());
+        } else {
+            afLog('info', '[' + flow.name + '] ' + aftf('log.trigger_fired', { reason }, 'trigger fired (' + reason + ')'));
+        }
         afExecStatements(flow, afInputStatement(block, 'DO'));
     } finally {
         afContext = prevCtx;
@@ -2219,6 +2281,14 @@ function afFriendInstanceInfo(friend) {
 
 function afExecAction(flow, block) {
     const f = block.fields || {};
+    const secondSt = afSecondState[flow.id];
+    if (secondSt && secondSt.blocked && block.id && secondSt.blocked.has(block.id)) {
+        if (!secondSt.warned.has(block.id)) {
+            secondSt.warned.add(block.id);
+            afLog('err', '[' + flow.name + '] ' + aftf('log.every_second_blocked', { type: block.type }, 'skipped ' + block.type + ': "do every second" does not run VRC Actions or Webhook Actions'));
+        }
+        return;
+    }
     switch (block.type) {
         case 'af_if': {
             if (afEvalValue(afInput(block, 'IF0'))) afExecStatements(flow, afInputStatement(block, 'DO0'));
@@ -2402,10 +2472,6 @@ function afExecAction(flow, block) {
         case 'af_osc_set_int': {
             const oscPath = String(f.PARAM || '').trim();
             if (!oscPath) { afLog('err', '[' + flow.name + '] ' + aft('log.osc_no_param', 'OSC send skipped: no parameter set')); break; }
-            if (typeof oscConnected === 'undefined' || !oscConnected) {
-                afLog('err', '[' + flow.name + '] ' + aft('log.osc_not_connected', 'OSC send skipped: OSC Tool is not connected'));
-                break;
-            }
             const oscRaw  = afEvalValue(afInput(block, 'VALUE'));
             const oscType = block.type === 'af_osc_set_bool' ? 'bool'
                           : block.type === 'af_osc_set_float' ? 'float' : 'int';
@@ -2852,6 +2918,8 @@ function afEvalValue(block) {
             const now = new Date();
             return typeof fmtTime === 'function' ? fmtTime(now) : now.toLocaleTimeString();
         }
+        case 'af_get_heart_rate_int':
+            return typeof hypeRateBpm !== 'undefined' ? Math.round(Number(hypeRateBpm) || 0) : 0;
         case 'af_get_joined_player_name': {
             const tu = afContext.triggeringUser;
             return tu ? String(tu.displayName || afInstanceUserName(tu.id) || tu.id || '') : '';

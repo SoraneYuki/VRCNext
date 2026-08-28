@@ -675,6 +675,8 @@ function loadSettingsToUI(s) {
     document.getElementById('cbShowPulse').checked = s.CbShowPulse ?? s.cbShowPulse ?? false;
     const cbHrIdEl = document.getElementById('cbHypeRateId');
     if (cbHrIdEl) cbHrIdEl.value = s.CbHypeRateId || s.cbHypeRateId || '';
+    const cbAfHrEl = document.getElementById('cbAfHeartRate');
+    if (cbAfHrEl) cbAfHrEl.checked = s.CbAfHeartRate ?? s.cbAfHeartRate ?? false;
     document.getElementById('cbShowWindow').checked = s.CbShowWindow ?? s.cbShowWindow ?? false;
     const cbWinFmtEl = document.getElementById('cbWindowFormat');
     if (cbWinFmtEl) cbWinFmtEl.value = s.CbWindowFormat || s.cbWindowFormat || '';

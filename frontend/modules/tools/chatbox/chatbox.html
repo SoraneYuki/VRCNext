@@ -50,6 +50,8 @@
                                     <div class="cb-form-row"><label data-i18n="chatbox.pulse.id">HypeRate ID</label><input type="text" id="cbHypeRateId" class="vrcn-edit-field" placeholder="" oninput="updateChatboxConfig()"></div>
                                     <div class="cb-form-row"><label data-i18n="chatbox.pulse.format">Format</label><input type="text" id="cbPulseFormat" class="vrcn-edit-field" placeholder="&#9829; {bpm} BPM" oninput="updateChatboxConfig()"></div>
                                     <div class="cb-pulse-status"><span class="sf-dot offline" id="cbPulseDot"></span><span id="cbPulseStatus" data-i18n="chatbox.pulse.status.off">Not connected</span></div>
+                                    <div class="sf-toggle-row"><div style="display:flex;align-items:center;gap:8px;"><span class="msi cb-toggle-icon">account_tree</span><span data-i18n="chatbox.pulse.allow_action_flow">Allow Action Flow using Heart Rate</span></div><label class="toggle"><input type="checkbox" id="cbAfHeartRate" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                                    <div class="cb-ord-hint" data-i18n="chatbox.pulse.allow_action_flow_hint">Keeps the HypeRate connection alive for the Action Flow "heart rate" blocks, even while the Custom Chatbox is off.</div>
                                     <div class="cb-ord-hint" data-i18n="chatbox.pulse.hint">Install the free HypeRate app on your watch or phone, then enter the ID it shows you. Use {bpm} in the format for the value.</div>
                                 </div>
                                 </div>

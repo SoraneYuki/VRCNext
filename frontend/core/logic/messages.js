@@ -14,6 +14,7 @@ window.external.receiveMessage(rawMsg => {
             case 'loadSettings':
                 loadSettingsToUI(payload);
                 if (typeof requestAccountsList === 'function') requestAccountsList();
+                sendToCS({ action: 'hypeRateGetState' });
                 if (!window.__vrcndbConsentChecked) {
                     window.__vrcndbConsentChecked = true;
                     const shown = payload.VrcndbConsentShown ?? payload.vrcndbConsentShown ?? false;

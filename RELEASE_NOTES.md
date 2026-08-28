@@ -3,6 +3,15 @@
 **Timeline**
 * Notifications are now colour coded: green for friend requests, orange for groups, cyan for world invites, yellow for everything else.
 
+**Action Flow**
+* New **Get Info** block **heart rate (int)** returns the current BPM from the Custom Chatbox HypeRate connection (0 when no data).
+* **set OSC bool / float / int** now send even when the OSC Tool is not started; the OSC Tool is only needed for receiving parameters.
+* New **VRCN Actions** trigger **do every second** for OSC and other local tasks. It runs VRCN Actions and Logic blocks only; VRC Actions and Webhook Actions inside it are skipped and logged, so it can never spam the VRChat API.
+* The three **send notification** blocks moved from VRC Actions to **VRCN Actions**, so they can be used inside **do every second**.
+
+**Custom Chatbox**
+* New toggle **Allow Action Flow using Heart Rate** under Heart Rate. When enabled, the HypeRate connection stays alive so Action Flow can read the heart rate even while the chatbox is off.
+
 **Fixed**
 * **Taskbar notifications**: all buttons were broken (Current, Hidden, Refresh, Clear All, Accept, Hide, quick replies). They work again.
 * **Chatbox**: stopped sending messages on PCs running longer than 25 days without a restart.

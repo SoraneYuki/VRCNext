@@ -78,6 +78,7 @@ public class ChatboxController : IDisposable
                     var showPulse = msg["showPulse"]?.Value<bool>() ?? false;
                     var pulseFormat = msg["pulseFormat"]?.ToString() ?? "\u2665 {bpm} BPM";
                     var hypeRateId = msg["hypeRateId"]?.ToString() ?? "";
+                    var afHeartRate = msg["afHeartRate"]?.Value<bool>() ?? false;
                     var showWindow = msg["showWindow"]?.Value<bool>() ?? false;
                     var windowFormat = msg["windowFormat"]?.ToString() ?? "";
                     var showWeather = msg["showWeather"]?.Value<bool>() ?? false;
@@ -97,7 +98,7 @@ public class ChatboxController : IDisposable
                         afkMouseSeconds: afkMouseSeconds, afkKeyboardSeconds: afkKeyboardSeconds);
                     _chatbox.PulseProvider = () => _hypeRate != null && _hypeRate.HasFreshData ? _hypeRate.CurrentBpm : 0;
                     _chatbox.WeatherProvider = CurrentWeather;
-                    ApplyHypeRate(showPulse && enabled, hypeRateId);
+                    ApplyHypeRate((showPulse && enabled) || afHeartRate, hypeRateId);
                     ApplyWeather(showWeather && enabled, weatherCity, weatherUnit);
                     _vroCtrl.UpdateToolStates();
 
@@ -127,6 +128,7 @@ public class ChatboxController : IDisposable
                     _core.Settings.CbShowPulse = showPulse;
                     _core.Settings.CbPulseFormat = pulseFormat;
                     _core.Settings.CbHypeRateId = hypeRateId;
+                    _core.Settings.CbAfHeartRate = afHeartRate;
                     _core.Settings.CbShowWindow = showWindow;
                     _core.Settings.CbWindowFormat = windowFormat;
                     _core.Settings.CbShowWeather = showWeather;
@@ -204,11 +206,8 @@ public class ChatboxController : IDisposable
                 {
                     var pName = msg["name"]?.ToString() ?? "";
                     var pType = msg["type"]?.ToString() ?? "";
-                    if (_osc?.IsConnected != true)
-                    {
-                        _core.SendToJS("log", new { msg = $"[OSC] Send skipped — not connected (osc={_osc != null}, running={_osc?.IsConnected})", color = "err" });
-                    }
-                    else if (!string.IsNullOrEmpty(pName))
+                    _osc ??= new OscService(s => Invoke(() => _core.SendToJS("log", new { msg = s, color = "sec" })));
+                    if (!string.IsNullOrEmpty(pName))
                     {
                         if (pType == "bool") _osc.SendBool(pName, msg["value"]?.Value<bool>() ?? false);
                         else if (pType == "float") _osc.SendFloat(pName, msg["value"]?.Value<float>() ?? 0f);
@@ -219,22 +218,23 @@ public class ChatboxController : IDisposable
 
             case "oscSendRaw":
                 {
-                    if (_osc?.IsConnected == true)
+                    _osc ??= new OscService(s => Invoke(() => _core.SendToJS("log", new { msg = s, color = "sec" })));
+                    var address = msg["address"]?.ToString() ?? "";
+                    var pType   = msg["type"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(address))
                     {
-                        var address = msg["address"]?.ToString() ?? "";
-                        var pType   = msg["type"]?.ToString() ?? "";
-                        if (!string.IsNullOrEmpty(address))
-                        {
-                            if (pType == "float") _osc.SendRawFloat(address, msg["value"]?.Value<float>() ?? 0f);
-                            else if (pType == "bool") _osc.SendRawBool(address, msg["value"]?.Value<bool>() ?? false);
-                            else if (pType == "int") _osc.SendRawInt(address, msg["value"]?.Value<int>() ?? 0);
-                        }
+                        if (pType == "float") _osc.SendRawFloat(address, msg["value"]?.Value<float>() ?? 0f);
+                        else if (pType == "bool") _osc.SendRawBool(address, msg["value"]?.Value<bool>() ?? false);
+                        else if (pType == "int") _osc.SendRawInt(address, msg["value"]?.Value<int>() ?? 0);
                     }
                 }
                 break;
 
             case "hypeRateGetState":
-                SendHypeRateState();
+                if (_hypeRate == null && _core.Settings.CbAfHeartRate)
+                    ApplyHypeRate(true, _core.Settings.CbHypeRateId);
+                else
+                    SendHypeRateState();
                 break;
 
             case "weatherGetState":
@@ -371,7 +371,7 @@ public class ChatboxController : IDisposable
         {
             _chatbox.Stop();
             _chatbox = null;
-            ApplyHypeRate(false, "");
+            ApplyHypeRate(_core.Settings.CbAfHeartRate, _core.Settings.CbHypeRateId);
             ApplyWeather(false, "", "celsius");
             _core.SendToJS("chatboxUpdate", new { enabled = false });
         }
@@ -392,7 +392,7 @@ public class ChatboxController : IDisposable
                 afkMouseSeconds: _core.Settings.CbAfkMouseSeconds, afkKeyboardSeconds: _core.Settings.CbAfkKeyboardSeconds);
             _chatbox.PulseProvider = () => _hypeRate != null && _hypeRate.HasFreshData ? _hypeRate.CurrentBpm : 0;
             _chatbox.WeatherProvider = CurrentWeather;
-            ApplyHypeRate(_core.Settings.CbShowPulse, _core.Settings.CbHypeRateId);
+            ApplyHypeRate(_core.Settings.CbShowPulse || _core.Settings.CbAfHeartRate, _core.Settings.CbHypeRateId);
             ApplyWeather(_core.Settings.CbShowWeather, _core.Settings.CbWeatherCity, _core.Settings.CbWeatherUnit);
             _core.SendToJS("chatboxUpdate", new { enabled = true });
         }

@@ -374,9 +374,17 @@ namespace VRCNext
             return v;
         }
 
+        // Sending never requires the receiver to be running; Action Flow sends OSC without the OSC tool being started.
+        private void EnsureSender()
+        {
+            if (_sender != null) return;
+            _sender = new UdpClient();
+            _sender.Connect(IPAddress.Parse(OSC_IP), VRC_SEND_PORT);
+        }
+
         public void SendBool(string name, bool value)
         {
-            if (_sender == null) { _log("[OSC] SendBool: no sender"); return; }
+            EnsureSender();
             try
             {
                 var buf = new List<byte>();
@@ -391,7 +399,7 @@ namespace VRCNext
 
         public void SendFloat(string name, float value)
         {
-            if (_sender == null) { _log("[OSC] SendFloat: no sender"); return; }
+            EnsureSender();
             try
             {
                 var buf = new List<byte>();
@@ -408,7 +416,7 @@ namespace VRCNext
 
         public void SendRawFloat(string address, float value)
         {
-            if (_sender == null) { _log("[OSC] SendRawFloat: no sender"); return; }
+            EnsureSender();
             try
             {
                 var buf = new List<byte>();
@@ -425,7 +433,7 @@ namespace VRCNext
 
         public void SendRawBool(string address, bool value)
         {
-            if (_sender == null) { _log("[OSC] SendRawBool: no sender"); return; }
+            EnsureSender();
             try
             {
                 var buf = new List<byte>();
@@ -440,7 +448,7 @@ namespace VRCNext
 
         public void SendRawInt(string address, int value)
         {
-            if (_sender == null) { _log("[OSC] SendRawInt: no sender"); return; }
+            EnsureSender();
             try
             {
                 var buf = new List<byte>();
@@ -459,7 +467,7 @@ namespace VRCNext
 
         public void SendEyeHeight(float meters)
         {
-            if (_sender == null) { _log("[OSC] SendEyeHeight: no sender"); return; }
+            EnsureSender();
             try
             {
                 var buf = new List<byte>();
@@ -476,7 +484,7 @@ namespace VRCNext
 
         public void SendInt(string name, int value)
         {
-            if (_sender == null) { _log("[OSC] SendInt: no sender"); return; }
+            EnsureSender();
             try
             {
                 var buf = new List<byte>();
