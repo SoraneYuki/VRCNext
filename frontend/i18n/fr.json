@@ -3265,8 +3265,6 @@
   "action_flow.log.osc_no_param": "envoi OSC ignoré : aucun paramètre",
   "action_flow.log.osc_not_connected": "envoi OSC ignoré : l'outil OSC n'est pas connecté",
   "action_flow.log.osc_sent": "OSC {param} = {value}",
-  "action_flow.block.true": "true",
-  "action_flow.block.false": "false",
   "action_flow.log.feature_unknown": "définir la fonction ignoré : fonction inconnue",
   "action_flow.log.feature_unavailable": "définir la fonction ignoré : {feature} n'est pas disponible",
   "action_flow.log.feature_unchanged": "{feature} déjà sur {state}",

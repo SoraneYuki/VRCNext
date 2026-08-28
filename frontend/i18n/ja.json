@@ -3264,8 +3264,6 @@
   "action_flow.log.osc_no_param": "OSC送信をスキップしました: パラメータが未設定です",
   "action_flow.log.osc_not_connected": "OSC送信をスキップしました: OSCツールが接続されていません",
   "action_flow.log.osc_sent": "OSC {param} = {value}",
-  "action_flow.block.true": "true",
-  "action_flow.block.false": "false",
   "action_flow.log.feature_unknown": "機能の設定をスキップしました: 不明な機能です",
   "action_flow.log.feature_unavailable": "機能の設定をスキップしました: {feature} は利用できません",
   "action_flow.log.feature_unchanged": "{feature} はすでに {state} です",

@@ -192,7 +192,7 @@ function _tlPlayerCard(p, instanceStart, instanceEnd) {
             ? `&nbsp;·&nbsp;<span style="color:var(--ok);">&#9679;&nbsp;${esc(t('timeline.detail.ongoing', 'Ongoing'))}</span>`
             : '';
         const visits = joins.length > 1
-            ? `${esc(tf('timeline.detail.visits_count', { count: joins.length }, `${joins.length} visits`))}&nbsp;·&nbsp;`
+            ? `${esc(tf('timeline.detail.visits_count', { count: joins.length }, '{count} visits'))}&nbsp;·&nbsp;`
             : '';
         const spent = totalSecs > 0
             ? `${esc(t('nav.time_spent', 'Time Spent'))} ${esc(formatDuration(totalSecs))}`

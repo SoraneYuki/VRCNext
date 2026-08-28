@@ -3265,8 +3265,6 @@
   "action_flow.log.osc_no_param": "已跳过 OSC 发送：未设置参数",
   "action_flow.log.osc_not_connected": "已跳过 OSC 发送：OSC 工具未连接",
   "action_flow.log.osc_sent": "OSC {param} = {value}",
-  "action_flow.block.true": "true",
-  "action_flow.block.false": "false",
   "action_flow.log.feature_unknown": "已跳过设置功能：未知功能",
   "action_flow.log.feature_unavailable": "已跳过设置功能：{feature} 不可用",
   "action_flow.log.feature_unchanged": "{feature} 已经是 {state}",

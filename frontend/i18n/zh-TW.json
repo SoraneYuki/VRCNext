@@ -3250,8 +3250,6 @@
   "action_flow.log.wait_timeout": "等待已放棄：條件始終為假",
   "action_flow.block.and": "且",
   "action_flow.block.or": "或",
-  "action_flow.block.true": "真",
-  "action_flow.block.false": "假",
   "action_flow.block.ampm_24h": "24h",
   "action_flow.block.ampm_am": "AM",
   "action_flow.block.ampm_pm": "PM",

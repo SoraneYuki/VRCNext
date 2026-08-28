@@ -3267,8 +3267,6 @@
   "action_flow.log.wait_timeout": "대기 중단: 조건이 계속 거짓이었습니다",
   "action_flow.block.and": "그리고",
   "action_flow.block.or": "또는",
-  "action_flow.block.true": "참",
-  "action_flow.block.false": "거짓",
   "action_flow.block.ampm_24h": "24시간",
   "action_flow.block.ampm_am": "오전",
   "action_flow.block.ampm_pm": "오후",

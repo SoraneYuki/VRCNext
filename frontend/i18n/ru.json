@@ -3285,8 +3285,6 @@
   "action_flow.log.osc_no_param": "отправка OSC пропущена: параметр не задан",
   "action_flow.log.osc_not_connected": "отправка OSC пропущена: инструмент OSC не подключён",
   "action_flow.log.osc_sent": "OSC {param} = {value}",
-  "action_flow.block.true": "true",
-  "action_flow.block.false": "false",
   "action_flow.log.feature_unknown": "установка функции пропущена: неизвестная функция",
   "action_flow.log.feature_unavailable": "установка функции пропущена: {feature} недоступна",
   "action_flow.log.feature_unchanged": "{feature} уже {state}",
