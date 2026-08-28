@@ -80,7 +80,18 @@
                             </div>
                         </div>
                         <div class="cb-ord-divider" data-i18n="chatbox.modules.options">Options</div>
-                        <div class="sf-toggle-row"><div style="display:flex;align-items:center;gap:8px;"><span class="msi cb-toggle-icon">bedtime</span><span data-i18n="chatbox.modules.afk_detection">AFK Detection</span></div><label class="toggle"><input type="checkbox" id="cbShowAfk" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                        <div class="cb-ord-block" id="cbAfkBlock">
+                            <div class="sf-toggle-row cb-ord-row"><div style="display:flex;align-items:center;gap:8px;"><span class="msi cb-toggle-icon">bedtime</span><span data-i18n="chatbox.modules.afk_detection">AFK Detection</span><span class="msi cb-ord-caret" onclick="cbToggleModule(this)" title="Show options">expand_more</span></div><label class="toggle"><input type="checkbox" id="cbShowAfk" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                            <div class="cb-ord-body">
+                            <div class="cb-pulse-box">
+                            <div class="cb-form-row"><label data-i18n="chatbox.afk.message">Message</label><input type="text" id="cbAfkMessage" class="vrcn-edit-field" value="" placeholder="Currently AFK" data-i18n-placeholder="chatbox.afk.default_message" oninput="updateChatboxConfig()" style="flex:1;"></div>
+                            <div class="sf-toggle-row"><div style="display:flex;align-items:center;gap:8px;"><span class="msi cb-toggle-icon">timer</span><span data-i18n="chatbox.afk.show_time">Show AFK time</span></div><label class="toggle"><input type="checkbox" id="cbShowAfkTime" checked onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                            <div class="cb-form-row"><label data-i18n="chatbox.afk.mouse_idle">Mouse idle for</label><select id="cbAfkMouseSec" class="cb-select" onchange="updateChatboxConfig()"><option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option><option value="60">1 min</option><option value="120">2 min</option><option value="300">5 min</option></select></div>
+                            <div class="cb-form-row"><label data-i18n="chatbox.afk.keyboard_idle">Keyboard idle for</label><select id="cbAfkKeyboardSec" class="cb-select" onchange="updateChatboxConfig()"><option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option><option value="60">1 min</option><option value="120">2 min</option><option value="300">5 min</option></select></div>
+                            <div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);margin-top:4px;" data-i18n="chatbox.afk.hint">Starts once VRChat is not the active window and both timers have run out. While AFK the chatbox shows only your AFK message.</div>
+                            </div>
+                            </div>
+                        </div>
                         <div class="sf-toggle-row"><div style="display:flex;align-items:center;gap:8px;"><span class="msi cb-toggle-icon">notifications_off</span><span data-i18n="chatbox.modules.suppress_sound">Suppress Sound</span></div><label class="toggle"><input type="checkbox" id="cbSuppressSound" checked onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="sf-toggle-row"><div style="display:flex;align-items:center;gap:8px;"><span class="msi cb-toggle-icon">hide_source</span><span data-i18n="chatbox.modules.hide_background">Hide Chatbox Background</span></div><label class="toggle"><input type="checkbox" id="cbHideBackground" onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                     </div>
@@ -119,13 +130,6 @@
                         </div>
                         <div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);margin-top:6px;" data-i18n="chatbox.custom_lines.hint">Lines rotate each cycle. Use for status, socials, bio, etc.</div>
                     </div>
-                </div>
-
-                <div class="vrcn-panel-card" id="cbAfkCard" style="display:none;margin-top:16px;">
-                    <div class="vrcn-panel-card-header"><span class="msi" style="font-size:16px;">bedtime</span> <span data-i18n="chatbox.afk.title">AFK Settings</span></div>
-                    <div class="cb-form-row"><label data-i18n="chatbox.afk.message">Message</label><input type="text" id="cbAfkMessage" class="vrcn-edit-field" value="" placeholder="Currently AFK" data-i18n-placeholder="chatbox.afk.default_message" oninput="updateChatboxConfig()" style="flex:1;"></div>
-                    <div class="sf-toggle-row"><div style="display:flex;align-items:center;gap:8px;"><span class="msi cb-toggle-icon">timer</span><span data-i18n="chatbox.afk.show_time">Show AFK time</span></div><label class="toggle"><input type="checkbox" id="cbShowAfkTime" checked onchange="updateChatboxConfig()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                    <div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);margin-top:4px;" data-i18n="chatbox.afk.hint">Shown when VRChat is not the active window. Overrides other modules.</div>
                 </div>
 
                 <!-- Live Chat — full width, unterhalb aller anderen Cards -->

@@ -115,7 +115,6 @@ function updateChatboxConfig() {
     cbSyncTemplateUi();
     const showAfk = document.getElementById('cbShowAfk').checked;
     const showStats = document.getElementById('cbShowSystemStats').checked;
-    document.getElementById('cbAfkCard').style.display = showAfk ? '' : 'none';
     chatboxLineOrder = cbReadLineOrder();
     sendToCS({
         action: 'chatboxConfig',
@@ -126,6 +125,8 @@ function updateChatboxConfig() {
         showCustomText: document.getElementById('cbShowCustom').checked,
         showSystemStats: showStats,
         showAfk: showAfk,
+        afkMouseSeconds: parseInt(document.getElementById('cbAfkMouseSec')?.value, 10) || 10,
+        afkKeyboardSeconds: parseInt(document.getElementById('cbAfkKeyboardSec')?.value, 10) || 10,
         showAfkTime: _cbChecked('cbShowAfkTime', true),
         statCpu: _cbChecked('cbStatCpu', true),
         statRam: _cbChecked('cbStatRam', true),

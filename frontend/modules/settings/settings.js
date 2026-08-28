@@ -651,8 +651,6 @@ function loadSettingsToUI(s) {
     document.getElementById('cbAfkMessage').value = s.CbAfkMessage || s.cbAfkMessage || 'Currently AFK';
     document.getElementById('cbSuppressSound').checked = s.CbSuppressSound ?? s.cbSuppressSound ?? true;
     document.getElementById('cbHideBackground').checked = s.CbHideBackground ?? s.cbHideBackground ?? false;
-    const cbAfkOn = s.CbShowAfk ?? s.cbShowAfk ?? false;
-    document.getElementById('cbAfkCard').style.display = cbAfkOn ? '' : 'none';
     const cbTf = s.CbTimeFormat || s.cbTimeFormat || 'hh:mm tt';
     const cbTfEl = document.getElementById('cbTimeFormat');
     if (cbTfEl) cbTfEl.value = cbTf;
@@ -666,6 +664,10 @@ function loadSettingsToUI(s) {
     const cbIntEl = document.getElementById('cbInterval');
     if (cbIntEl) cbIntEl.value = String(cbInt);
     document.getElementById('cbShowAfkTime').checked = s.CbShowAfkTime ?? s.cbShowAfkTime ?? true;
+    const cbAfkMsEl = document.getElementById('cbAfkMouseSec');
+    if (cbAfkMsEl) cbAfkMsEl.value = String(s.CbAfkMouseSeconds ?? s.cbAfkMouseSeconds ?? 10);
+    const cbAfkKbEl = document.getElementById('cbAfkKeyboardSec');
+    if (cbAfkKbEl) cbAfkKbEl.value = String(s.CbAfkKeyboardSeconds ?? s.cbAfkKeyboardSeconds ?? 10);
     document.getElementById('cbStatCpu').checked = s.CbStatCpu ?? s.cbStatCpu ?? true;
     document.getElementById('cbStatRam').checked = s.CbStatRam ?? s.cbStatRam ?? true;
     document.getElementById('cbStatGpu').checked = s.CbStatGpu ?? s.cbStatGpu ?? false;

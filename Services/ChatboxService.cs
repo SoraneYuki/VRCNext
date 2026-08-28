@@ -56,6 +56,8 @@ namespace VRCNext
         public bool ShowAfk { get; set; }
         public bool ShowAfkTime { get; set; } = true;
         public string AfkMessage { get; set; } = "Currently AFK";
+        public int AfkMouseSeconds { get; set; } = 10;
+        public int AfkKeyboardSeconds { get; set; } = 10;
         public bool SuppressNotifSound { get; set; } = true;
         public bool HideChatboxBackground { get; set; } = false;
         public string TimeFormat { get; set; } = "hh:mm tt";
@@ -106,6 +108,11 @@ namespace VRCNext
         // AFK
         private bool _isAfk;
         private DateTime _afkSince;
+        private POINT _lastCursor;
+        private uint _lastInputTick;
+        private int _lastMouseMoveTick;
+        private int _lastKeyboardTick;
+        private bool _idlePrimed;
 
         private readonly Action<string> _log;
         private Action<object>? _onUpdate;
@@ -190,7 +197,6 @@ namespace VRCNext
                     var t = d.TotalHours >= 1 ? $"{(int)d.TotalHours}h {d.Minutes}m" : $"{(int)d.TotalMinutes}m";
                     msg = $"{msg} ({t})";
                 }
-                if (ShowTime) msg = FormatClock() + Separator + msg;
                 if (msg.Length > limit) msg = msg[..limit];
                 return HideChatboxBackground ? msg + "\u0003\u001f" : msg;
             }
@@ -500,6 +506,62 @@ namespace VRCNext
         }
 #endif
 
+#if WINDOWS
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT { public int X; public int Y; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
+
+        [DllImport("user32.dll")]
+        private static extern bool GetCursorPos(out POINT p);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+#endif
+
+        /// <summary>
+        /// Seconds since the mouse last moved and since the last non-mouse input. GetLastInputInfo
+        /// covers every device, so a change without cursor movement is treated as keyboard input.
+        /// </summary>
+        private (int mouseIdle, int keyIdle) ReadIdleSeconds()
+        {
+#if WINDOWS
+            var now = Environment.TickCount;
+
+            var lii = new LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf<LASTINPUTINFO>() };
+            var haveInput = GetLastInputInfo(ref lii);
+            var haveCursor = GetCursorPos(out var cursor);
+
+            if (!_idlePrimed)
+            {
+                _idlePrimed = true;
+                _lastCursor = cursor;
+                _lastInputTick = lii.dwTime;
+                _lastMouseMoveTick = now;
+                _lastKeyboardTick = now;
+                return (0, 0);
+            }
+
+            var moved = haveCursor && (cursor.X != _lastCursor.X || cursor.Y != _lastCursor.Y);
+            if (moved)
+            {
+                _lastCursor = cursor;
+                _lastMouseMoveTick = now;
+            }
+
+            if (haveInput && lii.dwTime != _lastInputTick)
+            {
+                _lastInputTick = lii.dwTime;
+                if (!moved) _lastKeyboardTick = now;
+            }
+
+            return ((now - _lastMouseMoveTick) / 1000, (now - _lastKeyboardTick) / 1000);
+#else
+            return (0, 0);
+#endif
+        }
+
         private void UpdateAfkState()
         {
 #if WINDOWS
@@ -513,8 +575,18 @@ namespace VRCNext
                     try { focused = Process.GetProcessById((int)pid).ProcessName.ToLowerInvariant().Contains("vrchat"); }
                     catch { }
                 }
-                if (!focused && !_isAfk) { _isAfk = true; _afkSince = DateTime.Now; }
-                else if (focused) _isAfk = false;
+                if (focused)
+                {
+                    _isAfk = false;
+                    return;
+                }
+
+                var (mouseIdle, keyIdle) = ReadIdleSeconds();
+                var idle = mouseIdle >= Math.Max(1, AfkMouseSeconds)
+                        && keyIdle   >= Math.Max(1, AfkKeyboardSeconds);
+
+                if (idle && !_isAfk) { _isAfk = true; _afkSince = DateTime.Now; }
+                else if (!idle) _isAfk = false;
             }
             catch { _isAfk = false; }
 #endif
@@ -647,7 +719,8 @@ namespace VRCNext
             bool statCpu = true, bool statRam = true, bool statGpu = false, bool statVram = false,
             bool showPulse = false, string? pulseFormat = null,
             bool showWindow = false, string? windowFormat = null,
-            bool showWeather = false, string? weatherFormat = null)
+            bool showWeather = false, string? weatherFormat = null,
+            int afkMouseSeconds = 10, int afkKeyboardSeconds = 10)
         {
             var was = Enabled; Enabled = enabled;
             ShowPulse = showPulse;
@@ -661,6 +734,8 @@ namespace VRCNext
             ShowAfk = showAfk; ShowAfkTime = showAfkTime;
             StatCpu = statCpu; StatRam = statRam; StatGpu = statGpu; StatVram = statVram;
             if (!string.IsNullOrWhiteSpace(afkMessage)) AfkMessage = afkMessage;
+            AfkMouseSeconds = Math.Clamp(afkMouseSeconds, 1, 3600);
+            AfkKeyboardSeconds = Math.Clamp(afkKeyboardSeconds, 1, 3600);
             SuppressNotifSound = suppressSound;
             if (!string.IsNullOrWhiteSpace(timeFormat)) TimeFormat = timeFormat;
             if (separator != null) Separator = separator;

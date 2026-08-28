@@ -59,6 +59,8 @@ public class ChatboxController : IDisposable
                     var showCustomText = msg["showCustomText"]?.Value<bool>() ?? true;
                     var showSystemStats = msg["showSystemStats"]?.Value<bool>() ?? false;
                     var showAfk = msg["showAfk"]?.Value<bool>() ?? false;
+                    var afkMouseSeconds = msg["afkMouseSeconds"]?.Value<int>() ?? 10;
+                    var afkKeyboardSeconds = msg["afkKeyboardSeconds"]?.Value<int>() ?? 10;
                     var afkMessage = msg["afkMessage"]?.ToString() ?? "Currently AFK";
                     var suppressSound = msg["suppressSound"]?.Value<bool>() ?? true;
                     var timeFormat = msg["timeFormat"]?.ToString() ?? "hh:mm tt";
@@ -91,7 +93,8 @@ public class ChatboxController : IDisposable
                         statCpu: statCpu, statRam: statRam, statGpu: statGpu, statVram: statVram,
                         showPulse: showPulse, pulseFormat: pulseFormat,
                         showWindow: showWindow, windowFormat: windowFormat,
-                        showWeather: showWeather, weatherFormat: weatherFormat);
+                        showWeather: showWeather, weatherFormat: weatherFormat,
+                        afkMouseSeconds: afkMouseSeconds, afkKeyboardSeconds: afkKeyboardSeconds);
                     _chatbox.PulseProvider = () => _hypeRate != null && _hypeRate.HasFreshData ? _hypeRate.CurrentBpm : 0;
                     _chatbox.WeatherProvider = CurrentWeather;
                     ApplyHypeRate(showPulse && enabled, hypeRateId);
@@ -105,6 +108,8 @@ public class ChatboxController : IDisposable
                     _core.Settings.CbShowCustomText = showCustomText;
                     _core.Settings.CbShowSystemStats = showSystemStats;
                     _core.Settings.CbShowAfk = showAfk;
+                    _core.Settings.CbAfkMouseSeconds = afkMouseSeconds;
+                    _core.Settings.CbAfkKeyboardSeconds = afkKeyboardSeconds;
                     _core.Settings.CbAfkMessage = afkMessage;
                     _core.Settings.CbSuppressSound = suppressSound;
                     _core.Settings.CbTimeFormat = timeFormat;
@@ -383,7 +388,8 @@ public class ChatboxController : IDisposable
                 statGpu: _core.Settings.CbStatGpu, statVram: _core.Settings.CbStatVram,
                 showPulse: _core.Settings.CbShowPulse, pulseFormat: _core.Settings.CbPulseFormat,
                 showWindow: _core.Settings.CbShowWindow, windowFormat: _core.Settings.CbWindowFormat,
-                showWeather: _core.Settings.CbShowWeather, weatherFormat: _core.Settings.CbWeatherFormat);
+                showWeather: _core.Settings.CbShowWeather, weatherFormat: _core.Settings.CbWeatherFormat,
+                afkMouseSeconds: _core.Settings.CbAfkMouseSeconds, afkKeyboardSeconds: _core.Settings.CbAfkKeyboardSeconds);
             _chatbox.PulseProvider = () => _hypeRate != null && _hypeRate.HasFreshData ? _hypeRate.CurrentBpm : 0;
             _chatbox.WeatherProvider = CurrentWeather;
             ApplyHypeRate(_core.Settings.CbShowPulse, _core.Settings.CbHypeRateId);

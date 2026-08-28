@@ -442,6 +442,8 @@ public class AppSettings
     public bool CbShowSystemStats { get; set; }
     public bool CbShowAfk { get; set; }
     public string CbAfkMessage { get; set; } = "Currently AFK";
+    public int CbAfkMouseSeconds { get; set; } = 10;
+    public int CbAfkKeyboardSeconds { get; set; } = 10;
     public bool CbSuppressSound { get; set; } = true;
     public string CbTimeFormat { get; set; } = "hh:mm tt";
     public string CbSeparator { get; set; } = " | ";
