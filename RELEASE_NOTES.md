@@ -1,4 +1,9 @@
-**2026.47.2**
+**2026.47.3**
+
+**HOTFIX**
+* Fixed Action Flow caused several style recals per second.
+* Fixed google blocky performanc eimpacts.
+* Several other performance fixes.
 
 **Timeline**
 * Notifications are now colour coded: green for friend requests, orange for groups, cyan for world invites, yellow for everything else.
@@ -21,4 +26,5 @@
 * **VRChat log**: half-written lines were read too early, causing join events without a user ID.
 * **Timeline**: the seven-day cutoff for cached world thumbnails was shifted by your timezone.
 * **HypeRate**: the UI could show "not connected" while heart rate data was still arriving.
+* **Action Flow**: after opening the tab once, the app kept doing hundreds of style recalculations per second for the rest of the session (even with the tab closed). Blockly's hidden keyboard cursor runs endless SVG blink animations; they are now frozen.
 * **Translations**: 50 missing texts added to English and German, plus 35 German texts that were English-only. Two duplicate keys removed.

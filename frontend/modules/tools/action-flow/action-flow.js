@@ -1183,6 +1183,12 @@ function afToolbox() {
     };
 }
 
+function afPauseSvgAnimations() {
+    const host = document.getElementById('afBlocklyHost');
+    if (!host) return;
+    host.querySelectorAll('svg').forEach(s => { try { s.pauseAnimations(); } catch {} });
+}
+
 async function afInitWorkspace() {
     if (afWorkspace) return;
     await afEnsureBlockly();
@@ -1218,6 +1224,7 @@ async function afInitWorkspace() {
         }),
     });
     afWorkspace.addChangeListener(afOnWorkspaceChange);
+    afPauseSvgAnimations();
     afWorkspace.configureContextMenu = (menuOptions) => { menuOptions.length = 0; };
     if (typeof ResizeObserver !== 'undefined') {
         try {
@@ -1727,6 +1734,7 @@ function afLoadFlowIntoWorkspace(id) {
             catch (e) { console.error('[ActionFlow] load failed', e); afLog('err', aftf('log.workspace_load_failed', { error: e.message || e }, 'Workspace load failed: ' + (e.message || e))); }
         }
     } finally {
+        afPauseSvgAnimations();
         setTimeout(() => { afAutoSaveSuppressed = false; afUpdateActionCounter(); afApplyActionLockState(); }, 50);
     }
 }
@@ -1777,11 +1785,8 @@ function afStartTicker() {
 }
 
 let afSecondTimer = null;
-/* Per flow id: { blocked: Set<blockId>, warned: Set<blockId> } for the "do every second" trigger. Kept out of the flow objects so it is never saved. */
 const afSecondState = {};
 
-/* Block types the "do every second" trigger must never run: everything from
-   the VRC Actions and Webhook Actions categories (all of them hit an API). */
 const AF_EVERY_SECOND_BLOCKED = new Set([
     'af_set_status', 'af_set_bio_text', 'af_switch_own_avatar', 'af_switch_favorite_avatar',
     'af_switch_avatar_id', 'af_set_home_world', 'af_invite_friend', 'af_request_invite',

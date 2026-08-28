@@ -374,7 +374,6 @@ namespace VRCNext
             return v;
         }
 
-        // Sending never requires the receiver to be running; Action Flow sends OSC without the OSC tool being started.
         private void EnsureSender()
         {
             if (_sender != null) return;
