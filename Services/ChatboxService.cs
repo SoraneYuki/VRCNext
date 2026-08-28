@@ -108,11 +108,13 @@ namespace VRCNext
         // AFK
         private bool _isAfk;
         private DateTime _afkSince;
+#if WINDOWS
         private POINT _lastCursor;
         private uint _lastInputTick;
         private int _lastMouseMoveTick;
         private int _lastKeyboardTick;
         private bool _idlePrimed;
+#endif
 
         private readonly Action<string> _log;
         private Action<object>? _onUpdate;
