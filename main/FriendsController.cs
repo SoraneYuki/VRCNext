@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Concurrent;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using VRCNext.Services;
 using VRCNext.Services.Helpers;
@@ -13,13 +14,13 @@ public class FriendsController
 
     // Friend State
     private readonly Dictionary<string, JObject> _friendStore = new();
-    private readonly Dictionary<string, string> _friendLastLoc = new();
-    private readonly Dictionary<string, string> _friendCurrentGpsEventId = new();
-    private readonly Dictionary<string, string> _friendLastStatus = new();
-    private readonly Dictionary<string, string> _friendLastStatusDesc = new();
-    private readonly Dictionary<string, string> _friendLastBio = new();
-    private readonly Dictionary<string, string> _friendLastAvatarFileId = new();
-    private readonly Dictionary<string, (string name, string image)> _friendNameImg = new();
+    private readonly ConcurrentDictionary<string, string> _friendLastLoc = new();
+    private readonly ConcurrentDictionary<string, string> _friendCurrentGpsEventId = new();
+    private readonly ConcurrentDictionary<string, string> _friendLastStatus = new();
+    private readonly ConcurrentDictionary<string, string> _friendLastStatusDesc = new();
+    private readonly ConcurrentDictionary<string, string> _friendLastBio = new();
+    private readonly ConcurrentDictionary<string, string> _friendLastAvatarFileId = new();
+    private readonly ConcurrentDictionary<string, (string name, string image)> _friendNameImg = new();
     private readonly Dictionary<string, (string fvrtId, string groupName)> _favoriteFriends = new();
     private int _favFriendsInFlight = 0;
     private bool _friendStateSeeded;
@@ -259,7 +260,7 @@ public class FriendsController
                 if (_friendCurrentGpsEventId.TryGetValue(id, out var gpsId))
                 {
                     _core.Timeline.SetFriendEventLeftAt(gpsId, startUtc.ToString("o"));
-                    _friendCurrentGpsEventId.Remove(id);
+                    _friendCurrentGpsEventId.TryRemove(id, out _);
                 }
 
                 var (fname, fimg) = _friendNameImg.GetValueOrDefault(id, ("", ""));
@@ -3002,7 +3003,7 @@ public class FriendsController
                     _friendCurrentGpsEventId.TryGetValue(e.UserId, out var gpsId))
                 {
                     _core.Timeline.SetFriendEventLeftAt(gpsId, DateTime.UtcNow.ToString("o"));
-                    _friendCurrentGpsEventId.Remove(e.UserId);
+                    _friendCurrentGpsEventId.TryRemove(e.UserId, out _);
                 }
             }
             _friendLastStatus[e.UserId] = newStatus;
@@ -3118,10 +3119,10 @@ public class FriendsController
         CancelPendingOffline(e.UserId);
         ClearTraveling(e.UserId);
         _friendStore.Remove(e.UserId);
-        _friendLastLoc.Remove(e.UserId);
-        _friendLastStatus.Remove(e.UserId);
-        _friendLastStatusDesc.Remove(e.UserId);
-        _friendLastBio.Remove(e.UserId);
+        _friendLastLoc.TryRemove(e.UserId, out _);
+        _friendLastStatus.TryRemove(e.UserId, out _);
+        _friendLastStatusDesc.TryRemove(e.UserId, out _);
+        _friendLastBio.TryRemove(e.UserId, out _);
         PushFriendsFromStore();
 
         var fev = new TimelineService.FriendTimelineEvent
@@ -3136,7 +3137,7 @@ public class FriendsController
 
     public object BuildFriendTimelinePayload(TimelineService.FriendTimelineEvent ev)
     {
-        var isRecent = DateTime.TryParse(ev.Timestamp, out var evTs) && evTs >= DateTime.UtcNow - TimeSpan.FromDays(7);
+        var isRecent = DateTimeHelper.TryParseUtc(ev.Timestamp, out var evTs) && evTs >= DateTime.UtcNow - TimeSpan.FromDays(7);
         var isAvatarRef = (ev.WorldId ?? "").StartsWith("avtr_");
         string wThumb;
         if (isAvatarRef)

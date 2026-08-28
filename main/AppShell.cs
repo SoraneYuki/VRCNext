@@ -1234,42 +1234,42 @@ public partial class AppShell
             }
             else if (path.StartsWith("/vrcphotos/"))
             {
-                if (!string.IsNullOrEmpty(_photos.VrcPhotoDir))
-                {
-                    var file = Path.Combine(_photos.VrcPhotoDir, Uri.UnescapeDataString(path["/vrcphotos/".Length..]));
-                    if (isThumb) await ServeThumbAsync(ctx, file); else await ServeFileAsync(ctx, file);
-                }
-                else ctx.Response.StatusCode = 404;
+                var file = string.IsNullOrEmpty(_photos.VrcPhotoDir) ? null
+                    : ResolveUnder(_photos.VrcPhotoDir, Uri.UnescapeDataString(path["/vrcphotos/".Length..]));
+                if (file == null) ctx.Response.StatusCode = 404;
+                else if (isThumb) await ServeThumbAsync(ctx, file);
+                else await ServeFileAsync(ctx, file);
             }
             else if (path.StartsWith("/media"))
             {
                 var rest  = path["/media".Length..];
                 var slash = rest.IndexOf('/');
-                if (slash > 0 && int.TryParse(rest[..slash], out var idx)
-                    && idx < _settings.WatchFolders.Count)
-                {
-                    var file = Path.Combine(_settings.WatchFolders[idx], Uri.UnescapeDataString(rest[(slash + 1)..]));
-                    if (isThumb) await ServeThumbAsync(ctx, file); else await ServeFileAsync(ctx, file);
-                }
-                else ctx.Response.StatusCode = 404;
+                var file = slash > 0 && int.TryParse(rest[..slash], out var idx) && idx >= 0 && idx < _settings.WatchFolders.Count
+                    ? ResolveUnder(_settings.WatchFolders[idx], Uri.UnescapeDataString(rest[(slash + 1)..]))
+                    : null;
+                if (file == null) ctx.Response.StatusCode = 404;
+                else if (isThumb) await ServeThumbAsync(ctx, file);
+                else await ServeFileAsync(ctx, file);
             }
             else if (path.StartsWith("/cursor/"))
             {
                 var cursorDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "cursor");
-                var file = Path.Combine(cursorDir, Uri.UnescapeDataString(path["/cursor/".Length..]));
-                await ServeFileAsync(ctx, file);
+                var file = ResolveUnder(cursorDir, Uri.UnescapeDataString(path["/cursor/".Length..]));
+                if (file == null) ctx.Response.StatusCode = 404;
+                else await ServeFileAsync(ctx, file);
             }
             else if (path.StartsWith("/builtinthemes/"))
             {
-                var rel  = Uri.UnescapeDataString(path["/builtinthemes/".Length..]);
-                var file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "custom-themes", rel.Replace('/', Path.DirectorySeparatorChar));
-                await ServeThemeFileAsync(ctx, file);
+                var file = ResolveUnder(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "custom-themes"),
+                    Uri.UnescapeDataString(path["/builtinthemes/".Length..]));
+                if (file == null) ctx.Response.StatusCode = 404;
+                else await ServeThemeFileAsync(ctx, file);
             }
             else if (path.StartsWith("/customthemes/"))
             {
-                var rel  = Uri.UnescapeDataString(path["/customthemes/".Length..]);
-                var file = Path.Combine(_customThemesDir, rel.Replace('/', Path.DirectorySeparatorChar));
-                await ServeThemeFileAsync(ctx, file);
+                var file = ResolveUnder(_customThemesDir, Uri.UnescapeDataString(path["/customthemes/".Length..]));
+                if (file == null) ctx.Response.StatusCode = 404;
+                else await ServeThemeFileAsync(ctx, file);
             }
             else if (path == "/dashbg")
             {
@@ -1279,7 +1279,7 @@ public partial class AppShell
                     .Where(p => p.Length == 2 && p[0] == "file")
                     .Select(p => Uri.UnescapeDataString(p[1]))
                     .FirstOrDefault();
-                if (!string.IsNullOrEmpty(fileParam) && File.Exists(fileParam))
+                if (!string.IsNullOrEmpty(fileParam) && _core.IsDashBgAllowed(fileParam) && File.Exists(fileParam))
                     await ServeFileAsync(ctx, fileParam);
                 else
                     ctx.Response.StatusCode = 404;
@@ -1308,6 +1308,31 @@ public partial class AppShell
         }
         catch { ctx.Response.StatusCode = 500; }
         finally { try { ctx.Response.Close(); } catch { } }
+    }
+
+    // Joins a client supplied relative path onto a base directory and rejects anything that escapes it.
+    private static string? ResolveUnder(string baseDir, string rel)
+    {
+        try
+        {
+            var root = Path.GetFullPath(baseDir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var full = Path.GetFullPath(Path.Combine(root, rel.Replace('/', Path.DirectorySeparatorChar)));
+            return full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ? full : null;
+        }
+        catch { return null; }
+    }
+
+    // The Windows frontend runs from file:// (Origin "null"), Linux from this listener's own origin.
+    private static void ApplyCors(System.Net.HttpListenerContext ctx)
+    {
+        var origin = ctx.Request.Headers["Origin"];
+        if (string.IsNullOrEmpty(origin)) return;
+        var self = $"http://localhost:{ctx.Request.Url?.Port}";
+        if (origin == "null" || string.Equals(origin, self, StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Response.Headers["Access-Control-Allow-Origin"] = origin;
+            ctx.Response.Headers["Vary"] = "Origin";
+        }
     }
 
     private static async Task ServeThemeFileAsync(System.Net.HttpListenerContext ctx, string file)
@@ -1355,7 +1380,7 @@ public partial class AppShell
             ".webm" => "video/webm",
             _       => "application/octet-stream"
         };
-        ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+        ApplyCors(ctx);
         ctx.Response.Headers.Add("Accept-Ranges", "bytes");
 
         var length = new FileInfo(file).Length;

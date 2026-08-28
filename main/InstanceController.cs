@@ -1605,7 +1605,7 @@ public class InstanceController
 
     public object BuildTimelinePayload(TimelineService.TimelineEvent ev)
     {
-        var isRecent = DateTime.TryParse(ev.Timestamp, out var evTs) && evTs >= DateTime.UtcNow - _tlPayloadCacheCutoff;
+        var isRecent = VRCNext.Services.Helpers.DateTimeHelper.TryParseUtc(ev.Timestamp, out var evTs) && evTs >= DateTime.UtcNow - _tlPayloadCacheCutoff;
         string wThumb;
         if (isRecent)
         {

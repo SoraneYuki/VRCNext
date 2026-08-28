@@ -761,7 +761,7 @@ public class TimelineController
 
                 var ftlCutoff    = DateTime.UtcNow - TimeSpan.FromDays(7);
                 var recentFevents = fevents.Where(e =>
-                    DateTime.TryParse(e.Timestamp, out var ts) && ts >= ftlCutoff).ToList();
+                    VRCNext.Services.Helpers.DateTimeHelper.TryParseUtc(e.Timestamp, out var ts) && ts >= ftlCutoff).ToList();
 
                 foreach (var ev in recentFevents.Where(e => !string.IsNullOrEmpty(e.WorldId) && !string.IsNullOrEmpty(e.WorldThumb)))
                 {
@@ -951,7 +951,7 @@ public class TimelineController
         bool anyResolved = false;
         var enrichCutoff = DateTime.UtcNow - TimeSpan.FromDays(7);
         var recentEvents = events.Where(e =>
-            DateTime.TryParse(e.Timestamp, out var ts) && ts >= enrichCutoff).ToList();
+            VRCNext.Services.Helpers.DateTimeHelper.TryParseUtc(e.Timestamp, out var ts) && ts >= enrichCutoff).ToList();
 
         foreach (var ev in recentEvents.Where(e => !string.IsNullOrEmpty(e.WorldId) && !string.IsNullOrEmpty(e.WorldThumb)))
             ImageCacheHelper.CacheWorldBackground(ev.WorldId, ev.WorldThumb);

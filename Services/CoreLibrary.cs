@@ -82,6 +82,25 @@ public class CoreLibrary
     public int HttpPort { get; set; }
     public string CustomThemesDir { get; set; } = "";
 
+    private readonly HashSet<string> _dashBgAllowed = new(StringComparer.OrdinalIgnoreCase);
+
+    public string DashBgUrl(string path)
+    {
+        var full = Path.GetFullPath(path);
+        lock (_dashBgAllowed) _dashBgAllowed.Add(full);
+        return $"http://localhost:{HttpPort}/dashbg?file={Uri.EscapeDataString(full)}";
+    }
+
+    public bool IsDashBgAllowed(string path)
+    {
+        try
+        {
+            var full = Path.GetFullPath(path);
+            lock (_dashBgAllowed) return _dashBgAllowed.Contains(full);
+        }
+        catch { return false; }
+    }
+
     public MemoryTrimService MemTrim { get; }
     public UpdateService UpdateService { get; }
 

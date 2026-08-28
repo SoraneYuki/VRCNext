@@ -103,7 +103,7 @@ namespace VRCNext
 #endif
 
         // Direct send pause
-        private volatile int _pauseUntilTick;
+        private long _pauseUntilTick;
 
         // AFK
         private bool _isAfk;
@@ -161,7 +161,7 @@ namespace VRCNext
                     if (ShowAfk) UpdateAfkState();
 
                     var text = BuildChatboxText();
-                    if (Enabled && !string.IsNullOrEmpty(text) && Environment.TickCount >= _pauseUntilTick)
+                    if (Enabled && !string.IsNullOrEmpty(text) && Environment.TickCount64 >= Interlocked.Read(ref _pauseUntilTick))
                         SendOscChatbox(text, SuppressNotifSound);
 
                     _onUpdate?.Invoke(new {
@@ -761,12 +761,12 @@ namespace VRCNext
             }
             SendOscChatbox(text, SuppressNotifSound);
             if (ownUdp) { _udp?.Close(); _udp = null; }
-            else _pauseUntilTick = Environment.TickCount + 10_000;
+            else Interlocked.Exchange(ref _pauseUntilTick, Environment.TickCount64 + 10_000);
         }
 
         public void PauseDirectSend(int ms)
         {
-            _pauseUntilTick = Environment.TickCount + ms;
+            Interlocked.Exchange(ref _pauseUntilTick, Environment.TickCount64 + ms);
         }
 
         public void Dispose() { Stop(); _cts?.Dispose(); }

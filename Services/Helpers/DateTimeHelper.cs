@@ -23,6 +23,15 @@ public static class DateTimeHelper
         return Iso(token.ToString());
     }
 
+    public static bool TryParseUtc(string? value, out DateTime utc)
+    {
+        if (DateTime.TryParse(value, CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out utc))
+            return true;
+        utc = default;
+        return false;
+    }
+
     public static string Iso(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return "";

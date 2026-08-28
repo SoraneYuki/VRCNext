@@ -340,14 +340,63 @@ public class VRChatLogWatcher : IDisposable
             using var fs = new FileStream(_currentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             if (fs.Length < _lastPosition) { _lastPosition = 0; lock (_lock) _players.Clear(); }
             if (fs.Length == _lastPosition) return;
+            // Only consume up to the last complete line; a line VRChat is still writing stays for the next poll.
+            var end = FindLastNewlineEnd(fs, _lastPosition);
+            if (end <= _lastPosition) return;
             fs.Seek(_lastPosition, SeekOrigin.Begin);
-            using var reader = new StreamReader(fs);
+            using var reader = new StreamReader(new BoundedReadStream(fs, end - _lastPosition));
             string? line;
             while ((line = reader.ReadLine()) != null) ParseLine(line, catchUp);
-            _lastPosition = fs.Position;
+            _lastPosition = end;
         }
         catch (IOException) { }
         catch (Exception ex) { Log($"LogWatcher: Read error: {ex.Message}"); }
+    }
+
+    // Returns the offset just past the last '\n' at or after `from`, or `from` when there is none.
+    private static long FindLastNewlineEnd(FileStream fs, long from)
+    {
+        var buf = new byte[64 * 1024];
+        var pos = fs.Length;
+        while (pos > from)
+        {
+            var chunk = (int)Math.Min(buf.Length, pos - from);
+            fs.Seek(pos - chunk, SeekOrigin.Begin);
+            var read = 0;
+            while (read < chunk)
+            {
+                var n = fs.Read(buf, read, chunk - read);
+                if (n <= 0) break;
+                read += n;
+            }
+            for (var i = read - 1; i >= 0; i--)
+                if (buf[i] == (byte)'\n') return pos - chunk + i + 1;
+            pos -= chunk;
+        }
+        return from;
+    }
+
+    private sealed class BoundedReadStream : Stream
+    {
+        private readonly Stream _inner;
+        private long _remaining;
+        public BoundedReadStream(Stream inner, long length) { _inner = inner; _remaining = length; }
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (_remaining <= 0) return 0;
+            var n = _inner.Read(buffer, offset, (int)Math.Min(count, _remaining));
+            _remaining -= n;
+            return n;
+        }
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 
     private static bool TryParseModeration(string rest, out string name, out string modType, out bool active)

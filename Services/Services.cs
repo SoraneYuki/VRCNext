@@ -794,20 +794,33 @@ public class AppSettings
     private static readonly string FilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "VRCNext", "settings.json");
+    private static readonly string BackupPath = FilePath + ".bak";
+    private static readonly object _saveLock = new();
 
     [JsonIgnore] public static string? LastLoadError { get; private set; }
     [JsonIgnore] public static string? LoadDebugInfo { get; private set; }
     [JsonIgnore] public string? LastSaveError { get; set; }
 
+    private static AppSettings? TryReadFile(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            var json = File.ReadAllText(path);
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            return JsonConvert.DeserializeObject<AppSettings>(json,
+                new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace });
+        }
+        catch (Exception ex) { LastLoadError = ex.Message; return null; }
+    }
+
     public static AppSettings Load()
     {
         try
         {
-            if (File.Exists(FilePath))
+            var s = TryReadFile(FilePath) ?? TryReadFile(BackupPath);
+            if (s != null)
             {
-                var json = File.ReadAllText(FilePath);
-                var s = JsonConvert.DeserializeObject<AppSettings>(json,
-                    new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace }) ?? new();
                 // Ensure exactly 4 webhook slots
                 if (s.Webhooks == null) s.Webhooks = new();
                 if (s.Webhooks.Count > 4) s.Webhooks = s.Webhooks.Take(4).ToList();
@@ -887,8 +900,15 @@ public class AppSettings
             VrcTwoFactorCookie    = "";
             var dir = Path.GetDirectoryName(FilePath)!;
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));
-            VRCNext.Services.Helpers.SecretProtector.RestrictToOwner(FilePath);
+            var json = JsonConvert.SerializeObject(this, Formatting.Indented);
+            lock (_saveLock)
+            {
+                var tmp = FilePath + ".tmp";
+                File.WriteAllText(tmp, json);
+                VRCNext.Services.Helpers.SecretProtector.RestrictToOwner(tmp);
+                if (File.Exists(FilePath)) File.Replace(tmp, FilePath, BackupPath);
+                else File.Move(tmp, FilePath);
+            }
             LastSaveError = null;
         }
         catch (Exception ex) { LastSaveError = ex.Message; }

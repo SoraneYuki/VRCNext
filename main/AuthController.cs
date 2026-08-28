@@ -537,7 +537,7 @@ public class AuthController
                                     break;
                                 }
                             }
-                            var url = $"http://localhost:{_core.HttpPort}/dashbg?file={Uri.EscapeDataString(r.Path)}";
+                            var url = _core.DashBgUrl(r.Path);
                             _core.SendToJS("dashBgSelected", new { path = r.Path, url });
                         }
                         catch (Exception ex)
@@ -556,7 +556,7 @@ public class AuthController
                         var bgPath = msg["path"]?.ToString();
                         if (!string.IsNullOrEmpty(bgPath) && File.Exists(bgPath))
                         {
-                            var url = $"http://localhost:{_core.HttpPort}/dashbg?file={Uri.EscapeDataString(bgPath)}";
+                            var url = _core.DashBgUrl(bgPath);
                             Invoke(() => _core.SendToJS("dashBgSelected", new { path = bgPath, url }));
                         }
                     }
@@ -596,7 +596,7 @@ public class AuthController
 
                         var rng = new Random();
                         var picked = allImages[rng.Next(allImages.Count)];
-                        var url = $"http://localhost:{_core.HttpPort}/dashbg?file={Uri.EscapeDataString(picked)}";
+                        var url = _core.DashBgUrl(picked);
                         Invoke(() =>
                         {
                             _core.SendToJS("dashBgSelected", new { path = picked, url });

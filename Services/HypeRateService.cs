@@ -93,12 +93,13 @@ public sealed class HypeRateService : IDisposable
                 _log($"[HypeRate] Connect error: {ex.Message}");
             }
 
+            if (ct.IsCancellationRequested) break;
             if (IsConnected)
             {
                 IsConnected = false;
                 StateChanged?.Invoke();
             }
-            if (!_running || ct.IsCancellationRequested) break;
+            if (!_running) break;
 
             try { await Task.Delay(TimeSpan.FromSeconds(delaySec), ct); }
             catch (OperationCanceledException) { break; }
