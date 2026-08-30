@@ -372,6 +372,9 @@ function populateKxdDevices(p) {
         updateKxdMeter(kxdLastMeterLevel);
     }
 
+    const sileroToggle = document.getElementById('kxdSileroToggle');
+    if (sileroToggle) sileroToggle.checked = p.localVadEnabled !== false;
+
     kxdUpdateTranslateVisibility();
 }
 
@@ -455,6 +458,8 @@ function kxdApplyModelVisibility() {
     const isLocal = (document.getElementById('kxdModel')?.value || 'groq') === 'local';
     const sec = document.getElementById('kxdLocalSection');
     if (sec) sec.style.display = isLocal ? '' : 'none';
+    const sileroRow = document.getElementById('kxdSileroRow');
+    if (sileroRow) sileroRow.style.display = isLocal ? '' : 'none';
     if (isLocal && !_kxdLocalState) sendToCS({ action: 'kxdLocalGetState' });
 }
 
@@ -580,10 +585,13 @@ function kxdSaveLocalSelection() {
     const p = _kxdDevicesPayload || (_kxdDevicesPayload = {});
     const useGpu = !!document.getElementById('kxdLocalGpu')?.checked;
     p.localUseGpu = useGpu;
+    const vadEnabled = document.getElementById('kxdSileroToggle')?.checked !== false;
+    p.localVadEnabled = vadEnabled;
     sendToCS({
         action: 'kxdLocalSaveSelection',
         sttModel: p.localSttModel,
         llmModel: p.localLlmModel,
+        vadEnabled,
         useGpu,
     });
 }

@@ -252,6 +252,21 @@ public class GroupsAPI(VRChatApiService ctx)
         const int maxPages = 10;
         try
         {
+            if (displayName.Length >= 3)
+            {
+                var searchUrl = $"{VRChatApiService.BASE}/groups/{groupId}/members/search?query={Uri.EscapeDataString(displayName)}&n={pageSize}&offset=0";
+                var sResp = await ctx._http.GetAsync(searchUrl);
+                if (sResp.IsSuccessStatusCode)
+                {
+                    var sTok = JToken.Parse(await sResp.Content.ReadAsStringAsync());
+                    var results = (sTok as JObject)?["results"] as JArray ?? sTok as JArray;
+                    var hit = results?.FirstOrDefault(m => m["userId"]?.ToString() == userId) as JObject;
+                    ctx.Log($"[GRP] member search {displayName}: {results?.Count ?? 0} result(s), match={hit != null}");
+                    if (hit != null) return hit;
+                }
+                else ctx.Log($"[GRP] member search {displayName}: HTTP {(int)sResp.StatusCode}");
+            }
+
             for (int page = 0; page < maxPages; page++)
             {
                 var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/groups/{groupId}/members?n={pageSize}&offset={page * pageSize}&sort=joinedAt:desc");
@@ -262,6 +277,7 @@ public class GroupsAPI(VRChatApiService ctx)
                 }
                 var arr = JArray.Parse(await resp.Content.ReadAsStringAsync());
                 var match = arr.FirstOrDefault(m => m["userId"]?.ToString() == userId) as JObject;
+                ctx.Log($"[GRP] member list page {page}: {arr.Count} visible member(s), match={match != null}");
                 if (match != null) return match;
                 if (arr.Count < pageSize) break;
             }

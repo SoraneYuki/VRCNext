@@ -196,6 +196,7 @@ function openFriendDetail(userId) {
 
 let _fdLoadedAvatarKey = '';
 let _fdLastAvatarPayload = null;
+let _fdLastAvatarUserId = '';
 
 function closeFriendDetail(fromNav = false) {
     if (_fdLiveTimer) { clearInterval(_fdLiveTimer); _fdLiveTimer = null; }
@@ -204,36 +205,59 @@ function closeFriendDetail(fromNav = false) {
     window._fdAllMutuals = null;
     _fdLoadedAvatarKey = '';
     _fdLastAvatarPayload = null;
+    _fdLastAvatarUserId = '';
     if (!fromNav && typeof navClear === 'function') navClear();
 }
 
 
 
 const ROBOT_AVATAR_ID = 'avtr_c38a1615-5bf5-42b4-84eb-a8b6c37cbd11';
+
+function avatarNotInDbLabel() {
+    return t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database');
+}
+
+function avatarNotInDbLockHtml() {
+    return `<span class="msi" title="${esc(avatarNotInDbLabel())}" style="font-size:15px;color:var(--tx3);flex-shrink:0;margin-left:auto;">lock</span>`;
+}
 function _applyAvatarSection(payload) {
     const section = document.getElementById('fdAvatarSection');
-    if (!section || !payload?.avatarId) return;
-    if (payload.avatarId === ROBOT_AVATAR_ID) { section.style.display = 'none'; return; }
+    if (!section) return;
+    const avId   = payload?.avatarId || '';
+    const avName = payload?.avatarName || '';
+    if (!avId && !avName) return;
+    if (avId === ROBOT_AVATAR_ID) { section.style.display = 'none'; return; }
     const avImg = payload.avatarImage || currentFriendDetail?.currentAvatarImageUrl || '';
     const avIcon = avImg
         ? `<img class="fd-group-icon" src="${esc(imgThumb(avImg, 96))}" onerror="this.style.display='none'">`
         : `<div class="fd-group-icon fd-group-icon-empty"><span class="msi" style="font-size:18px;">checkroom</span></div>`;
     const authorHtml = payload.avatarAuthor
         ? `<div class="fd-group-card-meta">${esc(payload.avatarAuthor)}</div>` : '';
+    const cardAttrs = avId
+        ? `onclick="navOpenModal('avatar','${jsq(avId)}','${jsq(avName)}')"`
+        : `style="cursor:default;"`;
+    const lockHtml = avId ? '' : avatarNotInDbLockHtml();
     section.style.display = '';
     section.innerHTML = `<div class="fd-group-rep-label">${t('profiles.badges.current_avatar', 'Current Avatar')}</div>
-        <div class="fd-group-card fd-group-rep" onclick="navOpenModal('avatar','${jsq(payload.avatarId)}','${jsq(payload.avatarName || '')}')">
-            ${avIcon}<div class="fd-group-card-info"><div class="fd-group-card-name">${esc(payload.avatarName || payload.avatarId)}</div>${authorHtml}</div>
+        <div class="fd-group-card fd-group-rep" ${cardAttrs}>
+            ${avIcon}<div class="fd-group-card-info"><div class="fd-group-card-name">${esc(avName || avId)}</div>${authorHtml}</div>${lockHtml}
         </div>`;
 }
 
 function handleAvatarByFileId(payload) {
+    const forOpenProfile = !payload.userId || (!!currentFriendDetail && payload.userId === currentFriendDetail.id);
+    if (!payload.avatarId && !payload.avatarName) {
+        if (payload.openModal) showToast(false, t('context_menu.avatar_not_found', 'No public avatar found'));
+        return;
+    }
+    if (forOpenProfile) {
+        _fdLastAvatarPayload = payload;
+        _applyAvatarSection(payload);
+    }
     if (!payload.avatarId) {
         if (payload.openModal) showToast(false, t('context_menu.avatar_not_found', 'No public avatar found'));
         return;
     }
-    _fdLastAvatarPayload = payload;
-    _applyAvatarSection(payload);
     if (payload.openModal) navOpenModal('avatar', payload.avatarId, payload.avatarName || '');
 }
 
@@ -1140,7 +1164,11 @@ function renderFriendDetail(d) {
         if (_restoreBtn) switchFdTab(_fdPrevTab, _restoreBtn);
     }
 
-    const _avatarKey = avatarFileId || avatarId;
+    const _avatarKey = (d.id || '') + '|' + (avatarFileId || avatarId);
+    if (_fdLastAvatarUserId !== (d.id || '')) {
+        _fdLastAvatarUserId = d.id || '';
+        _fdLastAvatarPayload = null;
+    }
     const ca = d.cachedAvatar;
     if (ca?.avatarId && ca.fileId === avatarFileId) {
         _fdLastAvatarPayload = { avatarId: ca.avatarId, avatarName: ca.name, avatarAuthor: ca.authorName, avatarImage: ca.imageUrl || '' };
@@ -1149,10 +1177,10 @@ function renderFriendDetail(d) {
     } else if (_fdLastAvatarPayload) {
         _applyAvatarSection(_fdLastAvatarPayload);
     }
-    if (_avatarKey && _avatarKey !== _fdLoadedAvatarKey) {
+    if ((avatarFileId || avatarId.startsWith('avtr_')) && _avatarKey !== _fdLoadedAvatarKey) {
         _fdLoadedAvatarKey = _avatarKey;
         if (avatarFileId) sendToCS({ action: 'vrcLookupAvatarByFileId', fileId: avatarFileId, openModal: false, userId: d.id });
-        else if (avatarId && avatarId.startsWith('avtr_')) sendToCS({ action: 'vrcGetAvatarInfo', avatarId });
+        else if (avatarId && avatarId.startsWith('avtr_')) sendToCS({ action: 'vrcGetAvatarInfo', avatarId, userId: d.id });
     }
 
     requestAnimationFrame(() => {

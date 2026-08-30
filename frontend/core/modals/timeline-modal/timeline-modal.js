@@ -865,7 +865,7 @@ function renderFtDetailFriendAvatar(ev, el) {
     const infoRows = [
         _tlMr(esc(t('timeline.detail.date', 'Date')), esc(dateStr)),
         _tlMr(esc(t('timeline.detail.time', 'Time')), esc(timeStr)),
-        ev.worldName ? _tlMr(esc(t('timeline.detail.avatar', 'Avatar')), `<span style="color:var(--accent-lt);">${esc(ev.worldName)}</span>`) : '',
+        ev.worldName ? _tlMr(esc(t('timeline.detail.avatar', 'Avatar')), `<span style="color:var(--accent-lt);">${esc(ev.worldName)}</span>${ev.worldId ? '' : `<span class="msi" title="${esc(t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database'))}" style="font-size:13px;color:var(--tx3);margin-left:5px;vertical-align:-2px;">lock</span>`}`) : '',
         ev.worldId   ? _tlMr(esc(t('timeline.detail.avatar_id', 'Avatar ID')), `<span style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);">${esc(ev.worldId)}</span>`) : '',
     ].filter(Boolean).join('');
     el.innerHTML = `${ftDetailBar(ev)}${banner}<div class="fd-content${banner ? ' fd-has-banner' : ''}" style="padding:20px 0;">
@@ -1055,7 +1055,8 @@ function _ftListDetail(ev) {
         }
         case 'friend_added':      return `<span style="color:var(--ok)">${esc(t('timeline.friend.added_full', 'Friend Added'))}</span>`;
         case 'friend_removed':    return `<span style="color:var(--err)">${esc(t('timeline.friend.unfriended', 'Unfriended'))}</span>`;
-        case 'friend_avatar':     return esc(ev.worldName || ev.newValue || t('timeline.unknown', 'Unknown'));
+        case 'friend_avatar':     return esc(ev.worldName || ev.newValue || t('timeline.unknown', 'Unknown'))
+            + (ev.worldId ? '' : `<span class="msi" title="${esc(t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database'))}" style="font-size:12px;color:var(--tx3);vertical-align:middle;margin-left:4px;">lock</span>`);
         default: return '';
     }
 }

@@ -28,6 +28,13 @@ public class InstanceController
     private readonly HashSet<string> _meetAgainThisInstance = new();
     private string? _pendingInstanceEventId;
     private System.Threading.Timer? _instanceSnapshotTimer;
+    private System.Threading.Timer? _instAvatarBatchTimer;
+    private System.Threading.Timer? _instAvatarBatchCycle;
+    private string   _instAvatarBatchLoc = "";
+    private DateTime _instAvatarBatchAt  = DateTime.MinValue;
+    private const int InstAvatarSettleMs    = 10_000;
+    private const int InstAvatarIntervalMin = 10;
+    private const int InstAvatarThrottleMin = 9;
     private bool _logWatcherBootstrapped;
     private string _lastTrackedWorldId = "";
     private readonly HashSet<string> _recentlyClosedLocs = new();
@@ -53,6 +60,9 @@ public class InstanceController
     {
         _core = core;
         _friends = friends;
+        _instAvatarBatchCycle = new System.Threading.Timer(
+            _ => _ = Task.Run(RunInstanceAvatarBatchAsync), null,
+            TimeSpan.FromMinutes(InstAvatarIntervalMin), TimeSpan.FromMinutes(InstAvatarIntervalMin));
         _core.TimeEngine.OnVrcClosed = () =>
         {
             if (_pendingInstanceEventId == null) return;
@@ -1074,6 +1084,8 @@ public class InstanceController
                     ageGate = loc.Contains("~ageGate"),
                 });
             });
+
+            ScheduleInstanceAvatarBatch();
         }
         catch (Exception ex)
         {
@@ -1084,6 +1096,49 @@ public class InstanceController
             });
         }
     });
+
+    private void ScheduleInstanceAvatarBatch()
+    {
+        _instAvatarBatchTimer?.Dispose();
+        _instAvatarBatchTimer = new System.Threading.Timer(
+            _ => _ = Task.Run(RunInstanceAvatarBatchAsync), null,
+            InstAvatarSettleMs, System.Threading.Timeout.Infinite);
+    }
+
+    private async Task RunInstanceAvatarBatchAsync()
+    {
+        try
+        {
+            var loc = _cachedInstLocation;
+            if (string.IsNullOrEmpty(loc) || !_core.VrcApi.IsLoggedIn) return;
+            if (loc == _instAvatarBatchLoc
+                && (DateTime.UtcNow - _instAvatarBatchAt).TotalMinutes < InstAvatarThrottleMin) return;
+
+            var fileIds = new HashSet<string>();
+            foreach (var p in _core.LogWatcher.GetCurrentPlayers())
+            {
+                if (string.IsNullOrEmpty(p.UserId) || !p.UserId.StartsWith("usr_")) continue;
+                if (!_core.PlayerProfileCache.TryGetValue(p.UserId, out var prof)) continue;
+                var fid = FriendsController.ExtractAvatarFileId(prof);
+                if (!string.IsNullOrEmpty(fid)) fileIds.Add(fid);
+            }
+            if (fileIds.Count == 0) return;
+
+            _instAvatarBatchLoc = loc;
+            _instAvatarBatchAt  = DateTime.UtcNow;
+
+            var cachedCount = fileIds.Count(f => AvtrdbCacheHelper.GetFileAvatar(f) != null);
+            var queryCount  = fileIds.Count - cachedCount;
+            var res = await _core.Avatars.GetAvatarIdsByFileIdsAsync(fileIds);
+            var resolved = res.Count(kv => kv.Value.id != null);
+            Invoke(() => _core.SendToJS("log", new
+            {
+                msg = $"[Avatars] Instance batch: {fileIds.Count} avatar(s): {cachedCount} cached, {queryCount} queried, {resolved} known",
+                color = "sec",
+            }));
+        }
+        catch (Exception ex) { CrashHandler.WriteEntry("InstanceAvatarBatch", ex); }
+    }
 
     // Push cached instance data + live LogWatcher players to JS (no REST)
     public void PushCurrentInstanceFromCache()
@@ -1677,6 +1732,17 @@ public class InstanceController
             ["lastLogin"] = prof?["last_login"]?.ToString() ?? "",
             ["lastActivity"] = prof?["last_activity"]?.ToString() ?? "",
         };
+        var avFileId = prof != null ? FriendsController.ExtractAvatarFileId(prof) : "";
+        if (!string.IsNullOrEmpty(avFileId))
+        {
+            var av = AvtrdbCacheHelper.GetFileAvatar(avFileId);
+            if (av != null)
+            {
+                o["avatarId"]     = av.AvtrId;
+                o["avatarName"]   = av.Name;
+                o["avatarAuthor"] = av.AuthorName;
+            }
+        }
         _friends.EnrichFromProfileCache(o, userId ?? "", true);
         return o;
     }

@@ -36,6 +36,16 @@ public static class AvtrdbCacheHelper
                 DB_Source   TEXT    NOT NULL,
                 PRIMARY KEY (User_ID, Avtr_ID)
             );
+            CREATE TABLE IF NOT EXISTS Avatar_File_Cache (
+                File_ID     TEXT PRIMARY KEY,
+                Avtr_ID     TEXT    NOT NULL DEFAULT '',
+                Name        TEXT    NOT NULL DEFAULT '',
+                Author_Name TEXT    NOT NULL DEFAULT '',
+                Author_ID   TEXT    NOT NULL DEFAULT '',
+                Image_URL   TEXT    NOT NULL DEFAULT '',
+                DB_Source   TEXT    NOT NULL DEFAULT '',
+                Resolved_At INTEGER NOT NULL DEFAULT 0
+            );
             """);
         return _conn;
     }
@@ -89,6 +99,69 @@ public static class AvtrdbCacheHelper
             pSrc.Value = dbSource;
             foreach (var id in avatarIds) { pId.Value = id; cmd.ExecuteNonQuery(); }
             tx.Commit();
+        }
+    }
+
+    public sealed record FileAvatarEntry(
+        string FileId, string AvtrId, string Name,
+        string AuthorName, string AuthorId, string ImageUrl, string Source);
+
+    public static FileAvatarEntry? GetFileAvatar(string fileId)
+    {
+        if (string.IsNullOrEmpty(fileId)) return null;
+        lock (_lock)
+        {
+            try
+            {
+                using var cmd = Conn().CreateCommand();
+                cmd.CommandText = """
+                    SELECT Avtr_ID, Name, Author_Name, Author_ID, Image_URL, DB_Source
+                    FROM Avatar_File_Cache WHERE File_ID = @id AND Resolved_At >= @cutoff
+                    """;
+                cmd.Parameters.AddWithValue("@id",     fileId);
+                cmd.Parameters.AddWithValue("@cutoff", Cutoff());
+                using var r = cmd.ExecuteReader();
+                if (!r.Read()) return null;
+                return new FileAvatarEntry(fileId, r.GetString(0), r.GetString(1),
+                    r.GetString(2), r.GetString(3), r.GetString(4), r.GetString(5));
+            }
+            catch { return null; }
+        }
+    }
+
+    public static void SaveFileAvatar(string fileId, string avtrId, string name,
+        string authorName, string authorId, string imageUrl, string source)
+    {
+        if (string.IsNullOrEmpty(fileId)) return;
+        lock (_lock)
+        {
+            try
+            {
+                using var cmd = Conn().CreateCommand();
+                cmd.CommandText = """
+                    INSERT INTO Avatar_File_Cache
+                        (File_ID, Avtr_ID, Name, Author_Name, Author_ID, Image_URL, DB_Source, Resolved_At)
+                    VALUES (@fid, @aid, @n, @an, @auid, @img, @src, @ts)
+                    ON CONFLICT(File_ID) DO UPDATE SET
+                        Avtr_ID     = excluded.Avtr_ID,
+                        Name        = excluded.Name,
+                        Author_Name = excluded.Author_Name,
+                        Author_ID   = excluded.Author_ID,
+                        Image_URL   = excluded.Image_URL,
+                        DB_Source   = excluded.DB_Source,
+                        Resolved_At = excluded.Resolved_At
+                    """;
+                cmd.Parameters.AddWithValue("@fid",  fileId);
+                cmd.Parameters.AddWithValue("@aid",  avtrId     ?? "");
+                cmd.Parameters.AddWithValue("@n",    name       ?? "");
+                cmd.Parameters.AddWithValue("@an",   authorName ?? "");
+                cmd.Parameters.AddWithValue("@auid", authorId   ?? "");
+                cmd.Parameters.AddWithValue("@img",  imageUrl   ?? "");
+                cmd.Parameters.AddWithValue("@src",  source     ?? "");
+                cmd.Parameters.AddWithValue("@ts",   Now());
+                cmd.ExecuteNonQuery();
+            }
+            catch { }
         }
     }
 

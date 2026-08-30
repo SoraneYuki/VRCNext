@@ -404,7 +404,10 @@ window.external.receiveMessage(rawMsg => {
                 if (typeof tlOnCreatorResolved === 'function') tlOnCreatorResolved(payload);
                 break;
             case 'vrcAvatarByFileId': handleAvatarByFileId(payload); break;
-            case 'vrcAvatarInfo': handleAvatarByFileId(payload); break;
+            case 'vrcAvatarInfo':
+                if (payload.context === 'myprofile') { if (typeof onMypAvatarInfo === 'function') onMypAvatarInfo(payload); }
+                else handleAvatarByFileId(payload);
+                break;
             case 'vrcInstanceAvatarFound': handleInstanceAvatarFound(payload); break;
             case 'vrcFavoriteFriends': renderFavFriends(payload); break;
             case 'vrcFavoriteFriendToggled': handleFavFriendToggled(payload); break;

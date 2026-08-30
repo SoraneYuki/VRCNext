@@ -1723,9 +1723,12 @@ function renderFtBioBody(ev) {
 
 function renderFtAvatarBody(ev) {
     const av      = ftFriendAv(ev, 'tl-av');
-    const avThumb = ev.worldThumb
-        ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.worldThumb, 96))}');border-radius:8px;flex-shrink:0;"></div>`
-        : '';
+    const avLock  = `<div class="tl-av tl-av-letter" style="border-radius:8px;flex-shrink:0;" title="${esc(t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database'))}"><span class="msi" style="font-size:16px;color:var(--tx3);">lock</span></div>`;
+    const avThumb = ev.worldId
+        ? (ev.worldThumb
+            ? `<div class="tl-av" style="background-image:url('${cssUrl(imgThumb(ev.worldThumb, 96))}');border-radius:8px;flex-shrink:0;"></div>`
+            : '')
+        : avLock;
     return `<div class="tl-card-body">${av}<div class="tl-card-info">
         <div class="tl-main-label">${esc(ev.friendName || t('timeline.unknown', 'Unknown'))}</div>
         <div class="tl-sub-label" style="display:flex;align-items:center;gap:6px;">${avThumb}<span>${esc(ev.worldName || ev.newValue || t('timeline.unknown', 'Unknown'))}</span></div>

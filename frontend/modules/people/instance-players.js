@@ -45,12 +45,22 @@ function _ipValue(u, field) {
         case 'language': return ((f?.tags || u.tags || []).find(x => x.startsWith('language_')) || '');
         case 'biolinks': return (Array.isArray(u.bioLinks) ? u.bioLinks.filter(Boolean).length : 0);
         case 'pronouns': return (u.pronouns || f?.pronouns || '').toLowerCase();
+        case 'avatar':   return (u.avatarName || '').toLowerCase();
         case 'meets':     return (_peopleStatsMap[u.id]?.meets) || 0;
         case 'timespent': return (_peopleStatsMap[u.id]?.seconds) || 0;
         case 'joineddate': return u.dateJoined || '';
         case 'lastseen':  return u.lastSeen || '';
         default:         return (u.displayName || '').toLowerCase();
     }
+}
+
+function instanceAvatarCellHtml(u) {
+    const name = u?.avatarName || '';
+    if (!name) return '';
+    if (!u.avatarId) {
+        return `<span class="ip-avatar-name" title="${esc(t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database'))}">${esc(name)}<span class="msi" style="font-size:12px;color:var(--tx3);margin-left:4px;vertical-align:-2px;">lock</span></span>`;
+    }
+    return `<span class="ip-avatar-name ip-avatar-link" onclick="event.stopPropagation();navOpenModal('avatar','${jsq(u.avatarId)}','${jsq(name)}')" title="${esc(name)}">${esc(name)}</span>`;
 }
 
 function buildInstancePlayersHtml(users, iStart, iTotal, now) {
@@ -97,6 +107,7 @@ function buildInstancePlayersHtml(users, iStart, iTotal, now) {
             timer:    `<td class="pl-date">${u.joinedAt ? esc(formatInstanceTimer(u.joinedAt, now)) : ''}</td>`,
             joined:   `<td class="pl-date">${u.joinedAt ? esc(fmtTime(new Date(u.joinedAt))) : ''}</td>`,
             name:     `<td class="pl-name">${esc(displayName)}</td>`,
+            avatar:   `<td class="pl-name">${instanceAvatarCellHtml(u)}</td>`,
             rank:     `<td>${rank ? `<span class="vrcn-badge ${rank.cls}">${esc(rank.label)}</span>` : ''}</td>`,
             status:   `<td class="pl-status">${status ? `<span class="vrc-status-dot ${statusDotClass(status)}"></span><span class="pl-status-txt">${esc(statusDesc || statusLabel(status))}</span>` : ''}</td>`,
             age:      `<td>${is18 ? `<span class="vrcn-badge ip-age">18+</span>` : (ageVerified ? `<span class="vrcn-badge ip-age">Verified</span>` : '')}</td>`,

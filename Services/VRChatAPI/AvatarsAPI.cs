@@ -15,7 +15,12 @@ public class AvatarsAPI(VRChatApiService ctx)
         {
             var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/avatars/{avatarId}");
             var body = await resp.Content.ReadAsStringAsync();
-            if (resp.IsSuccessStatusCode) return JObject.Parse(body);
+            if (resp.IsSuccessStatusCode)
+            {
+                var avatar = JObject.Parse(body);
+                RememberAvatarFile(avatar);
+                return avatar;
+            }
             ctx.Log($"GetAvatar {(int)resp.StatusCode}: {body[..Math.Min(200, body.Length)]}");
         }
         catch (Exception ex) { ctx.Log($"GetAvatar exception: {ex.Message}"); }
@@ -384,18 +389,111 @@ public class AvatarsAPI(VRChatApiService ctx)
         return (id, mapped);
     }
 
+    private static readonly System.Text.RegularExpressions.Regex _imageFileIdRx =
+        new(@"(file_[a-f0-9\-]{36})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    public static void RememberAvatarFile(JObject? avatar)
+    {
+        var id = avatar?["id"]?.ToString() ?? "";
+        if (!id.StartsWith("avtr_")) return;
+        var img = avatar!["imageUrl"]?.ToString() ?? avatar["thumbnailImageUrl"]?.ToString() ?? "";
+        var m = _imageFileIdRx.Match(img);
+        if (!m.Success) return;
+        Helpers.AvtrdbCacheHelper.SaveFileAvatar(m.Groups[1].Value, id,
+            avatar["name"]?.ToString()       ?? "",
+            avatar["authorName"]?.ToString() ?? "",
+            avatar["authorId"]?.ToString()   ?? "",
+            img, "vrchat");
+    }
+
+    private static (string? id, JObject? data) FromFileCache(Helpers.AvtrdbCacheHelper.FileAvatarEntry c)
+    {
+        if (string.IsNullOrEmpty(c.AvtrId) && string.IsNullOrEmpty(c.Name)) return (null, null);
+        var data = new JObject
+        {
+            ["id"]         = c.AvtrId,
+            ["name"]       = c.Name,
+            ["imageUrl"]   = c.ImageUrl,
+            ["authorName"] = c.AuthorName,
+            ["authorId"]   = c.AuthorId,
+        };
+        return (string.IsNullOrEmpty(c.AvtrId) ? null : c.AvtrId, data);
+    }
+
+    private static void RememberFile(string fileId, string source, (string? id, JObject? data) res)
+    {
+        if (string.IsNullOrEmpty(fileId)) return;
+        var d = res.data;
+        Helpers.AvtrdbCacheHelper.SaveFileAvatar(fileId,
+            res.id ?? "",
+            d?["name"]?.ToString()       ?? "",
+            d?["authorName"]?.ToString() ?? "",
+            d?["authorId"]?.ToString()   ?? "",
+            d?["imageUrl"]?.ToString()   ?? "",
+            source);
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex _fileAvatarNameRx =
+        new(@"Avatar - (.*) - Image -", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    private async Task<(string? id, JObject? data)> ResolveByVrcFileAsync(string fileId)
+    {
+        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(fileId)) return (null, null);
+        try
+        {
+            ctx.Log($"[FILE] resolve {fileId}");
+            var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/file/{fileId}");
+            if (!resp.IsSuccessStatusCode)
+            {
+                ctx.Log($"[FILE] {fileId} -> HTTP {(int)resp.StatusCode}");
+                return (null, null);
+            }
+            var obj = JObject.Parse(await resp.Content.ReadAsStringAsync());
+            var rawName = obj["name"]?.ToString() ?? "";
+            var m = _fileAvatarNameRx.Match(rawName);
+            if (!m.Success)
+            {
+                ctx.Log($"[FILE] {fileId} -> no avatar name in '{rawName}'");
+                return (null, null);
+            }
+            var name = m.Groups[1].Value.Trim();
+            if (name.Length == 0)
+            {
+                ctx.Log($"[FILE] {fileId} -> empty name in '{rawName}'");
+                return (null, null);
+            }
+            ctx.Log($"[FILE] {fileId} -> '{name}'");
+            return (null, new JObject
+            {
+                ["id"]         = "",
+                ["name"]       = name,
+                ["imageUrl"]   = "",
+                ["authorName"] = "",
+                ["authorId"]   = obj["ownerId"]?.ToString() ?? "",
+            });
+        }
+        catch (Exception ex) { ctx.Log($"[FILE] {fileId} exception: {ex.Message}"); return (null, null); }
+    }
+
     public async Task<(string? id, JObject? data)> GetAvatarIdByFileIdAsync(string fileId)
     {
-        if (fileId == AvtrdbResolver.HiddenAvatarFileId) return (null, null);
+        if (fileId == AvtrdbResolver.HiddenAvatarFileId)
+        {
+            ctx.Log($"[FILE] {fileId} is the hidden avatar placeholder, nothing to resolve");
+            return (null, null);
+        }
+        var cached = Helpers.AvtrdbCacheHelper.GetFileAvatar(fileId);
+        if (cached != null) return FromFileCache(cached);
         try
         {
             var res = MapResolved(await _avtrdbResolver.ResolveAsync(fileId));
-            if (res.id != null) return res;
+            if (res.id != null) { RememberFile(fileId, "avtrdb", res); return res; }
 
             var icu = MapResolvedIcu(await _icuResolver.ResolveAsync(fileId));
             if (icu.id != null)
             {
                 ctx.Log($"icu fallback resolved {fileId} -> {icu.id}");
+                RememberFile(fileId, "icu", icu);
                 return icu;
             }
 
@@ -403,8 +501,14 @@ public class AvatarsAPI(VRChatApiService ctx)
             if (fb.id != null)
             {
                 ctx.Log($"vrcndb fallback resolved {fileId} -> {fb.id}");
+                RememberFile(fileId, "vrcndb", fb);
                 return fb;
             }
+
+            ctx.Log($"[FILE] {fileId} unknown to avtrdb, avtr.icu and vrcndb, asking VRChat");
+            var file = await ResolveByVrcFileAsync(fileId);
+            RememberFile(fileId, file.data != null ? "vrcfile" : "none", file);
+            return file;
         }
         catch (Exception ex) { ctx.Log($"GetAvatarIdByFileId exception: {ex.Message}"); }
         return (null, null);
@@ -414,13 +518,15 @@ public class AvatarsAPI(VRChatApiService ctx)
     {
         try
         {
-            return source switch
+            var picked = source switch
             {
                 "avtrdb" => MapResolved(await _avtrdbResolver.ResolveDirectAsync(fileId)),
                 "icu"    => MapResolvedIcu(await _icuResolver.ResolveDirectAsync(fileId)),
                 "vrcndb" => MapResolved(await _vrcndbResolver.ResolveDirectAsync(fileId)),
                 _        => await GetAvatarIdByFileIdAsync(fileId),
             };
+            if (picked.id != null) RememberFile(fileId, source, picked);
+            return picked;
         }
         catch (Exception ex) { ctx.Log($"ResolveByFileIdSource({source}) exception: {ex.Message}"); }
         return (null, null);
@@ -431,10 +537,25 @@ public class AvatarsAPI(VRChatApiService ctx)
         var result = new Dictionary<string, (string? id, JObject? data)>();
         try
         {
-            var raw = await _avtrdbResolver.ResolveManyAsync(fileIds);
-            foreach (var kv in raw) result[kv.Key] = MapResolved(kv.Value);
+            var pending = new List<string>();
+            foreach (var f in fileIds.Where(f => !string.IsNullOrWhiteSpace(f)).Distinct())
+            {
+                if (f == AvtrdbResolver.HiddenAvatarFileId) continue;
+                var hit = Helpers.AvtrdbCacheHelper.GetFileAvatar(f);
+                if (hit != null) result[f] = FromFileCache(hit);
+                else pending.Add(f);
+            }
+            if (pending.Count == 0) return result;
 
-            var missing = result.Where(kv => kv.Value.id == null).Select(kv => kv.Key).ToList();
+            var raw = await _avtrdbResolver.ResolveManyAsync(pending);
+            foreach (var kv in raw)
+            {
+                var mapped = MapResolved(kv.Value);
+                result[kv.Key] = mapped;
+                if (mapped.id != null) RememberFile(kv.Key, "avtrdb", mapped);
+            }
+
+            var missing = pending.Where(f => result[f].id == null).ToList();
             if (missing.Count > 0)
             {
                 var icu = await _icuResolver.ResolveManyAsync(missing);
@@ -443,11 +564,12 @@ public class AvatarsAPI(VRChatApiService ctx)
                     var mapped = MapResolvedIcu(kv.Value);
                     if (mapped.id == null) continue;
                     result[kv.Key] = mapped;
+                    RememberFile(kv.Key, "icu", mapped);
                     ctx.Log($"icu fallback resolved {kv.Key} -> {mapped.id}");
                 }
             }
 
-            missing = result.Where(kv => kv.Value.id == null).Select(kv => kv.Key).ToList();
+            missing = pending.Where(f => result[f].id == null).ToList();
             if (missing.Count > 0)
             {
                 var fb = await _vrcndbResolver.ResolveManyAsync(missing);
@@ -456,6 +578,7 @@ public class AvatarsAPI(VRChatApiService ctx)
                     var mapped = MapResolved(kv.Value);
                     if (mapped.id == null) continue;
                     result[kv.Key] = mapped;
+                    RememberFile(kv.Key, "vrcndb", mapped);
                     ctx.Log($"vrcndb fallback resolved {kv.Key} -> {mapped.id}");
                 }
             }

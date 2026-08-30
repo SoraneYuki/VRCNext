@@ -381,6 +381,12 @@ public static class ImageCacheHelper
         return null;
     }
 
+    public static string GetAvatarUrlPreferCached(string? avatarId, string? imageUrl)
+    {
+        var cached = GetAvatarCached(avatarId);
+        return cached != null ? ToLocalUrl(cached) : GetAvatarUrl(avatarId, imageUrl);
+    }
+
     public static string GetAvatarUrl(string? avatarId, string? imageUrl)
     {
         imageUrl = StripLocalhostUrl(imageUrl);
