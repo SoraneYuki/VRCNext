@@ -512,6 +512,20 @@ public class FriendsController
                         }
                     }
 
+                    if (avtrData == null && !string.IsNullOrEmpty(forUserId))
+                    {
+                        var wornName = GetStoreValue(forUserId)?["displayName"]?.ToString() ?? "";
+                        if (string.IsNullOrEmpty(wornName))
+                            wornName = _core.LogWatcher.GetCurrentPlayers()
+                                .FirstOrDefault(p => p.UserId == forUserId)?.DisplayName ?? "";
+                        var worn = _core.LogWatcher.GetWornAvatarName(wornName);
+                        if (!string.IsNullOrEmpty(worn))
+                        {
+                            avtrData = new JObject { ["id"] = "", ["name"] = worn, ["imageUrl"] = "", ["authorName"] = "", ["authorId"] = "" };
+                            _core.SendToJS("log", new { msg = $"[FILE] {wornName} wears '{worn}' according to the game log", color = "ok" });
+                        }
+                    }
+
                     string avatarName = "", avatarImage = "", avatarAuthor = "";
                     if (avtrData != null)
                     {
@@ -525,7 +539,8 @@ public class FriendsController
                             _core.TimeEngine.SetAvatarInfoCache(forUserId, fileId, avtrId, avatarName, avatarAuthor,
                                 avtrData["imageUrl"]?.ToString() ?? "");
                     }
-                    _core.SendToJS("vrcAvatarByFileId", new { fileId, userId = forUserId, avatarId = avtrId ?? "", avatarName, avatarImage, avatarAuthor, openModal });
+                    _core.SendToJS("vrcAvatarByFileId", new { fileId, userId = forUserId, avatarId = avtrId ?? "", avatarName, avatarImage, avatarAuthor, openModal,
+                        avatarUnresolved = avtrData?["unresolved"]?.Value<bool>() ?? false });
                 }
                 break;
             }

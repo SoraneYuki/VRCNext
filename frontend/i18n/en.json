@@ -1095,6 +1095,7 @@
   "profiles.badges.badges": "Badges",
   "profiles.badges.current_avatar": "Current Avatar",
   "profiles.badges.avatar_not_in_db": "Avatar not found in any database",
+  "profiles.badges.avatar_unresolved": "Unresolved, IDs are rechecked every 10 minutes. If it takes too long, open the profile or use Check for Avatar.",
   "profiles.badges.representing": "Representing",
   "profiles.badges.groups": "Groups",
   "profiles.badges.no_groups": "No groups",

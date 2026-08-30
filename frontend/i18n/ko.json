@@ -1093,6 +1093,7 @@
   "profiles.badges.badges": "배지",
   "profiles.badges.current_avatar": "현재 아바타",
   "profiles.badges.avatar_not_in_db": "어떤 데이터베이스에서도 아바타를 찾을 수 없습니다",
+  "profiles.badges.avatar_unresolved": "미해결, ID는 10분마다 다시 확인됩니다. 너무 오래 걸리면 프로필을 열거나 아바타 확인을 사용하세요.",
   "profiles.badges.representing": "표시중",
   "profiles.badges.groups": "그룹",
   "profiles.badges.no_groups": "그룹 없음",

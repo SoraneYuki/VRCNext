@@ -34,7 +34,6 @@ public class InstanceController
     private DateTime _instAvatarBatchAt  = DateTime.MinValue;
     private const int InstAvatarSettleMs    = 10_000;
     private const int InstAvatarIntervalMin = 10;
-    private const int InstAvatarThrottleMin = 9;
     private bool _logWatcherBootstrapped;
     private string _lastTrackedWorldId = "";
     private readonly HashSet<string> _recentlyClosedLocs = new();
@@ -60,6 +59,7 @@ public class InstanceController
     {
         _core = core;
         _friends = friends;
+        _core.LogWatcher.AvatarChanged += (_, _) => ScheduleWornAvatarPush();
         _instAvatarBatchCycle = new System.Threading.Timer(
             _ => _ = Task.Run(RunInstanceAvatarBatchAsync), null,
             TimeSpan.FromMinutes(InstAvatarIntervalMin), TimeSpan.FromMinutes(InstAvatarIntervalMin));
@@ -1097,6 +1097,17 @@ public class InstanceController
         }
     });
 
+    private System.Threading.Timer? _wornPushTimer;
+
+    private void ScheduleWornAvatarPush()
+    {
+        _wornPushTimer?.Dispose();
+        _wornPushTimer = new System.Threading.Timer(_ =>
+        {
+            try { Invoke(PushCurrentInstanceFromCache); } catch { }
+        }, null, 2000, System.Threading.Timeout.Infinite);
+    }
+
     private void ScheduleInstanceAvatarBatch()
     {
         _instAvatarBatchTimer?.Dispose();
@@ -1111,8 +1122,6 @@ public class InstanceController
         {
             var loc = _cachedInstLocation;
             if (string.IsNullOrEmpty(loc) || !_core.VrcApi.IsLoggedIn) return;
-            if (loc == _instAvatarBatchLoc
-                && (DateTime.UtcNow - _instAvatarBatchAt).TotalMinutes < InstAvatarThrottleMin) return;
 
             var fileIds = new HashSet<string>();
             foreach (var p in _core.LogWatcher.GetCurrentPlayers())
@@ -1129,6 +1138,7 @@ public class InstanceController
 
             var cachedCount = fileIds.Count(f => AvtrdbCacheHelper.GetFileAvatar(f) != null);
             var queryCount  = fileIds.Count - cachedCount;
+            if (queryCount == 0) return;
             var res = await _core.Avatars.GetAvatarIdsByFileIdsAsync(fileIds);
             var resolved = res.Count(kv => kv.Value.id != null);
             Invoke(() => _core.SendToJS("log", new
@@ -1733,16 +1743,24 @@ public class InstanceController
             ["lastActivity"] = prof?["last_activity"]?.ToString() ?? "",
         };
         var avFileId = prof != null ? FriendsController.ExtractAvatarFileId(prof) : "";
-        if (!string.IsNullOrEmpty(avFileId))
+        var avTried  = avFileId == VRCNext.Services.AvtrdbResolver.HiddenAvatarFileId;
+        if (!string.IsNullOrEmpty(avFileId) && !avTried)
         {
             var av = AvtrdbCacheHelper.GetFileAvatar(avFileId);
             if (av != null)
             {
+                avTried = true;
                 o["avatarId"]     = av.AvtrId;
                 o["avatarName"]   = av.Name;
                 o["avatarAuthor"] = av.AuthorName;
             }
         }
+        if (string.IsNullOrEmpty(o["avatarName"]?.ToString()))
+        {
+            var worn = _core.LogWatcher.GetWornAvatarName(displayName ?? "");
+            if (!string.IsNullOrEmpty(worn)) o["avatarName"] = worn;
+        }
+        if (string.IsNullOrEmpty(o["avatarId"]?.ToString())) o["avatarUnresolved"] = !avTried;
         _friends.EnrichFromProfileCache(o, userId ?? "", true);
         return o;
     }

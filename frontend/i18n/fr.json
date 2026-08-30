@@ -1071,6 +1071,7 @@
   "profiles.badges.badges": "Badges",
   "profiles.badges.current_avatar": "Avatar Actuel",
   "profiles.badges.avatar_not_in_db": "Avatar introuvable dans les bases de données",
+  "profiles.badges.avatar_unresolved": "Non resolu, les IDs sont reverifies toutes les 10 minutes. Si cela prend trop de temps, ouvre le profil ou utilise Verifier l'avatar.",
   "profiles.badges.representing": "Représente",
   "profiles.badges.groups": "Groupes",
   "profiles.badges.no_groups": "Aucun groupe",

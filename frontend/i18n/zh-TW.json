@@ -1093,6 +1093,7 @@
   "profiles.badges.badges": "徽章",
   "profiles.badges.current_avatar": "目前形象",
   "profiles.badges.avatar_not_in_db": "未在任何資料庫中找到該形象",
+  "profiles.badges.avatar_unresolved": "尚未解析，ID 每 10 分鐘重新檢查一次。如果等待過久，請打開資料頁或使用檢查形象。",
   "profiles.badges.representing": "代表",
   "profiles.badges.groups": "群組",
   "profiles.badges.no_groups": "無群組",

@@ -217,8 +217,12 @@ function avatarNotInDbLabel() {
     return t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database');
 }
 
-function avatarNotInDbLockHtml() {
-    return `<span class="msi" title="${esc(avatarNotInDbLabel())}" style="font-size:15px;color:var(--tx3);flex-shrink:0;margin-left:auto;">lock</span>`;
+function avatarNotInDbLockHtml(unresolved) {
+    const icon  = unresolved ? 'hourglass_empty' : 'lock';
+    const title = unresolved
+        ? t('profiles.badges.avatar_unresolved', 'Unresolved, IDs are rechecked every 10 minutes. If it takes too long, open the profile or use Check for Avatar.')
+        : avatarNotInDbLabel();
+    return `<span class="msi" title="${esc(title)}" style="font-size:15px;color:var(--tx3);flex-shrink:0;margin-left:auto;">${icon}</span>`;
 }
 function _applyAvatarSection(payload) {
     const section = document.getElementById('fdAvatarSection');
@@ -236,7 +240,7 @@ function _applyAvatarSection(payload) {
     const cardAttrs = avId
         ? `onclick="navOpenModal('avatar','${jsq(avId)}','${jsq(avName)}')"`
         : `style="cursor:default;"`;
-    const lockHtml = avId ? '' : avatarNotInDbLockHtml();
+    const lockHtml = avId ? '' : avatarNotInDbLockHtml(!!payload.avatarUnresolved);
     section.style.display = '';
     section.innerHTML = `<div class="fd-group-rep-label">${t('profiles.badges.current_avatar', 'Current Avatar')}</div>
         <div class="fd-group-card fd-group-rep" ${cardAttrs}>

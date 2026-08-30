@@ -1071,6 +1071,7 @@
   "profiles.badges.badges": "徽章",
   "profiles.badges.current_avatar": "当前形象",
   "profiles.badges.avatar_not_in_db": "未在任何数据库中找到该形象",
+  "profiles.badges.avatar_unresolved": "尚未解析，ID 每 10 分钟重新检查一次。如果等待过久，请打开资料页或使用检查形象。",
   "profiles.badges.representing": "代表",
   "profiles.badges.groups": "群组",
   "profiles.badges.no_groups": "无群组",

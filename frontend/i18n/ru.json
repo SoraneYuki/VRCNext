@@ -1072,6 +1072,7 @@
   "profiles.badges.badges": "Значки",
   "profiles.badges.current_avatar": "Текущий аватар",
   "profiles.badges.avatar_not_in_db": "Аватар не найден ни в одной базе данных",
+  "profiles.badges.avatar_unresolved": "Не определено, ID проверяются каждые 10 минут. Если это затягивается, откройте профиль или нажмите Проверить аватар.",
   "profiles.badges.representing": "Представляет",
   "profiles.badges.groups": "Группы",
   "profiles.badges.no_groups": "Нет групп",

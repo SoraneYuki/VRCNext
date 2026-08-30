@@ -54,11 +54,19 @@ function _ipValue(u, field) {
     }
 }
 
+function avatarStateIconHtml(unresolved, size = 12) {
+    const icon  = unresolved ? 'hourglass_empty' : 'lock';
+    const title = unresolved
+        ? t('profiles.badges.avatar_unresolved', 'Unresolved, IDs are rechecked every 10 minutes. If it takes too long, open the profile or use Check for Avatar.')
+        : t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database');
+    return `<span class="msi" title="${esc(title)}" style="font-size:${size}px;color:var(--tx3);margin-left:4px;vertical-align:-2px;">${icon}</span>`;
+}
+
 function instanceAvatarCellHtml(u) {
     const name = u?.avatarName || '';
     if (!name) return '';
     if (!u.avatarId) {
-        return `<span class="ip-avatar-name" title="${esc(t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database'))}">${esc(name)}<span class="msi" style="font-size:12px;color:var(--tx3);margin-left:4px;vertical-align:-2px;">lock</span></span>`;
+        return `<span class="ip-avatar-name">${esc(name)}${avatarStateIconHtml(!!u.avatarUnresolved)}</span>`;
     }
     return `<span class="ip-avatar-name ip-avatar-link" onclick="event.stopPropagation();navOpenModal('avatar','${jsq(u.avatarId)}','${jsq(name)}')" title="${esc(name)}">${esc(name)}</span>`;
 }

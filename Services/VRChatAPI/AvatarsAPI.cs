@@ -434,7 +434,7 @@ public class AvatarsAPI(VRChatApiService ctx)
     }
 
     private static readonly System.Text.RegularExpressions.Regex _fileAvatarNameRx =
-        new(@"Avatar - (.*) - Image -", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        new(@"Avatar - (.*) - (?:Image|Asset bundle|Unity package) -", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
     private async Task<(string? id, JObject? data)> ResolveByVrcFileAsync(string fileId)
     {
@@ -582,6 +582,9 @@ public class AvatarsAPI(VRChatApiService ctx)
                     ctx.Log($"vrcndb fallback resolved {kv.Key} -> {mapped.id}");
                 }
             }
+
+            foreach (var f in pending.Where(f => result[f].id == null))
+                RememberFile(f, "none", (null, null));
         }
         catch (Exception ex) { ctx.Log($"GetAvatarIdsByFileIds exception: {ex.Message}"); }
         return result;

@@ -1083,6 +1083,7 @@
   "profiles.badges.badges": "Abzeichen",
   "profiles.badges.current_avatar": "Aktueller Avatar",
   "profiles.badges.avatar_not_in_db": "Avatar in keiner Datenbank gefunden",
+  "profiles.badges.avatar_unresolved": "Noch nicht aufgeloest, IDs werden alle 10 Minuten erneut geprueft. Dauert es zu lange, oeffne das Profil oder nutze Avatar pruefen.",
   "profiles.badges.representing": "Repraesentiert",
   "profiles.badges.groups": "Gruppen",
   "profiles.badges.no_groups": "Keine Gruppen",

@@ -1071,6 +1071,7 @@
   "profiles.badges.badges": "Insignias",
   "profiles.badges.current_avatar": "Avatar Actual",
   "profiles.badges.avatar_not_in_db": "Avatar no encontrado en ninguna base de datos",
+  "profiles.badges.avatar_unresolved": "Sin resolver, los IDs se revisan cada 10 minutos. Si tarda demasiado, abre el perfil o usa Comprobar avatar.",
   "profiles.badges.representing": "Representando",
   "profiles.badges.groups": "Grupos",
   "profiles.badges.no_groups": "Sin grupos",
