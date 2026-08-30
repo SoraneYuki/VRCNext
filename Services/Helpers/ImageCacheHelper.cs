@@ -383,6 +383,8 @@ public static class ImageCacheHelper
 
     public static string GetAvatarUrlPreferCached(string? avatarId, string? imageUrl)
     {
+        if (imageUrl != null && imageUrl.Contains(VRCNext.Services.AvtrdbResolver.HiddenAvatarFileId, StringComparison.OrdinalIgnoreCase))
+            imageUrl = null;
         var cached = GetAvatarCached(avatarId);
         return cached != null ? ToLocalUrl(cached) : GetAvatarUrl(avatarId, imageUrl);
     }
@@ -390,6 +392,8 @@ public static class ImageCacheHelper
     public static string GetAvatarUrl(string? avatarId, string? imageUrl)
     {
         imageUrl = StripLocalhostUrl(imageUrl);
+        if (imageUrl != null && imageUrl.Contains(VRCNext.Services.AvtrdbResolver.HiddenAvatarFileId, StringComparison.OrdinalIgnoreCase))
+            imageUrl = null;
         var cached = GetAvatarCached(avatarId);
         if (cached != null)
         {

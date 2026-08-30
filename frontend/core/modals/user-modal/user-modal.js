@@ -212,6 +212,7 @@ function closeFriendDetail(fromNav = false) {
 
 
 const ROBOT_AVATAR_ID = 'avtr_c38a1615-5bf5-42b4-84eb-a8b6c37cbd11';
+const HIDDEN_AVATAR_FILE_ID = 'file_0e8c4e32-7444-44ea-ade4-313c010d4bae';
 
 function avatarNotInDbLabel() {
     return t('profiles.badges.avatar_not_in_db', 'Avatar not found in any database');
@@ -231,7 +232,8 @@ function _applyAvatarSection(payload) {
     const avName = payload?.avatarName || '';
     if (!avId && !avName) return;
     if (avId === ROBOT_AVATAR_ID) { section.style.display = 'none'; return; }
-    const avImg = payload.avatarImage || currentFriendDetail?.currentAvatarImageUrl || '';
+    const fallbackImg = currentFriendDetail?.currentAvatarImageUrl || '';
+    const avImg = payload.avatarImage || (fallbackImg.includes(HIDDEN_AVATAR_FILE_ID) ? '' : fallbackImg);
     const avIcon = avImg
         ? `<img class="fd-group-icon" src="${esc(imgThumb(avImg, 96))}" onerror="this.style.display='none'">`
         : `<div class="fd-group-icon fd-group-icon-empty"><span class="msi" style="font-size:18px;">checkroom</span></div>`;
