@@ -3592,7 +3592,7 @@
   "profiles.people.filters.instance": "インスタンス",
   "profiles.people.instance.empty": "インスタンスにいません",
   "profiles.people.instance.count": "{n} 人",
-  "profiles.people.instance.filter_placeholder": "プレイヤーを絞り込み...",
+  "profiles.people.instance.filter_placeholder": "プレイヤー、ID、ステータス、アバターを検索...",
   "profiles.people.instance.presence": "在室状況",
   "instance.table.age": "18+",
   "people.list.header.time_spent": "一緒にいた時間",

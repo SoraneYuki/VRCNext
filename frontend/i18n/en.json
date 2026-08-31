@@ -3669,7 +3669,7 @@
   "profiles.people.filters.instance": "Instance",
   "profiles.people.instance.empty": "You are not in an instance",
   "profiles.people.instance.count": "{n} players",
-  "profiles.people.instance.filter_placeholder": "Filter players...",
+  "profiles.people.instance.filter_placeholder": "Search players, user IDs, status, avatars...",
   "profiles.people.instance.presence": "Presence",
   "instance.table.age": "18+",
   "people.list.header.time_spent": "Time Spent",

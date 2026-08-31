@@ -3645,7 +3645,7 @@
   "profiles.people.filters.instance": "房間",
   "profiles.people.instance.empty": "你不在任何房間中",
   "profiles.people.instance.count": "{n} 人",
-  "profiles.people.instance.filter_placeholder": "篩選玩家...",
+  "profiles.people.instance.filter_placeholder": "搜尋玩家、使用者ID、狀態、模型...",
   "profiles.people.instance.presence": "在場時長",
   "instance.table.age": "18+",
   "people.list.header.time_spent": "共處時間",

@@ -3615,7 +3615,7 @@
   "profiles.people.filters.instance": "Инстанс",
   "profiles.people.instance.empty": "Вы не в инстансе",
   "profiles.people.instance.count": "{n} игроков",
-  "profiles.people.instance.filter_placeholder": "Фильтр игроков...",
+  "profiles.people.instance.filter_placeholder": "Поиск игроков, ID, статуса, аватаров...",
   "profiles.people.instance.presence": "Присутствие",
   "instance.table.age": "18+",
   "people.list.header.time_spent": "Время вместе",

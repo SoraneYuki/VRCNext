@@ -3662,7 +3662,7 @@
   "profiles.people.filters.instance": "인스턴스",
   "profiles.people.instance.empty": "인스턴스에 있지 않습니다",
   "profiles.people.instance.count": "{n} 유저",
-  "profiles.people.instance.filter_placeholder": "유저 검색...",
+  "profiles.people.instance.filter_placeholder": "플레이어, ID, 상태, 아바타 검색...",
   "profiles.people.instance.presence": "있던 시간",
   "instance.table.age": "18+",
   "people.list.header.time_spent": "보낸 시간",

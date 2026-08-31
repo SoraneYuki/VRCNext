@@ -3593,7 +3593,7 @@
   "profiles.people.filters.instance": "Instance",
   "profiles.people.instance.empty": "Vous n’êtes pas dans une instance",
   "profiles.people.instance.count": "{n} joueurs",
-  "profiles.people.instance.filter_placeholder": "Filtrer les joueurs...",
+  "profiles.people.instance.filter_placeholder": "Rechercher joueurs, IDs, statut, avatars...",
   "profiles.people.instance.presence": "Présence",
   "instance.table.age": "18+",
   "people.list.header.time_spent": "Temps passe",

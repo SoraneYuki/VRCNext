@@ -3593,7 +3593,7 @@
   "profiles.people.filters.instance": "实例",
   "profiles.people.instance.empty": "你不在任何实例中",
   "profiles.people.instance.count": "{n} 人",
-  "profiles.people.instance.filter_placeholder": "筛选玩家...",
+  "profiles.people.instance.filter_placeholder": "搜索玩家、用户ID、状态、模型...",
   "profiles.people.instance.presence": "在场时长",
   "instance.table.age": "18+",
   "people.list.header.time_spent": "共处时间",

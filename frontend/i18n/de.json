@@ -3615,7 +3615,7 @@
   "profiles.people.filters.instance": "Instanz",
   "profiles.people.instance.empty": "Du bist in keiner Instanz",
   "profiles.people.instance.count": "{n} Spieler",
-  "profiles.people.instance.filter_placeholder": "Spieler filtern...",
+  "profiles.people.instance.filter_placeholder": "Spieler, User-IDs, Status, Avatare suchen...",
   "profiles.people.instance.presence": "Anwesenheit",
   "instance.table.age": "18+",
   "people.list.header.time_spent": "Zeit verbracht",

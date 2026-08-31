@@ -165,7 +165,17 @@ function renderInstancePlayers() {
     }
 
     const q = (document.getElementById('instancePlayersSearch')?.value || '').toLowerCase();
-    const filtered = q ? users.filter(u => (u.displayName || '').toLowerCase().includes(q)) : users;
+    const filtered = q ? users.filter(u => {
+        const f = u._friend;
+        const status = f?.status || u.status || '';
+        const statusDesc = f?.statusDescription ?? u.statusDescription ?? '';
+        return (u.displayName || '').toLowerCase().includes(q)
+            || (u.id || '').toLowerCase().includes(q)
+            || (u.avatarName || '').toLowerCase().includes(q)
+            || statusDesc.toLowerCase().includes(q)
+            || status.toLowerCase().includes(q)
+            || (typeof statusLabel === 'function' && status ? statusLabel(status).toLowerCase().includes(q) : false);
+    }) : users;
 
     if (!filtered.length) {
         el.innerHTML = `<div class="empty-msg">${esc(t('profiles.people.no_results', 'No results'))}</div>`;
