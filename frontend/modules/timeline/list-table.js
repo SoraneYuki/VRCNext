@@ -22,7 +22,7 @@ const TL_TABLE_DEFS = {
     ],
     friendsList: [
         { id: 'profile',    key: 'people.list.header.profile',     fallback: 'Profile',     width: '100px', sort: 'profile' },
-        { id: 'name',       key: 'people.list.header.username',    fallback: 'Username',    width: '',      sort: 'name' },
+        { id: 'name',       key: 'people.list.header.username',    fallback: 'Username',    width: '160px', sort: 'name' },
         { id: 'rank',       key: 'people.list.header.trust_rank',  fallback: 'Trust Rank',  width: '120px', sort: 'rank' },
         { id: 'status',     key: 'people.list.header.status',      fallback: 'Status',      width: '150px', sort: 'status' },
         { id: 'language',   key: 'people.list.header.language',    fallback: 'Language',    width: '110px', sort: 'language' },
@@ -40,7 +40,7 @@ const TL_TABLE_DEFS = {
         { id: 'profile',  key: 'people.list.header.profile',      fallback: 'Profile',      width: '64px',  sort: 'profile' },
         { id: 'timer',    key: 'instance.table.timer',            fallback: 'Timer',        width: '100px', sort: 'timer' },
         { id: 'joined',   key: 'instance.table.joined',           fallback: 'Joined',       width: '100px', sort: 'joined' },
-        { id: 'name',     key: 'instance.table.display_name',     fallback: 'Display Name', width: '',      sort: 'name' },
+        { id: 'name',     key: 'instance.table.display_name',     fallback: 'Display Name', width: '160px', sort: 'name' },
         { id: 'avatar',   key: 'instance.table.avatar',           fallback: 'Avatar',       width: '200px', sort: 'avatar' },
         { id: 'rank',     key: 'instance.table.rank',             fallback: 'Rank',         width: '120px', sort: 'rank' },
         { id: 'status',   key: 'instance.table.status',           fallback: 'Status',       width: '160px', sort: 'status' },
@@ -57,7 +57,7 @@ const TL_TABLE_DEFS = {
     ],
     modList: [
         { id: 'profile', key: 'people.list.header.profile',  fallback: 'Profile',  width: '64px',  sort: 'profile' },
-        { id: 'name',    key: 'people.list.header.username', fallback: 'Username', width: '',      sort: 'name' },
+        { id: 'name',    key: 'people.list.header.username', fallback: 'Username', width: '160px', sort: 'name' },
         { id: 'userid',  key: 'people.list.header.user_id',  fallback: 'User ID',  width: '300px', sort: 'userid' },
         { id: 'action',  key: 'people.list.header.action',   fallback: 'Action',   width: '130px', sort: 'name' },
     ],

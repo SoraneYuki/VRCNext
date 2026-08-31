@@ -308,9 +308,9 @@ function _iimSortEntries(entries) {
 }
 
 const IIM_COL_WIDTHS = {
-    profile:  '88px',
-    timer:    '76px',
-    joined:   '82px',
+    profile:  '104px',
+    timer:    '92px',
+    joined:   '100px',
     name:     'minmax(120px, .72fr)',
     avatar:   'minmax(120px, .9fr)',
     rank:     '110px',

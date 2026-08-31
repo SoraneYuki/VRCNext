@@ -1015,13 +1015,13 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
 }
 
 .iim-list {
-    --iim-grid-cols: 88px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
-    min-width: 928px;
+    --iim-grid-cols: 104px 100px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
+    min-width: 962px;
     width: 100%;
 }
 .iim-list.has-timers {
-    --iim-grid-cols: 88px 76px 82px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
-    min-width: 1008px;
+    --iim-grid-cols: 104px 92px 100px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
+    min-width: 1058px;
 }
 .iim-list-head,
 .iim-user-row {

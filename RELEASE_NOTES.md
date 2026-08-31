@@ -10,6 +10,8 @@
 * While a person is open, everyone else is hidden instead of rendered in the background, keeping the view clean and saving performance.
 
 **Changes**
+* The instance list in the Friends Sidebar got wider Profile, Timer and Joined columns, so the headers are no longer cut off.
+* The Username column in the People tab lists (Instance, All Friends, Favorites and co.) no longer hogs all the leftover space, giving the other columns more room.
 
 **Fixed Bugs**
 * Fixed heavy lag when zooming in close. The graph was drawing connection lines in a slow way, dropping FPS hard the further you zoomed in. It now stays smooth at any zoom level.
