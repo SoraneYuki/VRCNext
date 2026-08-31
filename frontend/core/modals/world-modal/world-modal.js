@@ -1661,7 +1661,10 @@ function wcFmtDate(ts) {
 }
 function wcUpdateCount() {
     const inp = document.getElementById('wcInput'), c = document.getElementById('wcCharCount');
-    if (inp && c) c.textContent = String(256 - (inp.value || '').length);
+    if (!inp || !c) return;
+    const remaining = 256 - (inp.value || '').length;
+    c.textContent = String(remaining);
+    c.className = 'wc-charcount' + (remaining <= 10 ? ' wc-char-warn' : remaining <= 20 ? ' wc-char-low' : '');
 }
 function wcAvatarHtml(uid, name, image, status) {
     const letter = esc(((name || '?')[0] || '?').toUpperCase());
@@ -1690,9 +1693,11 @@ function wcRenderCompose(worldId, mine) {
     const compose = document.getElementById('wcCompose');
     if (!compose) return;
     if (mine) { compose.innerHTML = ''; return; }
-    compose.innerHTML = `<textarea id="wcInput" class="myp-textarea" rows="2" maxlength="256" placeholder="${esc(t('worlds.comments.placeholder', 'Leave a comment...'))}" oninput="wcUpdateCount()"></textarea>
-        <div class="wc-compose-row">
+    compose.innerHTML = `<div class="wc-inputwrap">
+            <textarea id="wcInput" class="myp-textarea" rows="2" maxlength="256" placeholder="${esc(t('worlds.comments.placeholder', 'Leave a comment...'))}" oninput="wcUpdateCount()"></textarea>
             <span class="wc-charcount" id="wcCharCount">256</span>
+        </div>
+        <div class="wc-compose-row">
             <button class="vrcn-button vrcn-btn-primary" id="wcPostBtn" onclick="postWorldComment('${jsq(worldId)}')">${esc(t('worlds.comments.post', 'Post'))}</button>
         </div>`;
     wcUpdateCount();

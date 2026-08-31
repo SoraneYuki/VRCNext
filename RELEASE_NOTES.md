@@ -3,23 +3,23 @@
 **Improvements**
 
 * **Worlds**
-  * new **Comments** section in the world modal's Info tab. Leave a comment (up to 256 characters) One comment per world, delete your own anytime with the X on hover.
+  * There's a new **Comments** section in the world modal's Info tab. You can leave one comment per world, up to 256 characters, and delete your own anytime with the X that shows up on hover.
 
 * **My Profile**
-  * always shows the **Current Avatar** card, like other profiles.
+  * The **Current Avatar** card now always shows up, same as on everyone else's profile.
 
 * **Kikitan XD**
-  * new **Use Silero VAD** option for **Local Models**. Detects speech before sending audio to Whisper, cutting false transcriptions from breathing, clicks and background noise. Requires the Silero VAD model.
+  * Added a **Use Silero VAD** option for **Local Models**. It checks for actual speech before sending audio off to Whisper, so you get way fewer bogus transcriptions from breathing, mouse clicks and background noise. You'll need the Silero VAD model for this.
 
 * **Avatars**
-  * resolved avatars are cached locally, keyed by image file ID. Known avatars load from disk instead of querying avtrdb, avtr.icu or db.vrcnext.com. Re-checked after 30 days.
-  * entering an instance resolves everyone in one collective query per database instead of one per person, repeated every 10 minutes while you stay.
-  * if no database knows an avatar, VRChat is asked directly. Private avatars now show their name, marked with a lock icon.
+  * Resolved avatars are now cached locally by image file ID. Anything we've seen before loads straight from disk instead of hitting avtrdb, avtr.icu or db.vrcnext.com. Cache entries get re-checked after 30 days.
+  * Joining an instance now resolves everyone in one query per database, instead of one query per person repeated every 10 minutes for as long as you stick around.
+  * If none of the databases know an avatar, we just ask VRChat directly. Private avatars will show their name now, with a lock icon next to it.
 
 * **Instance**
-  * new **Avatar** column in the People > Instance table and the instance modal. Shows the avatar name and opens its page on click. Unknown avatars get a lock instead.
+  * New **Avatar** column in the People > Instance table and in the instance modal. It shows the avatar name and takes you to its page when clicked. Unknown ones get a lock instead.
 
-**Fixed Bugs**
+**Bug Fixes**
 
 * **Kikitan XD**
-  * fixed Voice Activity Detection not working with Local Models.
+  * Fixed Voice Activity Detection not working with Local Models.

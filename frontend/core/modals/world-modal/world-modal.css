@@ -515,9 +515,12 @@
 
 /* World comments */
 .wc-compose { margin-bottom: 12px; }
-.wc-compose .myp-textarea { width: 100%; box-sizing: border-box; resize: vertical; }
-.wc-compose-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
-.wc-charcount { font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx3); }
+.wc-inputwrap { position: relative; }
+.wc-inputwrap .myp-textarea { width: 100%; box-sizing: border-box; resize: vertical; padding-right: 48px; }
+.wc-charcount { position: absolute; right: 12px; bottom: 10px; font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx3); pointer-events: none; line-height: 1; transition: color .2s; }
+.wc-charcount.wc-char-low { color: #FFA726; }
+.wc-charcount.wc-char-warn { color: #EF5350; }
+.wc-compose-row { display: flex; align-items: center; justify-content: flex-end; margin-top: 8px; }
 .wc-list { display: flex; flex-direction: column; gap: 12px; }
 .wc-empty { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx3); padding: 6px 0; }
 .wc-item { position: relative; display: flex; gap: 10px; align-items: flex-start; }
