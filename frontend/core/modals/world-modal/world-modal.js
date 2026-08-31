@@ -1677,6 +1677,13 @@ function wcAvatarHtml(uid, name, image, status) {
 function renderWorldComment(c, meId, worldId) {
     const isMine = c.user_id && c.user_id === meId;
     const delBtn = isMine ? `<button class="wc-del-x" title="${esc(t('worlds.comments.delete', 'Delete comment'))}" onclick="deleteWorldComment('${jsq(worldId)}')"><span class="msi">close</span></button>` : '';
+    const mv = c.my_vote || 0;
+    const score = (c.up || 0) - (c.down || 0);
+    const votes = `<div class="wc-votes" data-cid="${c.id}" data-mv="${mv}">
+                <button class="wc-vote wc-up${mv === 1 ? ' active' : ''}" onclick="voteComment(${c.id},1)" title="${esc(t('worlds.comments.upvote', 'Upvote'))}"><span class="msi">arrow_upward</span></button>
+                <span class="wc-score">${score}</span>
+                <button class="wc-vote wc-down${mv === -1 ? ' active' : ''}" onclick="voteComment(${c.id},-1)" title="${esc(t('worlds.comments.downvote', 'Downvote'))}"><span class="msi">arrow_downward</span></button>
+            </div>`;
     return `<div class="wc-item">
         ${delBtn}
         ${wcAvatarHtml(c.user_id || '', c.username, '', '')}
@@ -1686,6 +1693,7 @@ function renderWorldComment(c, meId, worldId) {
                 <span class="wc-date">${esc(wcFmtDate(c.created_at))}</span>
             </div>
             <div class="wc-text">${esc(c.body || '')}</div>
+            <div class="wc-foot">${votes}</div>
         </div>
     </div>`;
 }
@@ -1750,7 +1758,12 @@ async function postWorldComment(worldId) {
         });
         const d = await r.json();
         if (d && d.ok) { loadWorldComments(worldId, 1); }
-        else if (typeof showToast === 'function') showToast(false, (d && d.error) || t('worlds.comments.error', 'Could not post comment.'));
+        else if (typeof showToast === 'function') {
+            const msg = (d && d.error && /inappropriate/i.test(d.error))
+                ? t('worlds.comments.rejected', 'Your comment was rejected for inappropriate language.')
+                : ((d && d.error) || t('worlds.comments.error', 'Could not post comment.'));
+            showToast(false, msg);
+        }
     } catch (e) {
         if (typeof showToast === 'function') showToast(false, t('worlds.comments.error', 'Could not post comment.'));
     } finally { _wcBusy = false; if (btn) btn.disabled = false; }
@@ -1771,8 +1784,32 @@ async function deleteWorldComment(worldId) {
         if (typeof showToast === 'function') showToast(false, t('worlds.comments.error', 'Could not delete comment.'));
     } finally { _wcBusy = false; }
 }
+async function voteComment(cid, value) {
+    if (typeof currentVrcUser === 'undefined' || !currentVrcUser || !currentVrcUser.id) return;
+    const ctrl = document.querySelector('.wc-votes[data-cid="' + cid + '"]');
+    if (!ctrl) return;
+    const cur = parseInt(ctrl.getAttribute('data-mv'), 10) || 0;
+    const target = (cur === value) ? 0 : value;
+    try {
+        const r = await fetch(WC_API, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'vote', comment_id: cid, user_id: currentVrcUser.id, value: target })
+        });
+        const d = await r.json();
+        if (d && d.ok) wcApplyVote(cid, d.up || 0, d.down || 0, d.my_vote || 0);
+    } catch (e) {}
+}
+function wcApplyVote(cid, up, down, mv) {
+    const ctrl = document.querySelector('.wc-votes[data-cid="' + cid + '"]');
+    if (!ctrl) return;
+    ctrl.setAttribute('data-mv', mv);
+    const score = ctrl.querySelector('.wc-score'); if (score) score.textContent = String(up - down);
+    const upb = ctrl.querySelector('.wc-up'); if (upb) upb.classList.toggle('active', mv === 1);
+    const dnb = ctrl.querySelector('.wc-down'); if (dnb) dnb.classList.toggle('active', mv === -1);
+}
 window.postWorldComment = postWorldComment;
 window.deleteWorldComment = deleteWorldComment;
+window.voteComment = voteComment;
 window.wcGoPage = wcGoPage;
 window.wcUpdateCount = wcUpdateCount;
 window.commentsOnUserBasic = commentsOnUserBasic;

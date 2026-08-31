@@ -535,3 +535,11 @@
 .wc-name:hover { color: var(--accent); }
 .wc-date { font-size: calc(10px + var(--fs-off, 0px)); color: var(--tx3); }
 .wc-text { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.wc-foot { margin-top: 6px; }
+.wc-votes { display: inline-flex; align-items: center; gap: 2px; }
+.wc-vote { display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; color: var(--tx3); cursor: pointer; padding: 3px; border-radius: 6px; line-height: 1; transition: background .12s, color .12s; }
+.wc-vote:hover { background: var(--bg-hover); color: var(--tx1); }
+.wc-vote .msi { font-size: 16px; display: block; }
+.wc-up.active { color: #FF6B3D; }
+.wc-down.active { color: #7A93FF; }
+.wc-score { min-width: 22px; text-align: center; font-size: calc(11px + var(--fs-off, 0px)); font-weight: 700; color: var(--tx2); }
