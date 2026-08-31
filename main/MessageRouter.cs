@@ -1045,6 +1045,7 @@ public partial class AppShell
 
                 case "vrcGetFriendPreview":
                 case "vrcGetUserBasic":
+                case "commentsApi":
                     await _friends.HandleMessage(action, msg);
                     break;
 

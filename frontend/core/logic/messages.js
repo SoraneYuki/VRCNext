@@ -404,6 +404,9 @@ window.external.receiveMessage(rawMsg => {
                 if (typeof tlOnCreatorResolved === 'function') tlOnCreatorResolved(payload);
                 if (typeof commentsOnUserBasic === 'function') commentsOnUserBasic(payload);
                 break;
+            case 'commentsApiResult':
+                if (typeof commentsApiResult === 'function') commentsApiResult(payload);
+                break;
             case 'vrcAvatarByFileId': handleAvatarByFileId(payload); break;
             case 'vrcAvatarInfo':
                 if (payload.context === 'myprofile') { if (typeof onMypAvatarInfo === 'function') onMypAvatarInfo(payload); }

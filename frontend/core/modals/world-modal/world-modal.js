@@ -1652,6 +1652,24 @@ function onWorldDeleteResult(data) {
 const WC_API = 'https://db.vrcnext.com/api/comments.php';
 let _wcWorldId = '', _wcPage = 1, _wcBusy = false;
 
+const _wcPending = {};
+let _wcReqSeq = 0;
+function wcApi(method, query, body) {
+    return new Promise((resolve) => {
+        const reqId = 'wc' + (++_wcReqSeq);
+        _wcPending[reqId] = resolve;
+        sendToCS({ action: 'commentsApi', reqId, method: method || 'GET', query: query || '', body: body || null });
+        setTimeout(() => { if (_wcPending[reqId]) { delete _wcPending[reqId]; resolve({ status: 0, data: null }); } }, 15000);
+    });
+}
+function commentsApiResult(payload) {
+    if (!payload || !payload.reqId) return;
+    const r = _wcPending[payload.reqId];
+    if (!r) return;
+    delete _wcPending[payload.reqId];
+    r({ status: payload.status || 0, data: payload.data || null });
+}
+
 function worldCommentsEnabled() {
     return (typeof settings === 'undefined') ? true : settings.commentsOnWorldsEnabled !== false;
 }
@@ -1732,9 +1750,9 @@ async function loadWorldComments(worldId, page) {
     if (!list) return;
     list.innerHTML = `<div class="wc-empty">${esc(t('common.loading', 'Loading...'))}</div>`;
     const me = (typeof currentVrcUser !== 'undefined' && currentVrcUser && currentVrcUser.id) ? currentVrcUser.id : '';
-    let d;
-    try { d = await (await fetch(WC_API + '?world=' + encodeURIComponent(worldId) + '&page=' + _wcPage + (me ? '&me=' + encodeURIComponent(me) : ''))).json(); }
-    catch (e) { if (worldId === _wcWorldId) list.innerHTML = `<div class="wc-empty">${esc(t('worlds.comments.error', 'Could not load comments.'))}</div>`; return; }
+    const _res = await wcApi('GET', 'world=' + encodeURIComponent(worldId) + '&page=' + _wcPage + (me ? '&me=' + encodeURIComponent(me) : ''), null);
+    const d = _res.data;
+    if (!d) { if (worldId === _wcWorldId) list.innerHTML = `<div class="wc-empty">${esc(t('worlds.comments.error', 'Could not load comments.'))}</div>`; return; }
     if (worldId !== _wcWorldId) return;
     const cnt = document.getElementById('wdCommentsCount'); if (cnt) cnt.textContent = d.total || 0;
     wcRenderCompose(worldId, d.mine || null);
@@ -1768,11 +1786,8 @@ async function postWorldComment(worldId) {
     }
     _wcBusy = true; if (btn) btn.disabled = true;
     try {
-        const r = await fetch(WC_API, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ world: worldId, user_id: currentVrcUser.id, username: currentVrcUser.displayName || 'VRChat User', body })
-        });
-        const d = await r.json();
+        const _res = await wcApi('POST', '', { world: worldId, user_id: currentVrcUser.id, username: currentVrcUser.displayName || 'VRChat User', body });
+        const d = _res.data || {};
         if (d && d.ok) { loadWorldComments(worldId, 1); }
         else if (typeof showToast === 'function') {
             let msg;
@@ -1791,11 +1806,8 @@ async function deleteWorldComment(worldId) {
     if (typeof currentVrcUser === 'undefined' || !currentVrcUser || !currentVrcUser.id) return;
     _wcBusy = true;
     try {
-        const r = await fetch(WC_API, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', world: worldId, user_id: currentVrcUser.id })
-        });
-        const d = await r.json();
+        const _res = await wcApi('POST', '', { action: 'delete', world: worldId, user_id: currentVrcUser.id });
+        const d = _res.data || {};
         if (d && d.ok) loadWorldComments(worldId, 1);
         else if (typeof showToast === 'function') showToast(false, (d && d.error) || t('worlds.comments.error', 'Could not delete comment.'));
     } catch (e) {
@@ -1809,11 +1821,8 @@ async function voteComment(cid, value) {
     const cur = parseInt(ctrl.getAttribute('data-mv'), 10) || 0;
     const target = (cur === value) ? 0 : value;
     try {
-        const r = await fetch(WC_API, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'vote', comment_id: cid, user_id: currentVrcUser.id, value: target })
-        });
-        const d = await r.json();
+        const _res = await wcApi('POST', '', { action: 'vote', comment_id: cid, user_id: currentVrcUser.id, value: target });
+        const d = _res.data || {};
         if (d && d.ok) wcApplyVote(cid, d.up || 0, d.down || 0, d.my_vote || 0);
     } catch (e) {}
 }
@@ -1834,3 +1843,4 @@ window.commentsOnUserBasic = commentsOnUserBasic;
 window.loadWorldComments = loadWorldComments;
 window.worldCommentsEnabled = worldCommentsEnabled;
 window.applyWorldCommentsEnabled = applyWorldCommentsEnabled;
+window.commentsApiResult = commentsApiResult;

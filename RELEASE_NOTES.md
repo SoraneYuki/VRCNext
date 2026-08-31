@@ -1,4 +1,7 @@
-**2026.47.5**
+**2026.47.6**
+
+**HOTFIX**
+* Fixed User-Agent Ident.
 
 **Improvements**
 

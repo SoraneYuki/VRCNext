@@ -322,6 +322,38 @@ public class FriendsController
                     await GetFriendDetailAsync(fdId);
                 break;
 
+            case "commentsApi":
+            {
+                var caReqId  = msg["reqId"]?.ToString() ?? "";
+                var caMethod = (msg["method"]?.ToString() ?? "GET").ToUpperInvariant();
+                var caQuery  = msg["query"]?.ToString() ?? "";
+                var caBody   = (msg["body"] == null || msg["body"]!.Type == JTokenType.Null) ? null : msg["body"]!.ToString(Formatting.None);
+                var caUrl    = "https://db.vrcnext.com/api/comments.php" + (string.IsNullOrEmpty(caQuery) ? "" : "?" + caQuery);
+                int caStatus = 0;
+                JToken? caData = null;
+                try
+                {
+                    using var caHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+                    caHttp.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
+                    HttpResponseMessage caResp;
+                    if (caMethod == "POST")
+                    {
+                        using var caContent = new StringContent(caBody ?? "{}", System.Text.Encoding.UTF8, "application/json");
+                        caResp = await caHttp.PostAsync(caUrl, caContent);
+                    }
+                    else
+                    {
+                        caResp = await caHttp.GetAsync(caUrl);
+                    }
+                    caStatus = (int) caResp.StatusCode;
+                    var caText = await caResp.Content.ReadAsStringAsync();
+                    try { caData = string.IsNullOrEmpty(caText) ? null : JToken.Parse(caText); } catch { caData = null; }
+                }
+                catch { }
+                _core.SendToJS("commentsApiResult", new { reqId = caReqId, status = caStatus, data = caData });
+                break;
+            }
+
             case "vrcGetUserBasic":
             {
                 var ubId        = msg["userId"]?.ToString();
