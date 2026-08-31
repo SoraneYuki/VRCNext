@@ -25,6 +25,53 @@ As of version 2026.42.X AppImage support has been added. it is currently in beta
 
 ---
 
+# Privacy Information
+
+## What data does VRCN collect, and which servers does it connect to?
+
+### Connections
+
+* **`api.vrchat.com` / `vrchat.com/api/`**
+  VRChat API endpoints used to retrieve or send data on your behalf.
+
+* **`cloud.vrchat.com`**
+  VRChat's cloud storage used to download images and other assets.
+
+* **`vrcn.shinyflvres.com`**
+  If you supported VRCNext through Patreon, this endpoint only checks whether you are currently a subscriber. No usage or telemetry data is collected.
+
+* **`avtrdb.com`**
+  Avatar database used to provide avatars to you. VRCN may also notify the database if an avatar has been deleted. You can opt out of this.
+
+* **`avtr.icu`**
+  Avatar database used to provide avatars to you. VRCN may also notify the database if an avatar has been deleted. You can opt out of this.
+
+* **`db.vrcnext.com`**
+  VRCNext's avatar database. It provides avatar data and may receive information when an avatar has been deleted, liked, or worn in order to help improve the database. You can opt out of this.
+
+## Does VRCNext collect telemetry or usage information?
+
+**No.**
+
+VRCNext does not collect telemetry or create an online profile of your behavior or how you use the software.
+
+The only data being exchanged is data required for the features you actively use.
+
+If you change your VRChat status or create an instance, VRCN communicates directly with VRChat. There is no VRCNext server sitting between you and VRChat.
+
+If you search for or submit an avatar, VRCN communicates with one of the supported avatar databases. If you choose to use their services, a connection to those services is naturally required.
+
+If you supported VRCNext through Patreon, my server may verify whether your Patreon subscription is currently active.
+
+## Transparency
+
+I want to be as transparent as possible about how VRCNext communicates with external services.
+
+I value privacy and I am not interested in collecting or profiling your personal usage data.
+
+If you are unsure about anything, you can ask another developer to review VRCNext or inspect the source code yourself.
+
+
 ## FAQ
 
 <details>
