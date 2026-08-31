@@ -66,6 +66,7 @@ function openInstanceInfoModal() {
         platform: t('instance.table.platform', 'Platform'),
         language: t('instance.table.language', 'Language'),
         biolinks: t('people.list.header.bio_links', 'Bio Links'),
+        presence: t('profiles.people.instance.presence', 'Presence'),
     };
     const listHead = `<div class="iim-list-head">${iimCols.map(id => _iimHeadCell(id, iimLabels[id])).join('')}</div>`;
     const iimGridStyle = `--iim-grid-cols:${iimCols.map(id => IIM_COL_WIDTHS[id]).join(' ')};`;
@@ -125,7 +126,7 @@ function openInstanceInfoModal() {
             const leftPct  = Math.max(0, Math.min(100, (pStart - iStart) / iTotal * 100));
             const widthPct = Math.max(0, Math.min(100 - leftPct, (pEnd - pStart) / iTotal * 100));
             const barCls   = (u._friend || isSelf) ? ' friend' : '';
-            barHtml = `<div class="iim-user-bar"><div class="tl-player-bar-wrap"><div class="tl-player-bar${barCls}" style="left:${leftPct.toFixed(1)}%;width:${widthPct.toFixed(1)}%"></div></div></div>`;
+            barHtml = `<div class="tl-player-bar-wrap"><div class="tl-player-bar${barCls}" style="left:${leftPct.toFixed(1)}%;width:${widthPct.toFixed(1)}%"></div></div>`;
         }
         const itemClick    = id ? ` onclick="openFriendDetail('${jsq(id)}')"` : '';
         const clickableCls = id ? ' clickable' : '';
@@ -141,10 +142,10 @@ function openInstanceInfoModal() {
             platform: platformCell,
             language: langCell,
             biolinks: bioCell,
+            presence: `<div class="iim-cell iim-bar-cell">${barHtml}</div>`,
         };
         return `<div class="iim-user-item${clickableCls}"${itemClick}>
             <div class="iim-user-row">${iimCols.map(id => cellMap[id] || '').join('')}</div>
-            ${barHtml}
         </div>`;
     }
 
@@ -271,7 +272,8 @@ function _iimSortValue(u, id) {
     const live = u._friend;
     switch (id) {
         case 'timer':
-        case 'joined':   return u.joinedAt || 0;
+        case 'joined':
+        case 'presence': return u.joinedAt || 0;
         case 'profile':
         case 'name':     return (u.displayName || '').toLowerCase();
         case 'avatar':   return (u.avatarName || '').toLowerCase();
@@ -319,8 +321,9 @@ const IIM_COL_WIDTHS = {
     platform: '98px',
     language: 'minmax(100px, .8fr)',
     biolinks: '96px',
+    presence: '200px',
 };
-const IIM_DEFAULT_ORDER = ['profile', 'timer', 'joined', 'name', 'avatar', 'rank', 'status', 'age', 'platform', 'language', 'biolinks'];
+const IIM_DEFAULT_ORDER = ['profile', 'timer', 'joined', 'name', 'avatar', 'rank', 'status', 'age', 'platform', 'language', 'biolinks', 'presence'];
 const IIM_ORDER_KEY = 'vrcn_iim_order';
 
 function _iimOrder(hasTimers) {
@@ -335,7 +338,7 @@ function _iimOrder(hasTimers) {
     } else {
         order = IIM_DEFAULT_ORDER.slice();
     }
-    return hasTimers ? order : order.filter(id => id !== 'timer');
+    return hasTimers ? order : order.filter(id => id !== 'timer' && id !== 'presence');
 }
 
 function _iimSaveOrder(order) {

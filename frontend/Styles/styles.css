@@ -1020,8 +1020,8 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     width: 100%;
 }
 .iim-list.has-timers {
-    --iim-grid-cols: 104px 92px 100px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px;
-    min-width: 1058px;
+    --iim-grid-cols: 104px 92px 100px minmax(120px, .72fr) 110px minmax(100px, 136px) 56px 98px minmax(100px, .8fr) 96px 200px;
+    min-width: 1258px;
 }
 .iim-list-head,
 .iim-user-row {
@@ -1107,10 +1107,11 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     font-size: calc(11px + var(--fs-off, 0px));
     color: var(--tx3);
 }
-.iim-user-bar {
-    padding: 0 10px 7px;
+.iim-bar-cell {
+    padding-right: 14px;
 }
-.iim-user-bar .tl-player-bar-wrap {
+.iim-bar-cell .tl-player-bar-wrap {
+    width: 100%;
     margin-top: 0;
 }
 .iim-av {
