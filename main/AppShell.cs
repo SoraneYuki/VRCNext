@@ -19,6 +19,7 @@ public partial class AppShell
     private System.Net.HttpListener? _httpListener;
     private System.Threading.Timer? _uptimeTimer2;
     private System.Threading.Timer? _worldStatsTimer;
+    private System.Threading.Timer? _apiHealthTimer;
     private System.Threading.Timer? _memDiagTimer;
     private int _worldStatsOffsetMin; // random 0-10 min offset per session
     private bool _minimized;
@@ -450,8 +451,6 @@ public partial class AppShell
             catch { }
         }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 
-        // Hourly world stats collection for World Insights
-        // Fires at each UTC hour + random 0-10 min offset (to spread API load across users)
         _worldStatsOffsetMin = new Random().Next(0, 11);
         _worldStatsTimer = new System.Threading.Timer(async _ =>
         {
@@ -460,7 +459,12 @@ public partial class AppShell
         }, null, Timeout.Infinite, Timeout.Infinite);
         ScheduleNextWorldStats();
 
-        // Chromeless on Windows requires explicit location (Center() sets a flag, not coordinates)
+        // VRChat API health 
+        _apiHealthTimer = new System.Threading.Timer(async _ =>
+        {
+            try { await FetchApiHealthAsync(); } catch { }
+        }, null, TimeSpan.FromSeconds(8), TimeSpan.FromMinutes(5));
+
         int startW = _settings.RememberWindowSize && _settings.SavedWindowWidth  >= 100
             ? _settings.SavedWindowWidth  : 1100;
         int startH = _settings.RememberWindowSize && _settings.SavedWindowHeight >= 100
@@ -649,6 +653,141 @@ public partial class AppShell
         _worldStatsTimer?.Change(delay, Timeout.InfiniteTimeSpan);
     }
 
+    private static readonly System.Net.Http.HttpClient _apiHealthHttp = new() { Timeout = TimeSpan.FromSeconds(15) };
+
+    private async Task FetchApiHealthAsync()
+    {
+        if (!_settings.ShowApiHealth) return;
+        try
+        {
+            var json = await _apiHealthHttp.GetStringAsync("https://status.vrchat.com/api/v2/status.json");
+            var o = JObject.Parse(json);
+            _core.SendToJS("vrcApiHealth", new
+            {
+                indicator   = o["status"]?["indicator"]?.ToString() ?? "none",
+                description = o["status"]?["description"]?.ToString() ?? "",
+                updatedAt   = o["page"]?["updated_at"]?.ToString() ?? "",
+            });
+        }
+        catch { /* keep last state when offline lol will fix later */ }
+    }
+
+    private async Task SendApiHealthDetailAsync()
+    {
+        var indicator   = "none";
+        var description = "";
+        var componentGroups = new List<object>();
+        var incidents   = new List<object>();
+        long onlineUsers = -1;
+        double latencyMs = -1;
+        try
+        {
+            var json = await _apiHealthHttp.GetStringAsync("https://status.vrchat.com/api/v2/summary.json");
+            var o = JObject.Parse(json);
+            indicator   = o["status"]?["indicator"]?.ToString() ?? "none";
+            description = o["status"]?["description"]?.ToString() ?? "";
+            var comps = (o["components"] as JArray ?? new JArray())
+                .OrderBy(c => c["position"]?.Value<int>() ?? 0)
+                .ToList();
+            var byId = new Dictionary<string, JToken>();
+            foreach (var c in comps)
+            {
+                var id = c["id"]?.ToString() ?? "";
+                if (!string.IsNullOrEmpty(id)) byId[id] = c;
+            }
+            var ungrouped = new List<object>();
+            foreach (var c in comps)
+            {
+                var cName = c["name"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(cName)) continue;
+                if (c["group"]?.Value<bool>() == true)
+                {
+                    var children = new List<object>();
+                    foreach (var cid in c["components"] as JArray ?? new JArray())
+                    {
+                        if (!byId.TryGetValue(cid?.ToString() ?? "", out var child)) continue;
+                        var chName = child["name"]?.ToString() ?? "";
+                        if (string.IsNullOrEmpty(chName)) continue;
+                        children.Add(new { name = chName, status = child["status"]?.ToString() ?? "" });
+                    }
+                    if (children.Count > 0)
+                        componentGroups.Add(new { name = cName, components = children });
+                }
+                else if (string.IsNullOrEmpty(c["group_id"]?.ToString()))
+                {
+                    ungrouped.Add(new { name = cName, status = c["status"]?.ToString() ?? "" });
+                }
+            }
+            if (ungrouped.Count > 0)
+                componentGroups.Add(new { name = "", components = ungrouped });
+
+            foreach (var inc in o["incidents"] as JArray ?? new JArray())
+            {
+                var iName = inc["name"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(iName)) continue;
+                incidents.Add(new { name = iName, status = inc["status"]?.ToString() ?? "" });
+            }
+        }
+        catch { }
+        var visitsSeries   = new List<double[]>();
+        var latencySeries  = new List<double[]>();
+        var requestsSeries = new List<double[]>();
+        var errorsSeries   = new List<double[]>();
+        try
+        {
+            var v = await _apiHealthHttp.GetStringAsync("https://d31qqo63tn8lj0.cloudfront.net/visits.json");
+            var arr = JArray.Parse(v);
+            if (arr.Count > 0) onlineUsers = arr[arr.Count - 1]?[1]?.Value<long>() ?? -1;
+            visitsSeries = SampleHealthSeries(arr, 288);
+        }
+        catch { }
+        try
+        {
+            var l = await _apiHealthHttp.GetStringAsync("https://d31qqo63tn8lj0.cloudfront.net/apilatency.json");
+            var arr = JArray.Parse(l);
+            if (arr.Count > 0) latencyMs = Math.Round((arr[arr.Count - 1]?[1]?.Value<double>() ?? -0.001) * 1000);
+            latencySeries = SampleHealthSeries(arr, 288);
+        }
+        catch { }
+        try
+        {
+            var r = await _apiHealthHttp.GetStringAsync("https://d31qqo63tn8lj0.cloudfront.net/apirequests.json");
+            requestsSeries = SampleHealthSeries(JArray.Parse(r), 288);
+        }
+        catch { }
+        try
+        {
+            var e = await _apiHealthHttp.GetStringAsync("https://d31qqo63tn8lj0.cloudfront.net/apierrors.json");
+            errorsSeries = SampleHealthSeries(JArray.Parse(e), 288);
+        }
+        catch { }
+        _core.SendToJS("vrcApiHealthDetail", new
+        {
+            indicator, description, componentGroups, incidents, onlineUsers, latencyMs,
+            visits   = visitsSeries,
+            latency  = latencySeries,
+            requests = requestsSeries,
+            errors   = errorsSeries,
+        });
+    }
+
+    private static List<double[]> SampleHealthSeries(JArray arr, int maxPoints)
+    {
+        var list = new List<double[]>();
+        if (arr.Count == 0) return list;
+        var step = Math.Max(1, (int)Math.Ceiling(arr.Count / (double)maxPoints));
+        for (int i = 0; i < arr.Count; i += step)
+        {
+            var p = arr[i];
+            list.Add(new[] { p?[0]?.Value<double>() ?? 0, p?[1]?.Value<double>() ?? 0 });
+        }
+        var last = arr[arr.Count - 1];
+        var lastTs = last?[0]?.Value<double>() ?? 0;
+        if (list.Count == 0 || list[list.Count - 1][0] != lastTs)
+            list.Add(new[] { lastTs, last?[1]?.Value<double>() ?? 0 });
+        return list;
+    }
+
     internal async Task CollectWorldStatsAsync()
     {
         try
@@ -748,6 +887,7 @@ public partial class AppShell
         _fileWatcher.Dispose();
         _uptimeTimer2?.Dispose();
         _worldStatsTimer?.Dispose();
+        _apiHealthTimer?.Dispose();
         _memDiagTimer?.Dispose();
         _sfCtrl?.Dispose();
         _stCtrl?.Dispose();

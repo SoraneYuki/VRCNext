@@ -2,6 +2,7 @@
 
 **Improvements**
 * Mutual Network and Meet Network now free their avatar and world images from memory when you leave the tab, just like every other tab. Images are reloaded from the local cache when you come back.
+* New VRChat API health indicator in the taskbar: green = everything operational, yellow = minor issues or maintenance, red = major outage. Clicking it opens a mini panel with the current status, online user count, API latency and the health of each VRChat service, plus a shortcut to status.vrchat.com. Can be turned off under **Settings > Sidebar > Taskbar**.
 
 **Meet Network**
 * New tool under **Tools > Meet Network**. It shows the top 200 people you've met most often in VRChat, friends and strangers alike, arranged in rings with your most frequent meets in the center. Bigger circle = more meets.

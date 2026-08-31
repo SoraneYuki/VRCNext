@@ -3846,6 +3846,14 @@ public partial class AppShell
                     await _authCtrl.HandleMessage(action, msg);
                     break;
 
+                case "getApiHealth":
+                    _ = Task.Run(() => FetchApiHealthAsync());
+                    break;
+
+                case "getApiHealthDetail":
+                    _ = Task.Run(() => SendApiHealthDetailAsync());
+                    break;
+
                 case "revealInExplorer":
                 {
                     var filePath = msg["path"]?.ToString();

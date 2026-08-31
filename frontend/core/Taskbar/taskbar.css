@@ -37,6 +37,112 @@
     transition: background .15s ease;
 }
 
+/* === VRChat API health badge + panel === */
+.tbah-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--tx3);
+    flex-shrink: 0;
+}
+.tbah-dot.ok   { background: var(--ok); }
+.tbah-dot.warn { background: var(--warn); }
+.tbah-dot.err  { background: var(--err); }
+
+.tbah-icon      { font-size: 16px; color: var(--tx3); }
+.tbah-icon.ok   { color: var(--ok); }
+.tbah-icon.warn { color: var(--warn); }
+.tbah-icon.err  { color: var(--err); }
+
+#apiHealthPanel {
+    position: fixed;
+    z-index: 20001;
+    width: 420px;
+    max-height: 72vh;
+    overflow-y: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--brd);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: calc(11px + var(--fs-off, 0px));
+    color: var(--tx3);
+    box-shadow: 0 14px 40px rgba(0,0,0,.4);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.tbah-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+}
+.tbah-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.tbah-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: calc(12px + var(--fs-off, 0px));
+    font-weight: 700;
+    color: var(--tx1);
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--brd);
+}
+.tbah-loading { padding: 6px 0; }
+.tbah-graph-block { display: flex; flex-direction: column; gap: 3px; margin-top: 2px; }
+.tbah-graph {
+    width: 100%;
+    height: 54px;
+    background: var(--bg-input);
+    border-radius: 6px;
+}
+.tbah-graph-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: calc(9px + var(--fs-off, 0px));
+    color: var(--tx3);
+}
+.tbah-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.tbah-stat span:last-child { color: var(--tx1); font-weight: 600; font-variant-numeric: tabular-nums; }
+.tbah-section {
+    margin-top: 4px;
+    font-size: calc(10px + var(--fs-off, 0px));
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.tbah-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.tbah-row .tbah-dot { width: 7px; height: 7px; }
+.tbah-row-name {
+    color: var(--tx2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tbah-open {
+    margin-top: 6px;
+    width: 100%;
+    justify-content: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
 /* Force opaque taskbar when at least one sidebar is open */
 body:has(#sidebarEl:not(.collapsed)) #taskbar::after,
 body:has(#rsidebar:not(.collapsed)) #taskbar::after {

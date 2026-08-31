@@ -1,6 +1,212 @@
 var _helpPanelOpen = false;
 var _helpDismiss = null;
 
+/* === VRChat API Health (status.vrchat.com) === */
+var _apiHealthState = null;
+var _apiHealthPanelOpen = false;
+var _apiHealthDismiss = null;
+
+function _apiHealthLevel(indicator) {
+    if (!indicator || indicator === 'none') return 'ok';
+    if (indicator === 'minor' || indicator === 'maintenance') return 'warn';
+    return 'err';
+}
+
+function _apiHealthCompLevel(status) {
+    if (status === 'operational') return 'ok';
+    if (status === 'degraded_performance' || status === 'under_maintenance') return 'warn';
+    return 'err';
+}
+
+function _apiHealthEnabled() {
+    var el = document.getElementById('setShowApiHealth');
+    return el ? el.checked : true;
+}
+
+function _applyApiHealthVisibility() {
+    var btn = document.getElementById('tbApiHealth');
+    if (btn) btn.style.display = (_apiHealthEnabled() && _apiHealthState) ? '' : 'none';
+}
+
+function applyApiHealthSettings() {
+    _applyApiHealthVisibility();
+    if (_apiHealthEnabled() && !_apiHealthState) sendToCS({ action: 'getApiHealth' });
+    if (!_apiHealthEnabled() && _apiHealthPanelOpen) toggleApiHealthPanel();
+}
+
+function onApiHealth(payload) {
+    if (!payload) return;
+    _apiHealthState = payload;
+    var dot = document.getElementById('tbApiHealthDot');
+    var btn = document.getElementById('tbApiHealth');
+    if (dot) {
+        var lvl = _apiHealthLevel(payload.indicator);
+        dot.className = 'msi tbah-icon ' + lvl;
+        dot.textContent = lvl === 'ok' ? 'database' : 'database_off';
+    }
+    if (btn) btn.title = payload.description || t('apihealth.title', 'VRChat API Status');
+    _applyApiHealthVisibility();
+}
+
+function _apiHealthPanelEl() {
+    var panel = document.getElementById('apiHealthPanel');
+    if (panel) return panel;
+    panel = document.createElement('div');
+    panel.id = 'apiHealthPanel';
+    panel.style.display = 'none';
+    document.body.appendChild(panel);
+    return panel;
+}
+
+function toggleApiHealthPanel() {
+    var panel = _apiHealthPanelEl();
+    _apiHealthPanelOpen = !_apiHealthPanelOpen;
+    if (!_apiHealthPanelOpen) {
+        if (_apiHealthDismiss) { document.removeEventListener('click', _apiHealthDismiss); _apiHealthDismiss = null; }
+        panel.style.display = 'none';
+        return;
+    }
+    var btn = document.getElementById('tbApiHealth');
+    if (btn) {
+        var r = btn.getBoundingClientRect();
+        panel.style.top   = (r.bottom + 6) + 'px';
+        panel.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    }
+    _renderApiHealthPanel(null);
+    panel.style.display = '';
+    sendToCS({ action: 'getApiHealthDetail' });
+    setTimeout(function () {
+        _apiHealthDismiss = function (ev) {
+            var p = document.getElementById('apiHealthPanel');
+            var b = document.getElementById('tbApiHealth');
+            if (p && !p.contains(ev.target) && (!b || !b.contains(ev.target))) toggleApiHealthPanel();
+        };
+        document.addEventListener('click', _apiHealthDismiss);
+    }, 0);
+}
+
+function onApiHealthDetail(payload) {
+    if (_apiHealthPanelOpen) _renderApiHealthPanel(payload || {});
+}
+
+function _renderApiHealthPanel(detail) {
+    var panel = _apiHealthPanelEl();
+    var st  = detail || _apiHealthState || {};
+    var lvl = _apiHealthLevel(st.indicator);
+    var h = '<div class="tbah-head"><span class="tbah-dot ' + lvl + '"></span><span>' + esc(st.description || t('apihealth.title', 'VRChat API Status')) + '</span></div>';
+
+    if (!detail) {
+        h += '<div class="tbah-loading">' + esc(t('apihealth.loading', 'Loading details...')) + '</div>';
+    } else {
+        var graphs = _tbahGraphBlock('visits', t('apihealth.online_users', 'Online Users'),
+            detail.onlineUsers >= 0 ? Number(detail.onlineUsers).toLocaleString() : '', detail.visits)
+            + _tbahGraphBlock('latency', t('apihealth.latency', 'API Latency'),
+            detail.latencyMs >= 0 ? Math.round(detail.latencyMs) + ' ms' : '', detail.latency)
+            + _tbahGraphBlock('requests', t('apihealth.requests', 'API Requests'), '', detail.requests)
+            + _tbahGraphBlock('errors', t('apihealth.error_rate', 'API Error Rate'), _tbahErrorPct(detail.errors), detail.errors);
+        if (graphs) h += '<div class="tbah-cols">' + graphs + '</div>';
+        var incs = detail.incidents || [];
+        if (incs.length) {
+            h += '<div class="tbah-section">' + esc(t('apihealth.incidents', 'Active Incidents')) + '</div>';
+            incs.forEach(function (i) {
+                h += '<div class="tbah-row"><span class="tbah-dot err"></span><span class="tbah-row-name">' + esc(i.name) + '</span></div>';
+            });
+        }
+        var groupCells = '';
+        (detail.componentGroups || []).forEach(function (g) {
+            var comps = g.components || [];
+            if (!comps.length) return;
+            groupCells += '<div class="tbah-group"><div class="tbah-section">' + esc(g.name || t('apihealth.components', 'Services')) + '</div>';
+            comps.forEach(function (c) {
+                groupCells += '<div class="tbah-row" title="' + esc(c.status) + '"><span class="tbah-dot ' + _apiHealthCompLevel(c.status) + '"></span><span class="tbah-row-name">' + esc(c.name) + '</span></div>';
+            });
+            groupCells += '</div>';
+        });
+        if (groupCells) h += '<div class="tbah-cols">' + groupCells + '</div>';
+    }
+    h += '<button class="vrcn-button tbah-open" onclick="sendToCS({action:\'openUrl\',url:\'https://status.vrchat.com\'})"><span class="msi" style="font-size:14px;">open_in_new</span> <span>' + esc(t('apihealth.open_page', 'Open Status Page')) + '</span></button>';
+    panel.innerHTML = h;
+
+    if (detail) {
+        var ac = _tbahAccent();
+        _tbahDrawGraph(panel.querySelector('[data-tbah-graph="visits"]'), detail.visits, { color: ac, fill: ac + '40', zeroBase: true });
+        _tbahDrawGraph(panel.querySelector('[data-tbah-graph="latency"]'), detail.latency, { color: ac });
+        _tbahDrawGraph(panel.querySelector('[data-tbah-graph="requests"]'), detail.requests, { color: ac });
+        _tbahDrawGraph(panel.querySelector('[data-tbah-graph="errors"]'), detail.errors, { color: ac, fill: ac + '40', zeroBase: true });
+    }
+}
+
+function _tbahErrorPct(series) {
+    if (!Array.isArray(series) || !series.length) return '';
+    var v = (series[series.length - 1][1] || 0) * 100;
+    if (v === 0) return '0%';
+    if (v < 0.001) return v.toFixed(5) + '%';
+    if (v < 0.1)   return v.toFixed(4) + '%';
+    return v.toFixed(2) + '%';
+}
+
+function _tbahTime(ts) {
+    try {
+        var d = new Date(ts * 1000);
+        return typeof fmtTime === 'function' ? fmtTime(d) : d.toTimeString().slice(0, 5);
+    } catch { return ''; }
+}
+
+function _tbahGraphBlock(key, label, valueText, series) {
+    var hasGraph = Array.isArray(series) && series.length >= 2;
+    if (!hasGraph && !valueText) return '';
+    var h = '<div class="tbah-graph-block"><div class="tbah-stat"><span>' + esc(label) + '</span><span>' + esc(valueText) + '</span></div>';
+    if (hasGraph) {
+        var first = series[0][0], last = series[series.length - 1][0];
+        h += '<canvas class="tbah-graph" data-tbah-graph="' + key + '" width="180" height="54"></canvas>';
+        h += '<div class="tbah-graph-axis"><span>' + esc(_tbahTime(first)) + '</span><span>' + esc(_tbahTime((first + last) / 2)) + '</span><span>' + esc(_tbahTime(last)) + '</span></div>';
+    }
+    return h + '</div>';
+}
+
+function _tbahAccent() {
+    var raw = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#5682f4';
+    return /^#[0-9a-f]{6}$/i.test(raw) ? raw : '#5682f4';
+}
+
+function _tbahDrawGraph(canvas, series, opts) {
+    if (!canvas) return;
+    if (!Array.isArray(series) || series.length < 2) { canvas.style.display = 'none'; return; }
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    var min = Infinity, max = -Infinity;
+    for (var i = 0; i < series.length; i++) {
+        var v = series[i][1];
+        if (v < min) min = v;
+        if (v > max) max = v;
+    }
+    if (opts.zeroBase) min = 0;
+    var span = (max - min) || 1;
+    var pad = 3;
+    var px = function (i) { return pad + (i / (series.length - 1)) * (W - pad * 2); };
+    var py = function (v) { return H - pad - ((v - min) / span) * (H - pad * 2); };
+    var tracePath = function () {
+        ctx.beginPath();
+        for (var i = 0; i < series.length; i++) {
+            if (i) ctx.lineTo(px(i), py(series[i][1]));
+            else   ctx.moveTo(px(i), py(series[i][1]));
+        }
+    };
+    if (opts.fill) {
+        tracePath();
+        ctx.lineTo(px(series.length - 1), H - pad);
+        ctx.lineTo(px(0), H - pad);
+        ctx.closePath();
+        ctx.fillStyle = opts.fill;
+        ctx.fill();
+    }
+    tracePath();
+    ctx.strokeStyle = opts.color;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+}
+
 // Updates the App-dropdown user header with the active user's icon and display name.
 function updateTbAppUserHeader() {
     var av = document.getElementById('tbAppUserAvatar');

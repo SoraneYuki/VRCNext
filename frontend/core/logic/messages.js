@@ -1260,6 +1260,12 @@ case 'vrcNews':
             case 'vrcNetworkCacheLoaded':
                 if (typeof networkSubCacheLoaded === 'function') networkSubCacheLoaded(payload);
                 break;
+            case 'vrcApiHealth':
+                if (typeof onApiHealth === 'function') onApiHealth(payload);
+                break;
+            case 'vrcApiHealthDetail':
+                if (typeof onApiHealthDetail === 'function') onApiHealthDetail(payload);
+                break;
             case 'meetNetworkData':
                 if (typeof meetNetworkDataLoaded === 'function') meetNetworkDataLoaded(payload);
                 break;
