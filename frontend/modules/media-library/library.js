@@ -905,13 +905,34 @@ function _buildLibCard(x) {
     const thumbSrc = suAttr ? suAttr + '?thumb=1' : '';
 
     if (x.type === 'image' || x.type === 'gif') {
-
-        return `<div class="lib-card" data-path="${esc(x.path||'')}" data-url="${suAttr}" data-type="${x.type}" data-name="${esc(x.name||'')}">${acts}<div class="lib-thumb-wrap${blurClass}" onclick="openPhotoDetail(${idx})"><img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:calc(11px + var(--fs-off, 0px));font-weight:700\\'>${jsq(t('library.no_preview', 'No Preview'))}</div>'">${iH ? '<div class="lib-blur-hint"><span class="msi" style="font-size:18px;">visibility_off</span></div>' : ''}${worldBadge}${playersOverlay}</div><div class="lib-info" onclick="event.stopPropagation();openPhotoDetail(${idx})" style="cursor:pointer;"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span class="lib-meta-left">${_libMetaHtml(x)}</span><span>${x.time}</span></div></div></div>`;
+        const gifBadge = x.type === 'gif' ? `<span class="lib-vid-badge">${t('library.gif_badge', 'GIF')}</span>` : '';
+        return `<div class="lib-card" data-path="${esc(x.path||'')}" data-url="${suAttr}" data-type="${x.type}" data-name="${esc(x.name||'')}">${acts}<div class="lib-thumb-wrap${blurClass}" onclick="openPhotoDetail(${idx})"><img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:calc(11px + var(--fs-off, 0px));font-weight:700\\'>${jsq(t('library.no_preview', 'No Preview'))}</div>'">${gifBadge}${iH ? '<div class="lib-blur-hint"><span class="msi" style="font-size:18px;">visibility_off</span></div>' : ''}${worldBadge}${playersOverlay}</div><div class="lib-info" onclick="event.stopPropagation();openPhotoDetail(${idx})" style="cursor:pointer;"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span class="lib-meta-left">${_libMetaHtml(x)}</span><span>${x.time}</span></div></div></div>`;
     } else {
         const th = `<img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div class=\\'lib-vid-thumb-fallback\\'>${jsq(t('library.video_badge', 'VIDEO'))}</div>'">`;
         return `<div class="lib-card" data-path="${esc(x.path||'')}" data-url="${suAttr}" data-type="video" data-name="${esc(x.name||'')}">${acts}<div class="lib-thumb-wrap${blurClass}" onclick="openPhotoDetail(${idx})">${th}<div class="lib-vid-overlay"><div class="lib-play-icon"><span class="msi" style="font-size:22px;">play_arrow</span></div></div><span class="lib-vid-badge">${t('library.video_badge', 'VIDEO')}</span>${iH ? '<div class="lib-blur-hint"><span class="msi" style="font-size:18px;">visibility_off</span></div>' : ''}${worldBadge}${playersOverlay}</div><div class="lib-info" onclick="event.stopPropagation();openPhotoDetail(${idx})" style="cursor:pointer;"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span>${x.size}</span><span>${x.time}</span></div></div></div>`;
     }
 }
+
+// GIF cards show a static thumb; the animated file only loads while hovered
+function _libGifHover(card, on) {
+    const img = card.querySelector('.lib-thumb');
+    const url = card.dataset.url || '';
+    if (!img || !url) return;
+    const want = on ? url : url + '?thumb=1';
+    if (img.getAttribute('src') !== want) img.src = want;
+}
+
+document.addEventListener('mouseover', e => {
+    if (!(e.target instanceof Element)) return;
+    const card = e.target.closest('.lib-card[data-type="gif"]');
+    if (card) _libGifHover(card, true);
+});
+
+document.addEventListener('mouseout', e => {
+    if (!(e.target instanceof Element)) return;
+    const card = e.target.closest('.lib-card[data-type="gif"]');
+    if (card && !(e.relatedTarget instanceof Element && card.contains(e.relatedTarget))) _libGifHover(card, false);
+});
 
 function _libEditRerender() {
     filterLibrary(true);

@@ -1652,7 +1652,7 @@ public partial class AppShell
         if (!File.Exists(file)) { ctx.Response.StatusCode = 404; return; }
         var ext = Path.GetExtension(file).ToLower();
         bool isVideo = ext is ".mp4" or ".webm" or ".mov" or ".mkv";
-        if (!isVideo && ext is not (".jpg" or ".jpeg" or ".png" or ".webp"))
+        if (!isVideo && ext is not (".jpg" or ".jpeg" or ".png" or ".webp" or ".gif"))
         {
             await ServeFileAsync(ctx, file);
             return;

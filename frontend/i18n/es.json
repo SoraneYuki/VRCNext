@@ -1610,6 +1610,7 @@
   "library.actions.hide": "Ocultar",
   "library.actions.unhide": "Mostrar",
   "library.no_preview": "Sin vista previa",
+  "library.gif_badge": "GIF",
   "library.video_badge": "VÃDEO",
   "library.filters.all_folders": "Todas las carpetas",
   "library.filters.all_friends": "Todos los amigos",

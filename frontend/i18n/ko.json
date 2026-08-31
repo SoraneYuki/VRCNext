@@ -1679,6 +1679,7 @@
   "library.actions.unhide": "숨기기 해제",
   "library.no_preview": "미리보기 없음",
   "library.video_badge": "영상",
+  "library.gif_badge": "GIF",
   "library.filters.all_folders": "모든 폴더",
   "library.filters.all_friends": "모든 친구",
   "library.filters.all_worlds": "모든 월드",

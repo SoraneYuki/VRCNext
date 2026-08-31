@@ -14,6 +14,7 @@
 * The Username column in the People tab lists (Instance, All Friends, Favorites and co.) no longer hogs all the leftover space, giving the other columns more room.
 * The search in People > Instance now looks through user IDs, status texts and avatar names too, not just player names. The search bar also got a bit wider.
 * The presence bar in the instance modal is now its own Presence column instead of stretching across the whole row underneath, matching the People > Instance table. It's sortable and reorderable like every other column.
+* GIFs in the Media Library now use the same lightweight thumbnail cache as photos and videos instead of loading the full files into memory (a page of GIFs could easily eat 300MB before). They show a GIF badge in the corner, animate when you hover them, and play normally in the photo viewer.
 
 **Fixed Bugs**
 * Fixed heavy lag when zooming in close. The graph was drawing connection lines in a slow way, dropping FPS hard the further you zoomed in. It now stays smooth at any zoom level.
