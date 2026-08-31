@@ -335,7 +335,7 @@ function renderWorldSearchDetail(w) {
     const wdComPopRow = (wdCommunityCard && wdPopularityCard)
         ? `<div class="wd-compact-row">${wdCommunityCard}${wdPopularityCard}</div>`
         : `${wdCommunityCard}${wdPopularityCard}`;
-    const wdCommentsCard = `<div class="fd-info-card wc-card">
+    const wdCommentsCard = `<div class="fd-info-card wc-card"${worldCommentsEnabled() ? '' : ' style="display:none;"'}>
             <div class="fd-group-rep-label">${t('worlds.comments.title', 'Comments')} <span class="vrcn-badge fd-tab-badge" id="wdCommentsCount">0</span></div>
             <div id="wcCompose" class="wc-compose"></div>
             <div id="wcList" class="wc-list"></div>
@@ -380,7 +380,7 @@ function renderWorldSearchDetail(w) {
     if (thumb) { const s = document.getElementById('wd-banner-slot'); const bi = _getWorldBannerImg(wid, thumb); if (s && bi) s.insertBefore(bi, s.firstChild); }
     if (hasWorldPhotos) { _wdPreloadPhotos(wid); _wdLoadPhotos(wid); }
     if (wid) { _wdInstanceHistory = []; sendToCS({ action: 'getTimelineForWorld', worldId: wid }); }
-    if (wid) loadWorldComments(wid, 1);
+    if (wid && worldCommentsEnabled()) loadWorldComments(wid, 1);
     if (_wdCurrentTab !== 'info') {
         if (_wdCurrentTab === 'photos' && !hasWorldPhotos) {
             _wdCurrentTab = 'info';
@@ -1652,6 +1652,22 @@ function onWorldDeleteResult(data) {
 const WC_API = 'https://db.vrcnext.com/api/comments.php';
 let _wcWorldId = '', _wcPage = 1, _wcBusy = false;
 
+function worldCommentsEnabled() {
+    return (typeof settings === 'undefined') ? true : settings.commentsOnWorldsEnabled !== false;
+}
+function applyWorldCommentsEnabled() {
+    const card = document.querySelector('.wc-card');
+    if (!card) return;
+    const on = worldCommentsEnabled();
+    card.style.display = on ? '' : 'none';
+    const wid = (window._currentWorldDetailFull && window._currentWorldDetailFull.id) || _wcWorldId || '';
+    if (on) { if (wid) loadWorldComments(wid, 1); }
+    else {
+        const list = document.getElementById('wcList'); if (list) list.innerHTML = '';
+        if (typeof setMiniPaginator === 'function') setMiniPaginator('wcPaginatorBar', '');
+    }
+}
+
 function wcFmtDate(ts) {
     const d = new Date((ts || 0) * 1000);
     if (isNaN(d)) return '';
@@ -1759,9 +1775,10 @@ async function postWorldComment(worldId) {
         const d = await r.json();
         if (d && d.ok) { loadWorldComments(worldId, 1); }
         else if (typeof showToast === 'function') {
-            const msg = (d && d.error && /inappropriate/i.test(d.error))
-                ? t('worlds.comments.rejected', 'Your comment was rejected for inappropriate language.')
-                : ((d && d.error) || t('worlds.comments.error', 'Could not post comment.'));
+            let msg;
+            if (d && d.error && /inappropriate/i.test(d.error)) msg = t('worlds.comments.rejected', 'Your comment was rejected for inappropriate language.');
+            else if (d && d.error && /link/i.test(d.error)) msg = t('worlds.comments.no_links', "Links aren't allowed in comments.");
+            else msg = (d && d.error) || t('worlds.comments.error', 'Could not post comment.');
             showToast(false, msg);
         }
     } catch (e) {
@@ -1814,3 +1831,5 @@ window.wcGoPage = wcGoPage;
 window.wcUpdateCount = wcUpdateCount;
 window.commentsOnUserBasic = commentsOnUserBasic;
 window.loadWorldComments = loadWorldComments;
+window.worldCommentsEnabled = worldCommentsEnabled;
+window.applyWorldCommentsEnabled = applyWorldCommentsEnabled;

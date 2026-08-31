@@ -2260,6 +2260,14 @@ function execConsoleCommand(cmd) {
     if (cmd.toLowerCase() === '/blyat') { if (typeof runBlyat === 'function') runBlyat(); return; }
     if (cmd.toLowerCase() === '/rewind') { addLog('> ' + cmd, 'cmd'); sendToCS({ action: 'getRewind' }); return; }
     if (cmd.toLowerCase() === '/changelog') { addLog('> ' + cmd, 'cmd'); openChangelogModal(); return; }
+    if (cmd.toLowerCase() === '/init-modal') {
+        addLog('> ' + cmd, 'cmd');
+        const ex = document.getElementById('vrcndbConsentModal');
+        if (ex) ex.remove();
+        if (typeof showVrcndbConsent === 'function') { showVrcndbConsent(); addLog('Reopened the VRCNDb consent modal.', 'info'); }
+        else addLog('Consent modal is not available.', 'warn');
+        return;
+    }
     addLog('> ' + cmd, 'cmd');
     sendToCS({ action: 'consoleCommand', cmd });
 }

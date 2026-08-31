@@ -3,7 +3,7 @@
 **Improvements**
 
 * **Worlds**
-  * There's a new **Comments** section in the world modal's Info tab. You can leave one comment per world, up to 256 characters, and delete your own anytime with the X that shows up on hover. Comments can be upvoted or downvoted, and inappropriate language is filtered out automatically.
+  * There's a new **Comments** section in the world modal's Info tab. You can leave one comment per world, up to 256 characters, and delete your own anytime with the X that shows up on hover. Comments can be upvoted or downvoted, and inappropriate language and links are filtered out automatically. You can turn comments off entirely under **Settings > Safety**.
 
 * **My Profile**
   * The **Current Avatar** card now always shows up, same as on everyone else's profile.

@@ -647,6 +647,7 @@ public class AppSettings
     public bool VrcndbConsentShown { get; set; }
     public bool VrcndbSyncLikes { get; set; } = true;
     public bool VrcndbSyncWears { get; set; } = true;
+    public bool CommentsOnWorldsEnabled { get; set; } = true;
 
     // Discord Rich Presence — privacy per status
     public bool DpHideInstIdJoinMe  { get; set; }
