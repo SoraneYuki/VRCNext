@@ -8,7 +8,8 @@
   * Right-clicking a person or a world gives you the usual context menus, so you can open profiles, join worlds and more straight from the graph.
 
 **Fixed Bugs**
-
-* **Mutual Network**
-  * Fixed heavy lag when zooming in close. The graph was drawing connection lines in a slow way, dropping FPS hard the further you zoomed in. It now stays smooth at any zoom level.
-  * Lines from people far outside your view are no longer drawn while zoomed in, and the layout simulation goes easier on large friend lists, so big networks load and settle without freezing the app.
+* Fixed heavy lag when zooming in close. The graph was drawing connection lines in a slow way, dropping FPS hard the further you zoomed in. It now stays smooth at any zoom level.
+* Lines from people far outside your view are no longer drawn while zoomed in, and the layout simulation goes easier on large friend lists, so big networks load and settle without freezing the app.
+* Fixed performance issues with Mutual Network causing lag spikes when zooming in/out fast.
+* Fixed performance issues with the Mutual Network simulation while being in VR.
+* Dragging a person around in Mutual Network no longer deselects them. Selection now stays until you click someone else or click an empty spot.

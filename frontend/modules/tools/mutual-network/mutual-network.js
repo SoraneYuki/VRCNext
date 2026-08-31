@@ -1500,13 +1500,15 @@ class MutualGraph {
     _onMouseDown(e) {
         if (e.button !== 0) return;
         const rect = this.canvas.getBoundingClientRect();
-        const { x: wx, y: wy } = this._canvasToWorld(e.clientX - rect.left, e.clientY - rect.top);
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        const { x: wx, y: wy } = this._canvasToWorld(mx, my);
         const hit = this._hitTest(wx, wy);
+        this._dragMoved = false;
         if (hit >= 0) {
-            this.dragging = { type: 'node', idx: hit, ox: wx - this.nodes[hit].x, oy: wy - this.nodes[hit].y };
+            this.dragging = { type: 'node', idx: hit, ox: wx - this.nodes[hit].x, oy: wy - this.nodes[hit].y, sx: mx, sy: my };
             this.nodes[hit].pinned = true;
         } else {
-            this.dragging = { type: 'pan', ox: (e.clientX - rect.left) - this.tx, oy: (e.clientY - rect.top) - this.ty };
+            this.dragging = { type: 'pan', ox: mx - this.tx, oy: my - this.ty, sx: mx, sy: my };
             this.canvas.classList.add('dragging');
         }
     }
@@ -1517,6 +1519,7 @@ class MutualGraph {
         const { x: wx, y: wy } = this._canvasToWorld(mx, my);
 
         if (this.dragging) {
+            if (Math.abs(mx - this.dragging.sx) + Math.abs(my - this.dragging.sy) > 3) this._dragMoved = true;
             if (this.dragging.type === 'node') {
                 const nd = this.nodes[this.dragging.idx];
                 nd.x = wx - this.dragging.ox;
@@ -1539,6 +1542,7 @@ class MutualGraph {
     }
 
     _onClick(e) {
+        if (this._dragMoved) { this._dragMoved = false; return; }
         const rect = this.canvas.getBoundingClientRect();
         const { x: wx, y: wy } = this._canvasToWorld(e.clientX - rect.left, e.clientY - rect.top);
         const hit = this._hitTest(wx, wy);
