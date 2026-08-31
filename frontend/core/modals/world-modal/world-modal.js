@@ -235,7 +235,7 @@ function renderWorldSearchDetail(w) {
     _wdCurrentWorldId = wid;
     window._currentWorldDetailFull = w;
     _ciWorld = { id: w.id, name: w.name, thumb };
-    const hasWorldPhotos = typeof libraryFiles !== 'undefined' && libraryFiles.some(x => x.worldId === wid && (x.type === 'image' || x.type === 'gif'));
+    const hasWorldPhotos = typeof libraryFiles !== 'undefined' && libraryFiles.some(x => x.worldId === wid);
 
     const tabsHtml = `<div class="fd-tabs" style="margin-bottom:14px;">
         <button class="fd-tab active" onclick="switchWdTab('info',this)">${t('worlds.tabs.info', 'Info')}</button>
@@ -439,7 +439,7 @@ function _wdPreloadPhotos(worldId) {
     _wdPreloadedThumbs.forEach(img => { img.src = typeof PLACEHOLDER !== 'undefined' ? PLACEHOLDER : ''; });
     _wdPreloadedThumbs = [];
     const photos = (typeof libraryFiles !== 'undefined' ? libraryFiles : [])
-        .filter(x => x.worldId === worldId && (x.type === 'image' || x.type === 'gif') && x.url);
+        .filter(x => x.worldId === worldId && x.url);
     photos.slice(0, MINI_IMAGE_PG_SIZE).forEach(x => {
         const img = new Image();
         img.src = x.url + '?thumb=1';
@@ -450,7 +450,7 @@ function _wdPreloadPhotos(worldId) {
 function _wdLoadPhotos(worldId) {
     _wdPhotosPage = 0;
     _wdPhotosItems = (typeof libraryFiles !== 'undefined' ? libraryFiles : [])
-        .filter(x => x.worldId === worldId && (x.type === 'image' || x.type === 'gif'));
+        .filter(x => x.worldId === worldId);
     _wdPhotosItems.sort((a, b) => new Date(b.modified) - new Date(a.modified));
     _wdRenderPhotosPage();
 }
@@ -540,9 +540,13 @@ function _buildWdPhotoCard(x) {
             `</div>`;
     }
     const thumbSrc = suAttr ? suAttr + '?thumb=1' : '';
-    const resTag   = (typeof _resTag === 'function') ? _resTag(x) : '';
-    const resBadge = resTag ? `<span class="vrcn-badge accent" style="margin-left:4px;">${resTag}</span>` : '';
-    return `<div class="lib-card" data-path="${esc(x.path||'')}" style="cursor:pointer;" onclick="_wdOpenInLibrary('${sp}')"><div class="lib-thumb-wrap${blurClass}"><img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:calc(11px + var(--fs-off, 0px));font-weight:700\\'>${jsq(t('library.no_preview', 'No Preview'))}</div>'">${iH ? '<div class="lib-blur-hint"><span class="msi" style="font-size:18px;">visibility_off</span></div>' : ''}${playersOverlay}</div><div class="lib-info"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span style="display:flex;align-items:center;">${x.size}${resBadge}</span><span>${x.time}</span></div></div></div>`;
+    const metaHtml = (typeof _libMetaHtml === 'function') ? _libMetaHtml(x) : esc(x.size || '');
+    const isVid    = x.type === 'video';
+    const typeBadge = isVid
+        ? `<span class="lib-vid-badge">${t('library.video_badge', 'VIDEO')}</span>`
+        : (x.type === 'gif' ? `<span class="lib-vid-badge">${t('library.gif_badge', 'GIF')}</span>` : '');
+    const vidOverlay = isVid ? `<div class="lib-vid-overlay"><div class="lib-play-icon"><span class="msi" style="font-size:22px;">play_arrow</span></div></div>` : '';
+    return `<div class="lib-card" data-path="${esc(x.path||'')}" data-url="${suAttr}" data-type="${esc(x.type||'image')}" style="cursor:pointer;" onclick="_wdOpenInLibrary('${sp}')"><div class="lib-thumb-wrap${blurClass}"><img class="lib-thumb" src="${thumbSrc}" loading="lazy" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:calc(11px + var(--fs-off, 0px));font-weight:700\\'>${jsq(t('library.no_preview', 'No Preview'))}</div>'">${vidOverlay}${typeBadge}${iH ? '<div class="lib-blur-hint"><span class="msi" style="font-size:18px;">visibility_off</span></div>' : ''}${playersOverlay}</div><div class="lib-info"><div class="lib-name">${esc(x.name)}</div><div class="lib-meta"><span class="lib-meta-left">${metaHtml}</span><span>${x.time}</span></div></div></div>`;
 }
 
 function switchWdTab(tab, btn) {
