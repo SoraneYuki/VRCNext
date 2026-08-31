@@ -402,6 +402,7 @@ window.external.receiveMessage(rawMsg => {
                 if (typeof handleUserBasic === 'function') handleUserBasic(payload);
                 if (typeof pinsOnUserBasic === 'function') pinsOnUserBasic(payload);
                 if (typeof tlOnCreatorResolved === 'function') tlOnCreatorResolved(payload);
+                if (typeof commentsOnUserBasic === 'function') commentsOnUserBasic(payload);
                 break;
             case 'vrcAvatarByFileId': handleAvatarByFileId(payload); break;
             case 'vrcAvatarInfo':

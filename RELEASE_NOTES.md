@@ -2,6 +2,9 @@
 
 **Improvements**
 
+* **Worlds**
+  * new **Comments** section in the world modal's Info tab. Leave a comment (up to 256 characters) One comment per world, delete your own anytime with the X on hover.
+
 * **My Profile**
   * always shows the **Current Avatar** card, like other profiles.
 

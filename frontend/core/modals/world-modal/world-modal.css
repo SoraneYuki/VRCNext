@@ -512,3 +512,23 @@
 
 @keyframes wi-spin { to { transform: rotate(360deg); } }
 .wi-spin .msi { animation: wi-spin .8s linear infinite; }
+
+/* World comments */
+.wc-compose { margin-bottom: 12px; }
+.wc-compose .myp-textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.wc-compose-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.wc-charcount { font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx3); }
+.wc-list { display: flex; flex-direction: column; gap: 12px; }
+.wc-empty { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx3); padding: 6px 0; }
+.wc-item { position: relative; display: flex; gap: 10px; align-items: flex-start; }
+.wc-item .vrcn-user-item-avatar-wrap { flex-shrink: 0; }
+.wc-del-x { position: absolute; top: -2px; right: -2px; opacity: 0; background: none; border: 0; color: var(--tx3); cursor: pointer; padding: 2px; line-height: 1; transition: opacity .12s, color .12s; }
+.wc-item:hover .wc-del-x { opacity: 1; }
+.wc-del-x:hover { color: var(--err); }
+.wc-del-x .msi { font-size: 16px; display: block; }
+.wc-main { flex: 1; min-width: 0; }
+.wc-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 2px; }
+.wc-name { font-size: calc(12px + var(--fs-off, 0px)); font-weight: 600; color: var(--tx1); cursor: pointer; }
+.wc-name:hover { color: var(--accent); }
+.wc-date { font-size: calc(10px + var(--fs-off, 0px)); color: var(--tx3); }
+.wc-text { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
