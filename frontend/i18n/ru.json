@@ -2287,6 +2287,7 @@
   "worlds.comments.downvote": "Голос против",
   "worlds.comments.rejected": "Ваш комментарий отклонён из-за нецензурной лексики.",
   "worlds.comments.no_links": "Ссылки в комментариях запрещены.",
+  "worlds.comments.unfriendly": "Ваш комментарий заблокирован сервером, так как он показался недружелюбным.",
   "worlds.tabs.instances": "Инстансы",
   "worlds.tabs.photos": "Фото",
   "worlds.tabs.insights": "Статистика",

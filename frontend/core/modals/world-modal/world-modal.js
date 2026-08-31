@@ -1778,6 +1778,7 @@ async function postWorldComment(worldId) {
             let msg;
             if (d && d.error && /inappropriate/i.test(d.error)) msg = t('worlds.comments.rejected', 'Your comment was rejected for inappropriate language.');
             else if (d && d.error && /link/i.test(d.error)) msg = t('worlds.comments.no_links', "Links aren't allowed in comments.");
+            else if (d && d.error && /unfriend/i.test(d.error)) msg = t('worlds.comments.unfriendly', 'Your comment was blocked by the server because it seemed unfriendly.');
             else msg = (d && d.error) || t('worlds.comments.error', 'Could not post comment.');
             showToast(false, msg);
         }

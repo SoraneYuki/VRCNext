@@ -2356,6 +2356,7 @@
   "worlds.comments.downvote": "踩",
   "worlds.comments.rejected": "您的評論因不當用語被拒絕。",
   "worlds.comments.no_links": "留言中不允許包含連結。",
+  "worlds.comments.unfriendly": "你的留言因顯得不友善而被伺服器攔截。",
   "worlds.tabs.instances": "房間 ({count})",
   "worlds.tabs.photos": "照片",
   "worlds.tabs.insights": "分析",

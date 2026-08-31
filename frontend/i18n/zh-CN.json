@@ -2306,6 +2306,7 @@
   "worlds.comments.downvote": "踩",
   "worlds.comments.rejected": "您的评论因不当用语被拒绝。",
   "worlds.comments.no_links": "评论中不允许包含链接。",
+  "worlds.comments.unfriendly": "你的评论因显得不友善而被服务器拦截。",
   "worlds.tabs.instances": "实例 ({count})",
   "worlds.tabs.photos": "照片",
   "worlds.tabs.insights": "洞察",

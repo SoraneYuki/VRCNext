@@ -2306,6 +2306,7 @@
   "worlds.comments.downvote": "Votar en contra",
   "worlds.comments.rejected": "Tu comentario fue rechazado por lenguaje inapropiado.",
   "worlds.comments.no_links": "No se permiten enlaces en los comentarios.",
+  "worlds.comments.unfriendly": "Tu comentario fue bloqueado por el servidor porque parecía poco amistoso.",
   "worlds.tabs.instances": "Instancias ({count})",
   "worlds.tabs.photos": "Fotos",
   "worlds.tabs.insights": "Estadísticas",

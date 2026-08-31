@@ -2323,6 +2323,7 @@
   "worlds.comments.downvote": "Runterwerten",
   "worlds.comments.rejected": "Dein Kommentar wurde wegen unangemessener Sprache abgelehnt.",
   "worlds.comments.no_links": "Links sind in Kommentaren nicht erlaubt.",
+  "worlds.comments.unfriendly": "Dein Kommentar wurde vom Server blockiert, weil er unfreundlich wirkt.",
   "worlds.tabs.instances": "Instanzen ({count})",
   "worlds.tabs.photos": "Fotos",
   "worlds.tabs.insights": "Insights",

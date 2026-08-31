@@ -2305,6 +2305,7 @@
   "worlds.comments.downvote": "低評価",
   "worlds.comments.rejected": "不適切な表現のためコメントが拒否されました。",
   "worlds.comments.no_links": "コメントにリンクは使用できません。",
+  "worlds.comments.unfriendly": "コメントは不親切だと判断され、サーバーによってブロックされました。",
   "worlds.tabs.instances": "インスタンス ({count})",
   "worlds.tabs.photos": "写真",
   "worlds.tabs.insights": "インサイト",

@@ -2360,6 +2360,7 @@
   "worlds.comments.downvote": "비추천",
   "worlds.comments.rejected": "부적절한 표현으로 인해 댓글이 거부되었습니다.",
   "worlds.comments.no_links": "댓글에는 링크를 사용할 수 없습니다.",
+  "worlds.comments.unfriendly": "댓글이 불친절하다고 판단되어 서버에서 차단되었습니다.",
   "worlds.tabs.instances": "인스턴스 ({count})",
   "worlds.tabs.photos": "사진",
   "worlds.tabs.insights": "인사이트",

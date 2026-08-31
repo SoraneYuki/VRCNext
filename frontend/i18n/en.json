@@ -2362,6 +2362,7 @@
   "worlds.comments.downvote": "Downvote",
   "worlds.comments.rejected": "Your comment was rejected for inappropriate language.",
   "worlds.comments.no_links": "Links aren't allowed in comments.",
+  "worlds.comments.unfriendly": "Your comment was blocked by the server because it seemed unfriendly.",
   "worlds.tabs.instances": "Instances ({count})",
   "worlds.tabs.photos": "Photos",
   "worlds.tabs.insights": "Insights",
