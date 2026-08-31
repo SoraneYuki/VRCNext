@@ -12,6 +12,7 @@
 **Changes**
 * The instance list in the Friends Sidebar got wider Profile, Timer and Joined columns, so the headers are no longer cut off.
 * The Username column in the People tab lists (Instance, All Friends, Favorites and co.) no longer hogs all the leftover space, giving the other columns more room.
+* The search in People > Instance now looks through user IDs, status texts and avatar names too, not just player names. The search bar also got a bit wider.
 
 **Fixed Bugs**
 * Fixed heavy lag when zooming in close. The graph was drawing connection lines in a slow way, dropping FPS hard the further you zoomed in. It now stays smooth at any zoom level.
