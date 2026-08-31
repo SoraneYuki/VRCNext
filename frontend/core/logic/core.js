@@ -1048,6 +1048,7 @@ function getPageTitle(i) {
         t('page.frame_shot', 'FrameShot'),
         t('page.status_schedule', 'Status Schedule'),
         t('page.space_turn', 'Space Turn'),
+        t('page.meet_network', 'Meet Network'),
     ][i] ?? '';
 }
 

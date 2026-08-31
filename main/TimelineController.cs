@@ -140,6 +140,14 @@ public class TimelineController
                 HandleDeleteFriendTimelineByType(msg);
                 break;
 
+            case "getMeetNetwork":
+                HandleGetMeetNetwork();
+                break;
+
+            case "getMeetNetworkWorlds":
+                HandleGetMeetNetworkWorlds(msg);
+                break;
+
             case "getRewind":
                 HandleGetRewind(false);
                 break;
@@ -1567,6 +1575,49 @@ public class TimelineController
             var events  = _core.Timeline.GetEventsForUser(userId, 10);
             var payload = events.Select(e => _instance.BuildTimelinePayload(e)).ToList();
             _core.SendToJS("timelineForUser", new { userId, events = payload });
+        });
+    }
+
+    private static string MeetNetUserImage(string userId, string stored)
+    {
+        var disk = ImageCacheHelper.GetUserCached(userId);
+        return disk != null ? ImageCacheHelper.ToLocalUrl(disk) : (stored ?? "");
+    }
+
+    private void HandleGetMeetNetwork()
+    {
+        _ = Task.Run(() =>
+        {
+            var people = _core.Timeline.GetMeetNetworkTop(200).Select(p => new
+            {
+                userId      = p.UserId,
+                displayName = p.DisplayName,
+                image       = MeetNetUserImage(p.UserId, p.Image),
+                meets       = p.Meets,
+            }).ToList();
+            _core.SendToJS("meetNetworkData", new { people });
+        });
+    }
+
+    private void HandleGetMeetNetworkWorlds(JObject msg)
+    {
+        var userId = msg["userId"]?.ToString() ?? "";
+        if (string.IsNullOrEmpty(userId)) return;
+        _ = Task.Run(() =>
+        {
+            var worlds = _core.Timeline.GetMeetWorldsForUser(userId).Select(w =>
+            {
+                var disk  = ImageCacheHelper.GetWorldCached(w.WorldId);
+                var thumb = disk != null ? ImageCacheHelper.ToLocalUrl(disk) : ImageCacheHelper.NormalizeTo512(w.WorldThumb ?? "");
+                return new
+                {
+                    worldId    = w.WorldId,
+                    worldName  = w.WorldName,
+                    worldThumb = thumb,
+                    meets      = w.Meets,
+                };
+            }).ToList();
+            _core.SendToJS("meetNetworkWorlds", new { userId, worlds });
         });
     }
 

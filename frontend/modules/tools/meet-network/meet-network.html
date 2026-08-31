@@ -1,0 +1,15 @@
+                <div class="mnet-root">
+                    <canvas id="mnetCanvas"></canvas>
+                    <div class="mnet-toolbar">
+                        <div class="search-bar-row mnet-search"><span class="msi search-ico">search</span><input type="text" id="mnetSearchInput" class="vrcn-input" placeholder="Search person..." data-i18n-placeholder="meetnet.search_placeholder" oninput="meetNetworkSearch(this.value)"></div>
+                        <button class="vrcn-button" onclick="meetNetworkRefresh()" title="Reload meet data" data-i18n-title="meetnet.refresh_title"><span class="msi" style="font-size:14px;">refresh</span> <span data-i18n="meetnet.refresh">Refresh</span></button>
+                        <button class="vrcn-button" onclick="meetNetworkResetView()" title="Reset zoom/pan" data-i18n-title="meetnet.reset_title"><span class="msi" style="font-size:14px;">center_focus_strong</span> <span data-i18n="meetnet.reset">Reset</span></button>
+                    </div>
+                    <div class="mnet-info-card" id="mnetInfoCard" style="display:none;"></div>
+                    <div class="mnet-hint" id="mnetHint"><span class="msi" style="font-size:14px;">handshake</span><span data-i18n="meetnet.hint">Click a person to see the worlds you met them in. Bigger world = more meets.</span></div>
+                    <div class="mnet-progress" id="mnetProgress" style="display:none;">
+                        <span class="msi" style="font-size:14px;">sync</span>
+                        <span data-i18n="meetnet.loading">Loading meets...</span>
+                    </div>
+                    <div class="mnet-empty" id="mnetEmpty" style="display:none;" data-i18n="meetnet.empty">No meet events recorded yet.</div>
+                </div>

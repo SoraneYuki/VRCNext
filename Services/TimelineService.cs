@@ -885,6 +885,85 @@ public class TimelineService : IDisposable
         catch { return ""; }
     }
 
+    public class MeetNetPerson
+    {
+        public string UserId      { get; set; } = "";
+        public string DisplayName { get; set; } = "";
+        public string Image       { get; set; } = "";
+        public int    Meets       { get; set; }
+    }
+
+    public class MeetNetWorld
+    {
+        public string WorldId    { get; set; } = "";
+        public string WorldName  { get; set; } = "";
+        public string WorldThumb { get; set; } = "";
+        public int    Meets      { get; set; }
+    }
+    public List<MeetNetPerson> GetMeetNetworkTop(int limit = 200)
+    {
+        var stats = new Dictionary<string, MeetNetPerson>(StringComparer.Ordinal);
+        try
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = @"SELECT user_id, user_name, user_image FROM events
+                WHERE type IN ('first_meet','meet_again') AND user_id != ''
+                ORDER BY timestamp ASC";
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                var uid = r.GetString(0);
+                if (!stats.TryGetValue(uid, out var p))
+                {
+                    p = new MeetNetPerson { UserId = uid };
+                    stats[uid] = p;
+                }
+                var name = r.GetString(1);
+                var img  = r.GetString(2);
+                if (!string.IsNullOrEmpty(name)) p.DisplayName = name;
+                if (!string.IsNullOrEmpty(img))  p.Image = img;
+                p.Meets++;
+            }
+        }
+        catch { }
+        return stats.Values
+            .OrderByDescending(p => p.Meets)
+            .ThenBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .Take(limit)
+            .ToList();
+    }
+
+    public List<MeetNetWorld> GetMeetWorldsForUser(string userId)
+    {
+        var stats = new Dictionary<string, MeetNetWorld>(StringComparer.Ordinal);
+        if (string.IsNullOrEmpty(userId)) return new List<MeetNetWorld>();
+        try
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = @"SELECT world_id, world_name, world_thumb FROM events
+                WHERE type IN ('first_meet','meet_again') AND user_id = $uid AND world_id != ''
+                ORDER BY timestamp ASC";
+            cmd.Parameters.AddWithValue("$uid", userId);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                var wid = r.GetString(0);
+                if (!stats.TryGetValue(wid, out var w))
+                {
+                    w = new MeetNetWorld { WorldId = wid };
+                    stats[wid] = w;
+                }
+                var name  = r.GetString(1);
+                var thumb = r.GetString(2);
+                if (!string.IsNullOrEmpty(name))  w.WorldName = name;
+                if (!string.IsNullOrEmpty(thumb)) w.WorldThumb = thumb;
+                w.Meets++;
+            }
+        }
+        catch { }
+        return stats.Values.OrderByDescending(w => w.Meets).ToList();
+    }
+
     public long GetEventCount(string typeFilter = "")
     {
         if (_optimizeMode && string.IsNullOrEmpty(typeFilter))

@@ -39,6 +39,7 @@
     <link rel="stylesheet" href="modules/tools/avatar-scaling/avatar-scaling.css">
     <link rel="stylesheet" href="modules/tools/activity-log/activity-log.css">
     <link rel="stylesheet" href="modules/tools/mutual-network/mutual-network.css">
+    <link rel="stylesheet" href="modules/tools/meet-network/meet-network.css">
     <link rel="stylesheet" href="modules/tools/time-spent/time-spent.css">
     <link rel="stylesheet" href="modules/tools/voice-fight/voice-fight.css">
     <link rel="stylesheet" href="modules/tools/discord-presence/discord-presence.css">
@@ -129,7 +130,7 @@
     <div class="sidebar" id="sidebarEl">
         <div class="sidebar-resizer" id="sidebarResizer" data-side="left"></div>
         <div class="sidebar-sep"></div>
-        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.47.5</div></div></div>
+        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.47.6</div></div></div>
         <div class="nav vrcn-scrollbar" id="navEl"></div>
         <div class="play-area"><button class="btn-play" onclick="playVRChat()" data-i18n-title="sidebar.play_vrchat" title="Play VRChat"><span class="play-icon-wrap"><span class="msi play-icon">play_arrow</span></span><span class="play-copy pl"><strong class="play-title" data-i18n="sidebar.play_vrchat">Play VRChat</strong><span class="play-sub" id="playSubText"></span></span><span class="msi play-arrow pl">chevron_right</span></button></div>
     </div>
@@ -242,6 +243,7 @@
                             <div class="tb-dd-sep"></div>
                             <div class="tb-dd-item" onclick="showTab(8)"><span class="msi">article</span><span data-i18n="nav.activity_log">Activity Log</span></div>
                             <div class="tb-dd-item" onclick="showTab(15)"><span class="msi">hub</span><span data-i18n="nav.mutual_network">Mutual Network</span></div>
+                            <div class="tb-dd-item" onclick="showTab(29)"><span class="msi">handshake</span><span data-i18n="nav.meet_network">Meet Network</span></div>
                             <div class="tb-dd-item" onclick="showTab(16)"><span class="msi">schedule</span><span data-i18n="nav.time_spent">Time Spent</span></div>
                             <div class="tb-dd-sep" data-windows-only></div>
                             <div class="tb-dd-item" data-windows-only onclick="showTab(18)"><span class="msi">mic</span><span data-i18n="nav.voice_fight">Voice Fight</span></div>
@@ -451,6 +453,9 @@
             <div class="tab" id="tab27"></div>
             <!-- Tab 28: Space Turn -->
             <div class="tab" id="tab28" data-windows-only></div>
+
+            <!-- Tab 29: Meet Network -->
+            <div class="tab" id="tab29"></div>
 
         </div>
     </div>
@@ -763,6 +768,7 @@
             tab26: 'modules/tools/frame-shot/frame-shot.html',
             tab27: 'modules/tools/status-schedule/status-schedule.html',
             tab28: 'modules/tools/space-turn/space-turn.html',
+            tab29: 'modules/tools/meet-network/meet-network.html',
         };
 
         const modalFragments = {
@@ -866,6 +872,7 @@
             'core/sidebars/navigation/nav-editor.js',
             'modules/tools/mutual-network/mutual-score.js',
             'modules/tools/mutual-network/mutual-network.js',
+            'modules/tools/meet-network/meet-network.js',
             'modules/tools/time-spent/time-spent.js',
             'core/modals/event-modal/event-modal.js',
             'modules/calendar/calendar.js',

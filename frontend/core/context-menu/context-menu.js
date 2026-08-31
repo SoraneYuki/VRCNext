@@ -571,6 +571,23 @@
             return null;
         }
 
+        if (el.id === 'mnetCanvas' && typeof _mnetGraph !== 'undefined' && _mnetGraph) {
+            const rect = el.getBoundingClientRect();
+            const wx = (e.clientX - rect.left - _mnetGraph.tx) / _mnetGraph.scale;
+            const wy = (e.clientY - rect.top - _mnetGraph.ty) / _mnetGraph.scale;
+            const wHit = _mnetGraph._hitTestWorld(wx, wy);
+            if (wHit >= 0) {
+                const w = _mnetGraph.worlds[wHit];
+                if (w?.id) return buildWorldItems(w.id);
+            }
+            const hit = _mnetGraph._hitTest(wx, wy);
+            if (hit >= 0) {
+                const nd = _mnetGraph.nodes[hit];
+                if (nd?.id) return buildFriendItems(nd.id);
+            }
+            return null;
+        }
+
         const tlFilterBtn = el.closest('#tlPersonalFilters .sub-tab-btn, #tlFriendsFilters .sub-tab-btn');
         if (tlFilterBtn) {
             const oc = tlFilterBtn.getAttribute('onclick') || '';

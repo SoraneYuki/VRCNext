@@ -952,17 +952,16 @@ class MutualGraph {
 
     _simTick() {
         if (!this._simRunning) return;
-
-        // Stop simulation when tab is not visible or window is hidden (saves CPU in VR)
         const tab15 = document.getElementById('tab15');
         if (!tab15 || !tab15.classList.contains('active') || document.hidden) {
             this._stopSim();
             return;
         }
 
-        // Run a small batch per frame — keeps frame budget under control
+        const n = this.nodes.length;
+        const steps = n > 900 ? 2 : n > 400 ? 4 : 8;
         this._settled = false;
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < steps; i++) {
             this._simulate();
             if (this._settled) break;
         }
@@ -1229,8 +1228,6 @@ class MutualGraph {
 
         const ac = this._getAccentRgb();
         const nf = this._getNonFriendRgb();
-
-        // Batch edges into style groups — one path per group instead of one per edge
         const g = this._eg;
         g.normal.length = 0; g.dimmed.length = 0; g.highlighted.length = 0;
         g.nfNormal.length = 0; g.nfDimmed.length = 0; g.nfHighlighted.length = 0;
@@ -1238,26 +1235,22 @@ class MutualGraph {
         const commOn = _netCommunities && this._commReady;
         const egc = this._egComm, egcHi = this._egCommHi;
         if (commOn) for (let i = 0; i < egc.length; i++) { egc[i].length = 0; egcHi[i].length = 0; }
-
-        const vw = vx1 - vx0, vh = vy1 - vy0;
+        const emx = (vx1 - vx0) * 0.5, emy = (vy1 - vy0) * 0.5;
+        const ex0 = vx0 - emx, ex1 = vx1 + emx;
+        const ey0 = vy0 - emy, ey1 = vy1 + emy;
 
         for (let i = 0; i < nEdges; i++) {
             const e = edges[i];
             if (!_netShowNonFriends && e.nf) continue;
             if (_netCommFilter >= 0 && e.comm !== _netCommFilter) continue;
             const a = nodes[e.a], b = nodes[e.b];
-            // Skip edges where both endpoints are off-screen
             if (a.x < vx0 && b.x < vx0) continue;
             if (a.x > vx1 && b.x > vx1) continue;
             if (a.y < vy0 && b.y < vy0) continue;
             if (a.y > vy1 && b.y > vy1) continue;
-
-            const ex = b.x - a.x, ey = b.y - a.y;
-            const f0 = ex * (vy0 - a.y) - ey * (vx0 - a.x);
-            const f1 = f0 - ey * vw;
-            const f2 = f0 + ex * vh;
-            const f3 = f1 + ex * vh;
-            if ((f0 > 0 && f1 > 0 && f2 > 0 && f3 > 0) || (f0 < 0 && f1 < 0 && f2 < 0 && f3 < 0)) continue;
+            const aIn = a.x >= ex0 && a.x <= ex1 && a.y >= ey0 && a.y <= ey1;
+            const bIn = b.x >= ex0 && b.x <= ex1 && b.y >= ey0 && b.y <= ey1;
+            if (!aIn && !bIn) continue;
 
             const inComm = commOn && e.comm >= 0;
             if (sel !== null && (e.a === sel || e.b === sel)) {
@@ -1282,22 +1275,16 @@ class MutualGraph {
             }
             ctx.stroke();
         };
-
-        strokeBatch(g.normal,        ac, 0.42, 1.2);
+        strokeBatch(g.normal,        ac, 0.5,  1);
         strokeBatch(g.dimmed,        ac, 0.08, 1);
         strokeBatch(g.highlighted,   ac, 0.95, 2.5);
-        strokeBatch(g.nfNormal,      nf, 0.6,  1.4);
+        strokeBatch(g.nfNormal,      nf, 0.75, 1);
         strokeBatch(g.nfDimmed,      nf, 0.12, 1);
         strokeBatch(g.nfHighlighted, nf, 0.95, 2.6);
         if (commOn) {
-            for (let i = 0; i < egc.length; i++) strokeBatch(egc[i], NET_COMM_RGB[i], 0.55, 1.2);
+            for (let i = 0; i < egc.length; i++) strokeBatch(egc[i], NET_COMM_RGB[i], 0.65, 1);
             for (let i = 0; i < egcHi.length; i++) strokeBatch(egcHi[i], NET_COMM_RGB[i], 0.95, 2.5);
         }
-
-        // level of detail based on zoom. less detail when zoomed out:
-        // lod 0: tiny dot only (< 0.35) (no images or detauk)
-        // lod 1: status ring + color fill, no image (< 0.65) 
-        // lod 2: full rendering with avatar image (>= 0.65)
         const lod = this.scale < 0.35 ? 0 : this.scale < 0.65 ? 1 : 2;
 
         const nCount = nodes.length;
@@ -1343,8 +1330,6 @@ class MutualGraph {
             }
             ctx.globalAlpha = 1;
         }
-
-        // labels. skip at lowest LOD where nodes are single pixels
         if (lod > 0) {
             if (activeSet !== null) {
                 activeSet.forEach(i => {
@@ -1407,7 +1392,6 @@ class MutualGraph {
 
         const spr = lod < 2 ? null : this._sprite(nd);
         if (!spr) {
-            // color fill.  no expensive save/clip/drawImage
             ctx.beginPath();
             ctx.arc(x, y, r, 0, Math.PI * 2);
             ctx.fillStyle = col._colFill;
@@ -1545,8 +1529,6 @@ class MutualGraph {
             this._scheduleRender();
             return;
         }
-
-        // skip hittest when zoomed out. far nodes are too small to reliably hover
         const hit = this.scale >= 0.35 ? this._hitTest(wx, wy) : -1;
         const newHov = hit >= 0 ? hit : null;
         if (newHov !== this.hovered) {

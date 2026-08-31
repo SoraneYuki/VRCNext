@@ -3422,6 +3422,8 @@ public partial class AppShell
                 case "deleteFriendTimelineEvents":
                 case "deleteTimelineByType":
                 case "deleteFriendTimelineByType":
+                case "getMeetNetwork":
+                case "getMeetNetworkWorlds":
                 case "getRewind":
                 case "checkRewind":
                 case "rewindSeen":

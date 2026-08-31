@@ -1,28 +1,14 @@
-**2026.47.6**
-
-**HOTFIX**
-* Fixed User-Agent Ident.
+**2026.48.0**
 
 **Improvements**
 
-* **Worlds**
-  * There's a new **Comments** section in the world modal's Info tab. You can leave one comment per world, up to 256 characters, and delete your own anytime with the X that shows up on hover. Comments can be upvoted or downvoted, and inappropriate language, links and mean-spirited comments are filtered out automatically. You can turn comments off entirely under **Settings > Safety**.
+* **Meet Network**
+  * New tool under **Tools > Meet Network**. It shows the top 200 people you've met most often in VRChat, friends and strangers alike, arranged in rings with your most frequent meets in the center. Bigger circle = more meets.
+  * Click a person (or search for them) to see the worlds you met them in. The world where you ran into them the most is shown biggest.
+  * Right-clicking a person or a world gives you the usual context menus, so you can open profiles, join worlds and more straight from the graph.
 
-* **My Profile**
-  * The **Current Avatar** card now always shows up, same as on everyone else's profile.
+**Fixed Bugs**
 
-* **Kikitan XD**
-  * Added a **Use Silero VAD** option for **Local Models**. It checks for actual speech before sending audio off to Whisper, so you get way fewer bogus transcriptions from breathing, mouse clicks and background noise. You'll need the Silero VAD model for this.
-
-* **Avatars**
-  * Resolved avatars are now cached locally by image file ID. Anything we've seen before loads straight from disk instead of hitting avtrdb, avtr.icu or db.vrcnext.com. Cache entries get re-checked after 30 days.
-  * Joining an instance now resolves everyone in one query per database, instead of one query per person repeated every 10 minutes for as long as you stick around.
-  * If none of the databases know an avatar, we just ask VRChat directly. Private avatars will show their name now, with a lock icon next to it.
-
-* **Instance**
-  * New **Avatar** column in the People > Instance table and in the instance modal. It shows the avatar name and takes you to its page when clicked. Unknown ones get a lock instead.
-
-**Bug Fixes**
-
-* **Kikitan XD**
-  * Fixed Voice Activity Detection not working with Local Models.
+* **Mutual Network**
+  * Fixed heavy lag when zooming in close. The graph was drawing connection lines in a slow way, dropping FPS hard the further you zoomed in. It now stays smooth at any zoom level.
+  * Lines from people far outside your view are no longer drawn while zoomed in, and the layout simulation goes easier on large friend lists, so big networks load and settle without freezing the app.

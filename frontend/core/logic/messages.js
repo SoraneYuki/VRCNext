@@ -1260,6 +1260,12 @@ case 'vrcNews':
             case 'vrcNetworkCacheLoaded':
                 if (typeof networkSubCacheLoaded === 'function') networkSubCacheLoaded(payload);
                 break;
+            case 'meetNetworkData':
+                if (typeof meetNetworkDataLoaded === 'function') meetNetworkDataLoaded(payload);
+                break;
+            case 'meetNetworkWorlds':
+                if (typeof meetNetworkWorldsLoaded === 'function') meetNetworkWorldsLoaded(payload);
+                break;
             case 'vrcTimeSpentData':
                 if (typeof tsOnData === 'function') tsOnData(payload);
                 break;
