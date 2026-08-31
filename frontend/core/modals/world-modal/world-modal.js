@@ -1729,12 +1729,12 @@ async function loadWorldComments(worldId, page) {
     }
     list.innerHTML = d.comments.map(c => renderWorldComment(c, me, worldId)).join('');
     if (typeof setMiniPaginator === 'function' && typeof buildMiniPaginator === 'function')
-        setMiniPaginator('wcPaginatorBar', (d.pages > 1) ? buildMiniPaginator(d.page, d.pages, 'wcGoPage') : '');
+        setMiniPaginator('wcPaginatorBar', (d.pages > 1) ? buildMiniPaginator(d.page - 1, d.pages, 'wcGoPage') : '');
     [...new Set(d.comments.map(c => c.user_id))].forEach(uid => {
         if (uid) sendToCS({ action: 'vrcGetUserBasic', userId: uid, contextId: 'wc_' + uid });
     });
 }
-function wcGoPage(p) { loadWorldComments(_wcWorldId, p); }
+function wcGoPage(p) { loadWorldComments(_wcWorldId, p + 1); }
 function commentsOnUserBasic(payload) {
     if (!payload || typeof payload.contextId !== 'string' || payload.contextId.indexOf('wc_') !== 0) return;
     const uid = payload.contextId.slice(3);
