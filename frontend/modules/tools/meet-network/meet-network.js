@@ -64,7 +64,12 @@ function meetNetworkResetView() {
 
 document.documentElement.addEventListener('tabchange', () => {
     const tab29 = document.getElementById('tab29');
-    if (tab29 && tab29.classList.contains('active')) initMeetNetwork();
+    if (tab29 && tab29.classList.contains('active')) {
+        initMeetNetwork();
+        if (_mnetGraph) _mnetGraph.reloadImages();
+    } else if (_mnetGraph) {
+        _mnetGraph.unloadImages();
+    }
 });
 
 class MeetGraph {
@@ -143,6 +148,27 @@ class MeetGraph {
         img.src = nd.image;
         img.onload  = () => { nd.imgEl = img; this._scheduleRender(); };
         img.onerror = () => {};
+    }
+
+    unloadImages() {
+        let count = 0;
+        const drop = nd => {
+            if (nd.imgEl || nd._spr) count++;
+            nd.imgEl = null;
+            nd._spr  = null;
+        };
+        this.nodes.forEach(drop);
+        this.worlds.forEach(drop);
+        this._imagesUnloaded = true;
+        if (count > 0 && typeof addLog === 'function')
+            addLog(`[Unload] Unloaded ${count} image${count !== 1 ? 's' : ''} from Tab 29 from memory.`, 'info');
+    }
+
+    reloadImages() {
+        if (!this._imagesUnloaded) return;
+        this._imagesUnloaded = false;
+        this.nodes.forEach(nd => { if (!nd.imgEl) this._loadImage(nd); });
+        this.worlds.forEach(w => { if (!w.imgEl) this._loadImage(w); });
     }
 
     _sprite(nd) {
@@ -356,14 +382,13 @@ class MeetGraph {
         const vx1 = vx0 + W / this.scale + margin * 2;
         const vy1 = vy0 + H / this.scale + margin * 2;
 
-        for (let i = 0; i < this.nodes.length; i++) {
-            if (i === sel) continue;
-            const nd = this.nodes[i];
-            if (nd.x + nd.r < vx0 || nd.x - nd.r > vx1 || nd.y + nd.r < vy0 || nd.y - nd.r > vy1) continue;
-            ctx.globalAlpha = sel !== null ? 0.14 : 1;
-            this._drawPerson(ctx, nd, i === this.hovered);
+        if (sel === null) {
+            for (let i = 0; i < this.nodes.length; i++) {
+                const nd = this.nodes[i];
+                if (nd.x + nd.r < vx0 || nd.x - nd.r > vx1 || nd.y + nd.r < vy0 || nd.y - nd.r > vy1) continue;
+                this._drawPerson(ctx, nd, i === this.hovered);
+            }
         }
-        ctx.globalAlpha = 1;
 
         if (selNode) {
             const wc = MNET_WORLD_RGB;
@@ -588,7 +613,8 @@ class MeetGraph {
         const { x: wx, y: wy } = this._canvasToWorld(mx, my);
         const wHit = this._hitTestWorld(wx, wy);
         const newHovWorld = wHit >= 0 ? this.worlds[wHit] : null;
-        const hit = wHit >= 0 ? -1 : (this.scale >= 0.25 ? this._hitTest(wx, wy) : -1);
+        let hit = wHit >= 0 ? -1 : (this.scale >= 0.25 ? this._hitTest(wx, wy) : -1);
+        if (this.selected !== null && hit !== this.selected) hit = -1;
         const newHov = hit >= 0 ? hit : null;
         if (newHov !== this.hovered || newHovWorld !== this.hoveredWorld) {
             this.hovered = newHov;
@@ -602,8 +628,9 @@ class MeetGraph {
         const rect = this.canvas.getBoundingClientRect();
         const { x: wx, y: wy } = this._canvasToWorld(e.clientX - rect.left, e.clientY - rect.top);
         if (this._hitTestWorld(wx, wy) >= 0) return;
+        if (this.selected !== null) { this.select(null); return; }
         const hit = this._hitTest(wx, wy);
-        if (hit >= 0 && hit !== this.selected) this.select(hit);
+        if (hit >= 0) this.select(hit);
         else this.select(null);
     }
 }

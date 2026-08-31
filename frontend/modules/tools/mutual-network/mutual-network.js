@@ -289,8 +289,9 @@ document.documentElement.addEventListener('tabchange', () => {
     const tab15 = document.getElementById('tab15');
     if (tab15 && tab15.classList.contains('active')) {
         initNetwork();
+        if (_netGraph) _netGraph.reloadImages();
     } else {
-        if (_netGraph) _netGraph._stopSim();
+        if (_netGraph) { _netGraph._stopSim(); _netGraph.unloadImages(); }
     }
 });
 
@@ -494,6 +495,30 @@ class MutualGraph {
         nd._sprGray = gray;
         nd._sprPx   = S;
         return cv;
+    }
+
+    unloadImages() {
+        let count = 0;
+        this.nodes.forEach(nd => {
+            if (nd.imgEl || nd._spr) count++;
+            nd.imgEl = null;
+            nd._spr  = null;
+        });
+        this._imagesUnloaded = true;
+        if (count > 0 && typeof addLog === 'function')
+            addLog(`[Unload] Unloaded ${count} image${count !== 1 ? 's' : ''} from Tab 15 from memory.`, 'info');
+    }
+
+    reloadImages() {
+        if (!this._imagesUnloaded) return;
+        this._imagesUnloaded = false;
+        this.nodes.forEach(nd => {
+            if (nd.imgEl || !nd.image) return;
+            const img = new Image();
+            img.src = nd.image;
+            img.onload  = () => { nd.imgEl = img; this._sprite(nd); this._scheduleRender(); };
+            img.onerror = () => {};
+        });
     }
 
     _nodeColors(nd) {
