@@ -205,6 +205,7 @@ public class AuthController
                 _core.Settings.VrcndbSubmitAvatars = msg["submit"]?.Value<bool>() ?? true;
                 _core.Settings.VrcndbReportDeleted = msg["report"]?.Value<bool>() ?? true;
                 _core.Settings.VrcndbSyncLikes     = msg["syncLikes"]?.Value<bool>() ?? _core.Settings.VrcndbSyncLikes;
+                _core.Settings.CommentsOnWorldsEnabled = msg["comments"]?.Value<bool>() ?? _core.Settings.CommentsOnWorldsEnabled;
                 _core.Settings.VrcndbConsentShown  = true;
                 _core.Settings.Save();
                 break;
@@ -1911,6 +1912,7 @@ public class AuthController
             _core.Settings.FriendsSidebarPreviewOpen = data["friendsSidebarPreviewOpen"]?.Value<bool>() ?? false;
             _core.Settings.SeparateFavoriteFriends = data["separateFavoriteFriends"]?.Value<bool>() ?? false;
             _core.Settings.PeopleAlwaysStats = data["peopleAlwaysStats"]?.Value<bool>() ?? false;
+            _core.Settings.CommentsOnWorldsEnabled = data["commentsOnWorldsEnabled"]?.Value<bool>() ?? true;
             _core.Settings.ModernFolderLayout = data["modernFolderLayout"]?.Value<bool>() ?? true;
             _core.Settings.NavSidebarHoverText = data["navSidebarHoverText"]?.Value<bool>() ?? true;
             _core.Settings.EnableProfileIconFrames = data["enableProfileIconFrames"]?.Value<bool>() ?? false;

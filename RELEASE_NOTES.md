@@ -1,30 +1,25 @@
-**2026.47.3**
+**2026.47.5**
 
-**HOTFIX**
-* Fixed Action Flow caused several style recals per second.
-* Fixed google blocky performanc eimpacts.
-* Several other performance fixes.
+**Improvements**
 
-**Timeline**
-* Notifications are now colour coded: green for friend requests, orange for groups, cyan for world invites, yellow for everything else.
+* **Worlds**
+  * There's a new **Comments** section in the world modal's Info tab. You can leave one comment per world, up to 256 characters, and delete your own anytime with the X that shows up on hover. Comments can be upvoted or downvoted, and inappropriate language, links and mean-spirited comments are filtered out automatically. You can turn comments off entirely under **Settings > Safety**.
 
-**Action Flow**
-* New **Get Info** block **heart rate (int)** returns the current BPM from the Custom Chatbox HypeRate connection (0 when no data).
-* **set OSC bool / float / int** now send even when the OSC Tool is not started; the OSC Tool is only needed for receiving parameters.
-* New **VRCN Actions** trigger **do every second** for OSC and other local tasks. It runs VRCN Actions and Logic blocks only; VRC Actions and Webhook Actions inside it are skipped and logged, so it can never spam the VRChat API.
-* The three **send notification** blocks moved from VRC Actions to **VRCN Actions**, so they can be used inside **do every second**.
+* **My Profile**
+  * The **Current Avatar** card now always shows up, same as on everyone else's profile.
 
-**Custom Chatbox**
-* New toggle **Allow Action Flow using Heart Rate** under Heart Rate. When enabled, the HypeRate connection stays alive so Action Flow can read the heart rate even while the chatbox is off.
+* **Kikitan XD**
+  * Added a **Use Silero VAD** option for **Local Models**. It checks for actual speech before sending audio off to Whisper, so you get way fewer bogus transcriptions from breathing, mouse clicks and background noise. You'll need the Silero VAD model for this.
 
-**Fixed**
-* **Taskbar notifications**: all buttons were broken (Current, Hidden, Refresh, Clear All, Accept, Hide, quick replies). They work again.
-* **Chatbox**: stopped sending messages on PCs running longer than 25 days without a restart.
-* **Security**: websites could read files from your disk through the local media server. Access is now restricted to VRCNext, with each route locked to its own folder and background images limited to a fixed list.
-* **Friends**: locations, names and GPS status could get out of sync or drop updates.
-* **Settings**: a crash or power loss during saving could corrupt the settings file, wiping your settings and accounts. Saving is now crash-safe, with an automatic backup as fallback.
-* **VRChat log**: half-written lines were read too early, causing join events without a user ID.
-* **Timeline**: the seven-day cutoff for cached world thumbnails was shifted by your timezone.
-* **HypeRate**: the UI could show "not connected" while heart rate data was still arriving.
-* **Action Flow**: after opening the tab once, the app kept doing hundreds of style recalculations per second for the rest of the session (even with the tab closed). Blockly's hidden keyboard cursor runs endless SVG blink animations; they are now frozen.
-* **Translations**: 50 missing texts added to English and German, plus 35 German texts that were English-only. Two duplicate keys removed.
+* **Avatars**
+  * Resolved avatars are now cached locally by image file ID. Anything we've seen before loads straight from disk instead of hitting avtrdb, avtr.icu or db.vrcnext.com. Cache entries get re-checked after 30 days.
+  * Joining an instance now resolves everyone in one query per database, instead of one query per person repeated every 10 minutes for as long as you stick around.
+  * If none of the databases know an avatar, we just ask VRChat directly. Private avatars will show their name now, with a lock icon next to it.
+
+* **Instance**
+  * New **Avatar** column in the People > Instance table and in the instance modal. It shows the avatar name and takes you to its page when clicked. Unknown ones get a lock instead.
+
+**Bug Fixes**
+
+* **Kikitan XD**
+  * Fixed Voice Activity Detection not working with Local Models.

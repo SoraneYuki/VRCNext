@@ -8,6 +8,7 @@
                         <button class="settings-nav-item active" onclick="switchSettingsSection('general',this)"><span class="msi">tune</span><span data-i18n="settings.nav.general">General</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('appearance',this)"><span class="msi">palette</span><span data-i18n="settings.nav.appearance">Appearance</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('friends',this)"><span class="msi">group</span><span data-i18n="settings.nav.friends">Friends</span></button>
+                        <button class="settings-nav-item" onclick="switchSettingsSection('safety',this)"><span class="msi">shield</span><span data-i18n="settings.nav.safety">Safety</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('sidebar',this)"><span class="msi">view_sidebar</span><span data-i18n="settings.nav.sidebar">Sidebar</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('notifications',this)"><span class="msi">notifications</span><span data-i18n="settings.nav.notifications">Notifications</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('vrchat',this)"><span class="msi">sports_esports</span><span data-i18n="settings.nav.vrchat">VRChat</span></button>
@@ -404,6 +405,12 @@
                         <div class="vrcn-panel-card-header"><span class="msi">group</span> <span data-i18n="settings.friends.title">Friends And User Settings</span></div>
                         <div class="sf-toggle-row"><span data-i18n="settings.friends.always_stats">Show Always Stats</span><label class="toggle"><input type="checkbox" id="setPeopleAlwaysStats" onchange="settings.peopleAlwaysStats=this.checked;autoSave();if(typeof applyPeopleAlwaysStats==='function'){if(!this.checked)window._peopleStatsMode=false;applyPeopleAlwaysStats();}"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="set-desc" data-i18n="settings.friends.always_stats_desc">When enabled, every person in the People tab always shows a bar with how much time you spent with them and how many meets you have, instead of clicking the "Stats" button. While this is on, the Stats button is hidden because it is always active.</div>
+                    </div>
+
+                    <div class="vrcn-panel-card" data-section="safety" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">chat</span> <span data-i18n="settings.safety.comments_title">Comments</span></div>
+                        <div class="sf-toggle-row"><span data-i18n="settings.safety.comments_enable">Enable Comments on Worlds</span><label class="toggle"><input type="checkbox" id="setCommentsOnWorlds" checked onchange="settings.commentsOnWorldsEnabled=this.checked;autoSave();if(typeof applyWorldCommentsEnabled==='function')applyWorldCommentsEnabled();"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                        <div class="set-desc" data-i18n="settings.safety.comments_desc">When enabled, you can write comments on worlds and see comments from other players. Keep in mind this is not fully moderated. Bad words and slurs are blocked by our filter, but people can still find ways to be unkind. If you would rather not see comments at all, turn this feature off.</div>
                     </div>
 
                     <div class="vrcn-panel-card" data-section="sidebar" style="display:none;">

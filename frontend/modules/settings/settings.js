@@ -129,6 +129,7 @@ function saveSettings() {
             friendsSidebarPreviewOpen: document.getElementById('setFriendsSidebarPreviewOpen')?.checked ?? false,
             separateFavoriteFriends: document.getElementById('setSeparateFavoriteFriends')?.checked ?? false,
             peopleAlwaysStats: document.getElementById('setPeopleAlwaysStats')?.checked ?? false,
+            commentsOnWorldsEnabled: document.getElementById('setCommentsOnWorlds')?.checked ?? true,
             modernFolderLayout: document.getElementById('setModernFolderLayout')?.checked ?? true,
             navSidebarHoverText: document.getElementById('setNavSidebarHoverText')?.checked ?? true,
             enableProfileIconFrames: document.getElementById('setEnableIconFrames')?.checked ?? false,
@@ -508,6 +509,10 @@ function loadSettingsToUI(s) {
     const _pasEl = document.getElementById('setPeopleAlwaysStats');
     if (_pasEl) _pasEl.checked = settings.peopleAlwaysStats;
     if (typeof applyPeopleAlwaysStats === 'function') applyPeopleAlwaysStats();
+    settings.commentsOnWorldsEnabled = s.CommentsOnWorldsEnabled ?? s.commentsOnWorldsEnabled ?? true;
+    const _cowEl = document.getElementById('setCommentsOnWorlds');
+    if (_cowEl) _cowEl.checked = settings.commentsOnWorldsEnabled;
+    if (typeof applyWorldCommentsEnabled === 'function') applyWorldCommentsEnabled();
     settings.modernFolderLayout = s.ModernFolderLayout ?? s.modernFolderLayout ?? true;
     const _mflEl = document.getElementById('setModernFolderLayout');
     if (_mflEl) _mflEl.checked = settings.modernFolderLayout;
@@ -1480,6 +1485,11 @@ function showVrcndbConsent() {
             <span>${esc(t('settings.vrcndb.consent.report_toggle', 'Report deleted avatars to VRCNDb'))}</span>
             <label class="toggle"><input type="checkbox" id="vrcndbConsentReport" checked><div class="toggle-track"><div class="toggle-knob"></div></div></label>
         </div>
+        <div class="sf-toggle-row">
+            <span>${esc(t('settings.vrcndb.consent.comments_toggle', 'Show Comments'))}</span>
+            <label class="toggle"><input type="checkbox" id="vrcndbConsentComments" checked><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+        </div>
+        <div class="set-desc" style="margin-top:6px;">${esc(t('settings.vrcndb.consent.comments_desc', 'Show comments in world modals. If you do not want to see user comments, disable this.'))}</div>
         <div class="modal-btns" style="margin-top:22px;">
             <button class="vrcn-button-round vrcn-btn-accent" onclick="confirmVrcndbConsent()">${esc(t('settings.vrcndb.consent.confirm', 'Got it'))}</button>
         </div>
@@ -1490,11 +1500,16 @@ function showVrcndbConsent() {
 function confirmVrcndbConsent() {
     const submit = document.getElementById('vrcndbConsentSubmit')?.checked ?? true;
     const report = document.getElementById('vrcndbConsentReport')?.checked ?? true;
+    const comments = document.getElementById('vrcndbConsentComments')?.checked ?? true;
     const sSubmit = document.getElementById('setVrcndbSubmit');
     const sReport = document.getElementById('setVrcndbReport');
+    const sComments = document.getElementById('setCommentsOnWorlds');
     if (sSubmit) sSubmit.checked = submit;
     if (sReport) sReport.checked = report;
-    sendToCS({ action: 'saveVrcndbConsent', submit, report });
+    if (sComments) sComments.checked = comments;
+    if (typeof settings !== 'undefined') settings.commentsOnWorldsEnabled = comments;
+    sendToCS({ action: 'saveVrcndbConsent', submit, report, comments });
+    if (typeof applyWorldCommentsEnabled === 'function') applyWorldCommentsEnabled();
     const m = document.getElementById('vrcndbConsentModal');
     if (m) m.remove();
 }

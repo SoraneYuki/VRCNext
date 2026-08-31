@@ -7,6 +7,8 @@ let _mypAvatarsPage = 0;
 let _mypWorldsRequested = false;
 let _mypAvatarsRequested = false;
 let _mypAvatarsLoaded = false;
+let _mypAvatarInfo = null;
+let _mypLoadedAvatarKey = '';
 
 function _mypTrustUser() {
     const u = (typeof currentVrcUser !== 'undefined' && currentVrcUser) ? currentVrcUser : {};
@@ -128,6 +130,39 @@ function onSetProfileDecorationResult(data) {
     showToast(true, t('profiles.deco.updated', 'Profile updated!'));
     const mp = document.getElementById('modalMyProfile');
     if (mp && mp.style.display !== 'none' && typeof renderMyProfileContent === 'function') renderMyProfileContent();
+}
+
+function _mypAvatarCardInner() {
+    const u = currentVrcUser || {};
+    const avatarId = u.currentAvatar || '';
+    if (!avatarId) return '';
+    const own  = _mypAllAvatars.find(a => a.id === avatarId);
+    const info = (_mypAvatarInfo && _mypAvatarInfo.avatarId === avatarId) ? _mypAvatarInfo : null;
+    const avName   = info?.avatarName   || own?.name       || avatarId;
+    const avAuthor = info?.avatarAuthor || own?.authorName || '';
+    const avImg    = info?.avatarImage  || own?.imageUrl   || own?.thumbnailImageUrl || u.currentAvatarImageUrl || '';
+    const avIcon = avImg
+        ? `<img class="fd-group-icon" src="${esc(imgThumb(avImg, 96))}" onerror="this.style.display='none'">`
+        : `<div class="fd-group-icon fd-group-icon-empty"><span class="msi" style="font-size:18px;">checkroom</span></div>`;
+    const authorHtml = avAuthor ? `<div class="fd-group-card-meta">${esc(avAuthor)}</div>` : '';
+    return `<div class="fd-group-rep-label">${t('profiles.badges.current_avatar', 'Current Avatar')}</div>
+        <div class="fd-group-card fd-group-rep" onclick="navOpenModal('avatar','${jsq(avatarId)}','${jsq(avName)}')">
+            ${avIcon}<div class="fd-group-card-info"><div class="fd-group-card-name">${esc(avName)}</div>${authorHtml}</div>
+        </div>`;
+}
+
+function _mypUpdateAvatarCard() {
+    const section = document.getElementById('mypAvatarSection');
+    if (!section) return;
+    const inner = _mypAvatarCardInner();
+    section.innerHTML = inner;
+    section.style.display = inner ? '' : 'none';
+}
+
+function onMypAvatarInfo(payload) {
+    if (!payload?.avatarId) return;
+    _mypAvatarInfo = payload;
+    _mypUpdateAvatarCard();
 }
 
 function renderMyProfileContent() {
@@ -377,9 +412,12 @@ function renderMyProfileContent() {
         <div class="fd-hm-status-wrap" id="mypHmStatusWrap"${_hmOnline ? ' style="display:none;"' : ''}></div>
     </div>`;
 
+    const _mypAvatarInner = _mypAvatarCardInner();
+    const _mypAvatarCard = `<div id="mypAvatarSection" class="fd-info-card"${_mypAvatarInner ? '' : ' style="display:none;"'}>${_mypAvatarInner}</div>`;
+
     const infoContent = `<div class="fd-info-wrap">
             <div class="fd-info-cols">
-                <div class="fd-info-left">${_bioCard}</div>
+                <div class="fd-info-left">${_mypAvatarCard}${_bioCard}</div>
                 <div class="fd-info-right">${repGroupCardHtml}${_pronounsCard}${_trustCard}</div>
             </div>
             ${_mypTlCard}
@@ -495,6 +533,13 @@ function renderMyProfileContent() {
         sendToCS({ action: 'getProfileInsights', userId: _uid });
         mypRequestHeatmap();
         if (!_mypAvatarsRequested) { _mypAvatarsRequested = true; sendToCS({ action: 'vrcGetUserAvatars', userId: _uid }); }
+    }
+
+    const _mypAvatarId = u.currentAvatar || '';
+    if (_mypAvatarId && _mypAvatarId !== _mypLoadedAvatarKey) {
+        _mypLoadedAvatarKey = _mypAvatarId;
+        const _mypAvatarKnown = (_mypAvatarInfo?.avatarId === _mypAvatarId) || _mypAllAvatars.some(a => a.id === _mypAvatarId);
+        if (!_mypAvatarKnown) sendToCS({ action: 'vrcGetAvatarInfo', avatarId: _mypAvatarId, context: 'myprofile' });
     }
     if (!_mypWorldsRequested) { _mypWorldsRequested = true; sendToCS({ action: 'vrcGetMyWorlds' }); }
     if (typeof myGroupsLoaded !== 'undefined' && !myGroupsLoaded) sendToCS({ action: 'vrcGetMyGroups' });
@@ -840,6 +885,7 @@ function onMypUserAvatars(payload) {
     _mypAllAvatars = payload.avatars || [];
     _mypAvatarsLoaded = true;
     updateTrustBar('mypTrustBarSlot', _mypTrustUser(), _mypAllAvatars.length);
+    _mypUpdateAvatarCard();
     _mypUpdateContentCounts();
     renderMypAvatarsPage(0);
 }
@@ -1350,6 +1396,8 @@ function _mypWmState(s) {
         worldsRequested:  _mypWorldsRequested,
         avatarsRequested: _mypAvatarsRequested,
         avatarsLoaded:    _mypAvatarsLoaded,
+        avatarInfo:       _mypAvatarInfo,
+        loadedAvatarKey:  _mypLoadedAvatarKey,
         favsRequested:    _mypFavsRequested,
         heatmapDays:      _mypHeatmapDays,
         heatmapView:      _mypHeatmapView,
@@ -1369,6 +1417,8 @@ function _mypWmState(s) {
     _mypWorldsRequested  = s.worldsRequested  ?? false;
     _mypAvatarsRequested = s.avatarsRequested ?? false;
     _mypAvatarsLoaded    = s.avatarsLoaded    ?? false;
+    _mypAvatarInfo       = s.avatarInfo       ?? null;
+    _mypLoadedAvatarKey  = s.loadedAvatarKey  ?? '';
     _mypFavsRequested    = s.favsRequested    ?? false;
     _mypHeatmapDays      = s.heatmapDays      ?? 30;
     _mypHeatmapView      = s.heatmapView      ?? 'online';

@@ -54,6 +54,8 @@ public class VRChatLogWatcher : IDisposable
     public event Action? AvatarBlockedPerf;
     public event Action? ConnectionLost;
     public event Action<string, string, bool>? PlayerModerated;
+    private readonly Dictionary<string, string> _wornAvatars = new();
+
     public event Action<string>? AvatarSeen;
     public event Action<string>? PrintSeen;
 
@@ -114,6 +116,12 @@ public class VRChatLogWatcher : IDisposable
     private const string RxPortalStr     = "[PortalManager] Pending portal request fulfilled";
     private const string RxAvatarBlkStr  = "Avatar was blocked by local perf limits";
     private const string RxConnLostStr   = "Lost connection to realtime network";
+
+    public string GetWornAvatarName(string displayName)
+    {
+        if (string.IsNullOrEmpty(displayName)) return "";
+        lock (_lock) return _wornAvatars.TryGetValue(displayName, out var v) ? v : "";
+    }
 
     public List<PlayerInfo> GetCurrentPlayers()
     {
@@ -563,8 +571,14 @@ public class VRChatLogWatcher : IDisposable
         if (line.Contains("Switching ") && line.Contains(" to avatar "))
         {
             var m = RxAvatarSwitch.Match(line);
-            if (m.Success && !catchUp)
-                AvatarChanged?.Invoke(m.Groups[1].Value.Trim(), m.Groups[2].Value.Trim());
+            if (m.Success)
+            {
+                var swName   = m.Groups[1].Value.Trim();
+                var swAvatar = m.Groups[2].Value.Trim();
+                if (swName.Length > 0 && swAvatar.Length > 0)
+                    lock (_lock) _wornAvatars[swName] = swAvatar;
+                if (!catchUp) AvatarChanged?.Invoke(swName, swAvatar);
+            }
             return;
         }
 

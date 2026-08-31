@@ -53,6 +53,13 @@
                             <input type="range" class="vf-vol-slider" min="0" max="50" value="10" id="kxdGateSlider" oninput="kxdSetNoiseGate(this.value)">
                             <span id="kxdGateVal" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);min-width:32px;text-align:right;">10%</span>
                         </div>
+                        <div id="kxdSileroRow" style="display:none;">
+                            <div class="sf-toggle-row" style="margin-top:12px;">
+                                <span><span class="msi" style="font-size:16px;vertical-align:middle;">record_voice_over</span> <span data-i18n="kikitan.silero">Use Silero VAD</span></span>
+                                <label class="toggle"><input type="checkbox" id="kxdSileroToggle" checked onchange="kxdSaveLocalSelection()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                            </div>
+                            <div class="set-desc" data-i18n="kikitan.silero_desc">Runs the Silero voice activity model over every recording segment before it reaches Whisper. Segments without speech are dropped and silence at the start and end is cut away, so breathing, clicks and background noise are not transcribed. Needs the Silero VAD download under Local Models.</div>
+                        </div>
                         <div class="sf-toggle-row" style="margin-top:12px;">
                             <span><span class="msi" style="font-size:16px;vertical-align:middle;">visibility_off</span> <span data-i18n="kikitan.non_speech">Disable Non-Speech Elements</span></span>
                             <label class="toggle"><input type="checkbox" id="kxdNonSpeechToggle" checked onchange="kxdSaveSettings()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>

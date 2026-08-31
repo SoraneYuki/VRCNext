@@ -335,7 +335,13 @@ function renderWorldSearchDetail(w) {
     const wdComPopRow = (wdCommunityCard && wdPopularityCard)
         ? `<div class="wd-compact-row">${wdCommunityCard}${wdPopularityCard}</div>`
         : `${wdCommunityCard}${wdPopularityCard}`;
-    const wdInfoCompactRight = `<div class="fd-info-wrap">${wdDescCardCompact}${wdComPopRow}<div class="fd-info-card">${wdHistoryInner}</div></div>`;
+    const wdCommentsCard = `<div class="fd-info-card wc-card"${worldCommentsEnabled() ? '' : ' style="display:none;"'}>
+            <div class="fd-group-rep-label">${t('worlds.comments.title', 'Comments')} <span class="vrcn-badge fd-tab-badge" id="wdCommentsCount">0</span></div>
+            <div id="wcCompose" class="wc-compose"></div>
+            <div id="wcList" class="wc-list"></div>
+            <div id="wcPaginatorBar" class="mini-paginator"></div>
+        </div>`;
+    const wdInfoCompactRight = `<div class="fd-info-wrap">${wdDescCardCompact}${wdComPopRow}<div class="fd-info-card">${wdHistoryInner}</div>${wdCommentsCard}</div>`;
 
     const wdInstancesTab = `<div id="wdTabInstances" style="display:none;">
             <div class="wd-section-label wd-instances-label" style="margin-top:4px;"><span>${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span></span><button class="mi-refresh-btn" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances"><span class="msi">refresh</span></button></div>
@@ -374,6 +380,7 @@ function renderWorldSearchDetail(w) {
     if (thumb) { const s = document.getElementById('wd-banner-slot'); const bi = _getWorldBannerImg(wid, thumb); if (s && bi) s.insertBefore(bi, s.firstChild); }
     if (hasWorldPhotos) { _wdPreloadPhotos(wid); _wdLoadPhotos(wid); }
     if (wid) { _wdInstanceHistory = []; sendToCS({ action: 'getTimelineForWorld', worldId: wid }); }
+    if (wid && worldCommentsEnabled()) loadWorldComments(wid, 1);
     if (_wdCurrentTab !== 'info') {
         if (_wdCurrentTab === 'photos' && !hasWorldPhotos) {
             _wdCurrentTab = 'info';
@@ -1641,3 +1648,189 @@ function onWorldDeleteResult(data) {
         showToast(false, data.error || t('worlds.detail.toast.delete_failed', 'Delete failed'));
     }
 }
+
+const WC_API = 'https://db.vrcnext.com/api/comments.php';
+let _wcWorldId = '', _wcPage = 1, _wcBusy = false;
+
+function worldCommentsEnabled() {
+    return (typeof settings === 'undefined') ? true : settings.commentsOnWorldsEnabled !== false;
+}
+function applyWorldCommentsEnabled() {
+    const card = document.querySelector('.wc-card');
+    if (!card) return;
+    const on = worldCommentsEnabled();
+    card.style.display = on ? '' : 'none';
+    const wid = (window._currentWorldDetailFull && window._currentWorldDetailFull.id) || _wcWorldId || '';
+    if (on) { if (wid) loadWorldComments(wid, 1); }
+    else {
+        const list = document.getElementById('wcList'); if (list) list.innerHTML = '';
+        if (typeof setMiniPaginator === 'function') setMiniPaginator('wcPaginatorBar', '');
+    }
+}
+
+function wcFmtDate(ts) {
+    const d = new Date((ts || 0) * 1000);
+    if (isNaN(d)) return '';
+    const date = (typeof fmtShortDate === 'function') ? fmtShortDate(d) : d.toLocaleDateString();
+    const time = (typeof fmtTime === 'function') ? fmtTime(d) : d.toLocaleTimeString();
+    return `${date} · ${time}`;
+}
+function wcUpdateCount() {
+    const inp = document.getElementById('wcInput'), c = document.getElementById('wcCharCount');
+    if (!inp || !c) return;
+    const remaining = 256 - (inp.value || '').length;
+    c.textContent = String(remaining);
+    c.className = 'wc-charcount' + (remaining <= 10 ? ' wc-char-warn' : remaining <= 20 ? ' wc-char-low' : '');
+}
+function wcAvatarHtml(uid, name, image, status) {
+    const letter = esc(((name || '?')[0] || '?').toUpperCase());
+    const av = image
+        ? `<img class="vrcn-user-item-avatar" src="${esc(imgThumb(image, 96))}" loading="lazy" decoding="async" onerror="this.outerHTML='<div class=\\'vrcn-user-item-avatar vrcn-user-item-avatar-letter\\'>${letter}</div>'">`
+        : `<div class="vrcn-user-item-avatar vrcn-user-item-avatar-letter">${letter}</div>`;
+    const dotCls = (typeof statusDotClass === 'function') ? statusDotClass(status || '') : 's-offline';
+    return `<div class="vrcn-user-item-avatar-wrap wc-avatar-wrap" data-wcuid="${esc(uid)}">${av}<span class="vrc-status-dot ${dotCls} vrcn-user-item-dot"></span></div>`;
+}
+function renderWorldComment(c, meId, worldId) {
+    const isMine = c.user_id && c.user_id === meId;
+    const delBtn = isMine ? `<button class="wc-del-x" title="${esc(t('worlds.comments.delete', 'Delete comment'))}" onclick="deleteWorldComment('${jsq(worldId)}')"><span class="msi">close</span></button>` : '';
+    const mv = c.my_vote || 0;
+    const score = (c.up || 0) - (c.down || 0);
+    const votes = `<div class="wc-votes" data-cid="${c.id}" data-mv="${mv}">
+                <button class="wc-vote wc-up${mv === 1 ? ' active' : ''}" onclick="voteComment(${c.id},1)" title="${esc(t('worlds.comments.upvote', 'Upvote'))}"><span class="msi">arrow_upward</span></button>
+                <span class="wc-score">${score}</span>
+                <button class="wc-vote wc-down${mv === -1 ? ' active' : ''}" onclick="voteComment(${c.id},-1)" title="${esc(t('worlds.comments.downvote', 'Downvote'))}"><span class="msi">arrow_downward</span></button>
+            </div>`;
+    return `<div class="wc-item">
+        ${delBtn}
+        ${wcAvatarHtml(c.user_id || '', c.username, '', '')}
+        <div class="wc-main">
+            <div class="wc-head">
+                <span class="wc-name" onclick="navOpenModal('friend','${jsq(c.user_id || '')}','${jsq(c.username || '')}')">${esc(c.username || 'VRChat User')}</span>
+                <span class="wc-date">${esc(wcFmtDate(c.created_at))}</span>
+            </div>
+            <div class="wc-text">${esc(c.body || '')}</div>
+            <div class="wc-foot">${votes}</div>
+        </div>
+    </div>`;
+}
+function wcRenderCompose(worldId, mine) {
+    const compose = document.getElementById('wcCompose');
+    if (!compose) return;
+    if (mine) { compose.innerHTML = ''; return; }
+    compose.innerHTML = `<div class="wc-inputwrap">
+            <textarea id="wcInput" class="myp-textarea" rows="2" maxlength="256" placeholder="${esc(t('worlds.comments.placeholder', 'Leave a comment...'))}" oninput="wcUpdateCount()"></textarea>
+            <span class="wc-charcount" id="wcCharCount">256</span>
+        </div>
+        <div class="wc-compose-row">
+            <button class="vrcn-button vrcn-btn-primary" id="wcPostBtn" onclick="postWorldComment('${jsq(worldId)}')">${esc(t('worlds.comments.post', 'Post'))}</button>
+        </div>`;
+    wcUpdateCount();
+}
+async function loadWorldComments(worldId, page) {
+    _wcWorldId = worldId; _wcPage = page || 1;
+    const list = document.getElementById('wcList');
+    if (!list) return;
+    list.innerHTML = `<div class="wc-empty">${esc(t('common.loading', 'Loading...'))}</div>`;
+    const me = (typeof currentVrcUser !== 'undefined' && currentVrcUser && currentVrcUser.id) ? currentVrcUser.id : '';
+    let d;
+    try { d = await (await fetch(WC_API + '?world=' + encodeURIComponent(worldId) + '&page=' + _wcPage + (me ? '&me=' + encodeURIComponent(me) : ''))).json(); }
+    catch (e) { if (worldId === _wcWorldId) list.innerHTML = `<div class="wc-empty">${esc(t('worlds.comments.error', 'Could not load comments.'))}</div>`; return; }
+    if (worldId !== _wcWorldId) return;
+    const cnt = document.getElementById('wdCommentsCount'); if (cnt) cnt.textContent = d.total || 0;
+    wcRenderCompose(worldId, d.mine || null);
+    if (!d.comments || !d.comments.length) {
+        list.innerHTML = `<div class="wc-empty">${esc(t('worlds.comments.empty', 'No comments yet. Be the first!'))}</div>`;
+        if (typeof setMiniPaginator === 'function') setMiniPaginator('wcPaginatorBar', '');
+        return;
+    }
+    list.innerHTML = d.comments.map(c => renderWorldComment(c, me, worldId)).join('');
+    if (typeof setMiniPaginator === 'function' && typeof buildMiniPaginator === 'function')
+        setMiniPaginator('wcPaginatorBar', (d.pages > 1) ? buildMiniPaginator(d.page - 1, d.pages, 'wcGoPage') : '');
+    [...new Set(d.comments.map(c => c.user_id))].forEach(uid => {
+        if (uid) sendToCS({ action: 'vrcGetUserBasic', userId: uid, contextId: 'wc_' + uid });
+    });
+}
+function wcGoPage(p) { loadWorldComments(_wcWorldId, p + 1); }
+function commentsOnUserBasic(payload) {
+    if (!payload || typeof payload.contextId !== 'string' || payload.contextId.indexOf('wc_') !== 0) return;
+    const uid = payload.contextId.slice(3);
+    const html = wcAvatarHtml(uid, payload.displayName || '', payload.image || '', payload.status || '');
+    document.querySelectorAll('.wc-avatar-wrap[data-wcuid="' + uid + '"]').forEach(wrap => { wrap.outerHTML = html; });
+}
+async function postWorldComment(worldId) {
+    const inp = document.getElementById('wcInput'), btn = document.getElementById('wcPostBtn');
+    if (!inp || _wcBusy) return;
+    const body = (inp.value || '').trim();
+    if (!body) return;
+    if (typeof currentVrcUser === 'undefined' || !currentVrcUser || !currentVrcUser.id) {
+        if (typeof showToast === 'function') showToast(false, t('worlds.comments.error', 'Could not post comment.'));
+        return;
+    }
+    _wcBusy = true; if (btn) btn.disabled = true;
+    try {
+        const r = await fetch(WC_API, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ world: worldId, user_id: currentVrcUser.id, username: currentVrcUser.displayName || 'VRChat User', body })
+        });
+        const d = await r.json();
+        if (d && d.ok) { loadWorldComments(worldId, 1); }
+        else if (typeof showToast === 'function') {
+            let msg;
+            if (d && d.error && /inappropriate/i.test(d.error)) msg = t('worlds.comments.rejected', 'Your comment was rejected for inappropriate language.');
+            else if (d && d.error && /link/i.test(d.error)) msg = t('worlds.comments.no_links', "Links aren't allowed in comments.");
+            else if (d && d.error && /unfriend/i.test(d.error)) msg = t('worlds.comments.unfriendly', 'Your comment was blocked by the server because it seemed unfriendly.');
+            else msg = (d && d.error) || t('worlds.comments.error', 'Could not post comment.');
+            showToast(false, msg);
+        }
+    } catch (e) {
+        if (typeof showToast === 'function') showToast(false, t('worlds.comments.error', 'Could not post comment.'));
+    } finally { _wcBusy = false; if (btn) btn.disabled = false; }
+}
+async function deleteWorldComment(worldId) {
+    if (_wcBusy) return;
+    if (typeof currentVrcUser === 'undefined' || !currentVrcUser || !currentVrcUser.id) return;
+    _wcBusy = true;
+    try {
+        const r = await fetch(WC_API, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', world: worldId, user_id: currentVrcUser.id })
+        });
+        const d = await r.json();
+        if (d && d.ok) loadWorldComments(worldId, 1);
+        else if (typeof showToast === 'function') showToast(false, (d && d.error) || t('worlds.comments.error', 'Could not delete comment.'));
+    } catch (e) {
+        if (typeof showToast === 'function') showToast(false, t('worlds.comments.error', 'Could not delete comment.'));
+    } finally { _wcBusy = false; }
+}
+async function voteComment(cid, value) {
+    if (typeof currentVrcUser === 'undefined' || !currentVrcUser || !currentVrcUser.id) return;
+    const ctrl = document.querySelector('.wc-votes[data-cid="' + cid + '"]');
+    if (!ctrl) return;
+    const cur = parseInt(ctrl.getAttribute('data-mv'), 10) || 0;
+    const target = (cur === value) ? 0 : value;
+    try {
+        const r = await fetch(WC_API, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'vote', comment_id: cid, user_id: currentVrcUser.id, value: target })
+        });
+        const d = await r.json();
+        if (d && d.ok) wcApplyVote(cid, d.up || 0, d.down || 0, d.my_vote || 0);
+    } catch (e) {}
+}
+function wcApplyVote(cid, up, down, mv) {
+    const ctrl = document.querySelector('.wc-votes[data-cid="' + cid + '"]');
+    if (!ctrl) return;
+    ctrl.setAttribute('data-mv', mv);
+    const score = ctrl.querySelector('.wc-score'); if (score) score.textContent = String(up - down);
+    const upb = ctrl.querySelector('.wc-up'); if (upb) upb.classList.toggle('active', mv === 1);
+    const dnb = ctrl.querySelector('.wc-down'); if (dnb) dnb.classList.toggle('active', mv === -1);
+}
+window.postWorldComment = postWorldComment;
+window.deleteWorldComment = deleteWorldComment;
+window.voteComment = voteComment;
+window.wcGoPage = wcGoPage;
+window.wcUpdateCount = wcUpdateCount;
+window.commentsOnUserBasic = commentsOnUserBasic;
+window.loadWorldComments = loadWorldComments;
+window.worldCommentsEnabled = worldCommentsEnabled;
+window.applyWorldCommentsEnabled = applyWorldCommentsEnabled;

@@ -59,6 +59,12 @@ public sealed class LocalKikitanService : IKikitanSpeechService
     private WhisperProcessor? _whisper;
     private readonly object _whisperLock = new();
 
+    private WhisperVadFactory? _vadFactory;
+    private WhisperVadProcessor? _vad;
+    private readonly object _vadLock = new();
+    private bool _vadEnabled = true;
+    private bool _loadedVadEnabled;
+
     private LLamaWeights? _llmWeights;
     private StatelessExecutor? _llm;
     private readonly SemaphoreSlim _llmLock = new(1, 1);
@@ -198,6 +204,7 @@ public sealed class LocalKikitanService : IKikitanSpeechService
         BuildWhisper(LocalAiManager.PathFor(sttItem));
         _loadedSttId = sttItem.Id;
         _loadedGpu   = useGpu;
+        LoadVad();
 
         if (NeedsLlm)
         {
@@ -251,6 +258,96 @@ public sealed class LocalKikitanService : IKikitanSpeechService
         }
     }
 
+    private void LoadVad()
+    {
+        _loadedVadEnabled = _vadEnabled;
+        if (!_vadEnabled) return;
+
+        var item = LocalAiCatalog.Find("vad-silero");
+        if (item == null || !File.Exists(LocalAiManager.PathFor(item)))
+        {
+            Log("Kikitan XD: Silero VAD model not installed, using the noise gate only");
+            return;
+        }
+
+        try
+        {
+            var factory = WhisperVadFactory.FromPath(LocalAiManager.PathFor(item));
+            var processor = factory.CreateBuilder()
+                .WithUseGpu(false)
+                .WithThreads(2)
+                .WithThreshold(0.5f)
+                .WithMinSpeechDuration(TimeSpan.FromMilliseconds(MinSpeechMs))
+                .WithMinSilenceDuration(TimeSpan.FromMilliseconds(100))
+                .WithSpeechPadding(TimeSpan.FromMilliseconds(200))
+                .Build();
+            lock (_vadLock)
+            {
+                _vadFactory = factory;
+                _vad = processor;
+            }
+            Log("Kikitan XD: Silero VAD enabled");
+        }
+        catch (Exception ex)
+        {
+            Log($"Kikitan XD: Silero VAD could not be loaded ({ex.Message}), using the noise gate only");
+        }
+    }
+
+    private void UnloadVad()
+    {
+        lock (_vadLock)
+        {
+            try { _vad?.Dispose(); } catch { }
+            _vad = null;
+            try { _vadFactory?.Dispose(); } catch { }
+            _vadFactory = null;
+        }
+    }
+
+    private bool TrimToSpeech(ref byte[] pcm)
+    {
+        if (_vad == null) return true;
+        int n = pcm.Length / 2;
+        if (n == 0) return false;
+
+        var samples = new float[n];
+        for (int i = 0; i < n; i++)
+            samples[i] = (short)(pcm[2 * i] | (pcm[2 * i + 1] << 8)) / 32768f;
+
+        double start = -1, end = -1;
+        lock (_vadLock)
+        {
+            var vad = _vad;
+            if (vad == null) return true;
+            try
+            {
+                foreach (var seg in vad.DetectSpeech(samples))
+                {
+                    if (start < 0) start = seg.Start.TotalSeconds;
+                    end = seg.End.TotalSeconds;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Kikitan XD: Silero VAD error, {ex.Message}");
+                return true;
+            }
+        }
+        if (start < 0) return false;
+
+        int bytesPerSec = SampleRate * Channels * (BitsPerSample / 8);
+        int from = Math.Clamp((int)(start * bytesPerSec) & ~1, 0, pcm.Length);
+        int to   = Math.Clamp((int)(end * bytesPerSec) & ~1, from, pcm.Length);
+        if (to <= from) return false;
+        if (from == 0 && to == pcm.Length) return true;
+
+        var cut = new byte[to - from];
+        Buffer.BlockCopy(pcm, from, cut, 0, cut.Length);
+        pcm = cut;
+        return true;
+    }
+
     private void BuildWhisper(string modelPath)
     {
         try { _whisperFactory = WhisperFactory.FromPath(modelPath); }
@@ -279,12 +376,13 @@ public sealed class LocalKikitanService : IKikitanSpeechService
         bool sttChanged  = (s.LocalSttModel ?? "") != _loadedSttId || gpu != _loadedGpu;
         bool langChanged = (s.SourceLang ?? "auto") != _loadedSourceLang;
         bool llmChanged  = NeedsLlm && ((s.LocalLlmModel ?? "") != _loadedLlmId || gpu != _loadedGpu);
-        if (!sttChanged && !langChanged && !llmChanged) return;
+        bool vadChanged  = s.LocalVadEnabled != _loadedVadEnabled;
+        if (!sttChanged && !langChanged && !llmChanged && !vadChanged) return;
 
-        ThreadPool.QueueUserWorkItem(_ => SwapModels(s, gpu, sttChanged, langChanged, llmChanged));
+        ThreadPool.QueueUserWorkItem(_ => SwapModels(s, gpu, sttChanged, langChanged, llmChanged, vadChanged));
     }
 
-    private void SwapModels(KikitanXDSettings s, bool gpu, bool swapStt, bool swapLang, bool swapLlm)
+    private void SwapModels(KikitanXDSettings s, bool gpu, bool swapStt, bool swapLang, bool swapLlm, bool swapVad)
     {
         try
         {
@@ -339,6 +437,13 @@ public sealed class LocalKikitanService : IKikitanSpeechService
                 finally { if (held) _llmLock.Release(); }
             }
 
+            if (swapVad)
+            {
+                UnloadVad();
+                LoadVad();
+                if (!_vadEnabled) Log("Kikitan XD: Silero VAD disabled");
+            }
+
             _loadedGpu = gpu;
         }
         catch (Exception ex)
@@ -360,6 +465,7 @@ public sealed class LocalKikitanService : IKikitanSpeechService
         _blockedSentences = NormalizeList(s.BlockedSentences);
         _disableNonSpeech = s.DisableNonSpeech;
         _chatboxNotify = s.ChatboxNotify;
+        _vadEnabled = s.LocalVadEnabled;
     }
 
     public void Stop()
@@ -400,6 +506,8 @@ public sealed class LocalKikitanService : IKikitanSpeechService
             _loadedLlmId = "";
         }
         finally { if (held) _llmLock.Release(); }
+
+        UnloadVad();
 
         lock (_whisperLock)
         {
@@ -539,6 +647,7 @@ public sealed class LocalKikitanService : IKikitanSpeechService
     {
         try
         {
+            if (!TrimToSpeech(ref pcm)) return;
             string srcText = Transcribe(pcm);
             if (string.IsNullOrWhiteSpace(srcText)) return;
 
@@ -576,6 +685,7 @@ public sealed class LocalKikitanService : IKikitanSpeechService
     {
         try
         {
+            if (!TrimToSpeech(ref pcm)) return;
             string text = Transcribe(pcm);
             if (string.IsNullOrWhiteSpace(text)) return;
 

@@ -221,3 +221,7 @@
 #searchPeopleResults:has(.tl-list-wrap),
 #blockedList:has(.tl-list-wrap),
 #mutedList:has(.tl-list-wrap) { margin-bottom: 8px; }
+
+.ip-avatar-name { font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx2); }
+.ip-avatar-link { color: var(--accent-lt); cursor: pointer; }
+.ip-avatar-link:hover { text-decoration: underline; }
