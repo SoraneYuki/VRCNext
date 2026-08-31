@@ -244,10 +244,10 @@ function _applyAvatarSection(payload) {
         : `style="cursor:default;"`;
     const lockHtml = avId ? '' : avatarNotInDbLockHtml(!!payload.avatarUnresolved);
     section.style.display = '';
-    section.innerHTML = `<div class="fd-group-rep-label">${t('profiles.badges.current_avatar', 'Current Avatar')}</div>
+    setHtmlIfChanged(section, `<div class="fd-group-rep-label">${t('profiles.badges.current_avatar', 'Current Avatar')}</div>
         <div class="fd-group-card fd-group-rep" ${cardAttrs}>
             ${avIcon}<div class="fd-group-card-info"><div class="fd-group-card-name">${esc(avName || avId)}</div>${authorHtml}</div>${lockHtml}
-        </div>`;
+        </div>`);
 }
 
 function handleAvatarByFileId(payload) {
@@ -1175,18 +1175,12 @@ function renderFriendDetail(d) {
         _fdLastAvatarUserId = d.id || '';
         _fdLastAvatarPayload = null;
     }
-    const ca = d.cachedAvatar;
-    if (ca?.avatarId && ca.fileId === avatarFileId) {
-        _fdLastAvatarPayload = { avatarId: ca.avatarId, avatarName: ca.name, avatarAuthor: ca.authorName, avatarImage: ca.imageUrl || '' };
-        _applyAvatarSection(_fdLastAvatarPayload);
-        _fdLoadedAvatarKey = _avatarKey;
-    } else if (_fdLastAvatarPayload) {
-        _applyAvatarSection(_fdLastAvatarPayload);
-    }
-    if ((avatarFileId || avatarId.startsWith('avtr_')) && _avatarKey !== _fdLoadedAvatarKey) {
+    if (_fdLastAvatarPayload) _applyAvatarSection(_fdLastAvatarPayload);
+    if ((avatarFileId || avatarId.startsWith('avtr_') || d.id) && _avatarKey !== _fdLoadedAvatarKey) {
         _fdLoadedAvatarKey = _avatarKey;
         if (avatarFileId) sendToCS({ action: 'vrcLookupAvatarByFileId', fileId: avatarFileId, openModal: false, userId: d.id });
         else if (avatarId && avatarId.startsWith('avtr_')) sendToCS({ action: 'vrcGetAvatarInfo', avatarId, userId: d.id });
+        else sendToCS({ action: 'vrcLookupAvatarByFileId', fileId: '', openModal: false, userId: d.id });
     }
 
     requestAnimationFrame(() => {
