@@ -21,3 +21,4 @@
 * Fixed performance issues with Mutual Network causing lag spikes when zooming in/out fast.
 * Fixed performance issues with the Mutual Network simulation while being in VR.
 * Dragging a person around in Mutual Network no longer deselects them. Selection now stays until you click someone else or click an empty spot.
+* Scrolling down from the Dashboard hero is much smoother. The glass fade no longer forces the whole app to recalculate its styling on every frame, and the hero background video now pauses while it's scrolled out of view.

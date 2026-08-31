@@ -35,11 +35,13 @@ function updateDashSub() {
     </div>`;
 }
 
+let _dashHeroInView = true;
+
 function _dashVideoSync() {
     const winVisible = !document.hidden;
     const heroVid = document.getElementById('dashHeroBg')?.querySelector('video');
     if (heroVid) {
-        const show = winVisible && document.getElementById('tab0')?.classList.contains('active');
+        const show = winVisible && _dashHeroInView && document.getElementById('tab0')?.classList.contains('active');
         if (show && heroVid.paused) heroVid.play().catch(() => {});
         else if (!show && !heroVid.paused) heroVid.pause();
     }
@@ -52,6 +54,14 @@ function _dashVideoSync() {
 }
 document.documentElement.addEventListener('tabchange', _dashVideoSync);
 document.addEventListener('visibilitychange', _dashVideoSync);
+(function () {
+    const bg = document.getElementById('dashHeroBg');
+    if (!bg || typeof IntersectionObserver === 'undefined') return;
+    new IntersectionObserver(entries => {
+        _dashHeroInView = entries[0].isIntersecting;
+        _dashVideoSync();
+    }).observe(bg);
+}());
 
 function renderDashBgPreview() {
     const hero = document.getElementById('dashBgPreviewHero');
@@ -1890,6 +1900,7 @@ document.documentElement.addEventListener('languagechange', rerenderDashTranslat
         position: 'fixed',
         inset: '0',
         pointerEvents: 'none',
+        willChange: 'opacity',
         background: [
             'linear-gradient(to right,  rgba(0,0,0,0.80), transparent 280px)',
             'linear-gradient(to left,   rgba(0,0,0,0.80), transparent 280px)',
@@ -1897,6 +1908,14 @@ document.documentElement.addEventListener('languagechange', rerenderDashTranslat
         ].join(','),
     });
     document.body.appendChild(vignette);
+
+    // The glass var is set on its consumers, never on body: a custom property
+    // change on body invalidates styles for the whole document every scroll frame
+    const glassHosts = [
+        document.getElementById('taskbar'),
+        document.getElementById('sidebarEl'),
+        document.getElementById('rsidebar'),
+    ].filter(Boolean);
 
     let _wasDash = false;
     let _fadeAnim = null;
@@ -1910,7 +1929,7 @@ document.documentElement.addEventListener('languagechange', rerenderDashTranslat
         const sig = t.toFixed(3);
         if (onDash === _wasDash && sig === _glassLast) return;
         _glassLast = sig;
-        document.body.style.setProperty('--sidebar-glass-t', sig);
+        glassHosts.forEach(el => el.style.setProperty('--sidebar-glass-t', sig));
         if (_fadeAnim) { _fadeAnim.cancel(); _fadeAnim = null; }
         if (onDash && !_wasDash) {
             vignette.style.opacity = '0';
@@ -1932,7 +1951,7 @@ document.documentElement.addEventListener('languagechange', rerenderDashTranslat
         document.documentElement.removeEventListener('themechange', applyGlass);
         document.documentElement.removeEventListener('tabchange', applyGlass);
         document.documentElement.removeEventListener('vrcnext:theme:unload:' + THEME_ID, cleanup);
-        document.body.style.removeProperty('--sidebar-glass-t');
+        glassHosts.forEach(el => el.style.removeProperty('--sidebar-glass-t'));
         vignette.remove();
     }
 
