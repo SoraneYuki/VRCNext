@@ -35,6 +35,16 @@ function openWorldSearchDetail(id) {
     sendToCS({ action: 'vrcGetWorldDetail', worldId: id });
 }
 
+function wdSetHomeWorld(wid, btn) {
+    if (!wid) return;
+    sendToCS({ action: 'vrcSetHomeWorld', worldId: wid });
+    if (typeof currentVrcUser !== 'undefined' && currentVrcUser) {
+        currentVrcUser.homeLocation = wid;
+        if (currentVrcUser.rawJson) currentVrcUser.rawJson.homeLocation = wid;
+    }
+    if (btn) btn.classList.add('active');
+}
+
 function refreshWorldInstances() {
     if (!_wdCurrentId) return;
     _wdRefreshing = true;
@@ -325,6 +335,7 @@ function renderWorldSearchDetail(w) {
     const wdActionsCompact = `<div class="fd-actions">
             <button class="vrcn-button-round" onclick="openCreateInstanceModal()" title="${esc(t('worlds.instances.create_title', 'Create Instance'))}"><span class="msi" style="font-size:16px;">add_circle_outline</span></button>
             <button class="vrcn-button-round${isFavWorld ? ' active' : ''}" id="wdFavBtn" onclick="toggleWorldFavPicker('${wid}')" title="${isFavWorld ? esc(t('worlds.favorites.unfavorite', 'Unfavorite')) : esc(t('worlds.favorites.favorite', 'Favorite'))}"><span class="msi" style="font-size:16px;">${isFavWorld ? 'favorite' : 'favorite_border'}</span></button>
+            <button class="vrcn-button-round${(wid && wid === (currentVrcUser?.homeLocation || currentVrcUser?.rawJson?.homeLocation)) ? ' active' : ''}" id="wdHomeBtn" onclick="wdSetHomeWorld('${jsq(wid)}', this)" title="${esc(t('context_menu.world.set_home', 'Set as Home'))}"><span class="msi" style="font-size:16px;">home</span></button>
         </div>`;
     const wdDescTransBtn = (desc && window._kxdProfileTranslationEnabled !== false) ? `<button class="fd-bio-translate myp-edit-btn" onclick="fdTranslateBio(this)" title="${esc(t('profiles.bio.translate', 'Translate'))}"><span class="msi" style="font-size:14px;">translate</span></button>` : '';
     const wdDescCardCompact = `<div class="fd-info-card">

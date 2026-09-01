@@ -8,6 +8,7 @@
 
 **Improvements**
 
-* **World Modal**: The **Instances** tab now has a search bar and sort dropdown, similar to the Groups tab on profiles. You can search by instance name, ID, or type, and sort by Friends, Most Players, Age Gated, or Group Instances. Friends remains the default sorting option.
+* **World Modal**: The **Instances** tab now has a search bar, a refresh button and a sort dropdown, similar to the Groups tab on profiles. You can search by instance name, ID, or type, and sort by Friends, Most Players, Age Gated, or Group Instances. Friends remains the default sorting option. The toolbar stays in place while only the instance list scrolls.
+* **World Modal**: New **Set as Home** button next to New Instance and Favorite. It lights up when the world is already your home world.
 
 **Fixed Bugs**
