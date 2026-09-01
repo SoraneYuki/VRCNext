@@ -251,6 +251,9 @@ function renderWorldSearchDetail(w) {
         _wmr(t('worlds.meta.max_capacity', 'Max Capacity'), esc(getWorldPlayersLabel(w.capacity))),
         w.createdAt ? _wmr(t('worlds.meta.published', 'Published'), fmtShortDate(new Date(w.createdAt + 'T00:00:00'))) : '',
         w.updatedAt ? _wmr(t('worlds.meta.updated', 'Updated'), fmtShortDate(new Date(w.updatedAt + 'T00:00:00'))) : '',
+        w.pcSize > 0 ? _wmr(t('avatars.list.header.pc', 'PC'), esc(formatFileSize(w.pcSize))) : '',
+        w.androidSize > 0 ? _wmr(t('avatars.list.header.android', 'Android'), esc(formatFileSize(w.androidSize))) : '',
+        w.iosSize > 0 ? _wmr(t('avatars.list.header.ios', 'iOS'), esc(formatFileSize(w.iosSize))) : '',
         w.version != null ? _wmr(t('worlds.meta.version', 'Version'), String(w.version)) : '',
     ].join('');
     const wdCommunityRows = [
@@ -270,12 +273,18 @@ function renderWorldSearchDetail(w) {
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeWorldSearchDetail()` },
     ]);
 
-    const wdStatsBadges = `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">person</span> ${w.occupants} ${t('worlds.meta.active', 'Active')}</span>
-            <span class="vrcn-badge"><span class="msi" style="font-size:11px;">favorite</span> ${w.favorites}</span>
-            <span class="vrcn-badge"><span class="msi" style="font-size:11px;">visibility</span> ${w.visits}</span>
-            ${w.pcSize > 0 ? `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">computer</span> ${formatFileSize(w.pcSize)}</span>` : ''}
-            ${w.androidSize > 0 ? `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">android</span> ${formatFileSize(w.androidSize)}</span>` : ''}
-            ${w.iosSize > 0 ? `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">phone_iphone</span> ${formatFileSize(w.iosSize)}</span>` : ''}`;
+    const _wdCompact = n => {
+        n = Number(n) || 0;
+        if (n >= 1e6) return String(Math.round(n / 1e5) / 10).replace(/\.0$/, '') + 'm';
+        if (n >= 1e3) return String(Math.round(n / 100) / 10).replace(/\.0$/, '') + 'k';
+        return String(n);
+    };
+    const _wdStat = (icon, label, n) => `<div class="wd-stat" title="${esc(label)}: ${Number(n || 0).toLocaleString()}"><span class="msi wd-stat-ico">${icon}</span><span class="wd-stat-val">${_wdCompact(n)}</span></div>`;
+    const wdStatsStrip = `<div class="wd-stats-strip">
+            ${_wdStat('person', t('worlds.meta.active', 'Active'), w.occupants)}
+            ${_wdStat('favorite', t('worlds.list.header.favorites', 'Favorites'), w.favorites)}
+            ${_wdStat('visibility', t('worlds.list.header.visits', 'Visits'), w.visits)}
+        </div>`;
     const wdFavPickerHtml = `<div id="wdFavPicker" style="display:none;margin-bottom:14px;">
             <div class="wd-section-label" style="margin-bottom:6px;">${t('worlds.favorites.add_group_title', 'ADD TO FAVORITE GROUP')}</div>
             <div class="ci-group-list" id="wdFavGroupList"><div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:8px 0;">${t('worlds.favorites.loading_groups', 'Loading groups...')}</div></div>
@@ -313,7 +322,6 @@ function renderWorldSearchDetail(w) {
             </div>
         </div>` : ''}
         <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);margin-bottom:12px;">${t('worlds.meta.by', 'by')} ${w.authorId ? `<span onclick="navOpenModal('friend','${jsq(w.authorId)}','${jsq(w.authorName || '')}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--bg-hover);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);cursor:pointer;line-height:1.8;">${esc(w.authorName)}</span>` : esc(w.authorName)}</div>`;
-    const wdStatsBadgesRow = `<div class="fd-badges-row">${wdStatsBadges}</div>`;
     const wdActionsCompact = `<div class="fd-actions">
             <button class="vrcn-button-round" onclick="openCreateInstanceModal()" title="${esc(t('worlds.instances.create_title', 'Create Instance'))}"><span class="msi" style="font-size:16px;">add_circle_outline</span></button>
             <button class="vrcn-button-round${isFavWorld ? ' active' : ''}" id="wdFavBtn" onclick="toggleWorldFavPicker('${wid}')" title="${isFavWorld ? esc(t('worlds.favorites.unfavorite', 'Unfavorite')) : esc(t('worlds.favorites.favorite', 'Favorite'))}"><span class="msi" style="font-size:16px;">${isFavWorld ? 'favorite' : 'favorite_border'}</span></button>
@@ -366,7 +374,7 @@ function renderWorldSearchDetail(w) {
             <div class="fd-left-banner" id="wd-banner-slot">${thumb ? '<div class="fd-banner-fade"></div>' : ''}${isOwnWorld ? `<button class="fd-banner-edit" onclick="wdUploadBannerImage('${jsq(wid)}')" title="${esc(t('worlds.detail.actions.change_image', 'Change Image'))}"><span class="msi">edit</span></button>` : ''}</div>
             <div class="fd-left-body">
                 <div>${wdNameAuthor}</div>
-                ${wdStatsBadgesRow}
+                ${wdStatsStrip}
                 ${wdActionsCompact}
                 ${wdFavPickerHtml}
                 ${wdTimeCard}

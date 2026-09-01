@@ -3,6 +3,7 @@
 **Changes**
 
 * The headers of all list tables now match the size of their content.
+* **World Modal**: The badge row at the top got a redesign. The PC, Android and iOS download sizes moved into the Infos card, and active players, favorites and visits are now shown in a clean stats card with icons instead of badges.
 * List views on all pages now have a fixed height and consistent cell size.
 
 **Improvements**

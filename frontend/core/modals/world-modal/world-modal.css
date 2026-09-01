@@ -135,8 +135,20 @@
     height: calc(var(--fd-compact-h) - 132px) !important;
 }
 
+#modalDetail.wd-style-compact #wdTabInstances {
+    height: calc(var(--fd-compact-h) - 88px);
+    display: flex;
+    flex-direction: column;
+}
+#modalDetail.wd-style-compact .fd-modal-bar + .fd-layout #wdTabInstances {
+    height: calc(var(--fd-compact-h) - 132px);
+}
+#modalDetail.wd-style-compact #wdTabInstances .search-bar-row { flex-shrink: 0; }
 #modalDetail.wd-style-compact #wdTabInstances .wd-instances-list {
+    flex: 1 1 0;
+    min-height: 0;
     max-height: none !important;
+    overflow-y: auto;
 }
 
 #modalDetail.wd-style-compact .fd-left .fd-actions {
@@ -545,6 +557,33 @@
 .wc-score { min-width: 22px; text-align: center; font-size: calc(11px + var(--fs-off, 0px)); font-weight: 700; color: var(--tx2); }
 
 #wdInstancesRefreshBtn.spinning .msi { animation: mi-spin .6s linear infinite; }
+
+.wd-stats-strip {
+    display: flex;
+    align-items: stretch;
+    background: var(--bg-input);
+    border: 1px solid var(--brd);
+    border-radius: 10px;
+    padding: 6px 0;
+    margin-top: 12px;
+}
+.wd-stat {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 0 12px;
+}
+.wd-stat + .wd-stat { border-left: 1px solid var(--brd); }
+.wd-stat-ico { font-size: 14px; color: var(--accent); flex-shrink: 0; }
+.wd-stat-val {
+    font-size: calc(11px + var(--fs-off, 0px));
+    font-weight: 600;
+    color: var(--tx1);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
 
 #modalDetail .search-bar-row .vn-select .vn-select-trigger,
 #modalDetail .search-bar-row .vrcn-button { background: var(--bg-input); }
