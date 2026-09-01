@@ -43,6 +43,80 @@ function refreshWorldInstances() {
     sendToCS({ action: 'vrcGetWorldDetail', worldId: _wdCurrentId });
 }
 
+let _wdInstSortMode = 'friends';
+let _wdInstView = null;
+
+function setWdInstSort(v) {
+    _wdInstSortMode = v;
+    _wdRenderInstList(false);
+}
+
+function _wdIsGroupInstance(inst) {
+    return !!inst.ownerGroup || (inst.type || '').toLowerCase().includes('group');
+}
+
+function _wdFilterSortInstances(list, friendsByLoc, q) {
+    q = (q || '').trim().toLowerCase();
+    const out = q ? list.filter(i =>
+        (i.instanceId || '').toLowerCase().includes(q)
+        || (i.location || '').toLowerCase().includes(q)
+        || (i.type || '').toLowerCase().includes(q)
+        || (i.ownerName || '').toLowerCase().includes(q)
+        || (i.ownerGroup || '').toLowerCase().includes(q)) : list.slice();
+    const friends = i => (friendsByLoc[i.location] || []).length;
+    const players = (a, b) => (b.users || 0) - (a.users || 0);
+    switch (_wdInstSortMode) {
+        case 'players': out.sort(players); break;
+        case 'agegate': out.sort((a, b) => ((b.ageGate ? 1 : 0) - (a.ageGate ? 1 : 0)) || players(a, b)); break;
+        case 'groups':  out.sort((a, b) => ((_wdIsGroupInstance(b) ? 1 : 0) - (_wdIsGroupInstance(a) ? 1 : 0)) || players(a, b)); break;
+        default:        out.sort((a, b) => (friends(b) - friends(a)) || players(a, b)); break;
+    }
+    return out;
+}
+
+function _wdInstMakeCard(inst) {
+    const v = _wdInstView;
+    return renderInstanceItem({
+        thumb: v.thumb, worldTitle: v.name, instanceType: inst.type,
+        instanceId: inst.instanceId || '', owner: inst.ownerName || '',
+        ownerGroup: inst.ownerGroup || '', ownerId: inst.ownerId || '',
+        region: getWorldRegionLabel(inst.region), userCount: inst.users,
+        capacity: v.capacity, friends: getInstanceMembers(inst.location),
+        location: inst.location, ageGate: inst.ageGate || false,
+        languageRatio: inst.languageRatio || {},
+    });
+}
+
+function _wdRenderInstList(preserveScroll) {
+    const tab = document.getElementById('wdTabInstances');
+    const v = _wdInstView;
+    if (!tab || !v) return;
+    const q = document.getElementById('wdInstSearch')?.value || '';
+    const sorted = _wdFilterSortInstances(v.instances, v.friendsByLoc, q);
+    let list = tab.querySelector('.wd-instances-list');
+    tab.querySelector('.wd-instances-empty')?.remove();
+    if (!sorted.length) {
+        if (list) list.remove();
+        const empty = document.createElement('div');
+        empty.className = 'wd-instances-empty';
+        empty.style.cssText = 'font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;';
+        empty.textContent = q.trim()
+            ? t('worlds.instances.no_results', 'No matching instances')
+            : t('worlds.instances.none_active', 'No active instances');
+        tab.appendChild(empty);
+        return;
+    }
+    if (!list) {
+        list = document.createElement('div');
+        list.className = 'wd-instances-list';
+        list.style.cssText = 'max-height:370px;overflow-y:auto;';
+        tab.appendChild(list);
+    }
+    const st = preserveScroll ? list.scrollTop : 0;
+    list.innerHTML = sorted.map(_wdInstMakeCard).join('');
+    list.scrollTop = st;
+}
+
 function _wdUpdateInstancesInPlace(w) {
     const tab = document.getElementById('wdTabInstances');
     if (!tab) return;
@@ -70,71 +144,11 @@ function _wdUpdateInstancesInPlace(w) {
             allInstances.push({ instanceId: loc.includes(':') ? loc.split(':')[1] : loc, users: worldFriendsByLoc[loc].length, type: iType, region: regionMatch ? regionMatch[1] : 'us', location: loc });
         }
     });
-    allInstances.sort((a, b) => ((worldFriendsByLoc[b.location] || []).length) - ((worldFriendsByLoc[a.location] || []).length));
 
-    const makeCard = inst => renderInstanceItem({
-        thumb, worldTitle: w.name || '', instanceType: inst.type,
-        instanceId: inst.instanceId || '', owner: inst.ownerName || '',
-        ownerGroup: inst.ownerGroup || '', ownerId: inst.ownerId || '',
-        region: getWorldRegionLabel(inst.region), userCount: inst.users,
-        capacity: w.capacity || 0, friends: getInstanceMembers(inst.location),
-        location: inst.location, ageGate: inst.ageGate || false,
-        languageRatio: inst.languageRatio || {},
-    });
+    _wdInstView = { instances: allInstances, friendsByLoc: worldFriendsByLoc, thumb, name: w.name || '', capacity: w.capacity || 0 };
+    _wdRenderInstList(true);
 
-    const newIds = new Set(allInstances.map(i => i.instanceId || ''));
-    let list = tab.querySelector('.wd-instances-list');
-
-    if (!list) {
-        // Currently showing empty-state text; replace with a fresh list
-        const after = tab.querySelector('.wd-section-label');
-        while (after && after.nextSibling) tab.removeChild(after.nextSibling);
-        if (allInstances.length > 0) {
-            list = document.createElement('div');
-            list.className = 'wd-instances-list';
-            list.style.cssText = 'max-height:370px;overflow-y:auto;';
-            list.innerHTML = allInstances.map(makeCard).join('');
-            tab.appendChild(list);
-        } else {
-            const empty = document.createElement('div');
-            empty.style.cssText = 'font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;';
-            empty.textContent = t('worlds.instances.none_active', 'No active instances');
-            tab.appendChild(empty);
-        }
-    } else {
-        // Remove cards whose instance is gone
-        [...list.querySelectorAll('[data-iid]')].forEach(card => {
-            if (!newIds.has(card.getAttribute('data-iid'))) card.remove();
-        });
-
-        // Update existing cards and append new ones
-        allInstances.forEach(inst => {
-            const iid = inst.instanceId || '';
-            const existing = [...list.querySelectorAll('[data-iid]')].find(c => c.getAttribute('data-iid') === iid);
-            const tmp = document.createElement('div');
-            tmp.innerHTML = makeCard(inst);
-            const newCard = tmp.firstElementChild;
-            if (!newCard) return;
-            if (existing) {
-                list.replaceChild(newCard, existing);
-            } else {
-                list.appendChild(newCard);
-            }
-        });
-
-        // If list is now empty, show empty state
-        if (allInstances.length === 0) {
-            list.remove();
-            const empty = document.createElement('div');
-            empty.style.cssText = 'font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;';
-            empty.textContent = t('worlds.instances.none_active', 'No active instances');
-            tab.appendChild(empty);
-        }
-    }
-
-    // Update count label and tab button
-    const countSpan = tab.querySelector('.wd-section-label span');
-    if (countSpan) countSpan.innerHTML = `${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span>`;
+    // Update tab button count
     const tabBtn = [...document.querySelectorAll('.fd-tab')].find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'instances'"));
     if (tabBtn) tabBtn.innerHTML = `${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span>`;
 }
@@ -204,29 +218,14 @@ function renderWorldSearchDetail(w) {
         }
     });
 
-    // Instances with friends first
-    allInstances.sort((a, b) => ((worldFriendsByLoc[b.location] || []).length) - ((worldFriendsByLoc[a.location] || []).length));
+    _wdInstView = { instances: allInstances, friendsByLoc: worldFriendsByLoc, thumb, name: w.name || '', capacity: w.capacity || 0 };
+    const sortedInstances = _wdFilterSortInstances(allInstances, worldFriendsByLoc, '');
 
     let instancesHtml = '';
-    if (allInstances.length > 0) {
-        instancesHtml = `<div class="wd-instances-list" style="max-height:370px;overflow-y:auto;">${allInstances.map(inst => renderInstanceItem({
-            thumb:         thumb,
-            worldTitle:    w.name || '',
-            instanceType:  inst.type,
-            instanceId:    inst.instanceId || '',
-            owner:         inst.ownerName  || '',
-            ownerGroup:    inst.ownerGroup || '',
-            ownerId:       inst.ownerId    || '',
-            region:        getWorldRegionLabel(inst.region),
-            userCount:     inst.users,
-            capacity:      w.capacity || 0,
-            friends:       getInstanceMembers(inst.location),
-            location:      inst.location,
-            ageGate:       inst.ageGate || false,
-            languageRatio: inst.languageRatio || {},
-        })).join('')}</div>`;
+    if (sortedInstances.length > 0) {
+        instancesHtml = `<div class="wd-instances-list" style="max-height:370px;overflow-y:auto;">${sortedInstances.map(_wdInstMakeCard).join('')}</div>`;
     } else {
-        instancesHtml = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;">${t('worlds.instances.none_active', 'No active instances')}</div>`;
+        instancesHtml = `<div class="wd-instances-empty" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;">${t('worlds.instances.none_active', 'No active instances')}</div>`;
     }
 
     const isFavWorld = favWorldsData.some(fw => fw.id === w.id);
@@ -343,8 +342,19 @@ function renderWorldSearchDetail(w) {
         </div>`;
     const wdInfoCompactRight = `<div class="fd-info-wrap">${wdDescCardCompact}${wdComPopRow}<div class="fd-info-card">${wdHistoryInner}</div>${wdCommentsCard}</div>`;
 
+    const wdInstToolbar = `<div class="search-bar-row" style="margin-top:4px;margin-bottom:8px;">
+            <span class="msi search-ico">search</span>
+            <input id="wdInstSearch" type="text" class="vrcn-input" placeholder="${esc(t('worlds.instances.search_placeholder', 'Search instance name, IDs or types...'))}" style="background:var(--bg-input);" oninput="_wdRenderInstList(false)">
+            <button class="vrcn-button" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances" style="flex-shrink:0;"><span class="msi" style="font-size:14px;">refresh</span></button>
+            <select id="wdInstSort" class="vrcn-dropdown" style="flex-shrink:0;" onchange="setWdInstSort(this.value)">
+                <option value="friends"${_wdInstSortMode === 'friends' ? ' selected' : ''}>${esc(t('worlds.instances.sort.friends', 'Friends'))}</option>
+                <option value="players"${_wdInstSortMode === 'players' ? ' selected' : ''}>${esc(t('worlds.instances.sort.players', 'Most Players'))}</option>
+                <option value="agegate"${_wdInstSortMode === 'agegate' ? ' selected' : ''}>${esc(t('worlds.instances.sort.agegate', 'Age Gated'))}</option>
+                <option value="groups"${_wdInstSortMode === 'groups' ? ' selected' : ''}>${esc(t('worlds.instances.sort.groups', 'Groups'))}</option>
+            </select>
+        </div>`;
     const wdInstancesTab = `<div id="wdTabInstances" style="display:none;">
-            <div class="wd-section-label wd-instances-label" style="margin-top:4px;"><span>${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span></span><button class="mi-refresh-btn" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances"><span class="msi">refresh</span></button></div>
+            ${wdInstToolbar}
             ${instancesHtml}
         </div>`;
     const wdPhotosTab = `<div id="wdTabPhotos" style="display:none;"><div id="wdPhotosGrid"></div><div id="wdPhotosPaginatorBar" class="mini-paginator"></div></div>`;
@@ -378,6 +388,8 @@ function renderWorldSearchDetail(w) {
         _wdModal.classList.add('wd-style-compact');
     }
     if (thumb) { const s = document.getElementById('wd-banner-slot'); const bi = _getWorldBannerImg(wid, thumb); if (s && bi) s.insertBefore(bi, s.firstChild); }
+    const wdInstSortSel = document.getElementById('wdInstSort');
+    if (wdInstSortSel && typeof initVnSelect === 'function') initVnSelect(wdInstSortSel);
     if (hasWorldPhotos) { _wdPreloadPhotos(wid); _wdLoadPhotos(wid); }
     if (wid) { _wdInstanceHistory = []; sendToCS({ action: 'getTimelineForWorld', worldId: wid }); }
     if (wid && worldCommentsEnabled()) loadWorldComments(wid, 1);

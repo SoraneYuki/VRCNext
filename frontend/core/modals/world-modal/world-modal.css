@@ -543,3 +543,11 @@
 .wc-up.active { color: #FF6B3D; }
 .wc-down.active { color: #7A93FF; }
 .wc-score { min-width: 22px; text-align: center; font-size: calc(11px + var(--fs-off, 0px)); font-weight: 700; color: var(--tx2); }
+
+#wdInstancesRefreshBtn.spinning .msi { animation: mi-spin .6s linear infinite; }
+
+#modalDetail .search-bar-row .vn-select .vn-select-trigger,
+#modalDetail .search-bar-row .vrcn-button { background: var(--bg-input); }
+#modalDetail .search-bar-row .vn-select .vn-select-trigger:hover,
+#modalDetail .search-bar-row .vn-select.vn-open .vn-select-trigger,
+#modalDetail .search-bar-row .vrcn-button:hover { background: var(--bg-input); filter: brightness(1.08); }
