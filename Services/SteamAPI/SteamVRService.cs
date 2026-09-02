@@ -156,14 +156,17 @@ namespace VRCNext.Services
                     _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Overlay);
                     if (err != EVRInitError.None)
                     {
+                        var overlayErr = err;
                         _log($"[SteamVR] Overlay init: {err}, fallback Background...");
                         try { OpenVR.Shutdown(); } catch { }
                         err = EVRInitError.None;
                         _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Background);
                         if (err != EVRInitError.None)
                         {
-                            LastError = $"OpenVR: {err}";
-                            _log($"[SteamVR] {LastError}");
+                            _log($"[SteamVR] OpenVR: {err}");
+                            var hint = OpenVrInitHint.Describe(overlayErr, err);
+                            if (hint != null) _log($"[SteamVR] {hint}");
+                            LastError = hint ?? $"OpenVR: {err}";
                             return false;
                         }
                         _log("[SteamVR] Init: Background");

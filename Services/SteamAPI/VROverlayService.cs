@@ -746,13 +746,16 @@ namespace VRCNext.Services
                     _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Overlay);
                     if (err != EVRInitError.None)
                     {
+                        var overlayErr = err;
                         err = EVRInitError.None;
                         try { OpenVR.Shutdown(); } catch { }
                         _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Background);
                         if (err != EVRInitError.None)
                         {
-                            LastError = $"OpenVR init failed: {err}";
-                            _log($"[VROverlay] {LastError}");
+                            _log($"[VROverlay] OpenVR init failed: {err}");
+                            var hint = OpenVrInitHint.Describe(overlayErr, err);
+                            if (hint != null) _log($"[VROverlay] {hint}");
+                            LastError = hint ?? $"OpenVR init failed: {err}";
                             return false;
                         }
                     }

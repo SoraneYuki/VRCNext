@@ -13,6 +13,7 @@
 * VR content is now rendered directly on the GPU, reducing CPU usage while keeping the same appearance.
 * The VR Overlay, friend toasts and FrameShot frame now use the new GPU rendering system.
 * The VR Music Player album art background now uses a proper GPU blur for a smoother look at any size.
+* More logging for VR Related Tools that help for debugging and error logging.
 
 **Fixed Bugs**
 * Fixed the **Auto Color** theme not working correctly with dashboard backgrounds.

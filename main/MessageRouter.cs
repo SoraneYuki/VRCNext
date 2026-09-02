@@ -484,6 +484,17 @@ public partial class AppShell
                         SendToJS("log", new { msg = $"[LOAD ERROR] {AppSettings.LastLoadError}", color = "err" });
                     SendToJS("log", new { msg = $"[LOAD] {AppSettings.LoadDebugInfo}", color = "sec" });
                     SendToJS("log", new { msg = $"[STARTUP] Webhooks: {string.Join(", ", _settings.Webhooks.Select((w,i) => $"#{i+1} \"{w.Name}\" url={w.Url?.Length ?? 0}ch {(w.Enabled?"ON":"off")}"))}", color = "sec" });
+                    if (OperatingSystem.IsWindows())
+                    {
+                        try
+                        {
+                            using var wid = System.Security.Principal.WindowsIdentity.GetCurrent();
+                            bool elevated = new System.Security.Principal.WindowsPrincipal(wid)
+                                .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                            SendToJS("log", new { msg = $"[STARTUP] Elevated: {(elevated ? "yes" : "no")}", color = "sec" });
+                        }
+                        catch { }
+                    }
                     _authCtrl.HandleReady();
                     _sfCtrl.ResendState();
                     _stCtrl.ResendState();
