@@ -1349,6 +1349,19 @@ public partial class AppShell
         var isThumb = ctx.Request.Url?.Query?.Contains("thumb=1") == true;
         try
         {
+            if (ctx.Request.HttpMethod == "OPTIONS")
+            {
+                ApplyCors(ctx);
+                ctx.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
+                ctx.Response.Headers["Access-Control-Allow-Headers"] = "*";
+                ctx.Response.Headers["Access-Control-Max-Age"]       = "600";
+                if (ctx.Request.Headers["Access-Control-Request-Private-Network"] == "true")
+                    ctx.Response.Headers["Access-Control-Allow-Private-Network"] = "true";
+                ctx.Response.StatusCode = 204;
+                ctx.Response.Close();
+                return;
+            }
+
             if (path.StartsWith("/app/"))
             {
                 await ServeFrontendAsync(ctx, Uri.UnescapeDataString(path["/app/".Length..]));
@@ -1468,7 +1481,7 @@ public partial class AppShell
         var self = $"http://localhost:{ctx.Request.Url?.Port}";
         if (origin == "null" || string.Equals(origin, self, StringComparison.OrdinalIgnoreCase))
         {
-            ctx.Response.Headers["Access-Control-Allow-Origin"] = origin;
+            ctx.Response.Headers["Access-Control-Allow-Origin"] = origin == "null" ? "*" : origin;
             ctx.Response.Headers["Vary"] = "Origin";
         }
     }

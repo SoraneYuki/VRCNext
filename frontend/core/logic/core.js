@@ -165,7 +165,7 @@ document.addEventListener('keydown', e => {
     else if (e.key === '-') { e.preventDefault(); _stepGuiZoom(-1); }
 });
 
-let dashBgPath = '', dashBgDataUri = '';
+let dashBgPath = '', dashBgDataUri = '', dashBgSample = '';
 let dashWorldCache = {};
 let dashGroupCache = {};
 let vrcFriendsLoaded = false;
@@ -1422,9 +1422,12 @@ function setAutoColorAccuracy(val) {
 }
 
 function applyAutoColor() {
-    const url = (typeof dashBgDataUri !== 'undefined' && dashBgDataUri)
-        || (typeof dashBgPath !== 'undefined' && dashBgPath ? 'file:///' + dashBgPath.replace(/\\/g, '/') : null);
-    if (!url) return;
+    const url = (typeof dashBgSample !== 'undefined' && dashBgSample)
+        || (typeof dashBgDataUri !== 'undefined' && dashBgDataUri) || '';
+    if (!url) {
+        if (typeof dashBgPath !== 'undefined' && dashBgPath) sendToCS({ action: 'vrcLoadDashBg', path: dashBgPath });
+        return;
+    }
 
     const img = new Image();
     img.crossOrigin = 'anonymous';

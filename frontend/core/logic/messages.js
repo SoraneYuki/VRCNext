@@ -1101,6 +1101,7 @@ case 'vrcNews':
             case 'dashBgSelected':
                 dashBgPath = payload.path || '';
                 dashBgDataUri = payload.url || '';
+                dashBgSample = payload.sample || '';
                 if (dashBgPath) document.getElementById('dashBgName').textContent = dashBgPath.split(/[\\\\/]/).pop();
                 if (typeof applyDashHeroBg === 'function') applyDashHeroBg();
                 renderDashboard();

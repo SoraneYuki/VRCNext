@@ -539,7 +539,7 @@ public class AuthController
                                 }
                             }
                             var url = _core.DashBgUrl(r.Path);
-                            _core.SendToJS("dashBgSelected", new { path = r.Path, url });
+                            _core.SendToJS("dashBgSelected", new { path = r.Path, url, sample = DashBgSample(r.Path) });
                         }
                         catch (Exception ex)
                         {
@@ -558,7 +558,8 @@ public class AuthController
                         if (!string.IsNullOrEmpty(bgPath) && File.Exists(bgPath))
                         {
                             var url = _core.DashBgUrl(bgPath);
-                            Invoke(() => _core.SendToJS("dashBgSelected", new { path = bgPath, url }));
+                            var sample = DashBgSample(bgPath);
+                            Invoke(() => _core.SendToJS("dashBgSelected", new { path = bgPath, url, sample }));
                         }
                     }
                     catch (Exception ex)
@@ -598,9 +599,10 @@ public class AuthController
                         var rng = new Random();
                         var picked = allImages[rng.Next(allImages.Count)];
                         var url = _core.DashBgUrl(picked);
+                        var sample = DashBgSample(picked);
                         Invoke(() =>
                         {
-                            _core.SendToJS("dashBgSelected", new { path = picked, url });
+                            _core.SendToJS("dashBgSelected", new { path = picked, url, sample });
                             _core.SendToJS("log", new { msg = $"Random background: {Path.GetFileName(picked)}", color = "ok" });
                         });
                     }
@@ -701,6 +703,26 @@ public class AuthController
     }
 
     // VRC Debug Log Setup
+
+    private static string DashBgSample(string path)
+    {
+        try
+        {
+            if (path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)) return "";
+            using var codec = SkiaSharp.SKCodec.Create(new MemoryStream(File.ReadAllBytes(path)));
+            if (codec == null) return "";
+            using var src = SkiaSharp.SKBitmap.Decode(codec);
+            if (src == null) return "";
+            const int size = 80;
+            using var dst = new SkiaSharp.SKBitmap(size, size, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul);
+            src.ScalePixels(dst, SkiaSharp.SKFilterQuality.Medium);
+            using var img  = SkiaSharp.SKImage.FromBitmap(dst);
+            using var data = img.Encode(SkiaSharp.SKEncodedImageFormat.Png, 90);
+            if (data == null) return "";
+            return "data:image/png;base64," + Convert.ToBase64String(data.ToArray());
+        }
+        catch { return ""; }
+    }
 
     private void SetupVrcDebugLog()
     {
