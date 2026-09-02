@@ -292,7 +292,7 @@
 
 .vrc-fs-card {
     background: var(--tab-card-bg, var(--bg-input));
-    border: 0;
+    border: 1px solid var(--brd);
     border-radius: 12px;
     padding: 5px;
     margin-bottom: 10px;
@@ -301,11 +301,12 @@
 .rsidebar:not(.collapsed) .vrc-profile,
 .rsidebar:not(.collapsed) .inst-card {
     background: var(--tab-card-bg, var(--bg-input));
-    border: 0;
+    border: 1px solid var(--brd);
     border-radius: 12px;
+    transition: background .15s, border-color .15s;
 }
 .rsidebar:not(.collapsed) .inst-card { margin-bottom: 10px; }
-.rsidebar:not(.collapsed) .vrc-profile:hover { background: var(--bg-hover); }
+.rsidebar:not(.collapsed) .vrc-profile:hover { background: var(--bg-hover); border-color: var(--brd-lt); }
 .rsidebar:not(.collapsed) .inst-header-fade {
     background: linear-gradient(to top, var(--tab-card-bg, var(--bg-card)) 0%, transparent 60%);
 }

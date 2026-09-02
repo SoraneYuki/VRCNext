@@ -264,14 +264,16 @@
     padding: 8px 10px;
     border-radius: 8px;
     background: var(--bg-input);
+    border: 1px solid var(--brd);
     cursor: pointer;
-    transition: background .15s;
+    transition: background .15s, border-color .15s;
     margin-bottom: 6px;
     min-width: 0;
 }
 
 .fd-group-card:hover {
     background: var(--bg-hover);
+    border-color: var(--brd-lt);
 }
 
 .fd-group-card.fd-group-rep {

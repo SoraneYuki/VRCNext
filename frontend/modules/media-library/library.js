@@ -1172,6 +1172,8 @@ async function setLibItemAsDashBg(path, url) {
     }
     dashBgPath = path;
     dashBgDataUri = '';
+    dashBgSample = '';
+    sendToCS({ action: 'vrcLoadDashBg', path });
     const nameEl = document.getElementById('dashBgName');
     if (nameEl) nameEl.textContent = path.split(/[/\\]/).pop();
     renderDashboard();

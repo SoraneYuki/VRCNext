@@ -3167,6 +3167,15 @@ public partial class AppShell
                     var calMonth  = msg["month"]?.Value<int>() ?? 0;
                     _ = Task.Run(async () => {
                         var evts = await _core.Calendar.GetCalendarEventsAsync(calFilter, calYear, calMonth);
+                        if (calYear > 0 && calMonth > 0)
+                        {
+                            var nextYear  = calMonth == 12 ? calYear + 1 : calYear;
+                            var nextMonth = calMonth == 12 ? 1 : calMonth + 1;
+                            var seen = new HashSet<string>(evts.OfType<JObject>()
+                                .Select(e => e["id"]?.ToString() ?? "").Where(s => s.Length > 0));
+                            foreach (var e in await _core.Calendar.GetCalendarEventsAsync(calFilter, nextYear, nextMonth))
+                                if (e is JObject eo && seen.Add(eo["id"]?.ToString() ?? "")) evts.Add(eo);
+                        }
                         // Block event series and show 1 event instead of multiple ones lol.
                         var seriesIds = new HashSet<string>(
                             evts.OfType<JObject>()

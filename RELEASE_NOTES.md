@@ -25,6 +25,7 @@
 * More logging for VR Related Tools that help for debugging and error logging. 
 
 **Fixed Bugs**
+* Fixed the calendar not showing events of the following month. Only the displayed month was loaded, so days of the next month that appear in the grid, and weeks that run across the turn of the month, stayed empty. The current and the next month are now always loaded together.
 * Fixed the **OSC Tool** showing the wrong avatar's parameters, parameters of a gimmick you did not have on, or a parameter count that changed every time you reconnected. It now reads the full live parameter list of the avatar you are wearing straight from VRChat and only falls back to the local config file as a last resort, matched to that avatar.
 * Fixed the **Auto Color** theme not working correctly with dashboard backgrounds.
 * Fixed profiles showing another user's avatar, keeping an avatar the person no longer wears, or losing the avatar when the profile was opened a second time.

@@ -17,6 +17,7 @@ div.vn-select {
     justify-content: space-between;
     gap: 8px;
     background: var(--ui-input-bg);
+    border: 1px solid var(--brd);
     color: var(--tx1);
     padding: 6px 10px;
     border-radius: 8px;
@@ -24,7 +25,7 @@ div.vn-select {
     font-size: calc(12px + var(--fs-off, 0px));
     font-family: inherit;
     user-select: none;
-    transition: background .15s, color .15s;
+    transition: background .15s, color .15s, border-color .15s;
     white-space: nowrap;
     min-width: 0;
 }
@@ -32,6 +33,7 @@ div.vn-select {
 .vn-select.vn-open .vn-select-trigger {
     background: var(--ui-input-hover-bg);
     color: var(--tx0);
+    border-color: var(--accent);
 }
 
 .vn-select-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
@@ -87,6 +89,7 @@ div.vn-select {
 .lib-filter-select,
 .wd-create-select,
 .vrcn-dropdown {
+    border: 1px solid var(--brd);
     height: 32px;
     min-height: 32px;
     max-height: 32px;

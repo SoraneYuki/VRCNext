@@ -27,12 +27,14 @@
     padding: 0 14px;
     border-radius: 7px;
     background: var(--ui-input-bg);
+    border: 1px solid var(--brd);
     color: var(--tx2);
     font-size: calc(12px + var(--fs-off, 0px));
     box-sizing: border-box;
     gap: 4px;
+    transition: background .15s, color .15s, border-color .15s;
 }
-.vrcn-button:hover { background: var(--ui-input-hover-bg); color: var(--tx1); }
+.vrcn-button:hover { background: var(--ui-input-hover-bg); color: var(--tx1); border-color: var(--accent); }
 .vrcn-button:disabled { opacity: .4; cursor: not-allowed; }
 .vrcn-button.active { background: var(--accent); color: #fff; }
 
@@ -58,11 +60,13 @@
     padding: 6px 14px;
     border-radius: 7px; 
     background: var(--bg-hover);
+    border: 1px solid var(--brd);
     color: var(--tx1);
     font-size: calc(11px + var(--fs-off, 0px));
     gap: 5px;
+    transition: background .15s, color .15s, border-color .15s;
 }
-.vrcn-button-round:hover { background: var(--accent-lt); color: #fff; }
+.vrcn-button-round:hover { background: var(--accent-lt); color: #fff; border-color: var(--accent-lt); }
 .vrcn-button-round:disabled { opacity: .4; cursor: not-allowed; }
 .vrcn-button-round.active { background: var(--accent); color: #fff; }
 .vrcn-button-round .msi { font-size: 14px !important; line-height: 1; }
