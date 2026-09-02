@@ -12,6 +12,9 @@
 * All list tables now use consistent header and cell sizes.
 * List views now have a fixed height and consistent cell size.
 
+**OSC Tool**
+* Now uses OSCQuery, the official protocol, to read the full live parameter list straight from VRChat, including the built-in parameters, instead of relying on the local config files.
+
 **VR Overlay**
 * VR content is now rendered directly on the GPU, reducing CPU usage while keeping the same appearance.
 * The VR Overlay, friend toasts and FrameShot frame now use the new GPU rendering system.
@@ -19,6 +22,7 @@
 * More logging for VR Related Tools that help for debugging and error logging. 
 
 **Fixed Bugs**
+* Fixed the **OSC Tool** showing the wrong avatar's parameters, parameters of a gimmick you did not have on, or a parameter count that changed every time you reconnected. It now reads the full live parameter list of the avatar you are wearing straight from VRChat and only falls back to the local config file as a last resort, matched to that avatar.
 * Fixed the **Auto Color** theme not working correctly with dashboard backgrounds.
 * Fixed profiles showing another user's avatar, keeping an avatar the person no longer wears, or losing the avatar when the profile was opened a second time.
 * Fixed the avatar card flickering between two avatars while a profile was loading.
