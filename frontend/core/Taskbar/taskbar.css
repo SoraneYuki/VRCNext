@@ -383,8 +383,8 @@ body:has(#rsidebar:not(.collapsed)) #taskbar::before {
 }
 
 #tbToolsGroup .tb-sidebar-btn.tb-active {
-    color: #4CAF50;
-    filter: drop-shadow(0 0 4px #4CAF5088);
+    color: var(--ok);
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ok) 53%, transparent));
 }
 
 /* Menu items wrapper */
