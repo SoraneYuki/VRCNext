@@ -37,6 +37,15 @@ namespace VRCNext
         public bool IsConnected => _running;
 
         private readonly Action<string> _log;
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> _lastSendLog = new();
+        private void LogSend(string key, string msg)
+        {
+            long now = Environment.TickCount64;
+            long last = _lastSendLog.TryGetValue(key, out var t) ? t : 0;
+            if (last != 0 && now - last < 30000) return;
+            _lastSendLog[key] = now;
+            _log(msg);
+        }
         private Action<string, object, string>? _onParam;
         private Action<string, List<OscParamDef>>? _onAvatarChange;
 
@@ -472,7 +481,7 @@ namespace VRCNext
                 WriteOscString(buf, value ? ",T" : ",F");
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {name} = {value} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(name, $"[OSC] → {name} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] Send bool error: {ex.Message}"); }
         }
@@ -489,7 +498,7 @@ namespace VRCNext
                 buf.Add(fb[3]); buf.Add(fb[2]); buf.Add(fb[1]); buf.Add(fb[0]);
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {name} = {value:F3} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(name, $"[OSC] → {name} = {value:F3} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] Send float error: {ex.Message}"); }
         }
@@ -506,7 +515,7 @@ namespace VRCNext
                 buf.Add(fb[3]); buf.Add(fb[2]); buf.Add(fb[1]); buf.Add(fb[0]);
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {address} = {value:F4} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(address, $"[OSC] → {address} = {value:F4} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] SendRawFloat error: {ex.Message}"); }
         }
@@ -521,7 +530,7 @@ namespace VRCNext
                 WriteOscString(buf, value ? ",T" : ",F");
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(address, $"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] SendRawBool error: {ex.Message}"); }
         }
@@ -540,7 +549,7 @@ namespace VRCNext
                 buf.Add((byte)(value));
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(address, $"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] SendRawInt error: {ex.Message}"); }
         }
@@ -557,7 +566,7 @@ namespace VRCNext
                 buf.Add(fb[3]); buf.Add(fb[2]); buf.Add(fb[1]); buf.Add(fb[0]);
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → /avatar/eyeheight = {meters:F4}m ({sent}B to :{VRC_SEND_PORT})");
+                LogSend("/avatar/eyeheight", $"[OSC] → /avatar/eyeheight = {meters:F4}m ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] Send eye height error: {ex.Message}"); }
         }
@@ -576,7 +585,7 @@ namespace VRCNext
                 buf.Add((byte)(value));
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {name} = {value} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(name, $"[OSC] → {name} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] Send int error: {ex.Message}"); }
         }

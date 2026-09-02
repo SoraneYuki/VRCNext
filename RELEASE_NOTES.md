@@ -15,6 +15,9 @@
 **OSC Tool**
 * Now uses OSCQuery, the official protocol, to read the full live parameter list straight from VRChat, including the built-in parameters, instead of relying on the local config files.
 
+**Activity Log**
+* Repeated OSC sends like the heart rate no longer spam the log every second. Each parameter is now logged at most once every 30 seconds, so you can still confirm data is flowing without the flood.
+
 **VR Overlay**
 * VR content is now rendered directly on the GPU, reducing CPU usage while keeping the same appearance.
 * The VR Overlay, friend toasts and FrameShot frame now use the new GPU rendering system.
