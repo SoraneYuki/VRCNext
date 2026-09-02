@@ -1111,6 +1111,7 @@ case 'vrcNews':
                 if (dashBgPath) document.getElementById('dashBgName').textContent = dashBgPath.split(/[\\\\/]/).pop();
                 if (typeof applyDashHeroBg === 'function') applyDashHeroBg();
                 renderDashboard();
+                if (currentSpecialTheme === 'auto' && typeof applyAutoColor === 'function') applyAutoColor();
                 if (typeof renderDashBgPreview === 'function') renderDashBgPreview();
                 autoSave();
                 break;
