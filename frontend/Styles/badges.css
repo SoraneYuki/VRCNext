@@ -44,7 +44,7 @@
 .vrcn-badge.rank-trusted   { color: var(--bdg-rank-trusted);background: color-mix(in srgb, var(--bdg-rank-trusted) 14%, transparent); }
 .vrcn-badge.accent       { background: rgba(56,132,255,.18); color: var(--accent); }
 
-.vrcn-badge.ok   { background: rgba(45,212,140,.12);  color: var(--ok); }
+.vrcn-badge.ok   { background: color-mix(in srgb, var(--bdg-user-friend) 14%, transparent); color: var(--bdg-user-friend); }
 .vrcn-badge.warn { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
 .vrcn-badge.err  { background: rgba(239,83,80,.15);   color: var(--err); }
 .vrcn-badge.cyan { background: color-mix(in srgb, var(--cyan) 18%, transparent); color: var(--cyan); }

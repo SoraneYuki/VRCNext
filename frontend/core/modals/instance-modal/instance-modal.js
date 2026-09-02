@@ -117,7 +117,7 @@ function openInstanceInfoModal() {
         const bioCell   = `<div class="iim-cell">${typeof _plBioLinksCell === 'function' ? _plBioLinksCell({ bioLinks }) : ''}</div>`;
         const nameCell  = `<div class="iim-cell"><span class="iim-name">${esc(displayName)}</span></div>`;
         const avatarCell = `<div class="iim-cell">${typeof instanceAvatarCellHtml === 'function' ? instanceAvatarCellHtml(u) : ''}</div>`;
-        const ageCell   = `<div class="iim-cell">${is18 ? `<span class="vrcn-badge" style="font-size:calc(10px + var(--fs-off, 0px));color:#3ba55d;border-color:#3ba55d30;background:#3ba55d18;">18+</span>` : (ageVerified ? `<span class="vrcn-badge" style="font-size:calc(10px + var(--fs-off, 0px));color:#3ba55d;border-color:#3ba55d30;background:#3ba55d18;">Verified</span>` : '')}</div>`;
+        const ageCell   = `<div class="iim-cell">${is18 ? `<span class="vrcn-badge ip-age" style="font-size:calc(10px + var(--fs-off, 0px));">18+</span>` : (ageVerified ? `<span class="vrcn-badge ip-age" style="font-size:calc(10px + var(--fs-off, 0px));">Verified</span>` : '')}</div>`;
         const fromCell  = `<div class="iim-cell iim-muted-cell">${u.joinedAt ? esc(fmtTime(new Date(u.joinedAt))) : '&mdash;'}</div>`;
         let barHtml = '';
         if (iTotal > 0 && u.joinedAt) {

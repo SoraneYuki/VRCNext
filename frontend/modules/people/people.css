@@ -209,7 +209,11 @@
 #instancePlayersGrid:has(.tl-list-wrap) { overflow-x: auto; position: relative; z-index: 2; }
 #instancePlayersGrid .tl-list-wrap { padding: 4px 0 0; }
 #instancePlayersGrid .tl-list-table { table-layout: fixed; }
-.ip-age { color: #3ba55d; border-color: #3ba55d30; background: #3ba55d18; }
+.ip-age {
+    color: var(--bdg-user-friend);
+    border-color: color-mix(in srgb, var(--bdg-user-friend) 19%, transparent);
+    background: color-mix(in srgb, var(--bdg-user-friend) 9%, transparent);
+}
 .ip-bar-cell { padding-right: 14px !important; }
 .ip-bar-cell .tl-player-bar-wrap { width: 100%; }
 
