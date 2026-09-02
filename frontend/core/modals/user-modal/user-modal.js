@@ -228,6 +228,7 @@ function avatarNotInDbLockHtml(unresolved) {
 function _applyAvatarSection(payload) {
     const section = document.getElementById('fdAvatarSection');
     if (!section) return;
+    if (payload?.userId && currentFriendDetail && payload.userId !== currentFriendDetail.id) return;
     const avId   = payload?.avatarId || '';
     const avName = payload?.avatarName || '';
     if (!avId && !avName) return;

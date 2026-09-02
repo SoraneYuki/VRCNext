@@ -7,7 +7,11 @@ public sealed class AvtrdbResolver
 {
     public const int MaxBatch = 80;
 
-    public const string HiddenAvatarFileId = "file_0e8c4e32-7444-44ea-ade4-313c010d4bae";
+    public const string HiddenAvatarFileId  = "file_0e8c4e32-7444-44ea-ade4-313c010d4bae";
+    public const string LoadingAvatarFileId = "file_31255e6b-696e-4c11-b007-595fa1142467";
+
+    public static bool IsPlaceholderFileId(string? fileId) =>
+        fileId == HiddenAvatarFileId || fileId == LoadingAvatarFileId;
     private const string Endpoint     = "https://api.avtrdb.com/v3/avatar/resolve";
     private const string RobotAvatar  = "avtr_c38a1615-5bf5-42b4-84eb-a8b6c37cbd11";
     private const int    MinIntervalMs = 1000;

@@ -477,7 +477,7 @@ public class AvatarsAPI(VRChatApiService ctx)
 
     public async Task<(string? id, JObject? data)> GetAvatarIdByFileIdAsync(string fileId)
     {
-        if (fileId == AvtrdbResolver.HiddenAvatarFileId)
+        if (AvtrdbResolver.IsPlaceholderFileId(fileId))
         {
             ctx.Log($"[FILE] {fileId} is the hidden avatar placeholder, nothing to resolve");
             return (null, null);
@@ -540,7 +540,7 @@ public class AvatarsAPI(VRChatApiService ctx)
             var pending = new List<string>();
             foreach (var f in fileIds.Where(f => !string.IsNullOrWhiteSpace(f)).Distinct())
             {
-                if (f == AvtrdbResolver.HiddenAvatarFileId) continue;
+                if (AvtrdbResolver.IsPlaceholderFileId(f)) continue;
                 var hit = Helpers.AvtrdbCacheHelper.GetFileAvatar(f);
                 if (hit != null) result[f] = FromFileCache(hit);
                 else pending.Add(f);

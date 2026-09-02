@@ -1,3 +1,10 @@
+**2026.48.2**
+
+**Fixed Bugs**
+* Fixed profiles showing a different avatar than **Check for Avatar** for the same person. Both now use the same lookup.
+* Fixed profiles showing **Loading․․․** as the current avatar. That is VRChat's placeholder avatar, shown while someone's real avatar is still downloading, and it is now ignored like the robot placeholder, in profiles, in lists and as a picture.
+* Fixed the avatar lookup being skipped for five minutes after a profile was opened, which left the card empty or stale when the same profile was opened again.
+
 **2026.48.1**
 
 **World Modal**
