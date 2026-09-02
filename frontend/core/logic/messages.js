@@ -8,7 +8,13 @@ window.external.receiveMessage(rawMsg => {
     }
     switch (type) {
             case 'openDeepLink':
-                if (payload && typeof msgrContentOpen === 'function') msgrContentOpen(payload.id, payload.prefix);
+                if (!payload) break;
+                if (payload.prefix === 'avtr' && (payload.action || '').startsWith('put/fav')) {
+                    if (typeof deepLinkFavoriteAvatar === 'function')
+                        deepLinkFavoriteAvatar(payload.id, payload.action.slice('put/fav'.length));
+                } else if (typeof msgrContentOpen === 'function') {
+                    msgrContentOpen(payload.id, payload.prefix);
+                }
                 break;
             case 'translationData': handleTranslationData(payload); break;
             case 'loadSettings':

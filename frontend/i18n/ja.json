@@ -1536,6 +1536,7 @@
   "avatars.favorites.loading_groups": "グループを読み込み中...",
   "avatars.favorites.add_group_title": "お気に入りグループに追加",
   "avatars.favorites.group_count": "{count}/{capacity}スロット",
+  "avatars.favorites.group_missing": "お気に入りグループ {group} は利用できません",
   "avatars.favorites.failed_prefix": "失敗:",
   "avatars.favorites.try_again": "再試行",
   "avatars.rose.filter_placeholder": "名前、作者、タグで絞り込み...",

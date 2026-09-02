@@ -1616,6 +1616,7 @@
   "avatars.favorites.loading_groups": "Loading groups...",
   "avatars.favorites.add_group_title": "ADD TO FAVORITE GROUP",
   "avatars.favorites.group_count": "{count}/{capacity} slots",
+  "avatars.favorites.group_missing": "Favorite group {group} not available",
   "avatars.favorites.failed_prefix": "Failed:",
   "avatars.favorites.try_again": "Try again",
   "avatars.rose.filter_placeholder": "Filter by name, author or tag...",

@@ -1536,6 +1536,7 @@
   "avatars.favorites.loading_groups": "Chargement des groupes...",
   "avatars.favorites.add_group_title": "AJOUTER AU GROUPE DE FAVORIS",
   "avatars.favorites.group_count": "{count}/{capacity} emplacements",
+  "avatars.favorites.group_missing": "Groupe de favoris {group} indisponible",
   "avatars.favorites.failed_prefix": "Échec :",
   "avatars.favorites.try_again": "Réessayer",
   "avatars.rose.filter_placeholder": "Filtrer par nom, auteur ou tag...",

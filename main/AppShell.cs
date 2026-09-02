@@ -1039,7 +1039,7 @@ public partial class AppShell
             SendToJS("vrcLaunchNeeded", new { location = parsed.Value.id, steamVr = RelayController.IsSteamVrRunning() });
             return;
         }
-        SendToJS("openDeepLink", new { prefix = parsed.Value.prefix, id = parsed.Value.id });
+        SendToJS("openDeepLink", new { prefix = parsed.Value.prefix, id = parsed.Value.id, action = parsed.Value.action });
     }
 
     // Amplitude cache polling (avatar IDs) — mirrors VRC-LOG's PollWatcher(compare_contents)

@@ -47,7 +47,15 @@ public static class DeepLinkService
         return IsValidWorldId(id.Substring(0, colon));
     }
 
-    public static (string prefix, string id)? Parse(string? url)
+    private static string ParseAction(string rest)
+    {
+        var a = rest.Trim().Trim('/').ToLowerInvariant();
+        if (!a.StartsWith("put/fav", StringComparison.Ordinal)) return "";
+        var slot = a.Substring("put/fav".Length);
+        return slot.Length == 1 && slot[0] >= '1' && slot[0] <= '6' ? a : "";
+    }
+
+    public static (string prefix, string id, string action)? Parse(string? url)
     {
         if (string.IsNullOrWhiteSpace(url)) return null;
         var s = url.Trim();
@@ -60,20 +68,31 @@ public static class DeepLinkService
         var type = s.Substring(0, slash).ToLowerInvariant();
         var id   = s.Substring(slash + 1);
 
+        var action = "";
         var cut = id.IndexOfAny(new[] { '/', '?', '#' });
-        if (cut >= 0) id = id.Substring(0, cut);
+        if (cut >= 0)
+        {
+            if (id[cut] == '/')
+            {
+                var rest = id.Substring(cut + 1);
+                var q = rest.IndexOfAny(new[] { '?', '#' });
+                if (q >= 0) rest = rest.Substring(0, q);
+                action = ParseAction(rest);
+            }
+            id = id.Substring(0, cut);
+        }
         try { id = Uri.UnescapeDataString(id); } catch { }
         id = id.Trim();
 
         return type switch
         {
-            "user"    or "users"   => IsValidUserId(id)   ? ("usr",  id) : null,
-            "avatar"  or "avatars" => IsValidAvatarId(id) ? ("avtr", id) : null,
-            "world"   or "worlds"  => IsValidWorldId(id)  ? ("wrld", id) : null,
-            "group"   or "groups"  => IsValidGroupId(id)  ? ("grp",  id) : null,
-            "instance"             => IsValidInstanceLocation(id) ? ("inst",     id) : null,
-            "instance-join"        => IsValidInstanceLocation(id) ? ("instjoin", id) : null,
-            _ => ((string, string)?)null,
+            "user"    or "users"   => IsValidUserId(id)   ? ("usr",  id, action) : null,
+            "avatar"  or "avatars" => IsValidAvatarId(id) ? ("avtr", id, action) : null,
+            "world"   or "worlds"  => IsValidWorldId(id)  ? ("wrld", id, action) : null,
+            "group"   or "groups"  => IsValidGroupId(id)  ? ("grp",  id, action) : null,
+            "instance"             => IsValidInstanceLocation(id) ? ("inst",     id, action) : null,
+            "instance-join"        => IsValidInstanceLocation(id) ? ("instjoin", id, action) : null,
+            _ => ((string, string, string)?)null,
         };
     }
 

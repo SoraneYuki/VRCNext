@@ -1614,6 +1614,7 @@
   "avatars.favorites.loading_groups": "그룹 로딩 중...",
   "avatars.favorites.add_group_title": "즐겨찾기 그룹에 추가",
   "avatars.favorites.group_count": "{count}/{capacity} 아바타",
+  "avatars.favorites.group_missing": "즐겨찾기 그룹 {group} 을(를) 사용할 수 없습니다",
   "avatars.favorites.failed_prefix": "실패:",
   "avatars.favorites.try_again": "재시도",
   "avatars.rose.filter_placeholder": "이름, 제작자, 태그로 검색...",

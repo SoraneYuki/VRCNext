@@ -1568,6 +1568,7 @@
   "avatars.favorites.loading_groups": "Загрузка групп...",
   "avatars.favorites.add_group_title": "Добавить группу",
   "avatars.favorites.group_count": "групп",
+  "avatars.favorites.group_missing": "Группа избранного {group} недоступна",
   "avatars.favorites.failed_prefix": "Ошибка",
   "avatars.favorites.try_again": "Попробовать снова",
   "avatars.rose.filter_placeholder": "Поиск...",

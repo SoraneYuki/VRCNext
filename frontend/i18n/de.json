@@ -1563,6 +1563,7 @@
   "avatars.favorites.loading_groups": "Gruppen werden geladen...",
   "avatars.favorites.add_group_title": "ZUR FAVORITENGRUPPE HINZUFUEGEN",
   "avatars.favorites.group_count": "{count}/{capacity} Plaetze",
+  "avatars.favorites.group_missing": "Favoritengruppe {group} nicht verfuegbar",
   "avatars.favorites.failed_prefix": "Fehler:",
   "avatars.favorites.try_again": "Bitte erneut versuchen",
   "avatars.rose.filter_placeholder": "Nach Name, Autor oder Tag filtern...",

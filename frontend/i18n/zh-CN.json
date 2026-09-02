@@ -1536,6 +1536,7 @@
   "avatars.favorites.loading_groups": "正在加载分组...",
   "avatars.favorites.add_group_title": "添加到收藏分组",
   "avatars.favorites.group_count": "{count}/{capacity} 个槽位",
+  "avatars.favorites.group_missing": "收藏夹 {group} 不可用",
   "avatars.favorites.failed_prefix": "失败：",
   "avatars.favorites.try_again": "重试",
   "avatars.rose.filter_placeholder": "按名称、作者或标签筛选...",
