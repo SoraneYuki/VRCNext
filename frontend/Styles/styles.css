@@ -699,7 +699,6 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     border-radius: 8px;
     overflow: hidden;
     background: var(--bg-input);
-    border: 1px solid var(--brd);
 }
 
 .fd-tab {
@@ -798,7 +797,6 @@ html.deco-dashboard-on.nameplate-deco-on .dash-flocs-card > .dash-flocs-world-th
     border-radius: 8px;
     overflow: hidden;
     background: var(--bg-input);
-    border: 1px solid var(--brd);
 }
 
 .ci-group-list {

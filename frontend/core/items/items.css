@@ -5,15 +5,14 @@
     gap: 10px;
     padding: 9px 12px;
     background: var(--bg-input);
-    border: 1px solid var(--brd);
     border-radius: 10px;
     margin-bottom: 6px;
     cursor: pointer;
-    transition: background .15s, border-color .15s;
+    transition: background .15s;
     user-select: none;
     min-width: 0;
 }
-.vrcn-user-item:hover { background: var(--bg-hover); border-color: var(--brd-lt); }
+.vrcn-user-item:hover { background: var(--bg-hover); }
 .search-grid .vrcn-user-item { margin-bottom: 0; }
 
 .vrcn-user-item-avatar-wrap {
@@ -187,13 +186,11 @@
     gap: 10px;
     padding: 8px 10px;
     background: var(--bg-input);
-    border: 1px solid var(--brd);
     border-radius: 8px;
-    transition: background .15s, border-color .15s;
+    transition: background .15s;
 }
 .inst-item:hover {
     background: var(--bg-hover);
-    border-color: var(--brd-lt);
 }
 .inst-item-thumb {
     width: 64px;
@@ -303,15 +300,13 @@
     padding: 7px 10px;
     border-radius: 10px;
     background: var(--bg-input);
-    border: 1px solid var(--brd);
     cursor: pointer;
-    transition: background .15s, border-color .15s;
+    transition: background .15s;
     user-select: none;
     min-width: 0;
 }
 .vrcn-mini-content:hover {
     background: var(--bg-hover);
-    border-color: var(--brd-lt);
 }
 .vrcn-mini-content-thumb {
     width: 56px;

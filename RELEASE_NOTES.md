@@ -1,11 +1,12 @@
 **2026.48.2**
 
-**Changes**
+**Removed**
 - Removed the old VRCN+ profile color customization from the profile modal. VRChat now supports profile customization natively, which VRCNext already integrates. The VRCN+ supporter badge stays.
 
-**Improvements**
+**Reverted**
+- Reverted some changes that added additional outlines to certain elements.
 
-**Removed**
+**Improvements**
 
 **Fixed Bugs**
 - Settings > Performance no longer shows two cards both named Performance. All performance options including Animations and Blur Filters are now in one card.
