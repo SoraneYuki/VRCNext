@@ -2572,7 +2572,6 @@
   "settings.crash.restart_after_crash": "크래시가 난 후 재시작",
   "settings.crash.restart_after_crash_desc": "예기치 않은 오류가 발생하면 VRCNext가 자동으로 다시 시작됩니다. 정상적으로 종료되거나 작업 관리자 등을 통해 강제로 종료된 경우 적용되지 않습니다.",
   "settings.perf.title": "성능",
-  "settings.perf.visual_title": "시각 효과",
   "settings.perf.gpu_accel.label": "하드웨어 가속",
   "settings.perf.gpu_accel.desc": "WebView2 렌더러에 GPU 하드웨어 가속을 활성화합니다. 렌더링 성능이 향상될 수 있지만 일부 시스템에 시각적 오류가 발생할 수 있습니다.",
   "settings.perf.shader_cache.label": "GPU 셰이더 캐시 활성화",

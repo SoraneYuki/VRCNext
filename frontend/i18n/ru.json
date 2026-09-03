@@ -2489,7 +2489,6 @@
   "settings.crash.restart_after_crash": "Перезапуск после сбоя",
   "settings.crash.restart_after_crash_desc": "Автоматический перезапуск",
   "settings.perf.title": "Производительность",
-  "settings.perf.visual_title": "Визуальные эффекты",
   "settings.perf.gpu_accel.label": "GPU ускорение",
   "settings.perf.gpu_accel.desc": "Аппаратное ускорение",
   "settings.perf.shader_cache.label": "Кэш шейдеров",

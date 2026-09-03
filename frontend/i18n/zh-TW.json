@@ -2558,7 +2558,6 @@
   "settings.crash.restart_after_crash": "當機後自動重啟",
   "settings.crash.restart_after_crash_desc": "VRCNext 在意外當機後會自動重啟。正常關閉或透過工作管理員強制退出時不適用。",
   "settings.perf.title": "效能",
-  "settings.perf.visual_title": "視覺效果",
   "settings.perf.gpu_accel.label": "啟用硬體加速",
   "settings.perf.gpu_accel.desc": "為 WebView2 渲染器啟用 GPU 硬體加速。可能提升渲染效能，但在某些系統上可能出現視覺異常。",
   "settings.perf.shader_cache.label": "啟用 GPU 著色器快取",

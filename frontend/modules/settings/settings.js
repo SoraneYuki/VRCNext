@@ -2139,7 +2139,9 @@ function switchSettingsSection(id, btn) {
     }
     const _swLinux = !!window._isLinuxUi;
     document.querySelectorAll('#tab9 [data-section]').forEach(el => {
-        const show = el.dataset.section === id && !(_swLinux && el.hasAttribute('data-windows-only'));
+        const show = el.dataset.section === id
+            && !(_swLinux && el.hasAttribute('data-windows-only'))
+            && !(!_swLinux && el.hasAttribute('data-linux-only'));
         el.style.display = show ? '' : 'none';
     });
     document.querySelectorAll('#tab9 .settings-nav-item').forEach(b => b.classList.remove('active'));

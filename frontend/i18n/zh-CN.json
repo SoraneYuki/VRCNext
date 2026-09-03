@@ -2508,7 +2508,6 @@
   "settings.crash.restart_after_crash": "崩溃后自动重启",
   "settings.crash.restart_after_crash_desc": "VRCNext 在意外崩溃后会自动重启。正常关闭或通过任务管理器强制退出时不适用。",
   "settings.perf.title": "性能",
-  "settings.perf.visual_title": "视觉效果",
   "settings.perf.gpu_accel.label": "启用硬件加速",
   "settings.perf.gpu_accel.desc": "为 WebView2 渲染器启用 GPU 硬件加速。可能提升渲染性能，但在某些系统上可能出现视觉异常。",
   "settings.perf.shader_cache.label": "启用 GPU 着色器缓存",

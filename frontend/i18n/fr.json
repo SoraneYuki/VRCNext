@@ -2508,7 +2508,6 @@
   "settings.crash.restart_after_crash": "Redémarrer après plantage",
   "settings.crash.restart_after_crash_desc": "VRCNext redémarre automatiquement après un plantage inattendu. Ne s'applique pas en cas de fermeture normale ou de fermeture forcée via le Gestionnaire des tâches.",
   "settings.perf.title": "Performances",
-  "settings.perf.visual_title": "Effets visuels",
   "settings.perf.gpu_accel.label": "Activer l'accélération matérielle",
   "settings.perf.gpu_accel.desc": "Active l'accélération GPU pour le moteur WebView2. Peut améliorer les performances d'affichage mais causer des artefacts visuels sur certains systèmes.",
   "settings.perf.shader_cache.label": "Activer le cache de shaders GPU",

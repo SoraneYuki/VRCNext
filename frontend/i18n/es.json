@@ -2508,7 +2508,6 @@
   "settings.crash.restart_after_crash": "Reiniciar tras fallo",
   "settings.crash.restart_after_crash_desc": "VRCNext se reinicia automáticamente tras un fallo inesperado. No se aplica si la app se cierra normalmente o se fuerza el cierre desde el Administrador de tareas.",
   "settings.perf.title": "Rendimiento",
-  "settings.perf.visual_title": "Efectos visuales",
   "settings.perf.gpu_accel.label": "Activar aceleración por hardware",
   "settings.perf.gpu_accel.desc": "Activa la aceleración GPU para el renderizador WebView2. Puede mejorar el rendimiento gráfico, pero causar artefactos visuales en algunos sistemas.",
   "settings.perf.shader_cache.label": "Activar caché de shaders GPU",

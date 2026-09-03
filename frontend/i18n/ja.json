@@ -2507,7 +2507,6 @@
   "settings.crash.restart_after_crash": "クラッシュ後に再起動",
   "settings.crash.restart_after_crash_desc": "予期しないクラッシュの後、VRCNextが自動的に再起動します。通常の終了またはタスクマネージャーからの強制終了には適用されません。",
   "settings.perf.title": "パフォーマンス",
-  "settings.perf.visual_title": "視覚効果",
   "settings.perf.gpu_accel.label": "ハードウェアアクセラレーションを有効化",
   "settings.perf.gpu_accel.desc": "WebView2レンダラーのGPUハードウェアアクセラレーションを有効にします。描画性能が向上する場合がありますが、一部のシステムで表示の乱れが生じることがあります。",
   "settings.perf.shader_cache.label": "GPUシェーダーキャッシュを有効化",
