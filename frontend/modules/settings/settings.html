@@ -11,7 +11,6 @@
                         <button class="settings-nav-item" onclick="switchSettingsSection('safety',this)"><span class="msi">shield</span><span data-i18n="settings.nav.safety">Safety</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('sidebar',this)"><span class="msi">view_sidebar</span><span data-i18n="settings.nav.sidebar">Sidebar</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('notifications',this)"><span class="msi">notifications</span><span data-i18n="settings.nav.notifications">Notifications</span></button>
-                        <button class="settings-nav-item" onclick="switchSettingsSection('accessibility',this)"><span class="msi">accessibility</span><span data-i18n="settings.nav.accessibility">Accessibility</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('vrchat',this)"><span class="msi">sports_esports</span><span data-i18n="settings.nav.vrchat">VRChat</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('data',this)"><span class="msi">folder_open</span><span data-i18n="settings.nav.data">Data</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('performance',this)"><span class="msi">speed</span><span data-i18n="settings.nav.performance">Performance</span></button>
@@ -442,21 +441,6 @@
                         <div class="sf-toggle-row" style="margin-top:8px;"><span data-i18n="settings.design.clock_enabled">Enable Clock</span><label class="toggle"><input type="checkbox" id="setClockEnabled" onchange="applyClockSettings();autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="sf-toggle-row" style="margin-top:8px;"><span data-i18n="settings.design.date_enabled">Enable Date</span><label class="toggle"><input type="checkbox" id="setDateEnabled" onchange="applyClockSettings();autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="sf-toggle-row" style="margin-top:8px;"><span data-i18n="settings.taskbar.show_api_health">Show VRC API Health Information</span><label class="toggle"><input type="checkbox" id="setShowApiHealth" checked onchange="applyApiHealthSettings();autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                    </div>
-
-                    <!-- ACCESSIBILITY - HELP FEATURES -->
-                    <div class="vrcn-panel-card" data-section="accessibility">
-                        <div class="vrcn-panel-card-header"><span class="msi">accessibility</span> <span data-i18n="settings.accessibility.help_title">Help Features</span></div>
-                        <div class="sf-toggle-row" style="margin-top:14px;">
-                            <div>
-                                <div data-i18n="settings.accessibility.show_hamburger">Show Hamburger Button</div>
-                                <div class="sf-desc" data-i18n="settings.accessibility.show_hamburger_desc">Shows a three-dot button when hovering friends, groups, worlds and other items. Clicking it opens the same menu as a right click. Helpful if you don't know about the right-click menus, turn it off if you don't need it.</div>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" id="setShowHamburger" checked onchange="applyHamburgerSettings();autoSave()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
                     </div>
 
                     <!-- SOUNDS -->

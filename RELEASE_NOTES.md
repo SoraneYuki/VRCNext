@@ -1,10 +1,9 @@
 **2026.48.2**
 
 **Improvements**
-- New **Settings → Accessibility** section with Help Features. First up: a **Hamburger Button** (on by default) that fades in when you hover friends, groups, worlds, dashboard cards and more. Clicking it opens the same menu as a right click — useful if you didn't know those menus existed. Can be turned off.
 
 **Fixed Bugs**
-- Settings → Performance no longer shows two cards both named Performance. All performance options including Animations and Blur Filters are now in one card.
+- Settings > Performance no longer shows two cards both named Performance. All performance options including Animations and Blur Filters are now in one card.
 - Card gradients and hover fades now cover the full card, removing thin colored seams along edges and corners on world, group and avatar cards.
 - Profiles and **Check for Avatar** now use the same lookup, so they no longer show different avatars for the same person.
 - **Loading․․․** (VRChat's placeholder while an avatar downloads) is now ignored like the robot placeholder — in profiles, lists and pictures.

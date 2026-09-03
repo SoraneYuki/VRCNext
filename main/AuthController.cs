@@ -2003,7 +2003,6 @@ public class AuthController
             _core.Settings.ShowVrcPlus    = data["showVrcPlus"]?.Value<bool>()    ?? true;
             _core.Settings.ShowVrcCredits = data["showVrcCredits"]?.Value<bool>() ?? true;
             _core.Settings.ShowApiHealth  = data["showApiHealth"]?.Value<bool>()  ?? true;
-            _core.Settings.ShowHamburger  = data["showHamburger"]?.Value<bool>()  ?? true;
 
             // Webhooks: explicit parsing to handle any casing
             if (data["webhooks"] is JArray whArr && whArr.Count > 0)
