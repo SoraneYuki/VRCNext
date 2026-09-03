@@ -400,14 +400,20 @@ function _isFeatured(evt) {
 }
 
 const CAL_GROUP_PALETTE = [
-    { bg: 'rgba(255,119,110,.32)', fg: '#ff776e' },
-    { bg: 'rgba(110,173,255,.32)', fg: '#6eadff' },
-    { bg: 'rgba(110,114,255,.32)', fg: '#6e72ff' },
-    { bg: 'rgba(153,110,255,.32)', fg: '#996eff' },
-    { bg: 'rgba(204,110,255,.32)', fg: '#cc6eff' },
-    { bg: 'rgba(77,100,255,.32)',  fg: '#4d64ff' },
-    { bg: 'rgba(255,94,94,.32)',   fg: '#ff5e5e' },
-    { bg: 'rgba(133,255,153,.32)', fg: '#85ff99' },
+    { bg: 'rgba(200,166,219,.32)', fg: '#c8a6db' },
+    { bg: 'rgba(255,181,209,.32)', fg: '#ffb5d1' },
+    { bg: 'rgba(255,147,186,.32)', fg: '#ff93ba' },
+    { bg: 'rgba(129,194,255,.32)', fg: '#81c2ff' },
+    { bg: 'rgba(108,162,248,.32)', fg: '#6ca2f8' },
+    { bg: 'rgba(255,200,255,.32)', fg: '#ffc8ff' },
+    { bg: 'rgba(223,178,255,.32)', fg: '#dfb2ff' },
+    { bg: 'rgba(159,170,255,.32)', fg: '#9faaff' },
+    { bg: 'rgba(181,156,255,.32)', fg: '#b59cff' },
+    { bg: 'rgba(163,192,255,.32)', fg: '#a3c0ff' },
+    { bg: 'rgba(95,193,219,.32)', fg: '#5fc1db' },
+    { bg: 'rgba(255,190,194,.32)', fg: '#ffbec2' },
+    { bg: 'rgba(195,167,240,.32)', fg: '#c3a7f0' },
+    { bg: 'rgba(135,180,243,.32)', fg: '#87b4f3' },
 ];
 
 function _calGroupColor(evt) {
