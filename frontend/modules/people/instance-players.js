@@ -142,7 +142,7 @@ function renderInstancePlayers() {
     const { data, users } = _ipUsers();
 
     if (!data) {
-        el.innerHTML = `<div class="empty-msg">${esc(t('profiles.people.instance.empty', 'You are not in an instance'))}</div>`;
+        el.innerHTML = emptyStateHtml('travel_explore', esc(t('profiles.people.instance.empty', 'You are not in an instance')));
         if (titleEl) titleEl.textContent = '';
         if (countEl) countEl.textContent = '';
         return;
@@ -178,7 +178,7 @@ function renderInstancePlayers() {
     }) : users;
 
     if (!filtered.length) {
-        el.innerHTML = `<div class="empty-msg">${esc(t('profiles.people.no_results', 'No results'))}</div>`;
+        el.innerHTML = emptyStateHtml('search', esc(t('profiles.people.no_results', 'No results')));
         return;
     }
 

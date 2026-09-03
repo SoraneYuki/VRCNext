@@ -212,6 +212,44 @@ html.text-tools-active * { user-select: text !important; }
     text-align: center;
     color: var(--tx3);
     font-size: calc(13px + var(--fs-off, 0px));
+    grid-column: 1 / -1;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.empty-msg:has(.empty-msg-title) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: min(55vh, 480px);
+}
+
+.empty-msg-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-input);
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+.empty-msg-icon .msi {
+    font-size: 22px;
+    color: var(--tx2);
+}
+
+.empty-msg-title {
+    font-size: calc(14px + var(--fs-off, 0px));
+    font-weight: 600;
+    color: var(--tx1);
+    margin-bottom: 4px;
+}
+
+.empty-msg-desc {
+    font-size: calc(12px + var(--fs-off, 0px));
+    color: var(--tx2);
 }
 
 .vrc-login-box input:focus,

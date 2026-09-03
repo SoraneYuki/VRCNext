@@ -6,7 +6,15 @@ let _avIcuBuffer = [];
 let _avIcuBufferCursor = 0;
 let _avIcuFetchHasMore = false;
 function avatarEmptyMessage(key, fallback) {
-    return `<div class="empty-msg">${t(key, fallback)}</div>`;
+    const icon = key.includes('login') ? 'login'
+        : (key.includes('no_match') || key.includes('no_results')) ? 'search'
+        : key.includes('recent') ? 'history'
+        : 'checkroom';
+    return emptyStateHtml(icon, t(key, fallback));
+}
+
+function avatarSearchPrompt() {
+    return `<div class="empty-msg"><div class="empty-msg-icon"><span class="msi">checkroom</span></div><div class="empty-msg-title">${t('avatars.search.empty_prompt', 'Find an avatar')}</div><div class="empty-msg-desc">${t('avatars.search.empty_prompt_desc', 'Search public avatars by name.')}</div></div>`;
 }
 
 function avatarCountText(count) {
@@ -51,7 +59,7 @@ function rerenderAvatarTranslations() {
         if (avatarSearchResults.length) renderSearchGrid();
         else {
             const grid = document.getElementById('avatarSearchGrid');
-            if (grid) grid.innerHTML = avatarEmptyMessage('avatars.search.empty_prompt', 'Search for public avatars');
+            if (grid) grid.innerHTML = avatarSearchPrompt();
         }
     } else if (avatarFilter === 'rose') {
         if (roseDbLoaded) filterRoseDb();
@@ -147,7 +155,7 @@ function setAvatarFilter(filter) {
         if (roseDbLoaded) filterRoseDb();
         loadRoseDatabase();
     } else {
-        document.getElementById('avatarSearchGrid').innerHTML = avatarEmptyMessage('avatars.search.empty_prompt', 'Search for public avatars');
+        document.getElementById('avatarSearchGrid').innerHTML = avatarSearchPrompt();
         setTimeout(() => document.getElementById('avatarSearchInput')?.focus(), 50);
     }
 }
@@ -692,7 +700,7 @@ function setAvatarSearchDb(db) {
     _avResetVrcnFilters();
     _avUpdateVrcnFilterVisibility();
     const grid = document.getElementById('avatarSearchGrid');
-    if (grid) grid.innerHTML = avatarEmptyMessage('avatars.search.empty_prompt', 'Search for public avatars');
+    if (grid) grid.innerHTML = avatarSearchPrompt();
     document.getElementById('avatarCount').textContent = '';
 }
 

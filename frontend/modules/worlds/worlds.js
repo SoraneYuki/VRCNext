@@ -76,7 +76,7 @@ function renderVisitedWorlds(worlds) {
     if (!el) return;
     const list = _visitedWorldsData;
     if (!Array.isArray(list) || list.length === 0) {
-        el.innerHTML = `<div class="empty-msg">${t('worlds.recent.empty', 'No recently visited worlds')}</div>`;
+        el.innerHTML = emptyStateHtml('history', t('worlds.recent.empty', 'No recently visited worlds'));
         setPaginator('worldRecentPaginatorBar', '');
         return;
     }
@@ -202,7 +202,7 @@ function renderMyWorlds(worlds) {
     if (Array.isArray(worlds)) _myWorldsData = worlds;
     const list = _myWorldsData;
     if (!Array.isArray(list) || list.length === 0) {
-        el.innerHTML = `<div class="empty-msg">${t('worlds.mine.empty', 'No worlds uploaded yet')}</div>`;
+        el.innerHTML = `<div class="empty-msg"><div class="empty-msg-icon"><span class="msi">upload</span></div><div class="empty-msg-title">${t('worlds.mine.upload_title', 'Upload a world')}</div><div class="empty-msg-desc">${t('worlds.mine.empty', 'No worlds uploaded yet')}</div></div>`;
         setPaginator('worldMinePaginatorBar', '');
         return;
     }
@@ -415,9 +415,9 @@ function filterFavWorlds() {
     if (q) filtered = filtered.filter(w => (w.name||'').toLowerCase().includes(q) || (w.authorName||'').toLowerCase().includes(q));
     const el = document.getElementById('favWorldsGrid');
     if (!filtered.length) {
-        el.innerHTML = `<div class="empty-msg">${q || favWorldGroupFilter
-            ? t('worlds.favorites.no_match', 'No favorites match your filter')
-            : t('worlds.favorites.empty', 'No favorite worlds found')}</div>`;
+        el.innerHTML = q || favWorldGroupFilter
+            ? emptyStateHtml('search', t('worlds.favorites.no_match', 'No favorites match your filter'))
+            : emptyStateHtml('favorite', t('worlds.favorites.empty', 'No favorite worlds found'));
         setPaginator('favWorldsPaginatorBar', '');
         if (_worldEditMode) updateWorldEditBar();
         return;

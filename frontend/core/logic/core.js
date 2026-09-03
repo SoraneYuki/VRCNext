@@ -553,6 +553,10 @@ function sk(type, n = 1) {
 }
 
 
+function emptyStateHtml(icon, title, desc) {
+    return `<div class="empty-msg"><div class="empty-msg-icon"><span class="msi">${icon}</span></div><div class="empty-msg-title">${title}</div>${desc ? `<div class="empty-msg-desc">${desc}</div>` : ''}</div>`;
+}
+
 const THEMES = {
     vrcn:      { label: 'VRCN',      dot: '#58586F', c: { 'bg-base': '#0A0A0A', 'bg-side': '#0A0A0A', 'bg-card': '#0D0D0E', 'bg-hover': '#1C1C1F', 'bg-input': '#141416', 'tab-card-bg': '#101011', 'ui-input-bg': '#1C1C1F', 'ui-input-hover-bg': '#26262A', 'accent': '#58586F', 'accent-lt': '#9797B1', 'cyan': '#8CA5FF', 'ok': '#2DD48C', 'warn': '#FFBA37', 'err': '#FF4B55', 'tx0': '#EBEBFF', 'tx1': '#EBEBFF', 'tx2': '#B7B7C3', 'tx3': '#FFFFFF', 'brd': '#1E1E22', 'brd-lt': '#1E1E22', 'bdg-user-pc': '#9797B1', 'bdg-user-quest': '#9797B1', 'bdg-user-web': '#9797B1', 'bdg-user-friend': '#2DD48C', 'bdg-rank-visitor': '#CCCCCC', 'bdg-rank-new': '#1778FF', 'bdg-rank-user': '#2BCF5C', 'bdg-rank-known': '#FF7B42', 'bdg-rank-trusted': '#8143E6' } },
     slates:    { label: 'Slates',    dot: '#6F6CFF', c: { 'bg-base': '#090814', 'bg-side': '#090814', 'bg-card': '#131125', 'bg-hover': '#4B4998', 'bg-input': '#161428', 'tab-card-bg': '#110F23', 'accent': '#6F6CFF', 'accent-lt': '#6F6CFF', 'cyan': '#8CA5FF', 'ok': '#2DD48C', 'warn': '#FFBA37', 'err': '#FF4B55', 'tx0': '#FFFFFF', 'tx1': '#FFFFFF', 'tx2': '#FFFFFF', 'tx3': '#FFFFFF', 'brd': '#1A1833', 'brd-lt': '#1F2357' } },
