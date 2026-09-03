@@ -1,7 +1,7 @@
 **2026.48.2**
 
 **Removed**
-- Removed the old VRCN+ profile color customization from the profile modal. VRChat now supports profile customization natively, which VRCNext already integrates. The VRCN+ supporter badge stays.
+- Removed the old VRCN+ profile color customization. Custom VRCN+ colors are no longer shown on any profile, only VRChat's native profile customization is used. The VRCN+ supporter badge stays.
 
 **Reverted**
 - Reverted some changes that added additional outlines to certain elements.

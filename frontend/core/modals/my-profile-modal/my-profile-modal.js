@@ -174,7 +174,7 @@ function renderMyProfileContent() {
     const _mypPrevTab = document.querySelector('#mypBox .fd-tab.active')?.dataset.myptab || '';
 
     if (typeof vrcnPlusOnProfileOpened === 'function' && u.id) {
-        vrcnPlusOnProfileOpened(u.id, box);
+        vrcnPlusOnProfileOpened(u.id);
     }
 
     const _mypModal = document.getElementById('modalMyProfile');

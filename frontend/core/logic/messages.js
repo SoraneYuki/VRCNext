@@ -1372,9 +1372,6 @@ case 'vrcNews':
         case 'ssSaveResult':
             if (typeof ssOnSaveResult === 'function') ssOnSaveResult(payload);
             break;
-        case 'vrcnPlusTheme':
-            if (typeof window.vrcnPlusTheme === 'function') window.vrcnPlusTheme(payload);
-            break;
         case 'vrcnPlusEntitlement':
             if (typeof window.vrcnPlusEntitlement === 'function') window.vrcnPlusEntitlement(payload);
             break;

@@ -186,10 +186,7 @@ function openFriendDetail(userId) {
     const m = document.getElementById('modalFriendDetail');
     const c = document.getElementById('friendDetailContent');
     c.innerHTML = sk('content-modal-compact');
-    if (typeof vrcnPlusOnProfileOpened === 'function') {
-        const _fdBox = m.querySelector('.modal-box');
-        if (_fdBox) vrcnPlusOnProfileOpened(userId, _fdBox);
-    }
+    if (typeof vrcnPlusOnProfileOpened === 'function') vrcnPlusOnProfileOpened(userId);
     m.style.display = 'flex';
     sendToCS({ action: 'vrcGetFriendDetail', userId: userId });
 }
@@ -659,10 +656,7 @@ function renderFriendDetail(d) {
     const _fdPrevId  = (typeof currentFriendDetail !== 'undefined' && currentFriendDetail) ? currentFriendDetail.id : '';
     if (d.id && d.rawJson) _fdRawJsonCache[d.id] = d.rawJson;
     currentFriendDetail = d;
-    if (typeof vrcnPlusOnProfileOpened === 'function' && d.id) {
-        const _fdBox = document.querySelector('#modalFriendDetail .modal-box');
-        if (_fdBox) vrcnPlusOnProfileOpened(d.id, _fdBox);
-    }
+    if (typeof vrcnPlusOnProfileOpened === 'function' && d.id) vrcnPlusOnProfileOpened(d.id);
     if (typeof navUpdateLabel === 'function') navUpdateLabel(d.displayName || '');
     window._fdGroupsPage = 0;
     window._fdMutualsPage = 0;

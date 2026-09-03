@@ -87,7 +87,6 @@ div.vn-select {
 .lib-filter-select,
 .wd-create-select,
 .vrcn-dropdown {
-    border: 1px solid var(--brd);
     height: 32px;
     min-height: 32px;
     max-height: 32px;
