@@ -5,6 +5,8 @@ function onCiTypeChange() {
     if (!groupRow) return;
     const isGroup = type === 'group';
     groupRow.style.display = isGroup ? '' : 'none';
+    const box = document.getElementById('createInstanceContent');
+    if (box) box.style.width = isGroup ? '840px' : '506px';
     const subPills = document.getElementById('ciGroupSubPillsWrap');
     if (subPills) subPills.style.display = isGroup ? '' : 'none';
     const queueRow = document.getElementById('ciQueueRow');
@@ -75,12 +77,16 @@ function openCreateInstanceModal() {
     if (!el) return;
 
     el.innerHTML = `
-        ${renderModalBar(worldName, [modalCloseAction('closeCreateInstanceModal()')], { flush: true })}
-        ${thumb ? `<div class="fd-banner"><img src="${esc(thumb)}" onerror="this.parentElement.style.display='none'"><div class="fd-banner-fade"></div></div>` : ''}
-        <div class="fd-content${thumb ? ' fd-has-banner' : ''}" style="padding:20px 32px;">
-            <h2 style="margin:0 0 16px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(worldName)}</h2>
+        ${renderModalBar(t('worlds.instances.create_title', 'Create Instance'), [modalCloseAction('closeCreateInstanceModal()')])}
+        <div class="modal-card">
+            <div class="ci-world-row">
+                ${thumb ? `<img class="ci-world-thumb" src="${esc(thumb)}" onerror="this.style.display='none'">` : ''}
+                <div class="ci-world-name" title="${esc(worldName)}">${esc(worldName)}</div>
+            </div>
 
-            <div class="wd-section-label">${t('timeline.detail.instance_type', 'Instance Type')}</div>
+            <div class="ci-cols">
+            <div class="ci-col-main">
+            <div class="sf-section-label" style="margin-top:0;">${t('timeline.detail.instance_type', 'Instance Type')}</div>
             <div class="fd-tabs" id="ciTypePills" style="margin-bottom:0;">
                 <button class="fd-tab active" data-type="private" onclick="setCiType('private',this)">${t('worlds.instances.types.invite', 'Invite')}</button>
                 <button class="fd-tab" data-type="invite_plus" onclick="setCiType('invite_plus',this)">${t('worlds.instances.types.invite_plus', 'Invite+')}</button>
@@ -107,38 +113,42 @@ function openCreateInstanceModal() {
                 <label class="ci-toggle"><input type="checkbox" id="ciAgeGateEnabled"><span class="ci-toggle-slider"></span></label>
             </div>
 
-            <div style="margin-top:14px;">
-                <div class="wd-section-label">${t('worlds.instances.instance_name', 'Instance Name')} <span class="vrcn-supporter-badge" style="vertical-align:middle;margin-left:4px;">VRC+</span></div>
-                <input type="text" id="ciInstanceName" class="ci-instance-name-input" placeholder="${t('worlds.instances.instance_name_placeholder', 'Optional name...')}" maxlength="64">
+            <div style="margin-top:14px;display:flex;gap:10px;align-items:flex-end;">
+                <div style="flex:1;min-width:0;">
+                    <div class="sf-section-label" style="margin-top:0;">${t('worlds.instances.instance_name', 'Instance Name')} <span class="vrcn-supporter-badge" style="vertical-align:middle;margin-left:4px;">VRC+</span></div>
+                    <input type="text" id="ciInstanceName" class="ci-instance-name-input" placeholder="${t('worlds.instances.instance_name_placeholder', 'Optional name...')}" maxlength="64">
+                </div>
+                <div style="flex-shrink:0;">
+                    <div class="sf-section-label" style="margin-top:0;">${t('worlds.instances.region', 'Region')}</div>
+                    <select id="ciRegion" class="wd-create-select">
+                        <option value="eu">${getWorldRegionLabel('eu')}</option>
+                        <option value="us">${getWorldRegionLabel('us')}</option>
+                        <option value="use">${getWorldRegionLabel('use')}</option>
+                        <option value="jp">${getWorldRegionLabel('jp')}</option>
+                    </select>
+                </div>
+            </div>
             </div>
 
-            <div id="ciGroupRow" style="margin-top:12px;">
-                <div class="wd-section-label" style="margin-bottom:6px;">${t('worlds.instances.select_group', 'Select Group')}</div>
+            <div id="ciGroupRow" class="ci-col-group">
+                <div class="sf-section-label" style="margin-top:0;">${t('worlds.instances.select_group', 'Select Group')}</div>
                 <input type="hidden" id="ciGroupId" value="">
                 <div class="ci-group-list" id="ciGroupList"></div>
             </div>
-
-            <div style="margin-top:14px;">
-                <div class="wd-section-label" style="margin-bottom:6px;">${t('worlds.instances.region', 'Region')}</div>
-                <select id="ciRegion" class="wd-create-select">
-                    <option value="eu">${getWorldRegionLabel('eu')}</option>
-                    <option value="us">${getWorldRegionLabel('us')}</option>
-                    <option value="use">${getWorldRegionLabel('use')}</option>
-                    <option value="jp">${getWorldRegionLabel('jp')}</option>
-                </select>
             </div>
 
             <input type="hidden" id="ciTypeValue" value="private">
             <input type="hidden" id="ciGroupTypeValue" value="group_members">
+        </div>
 
-            <div class="fd-actions" style="margin-top:20px;flex-wrap:wrap;gap:8px;">
-                <button class="vrcn-button-round" id="ciCreateBtn" onclick="doCreateInstance(false)">
-                    <span class="msi" style="font-size:14px;">add_circle_outline</span> ${t('worlds.instances.create_only', 'Create Instance')}
-                </button>
-                <button class="vrcn-button-round vrcn-btn-primary" id="ciCreateJoinBtn" onclick="doCreateInstance(true)">
-                    <span class="msi" style="font-size:14px;">play_circle</span> ${t('worlds.instances.create_join', 'Create &amp; Join')}
-                </button>
-            </div>
+        <div class="modal-foot">
+            <div class="modal-foot-spacer"></div>
+            <button class="vrcn-button" id="ciCreateBtn" onclick="doCreateInstance(false)">
+                <span class="msi" style="font-size:16px;">add_circle_outline</span> ${t('worlds.instances.create_only', 'Create Instance')}
+            </button>
+            <button class="vrcn-button vrcn-btn-primary" id="ciCreateJoinBtn" onclick="doCreateInstance(true)">
+                <span class="msi" style="font-size:16px;">play_circle</span> ${t('worlds.instances.create_join', 'Create &amp; Join')}
+            </button>
         </div>`;
 
     initVnSelect(document.getElementById('ciRegion'));
