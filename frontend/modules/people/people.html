@@ -76,7 +76,7 @@
                 </div>
                 <div id="peopleSearchArea" style="display:none;">
                     <div class="tab-toolbar-body"><div class="search-bar-row"><span class="msi search-ico">search</span><input type="text" id="searchPeopleInput" class="vrcn-input" placeholder="Search people..." data-i18n-placeholder="profiles.people.search_people_placeholder" onkeydown="if(event.key==='Enter')doSearch('people')"><button class="vrcn-button" onclick="doSearch('people')" data-i18n="common.search">Search</button></div></div>
-                    <div id="searchPeopleResults" class="search-grid"><div class="empty-msg" data-i18n="profiles.people.search_prompt">Search for VRChat users</div></div>
+                    <div id="searchPeopleResults" class="search-grid"><div class="empty-msg"><div class="empty-msg-icon"><span class="msi">person</span></div><div class="empty-msg-title" data-i18n="profiles.people.search_prompt">Find people</div><div class="empty-msg-desc" data-i18n="profiles.people.search_prompt_desc">Search by display name to find someone and open their profile.</div></div></div>
                 </div>
                 <div id="peopleBlockedArea" style="display:none;">
                     <div class="tab-toolbar-body"><div class="search-bar-row" style="margin-bottom:0;"><span class="msi search-ico">search</span><input type="text" id="blockedSearch" class="vrcn-input" placeholder="Filter blocked users..." data-i18n-placeholder="profiles.people.blocked_search_placeholder" oninput="_dbFilterBlocked()"></div></div>

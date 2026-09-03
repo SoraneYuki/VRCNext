@@ -569,6 +569,16 @@ public partial class AppShell
                     await _authCtrl.HandleMessage(action, msg);
                     break;
 
+                case "screenPickColor":
+#if WINDOWS
+                    ScreenColorPickerService.Start(
+                        hex => SendToJS("screenPickResult", new { hex }),
+                        () => SendToJS("screenPickResult", new { cancelled = true }));
+#else
+                    SendToJS("screenPickResult", new { unsupported = true });
+#endif
+                    break;
+
                 case "vrcnPlusCheckEntitlement":
                 case "vrcnPlusGetTheme":
                 case "vrcnPlusSaveTheme":

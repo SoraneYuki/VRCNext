@@ -85,7 +85,7 @@ function renderSearchResults(type, results, offset, hasMore) {
     el.classList.toggle('search-grid', !listMode);
 
     if (state.results.length === 0) {
-        el.innerHTML = `<div class="empty-msg">${esc(searchNoResultsText())}</div>`;
+        el.innerHTML = emptyStateHtml('search', esc(searchNoResultsText()));
         return;
     }
 

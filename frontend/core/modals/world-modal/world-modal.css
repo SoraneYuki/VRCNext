@@ -579,7 +579,6 @@
 .wd-stat-ico { font-size: 14px; color: var(--accent); flex-shrink: 0; }
 .wd-stat-val {
     font-size: calc(11px + var(--fs-off, 0px));
-    font-weight: 600;
     color: var(--tx1);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;

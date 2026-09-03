@@ -3239,24 +3239,17 @@ public class TimelineService : IDisposable
         }
     }
 
-    private string GetUserSeedStatus(string userId)
+    public string GetUserLastStatus(string userId)
     {
         try
         {
             using var cmd = _db.CreateCommand();
-            cmd.CommandText = "SELECT last_status, profile_status FROM user_tracking WHERE user_id=$uid";
+            cmd.CommandText = "SELECT last_status FROM user_tracking WHERE user_id=$uid";
             cmd.Parameters.AddWithValue("$uid", userId);
-            using var r = cmd.ExecuteReader();
-            if (r.Read())
-            {
-                var ls = r.IsDBNull(0) ? "" : r.GetString(0);
-                if (!string.IsNullOrEmpty(ls) && ls != "offline") return ls;
-                var ps = r.IsDBNull(1) ? "" : r.GetString(1);
-                if (!string.IsNullOrEmpty(ps) && ps != "offline") return ps;
-            }
+            var v = cmd.ExecuteScalar();
+            return v as string ?? "";
         }
-        catch { }
-        return "";
+        catch { return ""; }
     }
 
     public StatusBreakdown GetUserStatusBreakdown(string userId, int days = 30)
@@ -3264,7 +3257,8 @@ public class TimelineService : IDisposable
         if (string.IsNullOrEmpty(userId)) return new StatusBreakdown();
         var transitions = ReadStatusTransitions(
             @"SELECT timestamp, old_value, new_value FROM friend_events
-              WHERE type='friend_status' AND friend_id=$uid ORDER BY timestamp ASC",
+              WHERE friend_id=$uid AND (type='friend_status' OR (type='friend_online' AND new_value <> ''))
+              ORDER BY timestamp ASC",
             userId, out var initial);
         return BuildStatusBreakdown(BuildMergedOnlineSessions(userId), transitions, initial, userId, days);
     }
@@ -3309,12 +3303,6 @@ public class TimelineService : IDisposable
         var bd = new StatusBreakdown();
         if (sessions.Count == 0) return bd;
 
-        if (string.IsNullOrEmpty(initialStatus))
-        {
-            var seed = GetUserSeedStatus(userId);
-            initialStatus = string.IsNullOrEmpty(seed) ? "active" : seed;
-        }
-
         var now = DateTime.UtcNow;
         var windowStart = days > 0 ? now.AddDays(-days) : new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
@@ -3355,7 +3343,7 @@ public class TimelineService : IDisposable
     {
         var seconds = (end - start).TotalSeconds;
         if (seconds <= 0) return;
-        if (string.IsNullOrEmpty(status) || status == "offline") status = "active";
+        if (string.IsNullOrEmpty(status) || status == "offline") status = "unknown";
         if (!bd.Buckets.TryGetValue(status, out var buckets)) bd.Buckets[status] = buckets = new double[7 * 24];
         AddIntervalMinutes(buckets, start, end);
         bd.Seconds.TryGetValue(status, out var cur);

@@ -337,7 +337,7 @@ function filterMyGroups() {
         : base;
     if (!filtered.length) {
         el.classList.add('search-grid');
-        el.innerHTML = `<div class="empty-msg">${esc(q ? t('groups.mine.empty_match', 'No groups match') : _groupEmptyMsg())}</div>`;
+        el.innerHTML = q ? emptyStateHtml('search', esc(t('groups.mine.empty_match', 'No groups match'))) : emptyStateHtml('groups', esc(_groupEmptyMsg()));
         setPaginator('groupsPaginatorBar', '');
         return;
     }
@@ -441,7 +441,7 @@ function renderGroupInstancesView() {
     }
     if (!data.length) {
         el.classList.add('search-grid');
-        el.innerHTML = `<div class="empty-msg">${t('dashboard.section.group_activity_empty', 'No active group instances right now')}</div>`;
+        el.innerHTML = emptyStateHtml('groups', t('dashboard.section.group_activity_empty', 'No active group instances right now'));
         setPaginator('groupInstancesPaginatorBar', '');
         return;
     }

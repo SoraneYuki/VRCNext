@@ -431,7 +431,7 @@ function filterRecentSeen() {
     const listMode = _peopleListMode();
     el.classList.toggle('search-grid', !listMode);
     if (!list.length) {
-        el.innerHTML = `<div class="empty-msg">${q ? t('profiles.people.no_results', 'No results') : t('profiles.people.recent_seen.empty', 'No recently seen players')}</div>`;
+        el.innerHTML = q ? emptyStateHtml('search', t('profiles.people.no_results', 'No results')) : emptyStateHtml('history', t('profiles.people.recent_seen.empty', 'No recently seen players'));
         plSetPaginator('peopleRecentPaginatorBar', '');
         return;
     }
@@ -722,7 +722,7 @@ function filterAllFriends() {
     const page = _peopleAllPage;
     const slice = all.slice(page * pageSize, (page + 1) * pageSize);
     if (!all.length) {
-        el.innerHTML = `<div class="empty-msg">${q ? t('profiles.people.no_results', 'No results') : t('profiles.people.no_friends', 'No friends yet')}</div>`;
+        el.innerHTML = q ? emptyStateHtml('search', t('profiles.people.no_results', 'No results')) : emptyStateHtml('person', t('profiles.people.no_friends', 'No friends yet'));
         plSetPaginator('peopleAllPaginatorBar', '');
         return;
     }
@@ -815,7 +815,11 @@ function renderModList(containerId, list, actionType) {
     }
     const page = isBlock ? _peopleBlockedPage : _peopleMutedPage;
     if (!sorted.length) {
-        el.innerHTML = `<div class="empty-msg">${query ? t('profiles.people.no_results', 'No results') : (isBlock ? t('profiles.people.no_blocked', 'No blocked users') : t('profiles.people.no_muted', 'No muted users'))}</div>`;
+        el.innerHTML = query
+            ? emptyStateHtml('search', t('profiles.people.no_results', 'No results'))
+            : (isBlock
+                ? emptyStateHtml('block', t('profiles.people.no_blocked', 'No blocked users'))
+                : emptyStateHtml('volume_off', t('profiles.people.no_muted', 'No muted users')));
         plSetPaginator(paginatorBarId, '');
         return;
     }
@@ -1074,7 +1078,7 @@ function filterFavFriends() {
     const favListMode = _peopleListMode();
     el.classList.toggle('search-grid', !favListMode);
     if (!friends.length) {
-        el.innerHTML = `<div class="empty-msg">${q || favFriendGroupFilter ? t('friends.favorites.no_match', 'No favorites match your filter') : t('friends.favorites.empty', 'No favorite friends yet')}</div>`;
+        el.innerHTML = q || favFriendGroupFilter ? emptyStateHtml('search', t('friends.favorites.no_match', 'No favorites match your filter')) : emptyStateHtml('favorite', t('friends.favorites.empty', 'No favorite friends yet'));
         plSetPaginator('peopleFavPaginatorBar', '');
         if (_favFriendEditMode) updateFriendEditBar();
         return;
@@ -1100,7 +1104,7 @@ function filterFavFriends() {
             html += gFriends.map(f => renderFavFriendCard(f)).join('');
             first = false;
         });
-        el.innerHTML = html || `<div class="empty-msg">${t('friends.favorites.empty', 'No favorite friends yet')}</div>`;
+        el.innerHTML = html || emptyStateHtml('favorite', t('friends.favorites.empty', 'No favorite friends yet'));
         el.querySelectorAll('select.vrcn-dropdown').forEach(initVnSelect);
     } else {
         const selected = favFriendGroupFilter

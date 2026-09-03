@@ -1532,9 +1532,21 @@ public class FriendsController
                 {
                     var uid = f["id"]?.ToString() ?? "";
                     if (string.IsNullOrEmpty(uid)) continue;
+                    var curStatus = f["status"]?.ToString() ?? "";
+                    var lastKnown = _core.Timeline.GetUserLastStatus(uid);
+                    if (!string.IsNullOrEmpty(curStatus) && !string.IsNullOrEmpty(lastKnown) && lastKnown != curStatus)
+                    {
+                        _core.Timeline.AddFriendEvent(new TimelineService.FriendTimelineEvent
+                        {
+                            Type = "friend_status", FriendId = uid,
+                            FriendName = f["displayName"]?.ToString() ?? "",
+                            FriendImage = VRChatApiService.GetUserImage(f),
+                            OldValue = lastKnown, NewValue = curStatus,
+                        });
+                    }
                     _friendLastLoc[uid] = f["location"]?.ToString() ?? "";
-                    _friendLastStatus[uid] = f["status"]?.ToString() ?? "";
-                    _core.Timeline.UpdateUserLastStatus(uid, f["status"]?.ToString() ?? "");
+                    _friendLastStatus[uid] = curStatus;
+                    _core.Timeline.UpdateUserLastStatus(uid, curStatus);
                     _friendLastStatusDesc[uid] = (f["statusDescription"]?.ToString() ?? "").Trim();
                     _friendLastBio[uid] = (f["bio"]?.ToString() ?? "").Trim();
                     var img0 = VRChatApiService.GetUserImage(f);
@@ -3079,6 +3091,7 @@ public class FriendsController
         var fev = new TimelineService.FriendTimelineEvent
         {
             Type = "friend_online", FriendId = e.UserId, FriendName = fname, FriendImage = fimg,
+            NewValue = e.User?["status"]?.ToString() ?? "",
         };
         _core.Timeline.AddFriendEvent(fev);
         _core.SendToJS("friendTimelineEvent", BuildFriendTimelinePayload(fev));

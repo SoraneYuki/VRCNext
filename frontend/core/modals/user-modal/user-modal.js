@@ -1706,7 +1706,7 @@ function drawOnlineHeatmap(payload, ids) {
     wrap.innerHTML = `<div class="fd-hm-grid">${rowsHtml}</div>${axis}`;
 }
 
-const FD_STATUS_ORDER = ['join me', 'ask me', 'active', 'busy'];
+const FD_STATUS_ORDER = ['join me', 'ask me', 'active', 'busy', 'unknown'];
 
 function fdStatusMeta() {
     return {
@@ -1714,6 +1714,7 @@ function fdStatusMeta() {
         'active':  { label: t('status.online', 'Online'), color: 'var(--status-online)' },
         'ask me':  { label: t('status.ask_me', 'Ask Me'), color: 'var(--status-ask)' },
         'busy':    { label: t('status.do_not_disturb', 'Do Not Disturb'), color: 'var(--status-busy)' },
+        'unknown': { label: t('status.unknown', 'Unknown'), color: 'var(--status-offline)' },
     };
 }
 
@@ -1732,7 +1733,7 @@ function drawStatusHeatmap(payload, ids, view) {
     const mostlyEl = document.getElementById(ids.mostly);
     if (mostlyEl && payload.days === 30) {
         let topKey = '', topSec = 0;
-        for (const k of Object.keys(META)) { const s = totals[k] || 0; if (s > topSec) { topSec = s; topKey = k; } }
+        for (const k of Object.keys(META)) { if (k === 'unknown') continue; const s = totals[k] || 0; if (s > topSec) { topSec = s; topKey = k; } }
         if (topKey) {
             mostlyEl.textContent = META[topKey].label;
             mostlyEl.style.color = META[topKey].color;
