@@ -1,20 +1,22 @@
 **2026.48.2**
 
-**Removed**
-- Removed the old VRCN+ profile color customization. Custom VRCN+ colors are no longer shown on any profile, only VRChat's native profile customization is used. The VRCN+ supporter badge stays.
-- Removed the **Prefer VRCN+ Colours** setting from Settings > VRC+, since VRCN+ profile colors no longer exist. VRC+ profile themes now always apply when Profile Themes are enabled.
-
-**Reverted**
-- Reverted some changes that added additional outlines to certain elements.
-
-**Improvements**
-
 **Fixed Bugs**
+- The VRC+ **Edit Theme** dialog now uses the same color picker as the normal Theme Editor. The old system color swatch did not open anymore.
 - Settings > Performance no longer shows two cards both named Performance. All performance options including Animations and Blur Filters are now in one card.
 - Card gradients and hover fades now cover the full card, removing thin colored seams along edges and corners on world, group and avatar cards.
 - Profiles and **Check for Avatar** now use the same lookup, so they no longer show different avatars for the same person.
 - **Loading․․․** (VRChat's placeholder while an avatar downloads) is now ignored like the robot placeholder — in profiles, lists and pictures.
 - Avatar lookups are no longer skipped for five minutes after opening a profile, which left cards empty or stale on reopen.
+- Fixed an bug where the VRC+ Color Picker was uisng the WebView/OS Browser Color Picker instead of VRCNs.
+- Using a internal color picker written in GDI+ because Microslop breaks shit on every single windows/webview update. They broke the WebView Eye Dropper and now i fixed it because this shit company is not able to do anything good at all.
+
+**Removed**
+- Removed the old VRCN+ profile color customization. Custom VRCN+ colors are no longer shown on any profile, only VRChat's native profile customization is used. The VRCN+ supporter badge stays.
+- Removed the **Prefer VRCN+ Colours** setting from Settings > VRC+, since VRCN+ profile colors no longer exist. VRC+ profile themes now always apply when Profile Themes are enabled.
+- Removed "VRChat.API 2.20.7" Attribution as this API was never really used and has been removed from the project.
+
+**Reverted**
+- Reverted some changes that added additional outlines to certain elements.
 
 **2026.48.1**
 

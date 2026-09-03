@@ -1375,6 +1375,9 @@ case 'vrcNews':
         case 'vrcnPlusEntitlement':
             if (typeof window.vrcnPlusEntitlement === 'function') window.vrcnPlusEntitlement(payload);
             break;
+        case 'screenPickResult':
+            if (typeof window.onScreenPickResult === 'function') window.onScreenPickResult(payload);
+            break;
     }
     if (typeof navUpdateBadges === 'function') navUpdateBadges();
     if (typeof navUpdatePlaySubtitle === 'function') navUpdatePlaySubtitle();

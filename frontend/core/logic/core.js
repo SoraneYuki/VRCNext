@@ -554,7 +554,7 @@ function sk(type, n = 1) {
 
 
 const THEMES = {
-    vrcn:      { label: 'VRCN',      dot: '#58586F', c: { 'bg-base': '#0A0A0A', 'bg-side': '#0A0A0A', 'bg-card': '#0D0D0E', 'bg-hover': '#1C1C1F', 'bg-input': '#141416', 'tab-card-bg': '#101011', 'ui-input-bg': '#1C1C1F', 'ui-input-hover-bg': '#26262A', 'accent': '#58586F', 'accent-lt': '#9797B1', 'cyan': '#8CA5FF', 'ok': '#2DD48C', 'warn': '#FFBA37', 'err': '#FF4B55', 'tx0': '#EBEBFF', 'tx1': '#EBEBFF', 'tx2': '#B7B7C3', 'tx3': '#FFFFFF', 'brd': '#232327', 'brd-lt': '#232327', 'bdg-user-pc': '#9797B1', 'bdg-user-quest': '#9797B1', 'bdg-user-web': '#9797B1', 'bdg-user-friend': '#2DD48C', 'bdg-rank-visitor': '#CCCCCC', 'bdg-rank-new': '#1778FF', 'bdg-rank-user': '#2BCF5C', 'bdg-rank-known': '#FF7B42', 'bdg-rank-trusted': '#8143E6' } },
+    vrcn:      { label: 'VRCN',      dot: '#58586F', c: { 'bg-base': '#0A0A0A', 'bg-side': '#0A0A0A', 'bg-card': '#0D0D0E', 'bg-hover': '#1C1C1F', 'bg-input': '#141416', 'tab-card-bg': '#101011', 'ui-input-bg': '#1C1C1F', 'ui-input-hover-bg': '#26262A', 'accent': '#58586F', 'accent-lt': '#9797B1', 'cyan': '#8CA5FF', 'ok': '#2DD48C', 'warn': '#FFBA37', 'err': '#FF4B55', 'tx0': '#EBEBFF', 'tx1': '#EBEBFF', 'tx2': '#B7B7C3', 'tx3': '#FFFFFF', 'brd': '#1E1E22', 'brd-lt': '#1E1E22', 'bdg-user-pc': '#9797B1', 'bdg-user-quest': '#9797B1', 'bdg-user-web': '#9797B1', 'bdg-user-friend': '#2DD48C', 'bdg-rank-visitor': '#CCCCCC', 'bdg-rank-new': '#1778FF', 'bdg-rank-user': '#2BCF5C', 'bdg-rank-known': '#FF7B42', 'bdg-rank-trusted': '#8143E6' } },
     slates:    { label: 'Slates',    dot: '#6F6CFF', c: { 'bg-base': '#090814', 'bg-side': '#090814', 'bg-card': '#131125', 'bg-hover': '#4B4998', 'bg-input': '#161428', 'tab-card-bg': '#110F23', 'accent': '#6F6CFF', 'accent-lt': '#6F6CFF', 'cyan': '#8CA5FF', 'ok': '#2DD48C', 'warn': '#FFBA37', 'err': '#FF4B55', 'tx0': '#FFFFFF', 'tx1': '#FFFFFF', 'tx2': '#FFFFFF', 'tx3': '#FFFFFF', 'brd': '#1A1833', 'brd-lt': '#1F2357' } },
     blood:     { label: 'Blood',     dot: '#DF2A4E', c: { 'bg-base': '#0B0611', 'bg-side': '#10091A', 'bg-card': '#190F26', 'bg-hover': '#251936', 'bg-input': '#1C1229', 'tab-card-bg': '#170D24', 'accent': '#DF2A4E', 'accent-lt': '#E16B82', 'cyan': '#DC7A56', 'ok': '#2DD48C', 'warn': '#FFBA37', 'err': '#FF4B55', 'tx0': '#F2EFF5', 'tx1': '#D2CCDB', 'tx2': '#D2CCDB', 'tx3': '#D2CCDB', 'brd': '#291B3C', 'brd-lt': '#38284D' } },
     halloween: { label: 'Halloween', dot: '#DF462A', c: { 'bg-base': '#0B091A', 'bg-side': '#0B091A', 'bg-card': '#110F26', 'bg-hover': '#1B1936', 'bg-input': '#141229', 'tab-card-bg': '#0F0D24', 'accent': '#DF462A', 'accent-lt': '#E17D6B', 'cyan': '#DCA956', 'ok': '#2DD48C', 'warn': '#FFBA37', 'err': '#FF4B55', 'tx0': '#F0EFF5', 'tx1': '#F0EFF5', 'tx2': '#F0EFF5', 'tx3': '#F0EFF5', 'brd': '#1E1B3C', 'brd-lt': '#2B284D' } },
@@ -861,7 +861,7 @@ function teSaveTheme() {
 
 // Custom Color Picker.
 
-const _tePickerState = { varName: '', h: 0, s: 1, v: 1, draggingSV: false, draggingHue: false, inited: false };
+const _tePickerState = { varName: '', h: 0, s: 1, v: 1, draggingSV: false, draggingHue: false, inited: false, onPick: null, anchor: null };
 
 function _teHsvToHex(h, s, v) {
     const f = n => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
@@ -918,7 +918,7 @@ function _tePickerOpen(varName, anchorEl) {
     }
     const hex = _teGetColor(varName) || '#888888';
     const hsv = _teHexToHsv(hex);
-    Object.assign(_tePickerState, { varName, h: hsv.h, s: hsv.s, v: hsv.v });
+    Object.assign(_tePickerState, { varName, onPick: null, anchor: null, h: hsv.h, s: hsv.s, v: hsv.v });
 
     const picker  = document.getElementById('teColorPicker');
     const panel   = document.getElementById('themeEditorPanel');
@@ -939,6 +939,30 @@ function _tePickerOpen(varName, anchorEl) {
 function _tePickerClose() {
     document.getElementById('teColorPicker').style.display = 'none';
     _tePickerState.varName = '';
+    _tePickerState.onPick = null;
+    _tePickerState.anchor = null;
+}
+
+function tePickerOpenGeneric(hex, anchorEl, onPick) {
+    const picker = document.getElementById('teColorPicker');
+    if (_tePickerState.anchor === anchorEl && picker.style.display !== 'none') {
+        _tePickerClose(); return;
+    }
+    _tePickerInit();
+    const clean = /^#[0-9A-Fa-f]{6}$/.test(hex || '') ? hex.toUpperCase() : '#888888';
+    const hsv = _teHexToHsv(clean);
+    Object.assign(_tePickerState, { varName: '', onPick, anchor: anchorEl, h: hsv.h, s: hsv.s, v: hsv.v });
+    picker.style.display = 'block';
+    const aRect = anchorEl.getBoundingClientRect();
+    const pW = picker.offsetWidth || 220, pH = picker.offsetHeight || 240;
+    let left = aRect.left - pW - 10;
+    if (left < 8) left = Math.min(aRect.right + 10, window.innerWidth - pW - 8);
+    const top = Math.min(Math.max(8, aRect.top - 10), window.innerHeight - pH - 8);
+    picker.style.left = Math.max(8, left) + 'px';
+    picker.style.top  = top + 'px';
+    document.getElementById('tePickerHex').value = clean;
+    document.getElementById('tePickerPreview').style.background = clean;
+    _tePickerDraw();
 }
 
 function _tePickerDraw() {
@@ -986,13 +1010,21 @@ function _tePickerCommit() {
     document.getElementById('tePickerHex').value = hex;
     document.getElementById('tePickerPreview').style.background = hex;
     _tePickerDraw();
+    _tePickerApplyResult(hex);
+}
+
+function _tePickerApplyResult(hex) {
+    if (_tePickerState.onPick) {
+        try { _tePickerState.onPick(hex); } catch (e) { console.error('[picker]', e); }
+        return;
+    }
     _teApplyColor(_tePickerState.varName, hex);
 }
 
 function tePickerHexInput(raw) {
     if (!/^#[0-9A-Fa-f]{6}$/.test(raw)) return;
     _tePickerSyncFromHex(raw.toUpperCase());
-    _teApplyColor(_tePickerState.varName, raw.toUpperCase());
+    _tePickerApplyResult(raw.toUpperCase());
 }
 
 function _tePickerSyncFromHex(hex) {
@@ -1002,16 +1034,32 @@ function _tePickerSyncFromHex(hex) {
     _tePickerDraw();
 }
 
-async function tePickerEyedropper() {
+function tePickerEyedropper() {
+    if (typeof sendToCS === 'function') { sendToCS({ action: 'screenPickColor' }); return; }
+    _tePickerEyedropperFallback();
+}
+
+async function _tePickerEyedropperFallback() {
     if (!window.EyeDropper) return;
     try {
         const result = await new EyeDropper().open();
-        const hex = result.sRGBHex.toUpperCase();
-        document.getElementById('tePickerHex').value = hex;
-        _tePickerSyncFromHex(hex);
-        _teApplyColor(_tePickerState.varName, hex);
+        _tePickerApplyHexResult(result.sRGBHex.toUpperCase());
     } catch {}
 }
+
+function _tePickerApplyHexResult(hex) {
+    if (document.getElementById('teColorPicker').style.display === 'none') return;
+    document.getElementById('tePickerHex').value = hex;
+    _tePickerSyncFromHex(hex);
+    _tePickerApplyResult(hex);
+}
+
+window.onScreenPickResult = function (payload) {
+    if (!payload) return;
+    if (payload.unsupported) { _tePickerEyedropperFallback(); return; }
+    if (payload.cancelled || !payload.hex) return;
+    _tePickerApplyHexResult(String(payload.hex).toUpperCase());
+};
 
 function getThemeLabel(key, fallback) {
     return t(`theme.${key}`, fallback);

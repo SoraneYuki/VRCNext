@@ -1291,7 +1291,7 @@ function openProfileThemeEditor(themeId, preset) {
         ['subtext', t('profiles.theme.subtext_color', 'Text')],
     ].map(pair => `<div class="pt-row">
         <span class="pt-label">${esc(pair[1])}</span>
-        <input type="color" id="ptColor_${pair[0]}" class="pbg-swatch" value="${esc(_ptEditColors[pair[0]])}" oninput="ptSetColor('${pair[0]}', this.value)">
+        <div id="ptColor_${pair[0]}" class="pbg-swatch" data-var="pt-${pair[0]}" style="background:${esc(_ptEditColors[pair[0]])};" onclick="ptOpenPicker('${pair[0]}', this)"></div>
         <input type="text" id="ptHex_${pair[0]}" class="vrcn-edit-field pbg-hex" maxlength="7" value="${esc(_ptEditColors[pair[0]])}" oninput="ptSetColor('${pair[0]}', this.value)">
     </div>`).join('');
 
@@ -1328,12 +1328,18 @@ function ptSetColor(key, value) {
     _ptEditColors[key] = hex;
     const c = document.getElementById('ptColor_' + key);
     const h = document.getElementById('ptHex_' + key);
-    if (c) c.value = hex;
+    if (c) c.style.background = hex;
     if (h && document.activeElement !== h) h.value = hex;
     _ptRenderPreview();
 }
 
+function ptOpenPicker(key, anchorEl) {
+    if (typeof tePickerOpenGeneric !== 'function') return;
+    tePickerOpenGeneric(_ptEditColors[key], anchorEl, hex => ptSetColor(key, hex));
+}
+
 function closeProfileThemeEditor() {
+    if (typeof _tePickerState !== 'undefined' && _tePickerState.onPick && typeof _tePickerClose === 'function') _tePickerClose();
     document.getElementById('profileThemeModal')?.remove();
 }
 
