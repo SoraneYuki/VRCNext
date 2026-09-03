@@ -1721,6 +1721,7 @@
   "status.online": "Online",
   "status.join_me": "Join Me",
   "status.ask_me": "Ask Me",
+  "status.unknown": "Unbekannt",
   "status.do_not_disturb": "Nicht stoeren",
   "status.offline": "Offline",
   "instance.badge.public": "Oeffentlich",

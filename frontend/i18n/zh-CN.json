@@ -1694,6 +1694,7 @@
   "status.online": "在线",
   "status.join_me": "来加入我",
   "status.ask_me": "请先询问",
+  "status.unknown": "未知",
   "status.do_not_disturb": "请勿打扰",
   "status.offline": "离线",
   "instance.badge.public": "公开",

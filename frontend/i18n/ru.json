@@ -1699,6 +1699,7 @@
   "status.online": "Онлайн",
   "status.join_me": "Присоединяйся",
   "status.ask_me": "Спроси",
+  "status.unknown": "Неизвестно",
   "status.do_not_disturb": "Не беспокоить",
   "status.offline": "Офлайн",
   "instance.badge.public": "Публичный",

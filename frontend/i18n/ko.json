@@ -1772,6 +1772,7 @@
   "status.online": "온라인",
   "status.join_me": "참가 환영",
   "status.ask_me": "참가 요청 필요",
+  "status.unknown": "알 수 없음",
   "status.do_not_disturb": "방해 금지",
   "status.offline": "오프라인",
   "instance.badge.public": "Public",

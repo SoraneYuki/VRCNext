@@ -1774,6 +1774,7 @@
   "status.online": "Online",
   "status.join_me": "Join Me",
   "status.ask_me": "Ask Me",
+  "status.unknown": "Unknown",
   "status.do_not_disturb": "Do Not Disturb",
   "status.offline": "Offline",
   "instance.badge.public": "Public",

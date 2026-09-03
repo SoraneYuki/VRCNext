@@ -1758,6 +1758,7 @@
   "status.online": "線上",
   "status.join_me": "來加入我",
   "status.ask_me": "請先詢問",
+  "status.unknown": "未知",
   "status.do_not_disturb": "請勿打擾",
   "status.offline": "離線",
   "instance.badge.public": "公開",

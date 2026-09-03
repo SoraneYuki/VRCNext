@@ -1694,6 +1694,7 @@
   "status.online": "En línea",
   "status.join_me": "Únete a mí",
   "status.ask_me": "Pregúntame",
+  "status.unknown": "Desconocido",
   "status.do_not_disturb": "No molestar",
   "status.offline": "Desconectado",
   "instance.badge.public": "Público",

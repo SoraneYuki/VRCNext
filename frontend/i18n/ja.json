@@ -1694,6 +1694,7 @@
   "status.online": "オンライン",
   "status.join_me": "参加して",
   "status.ask_me": "聞いて",
+  "status.unknown": "不明",
   "status.do_not_disturb": "取り込み中",
   "status.offline": "オフライン",
   "instance.badge.public": "パブリック",
