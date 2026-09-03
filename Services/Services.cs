@@ -344,6 +344,7 @@ public class AppSettings
     public bool ShowVrcPlus { get; set; } = true;
     public bool ShowVrcCredits { get; set; } = true;
     public bool ShowApiHealth { get; set; } = true;
+    public bool ShowHamburger { get; set; } = true;
     // List of configured VRChat accounts and the currently active local AccountId (not UserId).
     public List<VrcAccount> Accounts { get; set; } = new();
     public string ActiveAccountId { get; set; } = "";

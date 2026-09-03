@@ -159,6 +159,7 @@ function saveSettings() {
             showVrcPlus: document.getElementById('setShowVrcPlus').checked,
             showVrcCredits: document.getElementById('setShowVrcCredits').checked,
             showApiHealth: document.getElementById('setShowApiHealth').checked,
+            showHamburger: document.getElementById('setShowHamburger').checked,
             // Credentials are no longer transported via saveSettings, they live in the Accounts tab.
             sfMultiplier: parseFloat(document.getElementById('sfMultiplier').value) || 1,
             sfLockX: document.getElementById('sfLockX').checked,
@@ -398,7 +399,7 @@ function initAutoSave() {
     const ids = ['setBotName','setBotAvatar','setVrcPath','setStartWithWindows','setMinimizeToTray','setTrayNotifications',
         'setNotifySoundEnabled','setMessageSoundEnabled','setMediaRelaySoundEnabled','setSteamOverlaySoundEnabled',
         'setFriendsSidebarLocationOnly','setFriendsSidebarPreviewCollapsed','setFriendsSidebarPreviewOpen','setPeopleAlwaysStats',
-        'setRandomBg','setClockEnabled','setDateEnabled','setShowVrcPlus','setShowVrcCredits','setShowApiHealth',
+        'setRandomBg','setClockEnabled','setDateEnabled','setShowVrcPlus','setShowVrcCredits','setShowApiHealth','setShowHamburger',
         'setAutoStartVR','setAutoStartDesktop',
         'setCloseWithVrc','setStartAlwaysWithVrc',
         'setCbAutoStartVR','setCbAutoStartDesktop',
@@ -609,8 +610,10 @@ function loadSettingsToUI(s) {
     document.getElementById('setShowVrcPlus').checked = s.ShowVrcPlus ?? s.showVrcPlus ?? true;
     document.getElementById('setShowVrcCredits').checked = s.ShowVrcCredits ?? s.showVrcCredits ?? true;
     document.getElementById('setShowApiHealth').checked = s.ShowApiHealth ?? s.showApiHealth ?? true;
+    document.getElementById('setShowHamburger').checked = s.ShowHamburger ?? s.showHamburger ?? true;
     applyClockSettings();
     if (typeof applyApiHealthSettings === 'function') applyApiHealthSettings();
+    if (typeof applyHamburgerSettings === 'function') applyHamburgerSettings();
     if (randomBg) {
         // Request random image from watch folders
         sendToCS({ action: 'vrcRandomDashBg' });

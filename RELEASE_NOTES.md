@@ -1,9 +1,14 @@
 **2026.48.2**
 
+**Improvements**
+- New **Settings → Accessibility** section with Help Features. First up: a **Hamburger Button** (on by default) that fades in when you hover friends, groups, worlds, dashboard cards and more. Clicking it opens the same menu as a right click — useful if you didn't know those menus existed. Can be turned off.
+
 **Fixed Bugs**
-* Fixed profiles showing a different avatar than **Check for Avatar** for the same person. Both now use the same lookup.
-* Fixed profiles showing **Loading․․․** as the current avatar. That is VRChat's placeholder avatar, shown while someone's real avatar is still downloading, and it is now ignored like the robot placeholder, in profiles, in lists and as a picture.
-* Fixed the avatar lookup being skipped for five minutes after a profile was opened, which left the card empty or stale when the same profile was opened again.
+- Settings → Performance no longer shows two cards both named Performance. Animations and Blur Filters now live in their own **Visual Effects** card.
+- Card gradients and hover fades now cover the full card, removing thin colored seams along edges and corners on world, group and avatar cards.
+- Profiles and **Check for Avatar** now use the same lookup, so they no longer show different avatars for the same person.
+- **Loading․․․** (VRChat's placeholder while an avatar downloads) is now ignored like the robot placeholder — in profiles, lists and pictures.
+- Avatar lookups are no longer skipped for five minutes after opening a profile, which left cards empty or stale on reopen.
 
 **2026.48.1**
 
