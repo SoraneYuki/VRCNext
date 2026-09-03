@@ -740,6 +740,12 @@ function renderFavAvatars(payload) {
     favAvatarsData  = avatars;
     favAvatarGroups = groups;
 
+    if (_pendingFavDeepLink && favAvatarGroups.length > 0) {
+        const pending = _pendingFavDeepLink;
+        _pendingFavDeepLink = null;
+        deepLinkFavoriteAvatar(pending.avatarId, pending.slot);
+    }
+
     const sel = document.getElementById('favAvatarGroupFilter');
     if (sel) {
         const prev = favAvatarGroupFilter;
@@ -1178,6 +1184,31 @@ function renderAvFavPickerList(avatarId) {
             ${check}
         </div>`;
     }).join('');
+}
+
+let _pendingFavDeepLink = null;
+
+function deepLinkFavoriteAvatar(avatarId, slot) {
+    if (!avatarId || !slot) return;
+    if (!favAvatarGroups || favAvatarGroups.length === 0) {
+        _pendingFavDeepLink = { avatarId, slot };
+        sendToCS({ action: 'vrcGetAvatars', filter: 'favorites' });
+        return;
+    }
+    const groupName = 'avatars' + slot;
+    const group = favAvatarGroups.find(g => g.name === groupName);
+    if (!group) {
+        showToast(false, tf('avatars.favorites.group_missing', { group: groupName }, 'Favorite group {group} not available'));
+        return;
+    }
+    const entry = favAvatarsData.find(f => f.id === avatarId);
+    sendToCS({
+        action: 'vrcAddAvatarFavorite',
+        avatarId,
+        groupName,
+        groupType: group.type,
+        oldFvrtId: entry?.favoriteGroup === groupName ? '' : (entry?.favoriteId || ''),
+    });
 }
 
 function addAvatarToFavGroup(avatarId, groupName, groupType, oldFvrtId, rowEl) {

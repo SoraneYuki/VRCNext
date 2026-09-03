@@ -85,65 +85,60 @@
                     </div>
 
                     <!-- PERFORMANCE -->
-                    <div class="vrcn-panel-card" data-windows-only data-section="performance" style="display:none;">
-                        <div class="vrcn-panel-card-header"><span class="msi">speed</span> <span data-i18n="settings.perf.title">Performance</span></div>
-                        <div class="sf-toggle-row">
-                            <span data-i18n="settings.perf.gpu_accel.label">Enable Hardware Acceleration</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setPerfGpuAccel" checked onchange="onPerfSettingChange()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.perf.gpu_accel.desc">Enables GPU hardware acceleration for the WebView2 renderer. May improve rendering performance but can cause visual glitches on some systems.</div>
-                        <div class="sf-toggle-row" style="margin-top:14px;">
-                            <span data-i18n="settings.perf.shader_cache.label">Enable GPU Shader Cache</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setPerfShaderCache" onchange="onPerfSettingChange()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.perf.shader_cache.desc">Caches compiled GPU shaders to disk. Reduces GPU startup overhead on subsequent launches.</div>
-                        <div class="sf-toggle-row" style="margin-top:14px;">
-                            <span data-i18n="settings.perf.v8_heap.label">Use 128 MB V8 Heap</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setPerfV8Heap" onchange="onPerfSettingChange()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.perf.v8_heap.desc">Increases the JavaScript engine memory limit from 64 MB to 128 MB. Useful if VRCNext runs sluggishly with large friend lists or many open tabs.</div>
-                        <div class="sf-toggle-row" style="margin-top:14px;">
-                            <span data-i18n="settings.perf.render_proc.label">Use 2 Render Processes</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setPerfRenderProc" onchange="onPerfSettingChange()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.perf.render_proc.desc">Allows WebView2 to use up to 2 renderer processes instead of 1. Can help with stability but uses slightly more memory.</div>
-                        <div class="sf-toggle-row" style="margin-top:14px;">
-                            <span data-i18n="settings.perf.efficiency.label">Efficiency Mode</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setPerfEfficiency" onchange="autoSave()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.perf.efficiency.desc">Runs the VRCNext process and its WebView processes in Windows Efficiency Mode (EcoQoS). Lowers power usage and background CPU impact; the leaf icon appears in Task Manager. May slightly reduce responsiveness. Applies immediately, no restart needed.</div>
-                        <div id="perfRestartHint" style="display:none;margin-top:10px;">
-                            <span class="set-desc" data-i18n="settings.perf.restart_hint">A restart is required to apply performance changes.</span>
-                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>
-                        </div>
-                    </div>
-
-                    <!-- PERFORMANCE (cross-platform) -->
                     <div class="vrcn-panel-card" data-section="performance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">speed</span> <span data-i18n="settings.perf.title">Performance</span></div>
-                        <div class="sf-toggle-row" data-linux-only style="display:none;">
-                            <span data-i18n="settings.perf.linux_gpu.label">Enable Hardware Acceleration</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setLinuxGpuAccel" onchange="onPerfSettingChange()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
+                        <div data-windows-only>
+                            <div class="sf-toggle-row">
+                                <span data-i18n="settings.perf.gpu_accel.label">Enable Hardware Acceleration</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="setPerfGpuAccel" checked onchange="onPerfSettingChange()">
+                                    <div class="toggle-track"><div class="toggle-knob"></div></div>
+                                </label>
+                            </div>
+                            <div class="set-desc" data-i18n="settings.perf.gpu_accel.desc">Enables GPU hardware acceleration for the WebView2 renderer. May improve rendering performance but can cause visual glitches on some systems.</div>
+                            <div class="sf-toggle-row" style="margin-top:14px;">
+                                <span data-i18n="settings.perf.shader_cache.label">Enable GPU Shader Cache</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="setPerfShaderCache" onchange="onPerfSettingChange()">
+                                    <div class="toggle-track"><div class="toggle-knob"></div></div>
+                                </label>
+                            </div>
+                            <div class="set-desc" data-i18n="settings.perf.shader_cache.desc">Caches compiled GPU shaders to disk. Reduces GPU startup overhead on subsequent launches.</div>
+                            <div class="sf-toggle-row" style="margin-top:14px;">
+                                <span data-i18n="settings.perf.v8_heap.label">Use 128 MB V8 Heap</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="setPerfV8Heap" onchange="onPerfSettingChange()">
+                                    <div class="toggle-track"><div class="toggle-knob"></div></div>
+                                </label>
+                            </div>
+                            <div class="set-desc" data-i18n="settings.perf.v8_heap.desc">Increases the JavaScript engine memory limit from 64 MB to 128 MB. Useful if VRCNext runs sluggishly with large friend lists or many open tabs.</div>
+                            <div class="sf-toggle-row" style="margin-top:14px;">
+                                <span data-i18n="settings.perf.render_proc.label">Use 2 Render Processes</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="setPerfRenderProc" onchange="onPerfSettingChange()">
+                                    <div class="toggle-track"><div class="toggle-knob"></div></div>
+                                </label>
+                            </div>
+                            <div class="set-desc" data-i18n="settings.perf.render_proc.desc">Allows WebView2 to use up to 2 renderer processes instead of 1. Can help with stability but uses slightly more memory.</div>
+                            <div class="sf-toggle-row" style="margin-top:14px;">
+                                <span data-i18n="settings.perf.efficiency.label">Efficiency Mode</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="setPerfEfficiency" onchange="autoSave()">
+                                    <div class="toggle-track"><div class="toggle-knob"></div></div>
+                                </label>
+                            </div>
+                            <div class="set-desc" data-i18n="settings.perf.efficiency.desc">Runs the VRCNext process and its WebView processes in Windows Efficiency Mode (EcoQoS). Lowers power usage and background CPU impact; the leaf icon appears in Task Manager. May slightly reduce responsiveness. Applies immediately, no restart needed.</div>
                         </div>
-                        <div class="set-desc" data-linux-only style="display:none;" data-i18n="settings.perf.linux_gpu.desc">Lets WebKitGTK use the GPU for rendering. Recommended on real hardware with working graphics drivers. Keep it off in virtual machines or when the window stays blank or shows glitches; VRCNext then uses safe software rendering.</div>
+                        <div data-linux-only style="display:none;">
+                            <div class="sf-toggle-row">
+                                <span data-i18n="settings.perf.linux_gpu.label">Enable Hardware Acceleration</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="setLinuxGpuAccel" onchange="onPerfSettingChange()">
+                                    <div class="toggle-track"><div class="toggle-knob"></div></div>
+                                </label>
+                            </div>
+                            <div class="set-desc" data-i18n="settings.perf.linux_gpu.desc">Lets WebKitGTK use the GPU for rendering. Recommended on real hardware with working graphics drivers. Keep it off in virtual machines or when the window stays blank or shows glitches; VRCNext then uses safe software rendering.</div>
+                        </div>
                         <div class="sf-toggle-row" style="margin-top:14px;">
                             <span data-i18n="settings.perf.animations.label">Animations and Transitions</span>
                             <label class="toggle">
@@ -160,6 +155,10 @@
                             </label>
                         </div>
                         <div class="set-desc" data-i18n="settings.perf.blur.desc">Disables blur filters on modals and overlays. Instead of a blurred background, a dark overlay (75%) is shown. Especially useful when GPU acceleration is disabled, as blur effects are CPU-intensive. It is recommended to disable Blur Filters when using the app without GPU acceleration.</div>
+                        <div id="perfRestartHint" style="display:none;margin-top:10px;">
+                            <span class="set-desc" data-i18n="settings.perf.restart_hint">A restart is required to apply performance changes.</span>
+                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>
+                        </div>
                         <div id="linuxPerfRestartHint" style="display:none;margin-top:10px;">
                             <span class="set-desc" data-i18n="settings.perf.restart_hint">A restart is required to apply performance changes.</span>
                             <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>
@@ -366,14 +365,6 @@
                             </label>
                         </div>
                         <div class="set-desc" data-i18n="settings.decorations.profile_theme_desc">When enabled, a player's VRC+ profile theme colours are applied to their profile modal. The button colour also tints the modal itself, about 25% darker.</div>
-                        <div class="sf-toggle-row" style="margin-top:14px;">
-                            <span data-i18n="settings.decorations.theme_vrcn_override">Prefer VRCN+ Colours</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setThemeVrcnOverride" onchange="settings.profileThemeVrcnOverride=this.checked;autoSave();if(typeof applyDecorationsSetting==='function')applyDecorationsSetting();">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.decorations.theme_vrcn_override_desc">When enabled, VRCN+ profile colours take precedence over a player's VRC+ profile theme.</div>
                         <div class="sf-toggle-row" style="margin-top:14px;">
                             <span data-i18n="settings.decorations.theme_contrast">Keep Theme Text Readable</span>
                             <label class="toggle">

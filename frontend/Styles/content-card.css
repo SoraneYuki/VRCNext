@@ -6,6 +6,7 @@
 .vrcn-world-card-small {
     position: relative;
     overflow: hidden;
+    will-change: transform;
     display: flex;
     align-items: flex-end;
     padding: 10px 10px;
@@ -17,17 +18,20 @@
 .vrcn-world-card-small:hover { transform: translateY(-2px); }
 .vrcn-world-card-small .vwcs-bg {
     position: absolute;
-    inset: 0;
+    inset: -2px;
     background-size: cover;
     background-position: center;
-    background-color: var(--bg-card);
     transition: transform .3s ease;
+}
+.vrcn-world-card-small .vwcs-bg::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.25) 60%, rgba(0,0,0,.1) 100%);
 }
 .vrcn-world-card-small:hover .vwcs-bg { transform: scale(1.06); }
 .vrcn-world-card-small .vwcs-scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.25) 60%, rgba(0,0,0,.1) 100%);
+    display: none;
 }
 .vrcn-world-card-small .vwcs-info {
     position: relative;
@@ -55,6 +59,7 @@
     position: relative;
     border-radius: 16px;
     overflow: hidden;
+    will-change: transform;
     cursor: pointer;
     min-height: 200px;
     transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s;
@@ -65,19 +70,22 @@
 }
 .vrcn-content-card .cc-bg {
     position: absolute;
-    inset: 0;
+    inset: -2px;
     background-size: cover;
     background-position: center;
-    background-color: var(--bg-input);
     transition: transform .6s ease;
+}
+.vrcn-content-card .cc-bg::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: linear-gradient(0deg, rgba(8,12,21,.92) 0%, rgba(8,12,21,.4) 45%, transparent 100%);
 }
 .vrcn-content-card:hover .cc-bg {
     transform: scale(1.08);
 }
 .vrcn-content-card .cc-scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(0deg, rgba(8,12,21,.92) 0%, rgba(8,12,21,.4) 45%, transparent 100%);
+    display: none;
 }
 .vrcn-content-card .cc-badges-top {
     position: absolute;

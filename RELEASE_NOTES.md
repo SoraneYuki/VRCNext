@@ -1,27 +1,52 @@
-**2026.48.0**
+**2026.48.2**
+
+**Removed**
+- Removed the old VRCN+ profile color customization. Custom VRCN+ colors are no longer shown on any profile, only VRChat's native profile customization is used. The VRCN+ supporter badge stays.
+- Removed the **Prefer VRCN+ Colours** setting from Settings > VRC+, since VRCN+ profile colors no longer exist. VRC+ profile themes now always apply when Profile Themes are enabled.
+
+**Reverted**
+- Reverted some changes that added additional outlines to certain elements.
 
 **Improvements**
-* Mutual Network and Meet Network now free their avatar and world images from memory when you leave the tab, just like every other tab. Images are reloaded from the local cache when you come back.
-* New VRChat API health indicator in the taskbar: green = everything operational, yellow = minor issues or maintenance, red = major outage. Clicking it opens a mini panel with the current status, online user count, API latency and the health of each VRChat service, plus a shortcut to status.vrchat.com. Can be turned off under **Settings > Sidebar > Taskbar**.
-
-**Meet Network**
-* New tool under **Tools > Meet Network**. It shows the top 200 people you've met most often in VRChat, friends and strangers alike, arranged in rings with your most frequent meets in the center. Bigger circle = more meets.
-* Click a person (or search for them) to see the worlds you met them in. The world where you ran into them the most is shown biggest.
-* Right-clicking a person or a world gives you the usual context menus, so you can open profiles, join worlds and more straight from the graph.
-* While a person is open, everyone else is hidden instead of rendered in the background, keeping the view clean and saving performance.
-
-**Changes**
-* The instance list in the Friends Sidebar got wider Profile, Timer and Joined columns, so the headers are no longer cut off.
-* The Username column in the People tab lists (Instance, All Friends, Favorites and co.) no longer hogs all the leftover space, giving the other columns more room.
-* The search in People > Instance now looks through user IDs, status texts and avatar names too, not just player names. The search bar also got a bit wider.
-* The presence bar in the instance modal is now its own Presence column instead of stretching across the whole row underneath, matching the People > Instance table. It's sortable and reorderable like every other column.
-* GIFs in the Media Library now use the same lightweight thumbnail cache as photos and videos instead of loading the full files into memory (a page of GIFs could easily eat 300MB before). They show a GIF badge in the corner, animate when you hover them, and play normally in the photo viewer.
-* The world modal's Photos tab now shows videos taken in that world too, and uses the same clean size/resolution text as the Media Library instead of the old resolution badges. GIFs get their badge and hover preview here as well, videos a VIDEO badge with play icon.
 
 **Fixed Bugs**
-* Fixed heavy lag when zooming in close. The graph was drawing connection lines in a slow way, dropping FPS hard the further you zoomed in. It now stays smooth at any zoom level.
-* Lines from people far outside your view are no longer drawn while zoomed in, and the layout simulation goes easier on large friend lists, so big networks load and settle without freezing the app.
-* Fixed performance issues with Mutual Network causing lag spikes when zooming in/out fast.
-* Fixed performance issues with the Mutual Network simulation while being in VR.
-* Dragging a person around in Mutual Network no longer deselects them. Selection now stays until you click someone else or click an empty spot.
-* Scrolling down from the Dashboard hero is much smoother. The glass fade no longer forces the whole app to recalculate its styling on every frame, and the hero background video now pauses while it's scrolled out of view.
+- Settings > Performance no longer shows two cards both named Performance. All performance options including Animations and Blur Filters are now in one card.
+- Card gradients and hover fades now cover the full card, removing thin colored seams along edges and corners on world, group and avatar cards.
+- Profiles and **Check for Avatar** now use the same lookup, so they no longer show different avatars for the same person.
+- **Loading․․․** (VRChat's placeholder while an avatar downloads) is now ignored like the robot placeholder — in profiles, lists and pictures.
+- Avatar lookups are no longer skipped for five minutes after opening a profile, which left cards empty or stale on reopen.
+
+**2026.48.1**
+
+**World Modal**
+* Redesigned the stats at the top. Active players, favorites and visits are now shown in a cleaner stats card, while PC, Android and iOS download sizes moved into the Infos card.
+* The **Instances** tab now has search, refresh and sorting options. You can search by instance name, ID or type and sort by Friends, Most Players, Age Gated or Group Instances.
+* Added a **Set as Home** button next to New Instance and Favorite. It highlights when the world is already your home world.
+
+**Deeplinks**
+* New **vrcn://avatars/avtr_xxx/put/fav1** through **fav6** puts an avatar straight into that favorite group. Without the suffix the link opens the avatar as before.
+
+**Lists**
+* All list tables now use consistent header and cell sizes.
+* List views now have a fixed height and consistent cell size.
+
+**OSC Tool**
+* Now uses OSCQuery, the official protocol, to read the full live parameter list straight from VRChat, including the built-in parameters, instead of relying on the local config files.
+
+**Activity Log**
+* Repeated OSC sends like the heart rate no longer spam the log every second. Each parameter is now logged at most once every 30 seconds, so you can still confirm data is flowing without the flood.
+
+**VR Overlay**
+* VR content is now rendered directly on the GPU, reducing CPU usage while keeping the same appearance.
+* The VR Overlay, friend toasts and FrameShot frame now use the new GPU rendering system.
+* The VR Music Player album art background now uses a proper GPU blur for a smoother look at any size.
+* More logging for VR Related Tools that help for debugging and error logging. 
+
+**Fixed Bugs**
+* Fixed the calendar not showing events of the following month. Only the displayed month was loaded, so days of the next month that appear in the grid, and weeks that run across the turn of the month, stayed empty. The current and the next month are now always loaded together.
+* Fixed the **OSC Tool** showing the wrong avatar's parameters, parameters of a gimmick you did not have on, or a parameter count that changed every time you reconnected. It now reads the full live parameter list of the avatar you are wearing straight from VRChat and only falls back to the local config file as a last resort, matched to that avatar.
+* Fixed the **Auto Color** theme not working correctly with dashboard backgrounds.
+* Fixed profiles showing another user's avatar, keeping an avatar the person no longer wears, or losing the avatar when the profile was opened a second time.
+* Fixed the avatar card flickering between two avatars while a profile was loading.
+* Fixed the VRChat placeholder robot appearing as an avatar picture and as a profile banner.
+* Fixed avatar lookups missing members of large groups, which searched only the newest 1000 entries.

@@ -913,7 +913,6 @@ function _buildLibCard(x) {
     }
 }
 
-// GIF cards show a static thumb; the animated file only loads while hovered
 function _libGifHover(card, on) {
     const img = card.querySelector('.lib-thumb');
     const url = card.dataset.url || '';
@@ -1172,6 +1171,8 @@ async function setLibItemAsDashBg(path, url) {
     }
     dashBgPath = path;
     dashBgDataUri = '';
+    dashBgSample = '';
+    sendToCS({ action: 'vrcLoadDashBg', path });
     const nameEl = document.getElementById('dashBgName');
     if (nameEl) nameEl.textContent = path.split(/[/\\]/).pop();
     renderDashboard();

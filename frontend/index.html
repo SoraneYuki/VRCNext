@@ -48,7 +48,6 @@
     <link rel="stylesheet" href="modules/tools/action-flow/action-flow.css">
     <link rel="stylesheet" href="modules/tools/status-schedule/status-schedule.css">
     <link rel="stylesheet" href="modules/settings/settings.css">
-    <link rel="stylesheet" href="modules/user-profile/profile-editor.css">
     <link rel="stylesheet" href="core/modals/modals.css">
     <link rel="stylesheet" href="core/modals/invite-modal/invite-modal.css">
     <link rel="stylesheet" href="core/modals/user-modal/user-modal.css">
@@ -130,7 +129,7 @@
     <div class="sidebar" id="sidebarEl">
         <div class="sidebar-resizer" id="sidebarResizer" data-side="left"></div>
         <div class="sidebar-sep"></div>
-        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.47.6</div></div></div>
+        <div class="logo"><div class="logo-icon" id="logoIcon">V</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">VRCNext</div></div><div class="logo-sub">v2026.48.1</div></div></div>
         <div class="nav vrcn-scrollbar" id="navEl"></div>
         <div class="play-area"><button class="btn-play" onclick="playVRChat()" data-i18n-title="sidebar.play_vrchat" title="Play VRChat"><span class="play-icon-wrap"><span class="msi play-icon">play_arrow</span></span><span class="play-copy pl"><strong class="play-title" data-i18n="sidebar.play_vrchat">Play VRChat</strong><span class="play-sub" id="playSubText"></span></span><span class="msi play-arrow pl">chevron_right</span></button></div>
     </div>
@@ -659,18 +658,6 @@
     <div id="avFavPickerPanel" style="display:none;position:fixed;z-index:10005;background:var(--bg-card);border:1px solid var(--brd-lt);border-radius:10px;padding:10px;min-width:220px;max-width:280px;box-shadow:0 8px 32px #0008;"></div>
 <!-- Theme Editor Panel -->
 <div id="themeEditorPanel" style="display:none;position:fixed;bottom:16px;right:16px;width:380px;max-height:600px;z-index:9999;flex-direction:column;background:var(--bg-card);border:1px solid var(--brd);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);"></div>
-<div id="vrcnPlusEditor"></div>
-<div id="vpeColorPicker" style="display:none;position:fixed;z-index:10031;background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;padding:10px;box-shadow:0 4px 24px rgba(0,0,0,.6);width:220px;">
-    <canvas id="vpePickerSV"  width="200" height="150" style="border-radius:6px;cursor:crosshair;display:block;"></canvas>
-    <canvas id="vpePickerHue" width="200" height="14"  style="border-radius:4px;cursor:crosshair;display:block;margin-top:8px;"></canvas>
-    <div style="display:flex;gap:5px;margin-top:8px;align-items:center;">
-        <div id="vpePickerPreview" style="width:22px;height:22px;border-radius:4px;border:1px solid var(--brd);flex-shrink:0;"></div>
-        <div style="flex:1;display:flex;align-items:center;position:relative;">
-            <input type="text" class="vrcn-input" id="vpePickerHex" maxlength="7" style="width:100%;font-family:'Google Sans Mono',monospace;font-size:calc(11px + var(--fs-off, 0px));padding-right:26px;" oninput="vpePickerHexInput(this.value)">
-            <span class="msi" onclick="vpePickerEyedropper()" title="Pick color from screen" style="position:absolute;right:5px;font-size:14px;color:var(--tx3);cursor:pointer;user-select:none;" onmouseover="this.style.color='var(--tx1)'" onmouseout="this.style.color='var(--tx3)'">colorize</span>
-        </div>
-    </div>
-</div>
 <!-- Custom Color Picker -->
 <div id="teColorPicker" style="display:none;position:fixed;z-index:10001;background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;padding:10px;box-shadow:0 4px 24px rgba(0,0,0,.6);width:220px;">
     <canvas id="tePickerSV"  width="200" height="150" style="border-radius:6px;cursor:crosshair;display:block;"></canvas>
@@ -794,7 +781,6 @@
             dashLayoutModal:    'modules/dashboard/dash-layout.html',
             avFavPickerPanel:   'modules/avatars/fav-picker.html',
             themeEditorPanel:   'modules/settings/theme-editor.html',
-            vrcnPlusEditor:     'modules/user-profile/profile-editor.html',
             ssModal:            'core/SmartSearch/smart-search.html',
         };
 

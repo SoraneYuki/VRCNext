@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using VRC.OSCQuery;
 
 namespace VRCNext
 {
@@ -21,13 +22,30 @@ namespace VRCNext
         private const int VRC_SEND_PORT = 9000;
 
         private UdpClient? _receiver;
+        private UdpClient? _receiverAdvertised;
         private UdpClient? _sender;
         private CancellationTokenSource? _cts;
         private bool _running;
+        private int _oscReceivePort;
+        private string _lastChangeId = "";
+        private long _lastChangeTicks;
+
+        private OSCQueryService? _oscQuery;
+        private int _oscQueryTcpPort;
+        private (string name, IPAddress address, int port)? _vrcEndpoint;
 
         public bool IsConnected => _running;
 
         private readonly Action<string> _log;
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> _lastSendLog = new();
+        private void LogSend(string key, string msg)
+        {
+            long now = Environment.TickCount64;
+            long last = _lastSendLog.TryGetValue(key, out var t) ? t : 0;
+            if (last != 0 && now - last < 30000) return;
+            _lastSendLog[key] = now;
+            _log(msg);
+        }
         private Action<string, object, string>? _onParam;
         private Action<string, List<OscParamDef>>? _onAvatarChange;
 
@@ -48,8 +66,23 @@ namespace VRCNext
                 _sender.Connect(IPAddress.Parse(OSC_IP), VRC_SEND_PORT);
                 _cts = new CancellationTokenSource();
                 _running = true;
-                _ = ReceiveLoopAsync(_cts.Token);
-                _log($"[OSC] Listening on :{VRC_LISTEN_PORT}, sending to :{VRC_SEND_PORT}");
+                _ = ReceiveLoopAsync(_receiver, _cts.Token);
+
+                try
+                {
+                    _receiverAdvertised = new UdpClient(new IPEndPoint(IPAddress.Any, 0));
+                    _oscReceivePort = ((IPEndPoint)_receiverAdvertised.Client.LocalEndPoint!).Port;
+                    _ = ReceiveLoopAsync(_receiverAdvertised, _cts.Token);
+                }
+                catch (Exception ex)
+                {
+                    _log($"[OSC] Dedicated receive port unavailable: {ex.Message}");
+                    _receiverAdvertised?.Close(); _receiverAdvertised = null;
+                    _oscReceivePort = VRC_LISTEN_PORT;
+                }
+
+                _log($"[OSC] Listening on :{VRC_LISTEN_PORT} and :{_oscReceivePort}, sending to :{VRC_SEND_PORT}");
+                StartOscQuery();
                 return true;
             }
             catch (Exception ex)
@@ -68,17 +101,72 @@ namespace VRCNext
             _running = false;
             _cts?.Cancel();
             _receiver?.Close(); _receiver = null;
+            _receiverAdvertised?.Close(); _receiverAdvertised = null;
             _sender?.Close(); _sender = null;
+            try { _oscQuery?.Dispose(); } catch { }
+            _oscQuery = null;
+            _vrcEndpoint = null;
             _log("[OSC] Stopped");
         }
 
-        private async Task ReceiveLoopAsync(CancellationToken ct)
+        private async Task HandleAvatarChangeAsync(string avatarId)
         {
-            while (!ct.IsCancellationRequested && _receiver != null)
+            try
+            {
+                await Task.Delay(400);
+                for (int attempt = 0; attempt < 3; attempt++)
+                {
+                    var live = await ReadOscQueryAsync(TimeSpan.FromSeconds(2));
+                    if (live != null && live.Count > 0)
+                    {
+                        var defs = new List<OscParamDef>(live.Count);
+                        foreach (var (n, _, t) in live) defs.Add(new OscParamDef(n, t, true, true));
+                        _onAvatarChange?.Invoke(avatarId, defs);
+                        foreach (var (n, v, t) in live) _onParam?.Invoke(n, v, t);
+                        _log($"[OSC] Avatar changed: {avatarId} ({live.Count} live params)");
+                        return;
+                    }
+                    await Task.Delay(400);
+                }
+                var cfg = LoadAvatarConfig(avatarId);
+                _onAvatarChange?.Invoke(avatarId, cfg);
+                _log($"[OSC] Avatar changed: {avatarId} ({cfg.Count} params in config, OSCQuery unavailable)");
+            }
+            catch (Exception ex) { _log($"[OSC] Avatar change error: {ex.Message}"); }
+        }
+
+        private void StartOscQuery()
+        {
+            try
+            {
+                _oscQueryTcpPort = Extensions.GetAvailableTcpPort();
+                _oscQuery = new OSCQueryServiceBuilder()
+                    .WithServiceName("VRCNext")
+                    .WithHostIP(IPAddress.Loopback)
+                    .WithTcpPort(_oscQueryTcpPort)
+                    .WithUdpPort(_oscReceivePort)
+                    .WithDiscovery(new MeaModDiscovery(null))
+                    .StartHttpServer()
+                    .AdvertiseOSC()
+                    .AdvertiseOSCQuery()
+                    .Build();
+                _oscQuery.RefreshServices();
+                _log($"[OSC] OSCQuery advertising as 'VRCNext' (osc :{_oscReceivePort}, query :{_oscQueryTcpPort})");
+            }
+            catch (Exception ex)
+            {
+                _log($"[OSC] OSCQuery advertise failed, falling back to config files: {ex.Message}");
+                _oscQuery = null;
+            }
+        }
+
+        private async Task ReceiveLoopAsync(UdpClient client, CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
-                    var result = await _receiver.ReceiveAsync(ct);
+                    var result = await client.ReceiveAsync(ct);
                     ParseOscMessage(result.Buffer);
                 }
                 catch (OperationCanceledException) { break; }
@@ -103,9 +191,11 @@ namespace VRCNext
                         string avatarId = ReadOscString(data, ref pos);
                         if (!string.IsNullOrEmpty(avatarId))
                         {
-                            var paramDefs = LoadAvatarConfig(avatarId);
-                            _onAvatarChange?.Invoke(avatarId, paramDefs);
-                            _log($"[OSC] Avatar changed: {avatarId} ({paramDefs.Count} params in config)");
+                            long now = Environment.TickCount64;
+                            if (avatarId == _lastChangeId && now - _lastChangeTicks < 2000) return;
+                            _lastChangeId = avatarId;
+                            _lastChangeTicks = now;
+                            _ = HandleAvatarChangeAsync(avatarId);
                         }
                     }
                     return;
@@ -391,7 +481,7 @@ namespace VRCNext
                 WriteOscString(buf, value ? ",T" : ",F");
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {name} = {value} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(name, $"[OSC] → {name} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] Send bool error: {ex.Message}"); }
         }
@@ -408,7 +498,7 @@ namespace VRCNext
                 buf.Add(fb[3]); buf.Add(fb[2]); buf.Add(fb[1]); buf.Add(fb[0]);
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {name} = {value:F3} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(name, $"[OSC] → {name} = {value:F3} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] Send float error: {ex.Message}"); }
         }
@@ -425,7 +515,7 @@ namespace VRCNext
                 buf.Add(fb[3]); buf.Add(fb[2]); buf.Add(fb[1]); buf.Add(fb[0]);
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {address} = {value:F4} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(address, $"[OSC] → {address} = {value:F4} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] SendRawFloat error: {ex.Message}"); }
         }
@@ -440,7 +530,7 @@ namespace VRCNext
                 WriteOscString(buf, value ? ",T" : ",F");
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(address, $"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] SendRawBool error: {ex.Message}"); }
         }
@@ -459,7 +549,7 @@ namespace VRCNext
                 buf.Add((byte)(value));
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(address, $"[OSC] → {address} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] SendRawInt error: {ex.Message}"); }
         }
@@ -476,7 +566,7 @@ namespace VRCNext
                 buf.Add(fb[3]); buf.Add(fb[2]); buf.Add(fb[1]); buf.Add(fb[0]);
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → /avatar/eyeheight = {meters:F4}m ({sent}B to :{VRC_SEND_PORT})");
+                LogSend("/avatar/eyeheight", $"[OSC] → /avatar/eyeheight = {meters:F4}m ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] Send eye height error: {ex.Message}"); }
         }
@@ -495,7 +585,7 @@ namespace VRCNext
                 buf.Add((byte)(value));
                 var p = buf.ToArray();
                 int sent = _sender.Send(p, p.Length);
-                _log($"[OSC] → {name} = {value} ({sent}B to :{VRC_SEND_PORT})");
+                LogSend(name, $"[OSC] → {name} = {value} ({sent}B to :{VRC_SEND_PORT})");
             }
             catch (Exception ex) { _log($"[OSC] Send int error: {ex.Message}"); }
         }
@@ -511,49 +601,109 @@ namespace VRCNext
 
         public async Task<bool> TryOscQueryAsync(Action<string, object, string> onResult)
         {
-            const int port = 9002;
+            var live = await ReadOscQueryAsync(TimeSpan.FromSeconds(3));
+            if (live == null) return false;
+            foreach (var (name, value, type) in live) onResult(name, value, type);
+            return live.Count > 0;
+        }
+
+        private async Task<List<(string name, object value, string type)>?> ReadOscQueryAsync(TimeSpan timeout)
+        {
+            if (_oscQuery == null) return null;
             try
             {
-                using var http = new System.Net.Http.HttpClient();
-                http.Timeout = TimeSpan.FromMilliseconds(600);
-                var json = await http.GetStringAsync($"http://localhost:{port}/avatar/parameters");
-                var root = JsonNode.Parse(json);
-                var contents = root?["CONTENTS"]?.AsObject();
-                if (contents == null) return false;
-
-                int count = 0;
-                foreach (var kv in contents)
+                var vrc = await ResolveVrchatEndpointAsync(timeout);
+                if (vrc == null)
                 {
-                    var name = kv.Key;
-                    var node = kv.Value;
-                    if (node == null) continue;
-
-                    var typeStr = node["TYPE"]?.GetValue<string>() ?? "";
-                    var valueArr = node["VALUE"]?.AsArray();
-
-                    switch (typeStr)
-                    {
-                        case "T":
-                            onResult(name, (object)true, "bool"); count++; break;
-                        case "F":
-                            onResult(name, (object)false, "bool"); count++; break;
-                        case "b":
-                            onResult(name, (object)(valueArr?[0]?.GetValue<bool>() ?? false), "bool"); count++; break;
-                        case "f":
-                            onResult(name, (object)(valueArr?[0]?.GetValue<float>() ?? 0f), "float"); count++; break;
-                        case "i":
-                            onResult(name, (object)(valueArr?[0]?.GetValue<int>() ?? 0), "int"); count++; break;
-                    }
+                    _log("[OSC] OSCQuery: no VRChat service found on the network (mDNS blocked, OSC off, or older VRChat)");
+                    return null;
                 }
 
-                _log($"[OSC] OSCQuery: {count} live params from localhost:{port}");
-                return count > 0;
+                var tree = await Extensions.GetOSCTree(vrc.Value.address, vrc.Value.port);
+                if (tree == null) { _vrcEndpoint = null; return null; }
+
+                var list = new List<(string, object, string)>();
+                WalkOscQueryParams(tree, (name, value, type) => list.Add((name, value, type)));
+                _log($"[OSC] OSCQuery: {list.Count} live params from {vrc.Value.name} ({vrc.Value.address}:{vrc.Value.port})");
+                return list;
             }
             catch (Exception ex)
             {
-                _log($"[OSC] OSCQuery unavailable (port {port}): {ex.Message}");
-                return false;
+                _log($"[OSC] OSCQuery read failed: {ex.Message}");
+                _vrcEndpoint = null;
+                return null;
             }
+        }
+
+        private async Task<(string name, IPAddress address, int port)?> ResolveVrchatEndpointAsync(TimeSpan timeout)
+        {
+            if (_vrcEndpoint != null) return _vrcEndpoint;
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                _oscQuery?.RefreshServices();
+                foreach (var p in _oscQuery?.GetOSCQueryServices() ?? new HashSet<OSCQueryServiceProfile>())
+                {
+                    if (p.port == _oscQueryTcpPort) continue;
+                    if (p.name != null && p.name.IndexOf("VRChat", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        _vrcEndpoint = (p.name, p.address, p.port);
+                        return _vrcEndpoint;
+                    }
+                }
+                await Task.Delay(250);
+            }
+            return null;
+        }
+
+        private static void WalkOscQueryParams(OSCQueryNode node, Action<string, object, string> onParam)
+        {
+            if (node.Contents == null) return;
+            foreach (var child in node.Contents.Values)
+            {
+                if (child == null) continue;
+                var path = child.FullPath ?? "";
+                if (!string.IsNullOrEmpty(child.OscType)
+                    && path.StartsWith("/avatar/parameters/", StringComparison.Ordinal))
+                {
+                    var name = path.Substring("/avatar/parameters/".Length);
+                    var (value, type) = MapOscQueryValue(child.OscType, child.Value);
+                    if (type != null) onParam(name, value, type);
+                }
+                WalkOscQueryParams(child, onParam);
+            }
+        }
+
+        private static (object value, string? type) MapOscQueryValue(string oscType, object[]? value)
+        {
+            if (oscType.Contains('f'))
+                return (ToFloat(value), "float");
+            if (oscType.Contains('i'))
+                return (ToInt(value), "int");
+            if (oscType.Contains('T') || oscType.Contains('F'))
+                return (ToBool(value, oscType), "bool");
+            return (0f, null);
+        }
+
+        private static float ToFloat(object[]? v)
+        {
+            if (v == null || v.Length == 0 || v[0] == null) return 0f;
+            try { return Convert.ToSingle(v[0]); } catch { return 0f; }
+        }
+
+        private static int ToInt(object[]? v)
+        {
+            if (v == null || v.Length == 0 || v[0] == null) return 0;
+            try { return Convert.ToInt32(v[0]); } catch { return 0; }
+        }
+
+        private static bool ToBool(object[]? v, string oscType)
+        {
+            if (v != null && v.Length > 0 && v[0] != null)
+            {
+                try { return Convert.ToBoolean(v[0]); } catch { }
+            }
+            return oscType.Contains('T');
         }
 
 

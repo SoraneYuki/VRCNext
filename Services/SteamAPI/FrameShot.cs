@@ -147,16 +147,14 @@ namespace VRCNext.Services
         // ever valid (transient init period).
         private bool _framingBasisLocked;
 
-        // D3D11 — overlay frame texture (light blue border)
         private ID3D11Device?        _d3dDevice;
         private ID3D11DeviceContext? _d3dContext;
         private readonly object _d3dLock = new();
         private ID3D11Texture2D?     _overlayTex;
-        private ID3D11Texture2D?     _stagingTex;
+        private VrDraw.D2DRenderer?  _d2d;
+        private Vortice.Direct2D1.ID2D1Bitmap1? _frameTarget;
         private const int FRAME_TEX_W = 1024;
         private const int FRAME_TEX_H = 1024;
-        private readonly byte[] _frameUploadBuf = new byte[FRAME_TEX_W * FRAME_TEX_H * 4];
-        private Bitmap? _frameBitmap;
         private int _lastDrawnW   = -1;
         private int _lastDrawnH   = -1;
 
@@ -296,13 +294,16 @@ namespace VRCNext.Services
                     _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Overlay);
                     if (err != EVRInitError.None)
                     {
+                        var overlayErr = err;
                         try { OpenVR.Shutdown(); } catch { }
                         err = EVRInitError.None;
                         _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Background);
                         if (err != EVRInitError.None)
                         {
-                            LastError = $"OpenVR init failed: {err}";
-                            _log($"[FrameShot] {LastError}");
+                            _log($"[FrameShot] OpenVR init failed: {err}");
+                            var hint = OpenVrInitHint.Describe(overlayErr, err);
+                            if (hint != null) _log($"[FrameShot] {hint}");
+                            LastError = hint ?? $"OpenVR init failed: {err}";
                             return false;
                         }
                     }
@@ -334,7 +335,7 @@ namespace VRCNext.Services
 
                 try
                 {
-                    D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None,
+                    D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.BgraSupport,
                         [FeatureLevel.Level_11_0, FeatureLevel.Level_10_1],
                         out _d3dDevice, out _d3dContext);
 
@@ -344,18 +345,12 @@ namespace VRCNext.Services
                         Format = Format.B8G8R8A8_UNorm,
                         SampleDescription = new SampleDescription(1, 0),
                         Usage = ResourceUsage.Default,
-                        BindFlags = BindFlags.ShaderResource,
+                        BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
                     });
-                    _stagingTex = _d3dDevice.CreateTexture2D(new Texture2DDescription
-                    {
-                        Width = FRAME_TEX_W, Height = FRAME_TEX_H, MipLevels = 1, ArraySize = 1,
-                        Format = Format.B8G8R8A8_UNorm,
-                        SampleDescription = new SampleDescription(1, 0),
-                        Usage = ResourceUsage.Staging,
-                        CPUAccessFlags = CpuAccessFlags.Write,
-                    });
-                    _frameBitmap = new Bitmap(FRAME_TEX_W, FRAME_TEX_H, PixelFormat.Format32bppArgb);
-                    _log("[FrameShot] D3D11 device + textures ready");
+                    _d2d = new VrDraw.D2DRenderer(_d3dDevice);
+                    _frameTarget = _d2d.CreateTargetBitmap(_overlayTex);
+                    OpenVR.Overlay.SetOverlayFlag(_overlayHandle, VROverlayFlags.IsPremultiplied, true);
+                    _log("[FrameShot] D3D11 device + Direct2D target ready");
                 }
                 catch (Exception ex)
                 {
@@ -407,11 +402,11 @@ namespace VRCNext.Services
                 }
                 _mirrorSrv = IntPtr.Zero;
 
-                _stagingTex?.Dispose(); _stagingTex = null;
+                _frameTarget?.Dispose(); _frameTarget = null;
+                _d2d?.Dispose();        _d2d        = null;
                 _overlayTex?.Dispose(); _overlayTex = null;
                 _d3dContext?.Dispose(); _d3dContext = null;
                 _d3dDevice?.Dispose();  _d3dDevice  = null;
-                _frameBitmap?.Dispose(); _frameBitmap = null;
             }
 
             if (_ownedInit)
@@ -1705,12 +1700,12 @@ namespace VRCNext.Services
             OpenVR.Overlay.ShowOverlay(_overlayHandle);
         }
 
-        private void DrawQrBanner(Graphics g, int drawW, int drawH, Color accent)
+        private void DrawQrBanner(VrDraw.D2DGraphics g, int drawW, int drawH, Color accent)
         {
             var label = _qrLabel;
             if (label.Length == 0) return;
 
-            using var font = new Font("Segoe UI", 24f, FontStyle.Bold, GraphicsUnit.Pixel);
+            using var font = new VrDraw.Font("Segoe UI", 24f, VrDraw.FontStyle.Bold, VrDraw.GraphicsUnit.Pixel);
             const float padX = 18f, padY = 10f;
             var textSize = g.MeasureString(label, font);
             float maxW = Math.Max(80f, drawW - 56f);
@@ -1721,19 +1716,19 @@ namespace VRCNext.Services
             if (y < 20f) y = 20f;
 
             var box = new RectangleF(x, y, boxW, boxH);
-            using (var bg = new SolidBrush(Color.FromArgb(205, 10, 12, 16)))
+            using (var bg = new VrDraw.SolidBrush(Color.FromArgb(205, 10, 12, 16)))
                 g.FillRectangle(bg, box);
-            using (var edge = new Pen(accent, 2f))
+            using (var edge = new VrDraw.Pen(accent, 2f))
                 g.DrawRectangle(edge, box.X, box.Y, box.Width, box.Height);
 
-            using var fmt = new StringFormat
+            using var fmt = new VrDraw.StringFormat
             {
-                Alignment     = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center,
-                Trimming      = StringTrimming.EllipsisCharacter,
-                FormatFlags   = StringFormatFlags.NoWrap,
+                Alignment     = VrDraw.StringAlignment.Center,
+                LineAlignment = VrDraw.StringAlignment.Center,
+                Trimming      = VrDraw.StringTrimming.EllipsisCharacter,
+                FormatFlags   = VrDraw.StringFormatFlags.NoWrap,
             };
-            using var fg = new SolidBrush(_qrLink.Length > 0
+            using var fg = new VrDraw.SolidBrush(_qrLink.Length > 0
                 ? Color.FromArgb(255, 236, 245, 255)
                 : Color.FromArgb(255, 175, 185, 195));
             g.DrawString(label, font, fg, box, fmt);
@@ -1741,54 +1736,31 @@ namespace VRCNext.Services
 
         private void DrawFrameTexture(int drawW, int drawH, bool recording)
         {
-            if (_frameBitmap == null || _d3dContext == null || _stagingTex == null || _overlayTex == null) return;
+            if (_d2d == null || _frameTarget == null || _overlayTex == null) return;
 
-            using (var g = Graphics.FromImage(_frameBitmap))
+            Color borderColor;
+            if (IsVideoRecording)       borderColor = Color.FromArgb(255, 255, 170,  60); // orange (video)
+            else if (recording)         borderColor = Color.FromArgb(255, 255,  70,  70); // red (gif)
+            else if (_qrLabel.Length>0) borderColor = Color.FromArgb(255,  90, 220, 120); // green (QR found)
+            else                        borderColor = Color.FromArgb(255, 130, 210, 255); // light-blue (idle)
+
+            lock (_d3dLock)
             {
-                g.SmoothingMode = SmoothingMode.AntiAlias;
+                if (_d3dContext == null || _overlayTex == null || _d2d == null || _frameTarget == null) return;
+                using var g = _d2d.CreateGraphics(_frameTarget);
+                g.SmoothingMode = VrDraw.SmoothingMode.AntiAlias;
                 g.Clear(Color.Transparent);
 
-                Color borderColor;
-                if (IsVideoRecording)       borderColor = Color.FromArgb(255, 255, 170,  60); // orange (video)
-                else if (recording)         borderColor = Color.FromArgb(255, 255,  70,  70); // red (gif)
-                else if (_qrLabel.Length>0) borderColor = Color.FromArgb(255,  90, 220, 120); // green (QR found)
-                else                        borderColor = Color.FromArgb(255, 130, 210, 255); // light-blue (idle)
-                using var pen = new Pen(borderColor, 8f);
                 int inset = 4;
+                using var pen = new VrDraw.Pen(borderColor, 8f);
                 g.DrawRectangle(pen, inset, inset, drawW - inset * 2 - 1, drawH - inset * 2 - 1);
 
                 // Subtle inner shadow line for definition
-                using var pen2 = new Pen(Color.FromArgb(120, 255, 255, 255), 1.5f);
+                using var pen2 = new VrDraw.Pen(Color.FromArgb(120, 255, 255, 255), 1.5f);
                 g.DrawRectangle(pen2, inset + 6, inset + 6, drawW - inset * 2 - 13, drawH - inset * 2 - 13);
 
                 if (!recording && !IsVideoRecording) DrawQrBanner(g, drawW, drawH, borderColor);
             }
-
-            var rect = new Rectangle(0, 0, FRAME_TEX_W, FRAME_TEX_H);
-            var bData = _frameBitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            try
-            {
-                int rowBytes  = FRAME_TEX_W * 4;
-                int srcStride = bData.Stride;
-                lock (_d3dLock)
-                {
-                    if (_d3dContext == null || _stagingTex == null || _overlayTex == null) return;
-                    var box = _d3dContext.Map(_stagingTex, 0, MapMode.Write, Vortice.Direct3D11.MapFlags.None);
-                    try
-                    {
-                        for (int y = 0; y < FRAME_TEX_H; y++)
-                        {
-                            Marshal.Copy(bData.Scan0 + y * srcStride, _frameUploadBuf, 0, rowBytes);
-                            Marshal.Copy(_frameUploadBuf, 0,
-                                box.DataPointer + (nint)((long)y * box.RowPitch),
-                                rowBytes);
-                        }
-                    }
-                    finally { _d3dContext.Unmap(_stagingTex, 0); }
-                    _d3dContext.CopyResource(_overlayTex, _stagingTex);
-                }
-            }
-            finally { _frameBitmap.UnlockBits(bData); }
 
             var bounds = new VRTextureBounds_t
             {

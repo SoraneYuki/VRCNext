@@ -1909,8 +1909,6 @@ document.documentElement.addEventListener('languagechange', rerenderDashTranslat
     });
     document.body.appendChild(vignette);
 
-    // The glass var is set on its consumers, never on body: a custom property
-    // change on body invalidates styles for the whole document every scroll frame
     const glassHosts = [
         document.getElementById('taskbar'),
         document.getElementById('sidebarEl'),

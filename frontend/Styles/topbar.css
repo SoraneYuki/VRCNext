@@ -43,7 +43,7 @@
 
 
 .mini-badge.online {
-    background: rgba(45,212,140,.12);
+    background: color-mix(in srgb, var(--ok) 12%, transparent);
     border-color: color-mix(in srgb, var(--ok) 40%, transparent);
 }
 

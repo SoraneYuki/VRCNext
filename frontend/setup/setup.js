@@ -97,7 +97,6 @@ function vrcPlusDecoPrefs(on) {
             profileThemeContrast: true,
             showDecorationsOnDashboard: true,
             enableProfileEffects: true,
-            profileThemeVrcnOverride: false,
             transparentProfileCards: false,
         };
     }
@@ -109,7 +108,6 @@ function vrcPlusDecoPrefs(on) {
         enableProfileThemes: false,
         showDecorationsOnDashboard: false,
         enableProfileEffects: false,
-        profileThemeVrcnOverride: false,
         transparentProfileCards: false,
     };
 }

@@ -35,12 +35,96 @@ function openWorldSearchDetail(id) {
     sendToCS({ action: 'vrcGetWorldDetail', worldId: id });
 }
 
+function wdSetHomeWorld(wid, btn) {
+    if (!wid) return;
+    sendToCS({ action: 'vrcSetHomeWorld', worldId: wid });
+    if (typeof currentVrcUser !== 'undefined' && currentVrcUser) {
+        currentVrcUser.homeLocation = wid;
+        if (currentVrcUser.rawJson) currentVrcUser.rawJson.homeLocation = wid;
+    }
+    if (btn) btn.classList.add('active');
+}
+
 function refreshWorldInstances() {
     if (!_wdCurrentId) return;
     _wdRefreshing = true;
     const btn = document.getElementById('wdInstancesRefreshBtn');
     if (btn) btn.classList.add('spinning');
     sendToCS({ action: 'vrcGetWorldDetail', worldId: _wdCurrentId });
+}
+
+let _wdInstSortMode = 'friends';
+let _wdInstView = null;
+
+function setWdInstSort(v) {
+    _wdInstSortMode = v;
+    _wdRenderInstList(false);
+}
+
+function _wdIsGroupInstance(inst) {
+    return !!inst.ownerGroup || (inst.type || '').toLowerCase().includes('group');
+}
+
+function _wdFilterSortInstances(list, friendsByLoc, q) {
+    q = (q || '').trim().toLowerCase();
+    const out = q ? list.filter(i =>
+        (i.instanceId || '').toLowerCase().includes(q)
+        || (i.location || '').toLowerCase().includes(q)
+        || (i.type || '').toLowerCase().includes(q)
+        || (i.ownerName || '').toLowerCase().includes(q)
+        || (i.ownerGroup || '').toLowerCase().includes(q)) : list.slice();
+    const friends = i => (friendsByLoc[i.location] || []).length;
+    const players = (a, b) => (b.users || 0) - (a.users || 0);
+    switch (_wdInstSortMode) {
+        case 'players': out.sort(players); break;
+        case 'agegate': out.sort((a, b) => ((b.ageGate ? 1 : 0) - (a.ageGate ? 1 : 0)) || players(a, b)); break;
+        case 'groups':  out.sort((a, b) => ((_wdIsGroupInstance(b) ? 1 : 0) - (_wdIsGroupInstance(a) ? 1 : 0)) || players(a, b)); break;
+        default:        out.sort((a, b) => (friends(b) - friends(a)) || players(a, b)); break;
+    }
+    return out;
+}
+
+function _wdInstMakeCard(inst) {
+    const v = _wdInstView;
+    return renderInstanceItem({
+        thumb: v.thumb, worldTitle: v.name, instanceType: inst.type,
+        instanceId: inst.instanceId || '', owner: inst.ownerName || '',
+        ownerGroup: inst.ownerGroup || '', ownerId: inst.ownerId || '',
+        region: getWorldRegionLabel(inst.region), userCount: inst.users,
+        capacity: v.capacity, friends: getInstanceMembers(inst.location),
+        location: inst.location, ageGate: inst.ageGate || false,
+        languageRatio: inst.languageRatio || {},
+    });
+}
+
+function _wdRenderInstList(preserveScroll) {
+    const tab = document.getElementById('wdTabInstances');
+    const v = _wdInstView;
+    if (!tab || !v) return;
+    const q = document.getElementById('wdInstSearch')?.value || '';
+    const sorted = _wdFilterSortInstances(v.instances, v.friendsByLoc, q);
+    let list = tab.querySelector('.wd-instances-list');
+    tab.querySelector('.wd-instances-empty')?.remove();
+    if (!sorted.length) {
+        if (list) list.remove();
+        const empty = document.createElement('div');
+        empty.className = 'wd-instances-empty';
+        empty.style.cssText = 'font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;';
+        empty.textContent = q.trim()
+            ? t('worlds.instances.no_results', 'No matching instances')
+            : t('worlds.instances.none_active', 'No active instances');
+        tab.appendChild(empty);
+        return;
+    }
+    if (!list) {
+        list = document.createElement('div');
+        list.className = 'wd-instances-list';
+        list.style.cssText = 'max-height:370px;overflow-y:auto;';
+        tab.appendChild(list);
+    }
+    const st = preserveScroll ? list.scrollTop : 0;
+    list.innerHTML = sorted.map(_wdInstMakeCard).join('');
+    list.scrollTop = st;
 }
 
 function _wdUpdateInstancesInPlace(w) {
@@ -70,71 +154,11 @@ function _wdUpdateInstancesInPlace(w) {
             allInstances.push({ instanceId: loc.includes(':') ? loc.split(':')[1] : loc, users: worldFriendsByLoc[loc].length, type: iType, region: regionMatch ? regionMatch[1] : 'us', location: loc });
         }
     });
-    allInstances.sort((a, b) => ((worldFriendsByLoc[b.location] || []).length) - ((worldFriendsByLoc[a.location] || []).length));
 
-    const makeCard = inst => renderInstanceItem({
-        thumb, worldTitle: w.name || '', instanceType: inst.type,
-        instanceId: inst.instanceId || '', owner: inst.ownerName || '',
-        ownerGroup: inst.ownerGroup || '', ownerId: inst.ownerId || '',
-        region: getWorldRegionLabel(inst.region), userCount: inst.users,
-        capacity: w.capacity || 0, friends: getInstanceMembers(inst.location),
-        location: inst.location, ageGate: inst.ageGate || false,
-        languageRatio: inst.languageRatio || {},
-    });
+    _wdInstView = { instances: allInstances, friendsByLoc: worldFriendsByLoc, thumb, name: w.name || '', capacity: w.capacity || 0 };
+    _wdRenderInstList(true);
 
-    const newIds = new Set(allInstances.map(i => i.instanceId || ''));
-    let list = tab.querySelector('.wd-instances-list');
-
-    if (!list) {
-        // Currently showing empty-state text; replace with a fresh list
-        const after = tab.querySelector('.wd-section-label');
-        while (after && after.nextSibling) tab.removeChild(after.nextSibling);
-        if (allInstances.length > 0) {
-            list = document.createElement('div');
-            list.className = 'wd-instances-list';
-            list.style.cssText = 'max-height:370px;overflow-y:auto;';
-            list.innerHTML = allInstances.map(makeCard).join('');
-            tab.appendChild(list);
-        } else {
-            const empty = document.createElement('div');
-            empty.style.cssText = 'font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;';
-            empty.textContent = t('worlds.instances.none_active', 'No active instances');
-            tab.appendChild(empty);
-        }
-    } else {
-        // Remove cards whose instance is gone
-        [...list.querySelectorAll('[data-iid]')].forEach(card => {
-            if (!newIds.has(card.getAttribute('data-iid'))) card.remove();
-        });
-
-        // Update existing cards and append new ones
-        allInstances.forEach(inst => {
-            const iid = inst.instanceId || '';
-            const existing = [...list.querySelectorAll('[data-iid]')].find(c => c.getAttribute('data-iid') === iid);
-            const tmp = document.createElement('div');
-            tmp.innerHTML = makeCard(inst);
-            const newCard = tmp.firstElementChild;
-            if (!newCard) return;
-            if (existing) {
-                list.replaceChild(newCard, existing);
-            } else {
-                list.appendChild(newCard);
-            }
-        });
-
-        // If list is now empty, show empty state
-        if (allInstances.length === 0) {
-            list.remove();
-            const empty = document.createElement('div');
-            empty.style.cssText = 'font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;';
-            empty.textContent = t('worlds.instances.none_active', 'No active instances');
-            tab.appendChild(empty);
-        }
-    }
-
-    // Update count label and tab button
-    const countSpan = tab.querySelector('.wd-section-label span');
-    if (countSpan) countSpan.innerHTML = `${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span>`;
+    // Update tab button count
     const tabBtn = [...document.querySelectorAll('.fd-tab')].find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'instances'"));
     if (tabBtn) tabBtn.innerHTML = `${t('worlds.tabs.instances_label', 'Instances')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span>`;
 }
@@ -204,29 +228,14 @@ function renderWorldSearchDetail(w) {
         }
     });
 
-    // Instances with friends first
-    allInstances.sort((a, b) => ((worldFriendsByLoc[b.location] || []).length) - ((worldFriendsByLoc[a.location] || []).length));
+    _wdInstView = { instances: allInstances, friendsByLoc: worldFriendsByLoc, thumb, name: w.name || '', capacity: w.capacity || 0 };
+    const sortedInstances = _wdFilterSortInstances(allInstances, worldFriendsByLoc, '');
 
     let instancesHtml = '';
-    if (allInstances.length > 0) {
-        instancesHtml = `<div class="wd-instances-list" style="max-height:370px;overflow-y:auto;">${allInstances.map(inst => renderInstanceItem({
-            thumb:         thumb,
-            worldTitle:    w.name || '',
-            instanceType:  inst.type,
-            instanceId:    inst.instanceId || '',
-            owner:         inst.ownerName  || '',
-            ownerGroup:    inst.ownerGroup || '',
-            ownerId:       inst.ownerId    || '',
-            region:        getWorldRegionLabel(inst.region),
-            userCount:     inst.users,
-            capacity:      w.capacity || 0,
-            friends:       getInstanceMembers(inst.location),
-            location:      inst.location,
-            ageGate:       inst.ageGate || false,
-            languageRatio: inst.languageRatio || {},
-        })).join('')}</div>`;
+    if (sortedInstances.length > 0) {
+        instancesHtml = `<div class="wd-instances-list" style="max-height:370px;overflow-y:auto;">${sortedInstances.map(_wdInstMakeCard).join('')}</div>`;
     } else {
-        instancesHtml = `<div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;">${t('worlds.instances.none_active', 'No active instances')}</div>`;
+        instancesHtml = `<div class="wd-instances-empty" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:14px 0;">${t('worlds.instances.none_active', 'No active instances')}</div>`;
     }
 
     const isFavWorld = favWorldsData.some(fw => fw.id === w.id);
@@ -252,6 +261,9 @@ function renderWorldSearchDetail(w) {
         _wmr(t('worlds.meta.max_capacity', 'Max Capacity'), esc(getWorldPlayersLabel(w.capacity))),
         w.createdAt ? _wmr(t('worlds.meta.published', 'Published'), fmtShortDate(new Date(w.createdAt + 'T00:00:00'))) : '',
         w.updatedAt ? _wmr(t('worlds.meta.updated', 'Updated'), fmtShortDate(new Date(w.updatedAt + 'T00:00:00'))) : '',
+        w.pcSize > 0 ? _wmr(t('avatars.list.header.pc', 'PC'), esc(formatFileSize(w.pcSize))) : '',
+        w.androidSize > 0 ? _wmr(t('avatars.list.header.android', 'Android'), esc(formatFileSize(w.androidSize))) : '',
+        w.iosSize > 0 ? _wmr(t('avatars.list.header.ios', 'iOS'), esc(formatFileSize(w.iosSize))) : '',
         w.version != null ? _wmr(t('worlds.meta.version', 'Version'), String(w.version)) : '',
     ].join('');
     const wdCommunityRows = [
@@ -271,12 +283,18 @@ function renderWorldSearchDetail(w) {
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeWorldSearchDetail()` },
     ]);
 
-    const wdStatsBadges = `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">person</span> ${w.occupants} ${t('worlds.meta.active', 'Active')}</span>
-            <span class="vrcn-badge"><span class="msi" style="font-size:11px;">favorite</span> ${w.favorites}</span>
-            <span class="vrcn-badge"><span class="msi" style="font-size:11px;">visibility</span> ${w.visits}</span>
-            ${w.pcSize > 0 ? `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">computer</span> ${formatFileSize(w.pcSize)}</span>` : ''}
-            ${w.androidSize > 0 ? `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">android</span> ${formatFileSize(w.androidSize)}</span>` : ''}
-            ${w.iosSize > 0 ? `<span class="vrcn-badge"><span class="msi" style="font-size:11px;">phone_iphone</span> ${formatFileSize(w.iosSize)}</span>` : ''}`;
+    const _wdCompact = n => {
+        n = Number(n) || 0;
+        if (n >= 1e6) return String(Math.round(n / 1e5) / 10).replace(/\.0$/, '') + 'm';
+        if (n >= 1e3) return String(Math.round(n / 100) / 10).replace(/\.0$/, '') + 'k';
+        return String(n);
+    };
+    const _wdStat = (icon, label, n) => `<div class="wd-stat" title="${esc(label)}: ${Number(n || 0).toLocaleString()}"><span class="msi wd-stat-ico">${icon}</span><span class="wd-stat-val">${_wdCompact(n)}</span></div>`;
+    const wdStatsStrip = `<div class="wd-stats-strip">
+            ${_wdStat('person', t('worlds.meta.active', 'Active'), w.occupants)}
+            ${_wdStat('favorite', t('worlds.list.header.favorites', 'Favorites'), w.favorites)}
+            ${_wdStat('visibility', t('worlds.list.header.visits', 'Visits'), w.visits)}
+        </div>`;
     const wdFavPickerHtml = `<div id="wdFavPicker" style="display:none;margin-bottom:14px;">
             <div class="wd-section-label" style="margin-bottom:6px;">${t('worlds.favorites.add_group_title', 'ADD TO FAVORITE GROUP')}</div>
             <div class="ci-group-list" id="wdFavGroupList"><div style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx3);padding:8px 0;">${t('worlds.favorites.loading_groups', 'Loading groups...')}</div></div>
@@ -314,10 +332,10 @@ function renderWorldSearchDetail(w) {
             </div>
         </div>` : ''}
         <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);margin-bottom:12px;">${t('worlds.meta.by', 'by')} ${w.authorId ? `<span onclick="navOpenModal('friend','${jsq(w.authorId)}','${jsq(w.authorName || '')}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--bg-hover);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--tx1);cursor:pointer;line-height:1.8;">${esc(w.authorName)}</span>` : esc(w.authorName)}</div>`;
-    const wdStatsBadgesRow = `<div class="fd-badges-row">${wdStatsBadges}</div>`;
     const wdActionsCompact = `<div class="fd-actions">
             <button class="vrcn-button-round" onclick="openCreateInstanceModal()" title="${esc(t('worlds.instances.create_title', 'Create Instance'))}"><span class="msi" style="font-size:16px;">add_circle_outline</span></button>
             <button class="vrcn-button-round${isFavWorld ? ' active' : ''}" id="wdFavBtn" onclick="toggleWorldFavPicker('${wid}')" title="${isFavWorld ? esc(t('worlds.favorites.unfavorite', 'Unfavorite')) : esc(t('worlds.favorites.favorite', 'Favorite'))}"><span class="msi" style="font-size:16px;">${isFavWorld ? 'favorite' : 'favorite_border'}</span></button>
+            <button class="vrcn-button-round${(wid && wid === (currentVrcUser?.homeLocation || currentVrcUser?.rawJson?.homeLocation)) ? ' active' : ''}" id="wdHomeBtn" onclick="wdSetHomeWorld('${jsq(wid)}', this)" title="${esc(t('context_menu.world.set_home', 'Set as Home'))}"><span class="msi" style="font-size:16px;">home</span></button>
         </div>`;
     const wdDescTransBtn = (desc && window._kxdProfileTranslationEnabled !== false) ? `<button class="fd-bio-translate myp-edit-btn" onclick="fdTranslateBio(this)" title="${esc(t('profiles.bio.translate', 'Translate'))}"><span class="msi" style="font-size:14px;">translate</span></button>` : '';
     const wdDescCardCompact = `<div class="fd-info-card">
@@ -343,8 +361,19 @@ function renderWorldSearchDetail(w) {
         </div>`;
     const wdInfoCompactRight = `<div class="fd-info-wrap">${wdDescCardCompact}${wdComPopRow}<div class="fd-info-card">${wdHistoryInner}</div>${wdCommentsCard}</div>`;
 
+    const wdInstToolbar = `<div class="search-bar-row" style="margin-top:4px;margin-bottom:8px;">
+            <span class="msi search-ico">search</span>
+            <input id="wdInstSearch" type="text" class="vrcn-input" placeholder="${esc(t('worlds.instances.search_placeholder', 'Search instance name, IDs or types...'))}" style="background:var(--bg-input);" oninput="_wdRenderInstList(false)">
+            <button class="vrcn-button" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances" style="flex-shrink:0;"><span class="msi" style="font-size:14px;">refresh</span></button>
+            <select id="wdInstSort" class="vrcn-dropdown" style="flex-shrink:0;" onchange="setWdInstSort(this.value)">
+                <option value="friends"${_wdInstSortMode === 'friends' ? ' selected' : ''}>${esc(t('worlds.instances.sort.friends', 'Friends'))}</option>
+                <option value="players"${_wdInstSortMode === 'players' ? ' selected' : ''}>${esc(t('worlds.instances.sort.players', 'Most Players'))}</option>
+                <option value="agegate"${_wdInstSortMode === 'agegate' ? ' selected' : ''}>${esc(t('worlds.instances.sort.agegate', 'Age Gated'))}</option>
+                <option value="groups"${_wdInstSortMode === 'groups' ? ' selected' : ''}>${esc(t('worlds.instances.sort.groups', 'Groups'))}</option>
+            </select>
+        </div>`;
     const wdInstancesTab = `<div id="wdTabInstances" style="display:none;">
-            <div class="wd-section-label wd-instances-label" style="margin-top:4px;"><span>${t('worlds.instances.active_title_label', 'ACTIVE INSTANCES')} <span class="vrcn-badge fd-tab-badge">${allInstances.length}</span></span><button class="mi-refresh-btn" id="wdInstancesRefreshBtn" onclick="refreshWorldInstances()" title="Refresh instances"><span class="msi">refresh</span></button></div>
+            ${wdInstToolbar}
             ${instancesHtml}
         </div>`;
     const wdPhotosTab = `<div id="wdTabPhotos" style="display:none;"><div id="wdPhotosGrid"></div><div id="wdPhotosPaginatorBar" class="mini-paginator"></div></div>`;
@@ -356,7 +385,7 @@ function renderWorldSearchDetail(w) {
             <div class="fd-left-banner" id="wd-banner-slot">${thumb ? '<div class="fd-banner-fade"></div>' : ''}${isOwnWorld ? `<button class="fd-banner-edit" onclick="wdUploadBannerImage('${jsq(wid)}')" title="${esc(t('worlds.detail.actions.change_image', 'Change Image'))}"><span class="msi">edit</span></button>` : ''}</div>
             <div class="fd-left-body">
                 <div>${wdNameAuthor}</div>
-                ${wdStatsBadgesRow}
+                ${wdStatsStrip}
                 ${wdActionsCompact}
                 ${wdFavPickerHtml}
                 ${wdTimeCard}
@@ -378,6 +407,8 @@ function renderWorldSearchDetail(w) {
         _wdModal.classList.add('wd-style-compact');
     }
     if (thumb) { const s = document.getElementById('wd-banner-slot'); const bi = _getWorldBannerImg(wid, thumb); if (s && bi) s.insertBefore(bi, s.firstChild); }
+    const wdInstSortSel = document.getElementById('wdInstSort');
+    if (wdInstSortSel && typeof initVnSelect === 'function') initVnSelect(wdInstSortSel);
     if (hasWorldPhotos) { _wdPreloadPhotos(wid); _wdLoadPhotos(wid); }
     if (wid) { _wdInstanceHistory = []; sendToCS({ action: 'getTimelineForWorld', worldId: wid }); }
     if (wid && worldCommentsEnabled()) loadWorldComments(wid, 1);

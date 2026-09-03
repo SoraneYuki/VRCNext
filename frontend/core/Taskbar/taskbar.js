@@ -1,7 +1,6 @@
 var _helpPanelOpen = false;
 var _helpDismiss = null;
 
-/* === VRChat API Health (status.vrchat.com) === */
 var _apiHealthState = null;
 var _apiHealthPanelOpen = false;
 var _apiHealthDismiss = null;

@@ -8,7 +8,13 @@ window.external.receiveMessage(rawMsg => {
     }
     switch (type) {
             case 'openDeepLink':
-                if (payload && typeof msgrContentOpen === 'function') msgrContentOpen(payload.id, payload.prefix);
+                if (!payload) break;
+                if (payload.prefix === 'avtr' && (payload.action || '').startsWith('put/fav')) {
+                    if (typeof deepLinkFavoriteAvatar === 'function')
+                        deepLinkFavoriteAvatar(payload.id, payload.action.slice('put/fav'.length));
+                } else if (typeof msgrContentOpen === 'function') {
+                    msgrContentOpen(payload.id, payload.prefix);
+                }
                 break;
             case 'translationData': handleTranslationData(payload); break;
             case 'loadSettings':
@@ -1101,9 +1107,11 @@ case 'vrcNews':
             case 'dashBgSelected':
                 dashBgPath = payload.path || '';
                 dashBgDataUri = payload.url || '';
+                dashBgSample = payload.sample || '';
                 if (dashBgPath) document.getElementById('dashBgName').textContent = dashBgPath.split(/[\\\\/]/).pop();
                 if (typeof applyDashHeroBg === 'function') applyDashHeroBg();
                 renderDashboard();
+                if (currentSpecialTheme === 'auto' && typeof applyAutoColor === 'function') applyAutoColor();
                 if (typeof renderDashBgPreview === 'function') renderDashBgPreview();
                 autoSave();
                 break;
@@ -1364,14 +1372,8 @@ case 'vrcNews':
         case 'ssSaveResult':
             if (typeof ssOnSaveResult === 'function') ssOnSaveResult(payload);
             break;
-        case 'vrcnPlusTheme':
-            if (typeof window.vrcnPlusTheme === 'function') window.vrcnPlusTheme(payload);
-            break;
         case 'vrcnPlusEntitlement':
             if (typeof window.vrcnPlusEntitlement === 'function') window.vrcnPlusEntitlement(payload);
-            break;
-        case 'vrcnPlusSaveResult':
-            if (typeof window.vrcnPlusSaveResult === 'function') window.vrcnPlusSaveResult(payload);
             break;
     }
     if (typeof navUpdateBadges === 'function') navUpdateBadges();

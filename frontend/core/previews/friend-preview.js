@@ -239,8 +239,6 @@
         renderPopup(popup, f, _fpCache[uid] || null);
         popup.dataset.uid = uid;
         popup.classList.add('visible');
-        if (typeof window.vrcnPlusApplyThemeToElement === 'function') window.vrcnPlusApplyThemeToElement(popup, null);
-        if (typeof window.vrcnPlusRequestTheme === 'function') window.vrcnPlusRequestTheme(uid);
         positionPopup(popup, cardEl);
 
         // Fetch bio/banner immediately if not cached

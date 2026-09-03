@@ -518,6 +518,9 @@ public class FriendsController
                 var source = msg["source"]?.ToString() ?? "";
                 if (!string.IsNullOrEmpty(fileId) || !string.IsNullOrEmpty(forUserId))
                 {
+                    if (string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(forUserId))
+                        fileId = await ResolveAvatarFileIdForUserAsync(forUserId, "");
+
                     string? avtrId = null;
                     JObject? avtrData = null;
                     if (!string.IsNullOrEmpty(fileId))
@@ -539,22 +542,6 @@ public class FriendsController
                     var knownAvatarJson = string.IsNullOrEmpty(forUserId)
                         ? "" : _core.TimeEngine.GetUserProfileCache(forUserId)?.ProfileCurrentAvatar ?? "";
                     var knownAvatarName = TryParseJObject(knownAvatarJson)?["name"]?.ToString() ?? "";
-
-                    if (string.IsNullOrEmpty(avtrId) && string.IsNullOrEmpty(source)
-                        && !string.IsNullOrEmpty(forUserId) && string.IsNullOrEmpty(knownAvatarName))
-                    {
-                        var grpKey = "avtrgroup:" + forUserId;
-                        if (!ModalCacheHelper.IsCached(grpKey))
-                        {
-                            ModalCacheHelper.Mark(grpKey);
-                            var groupFileId = await TryGetAvatarFileIdViaGroupAsync(forUserId);
-                            if (!string.IsNullOrEmpty(groupFileId) && groupFileId != fileId)
-                            {
-                                var g = await _core.Avatars.GetAvatarIdByFileIdAsync(groupFileId);
-                                if (!string.IsNullOrEmpty(g.id) || g.data != null) { avtrId = g.id; avtrData = g.data; }
-                            }
-                        }
-                    }
 
                     if (avtrData == null && !string.IsNullOrEmpty(forUserId))
                     {
@@ -634,19 +621,18 @@ public class FriendsController
                         {
                             try
                             {
-                                const string RobotFileId = "file_0e8c4e32-7444-44ea-ade4-313c010d4bae";
                                 string fileId = "";
                                 JObject? stored = GetStoreValue(uid);
                                 if (stored != null)
                                     fileId = ExtractAvatarFileId(stored);
-                                if (fileId == RobotFileId) fileId = "";
+                                if (VRCNext.Services.AvtrdbResolver.IsPlaceholderFileId(fileId)) fileId = "";
 
                                 JObject? userObj = null;
                                 if (string.IsNullOrEmpty(fileId))
                                 {
                                     userObj = await _core.Users.GetUserAsync(uid);
                                     if (userObj != null) fileId = ExtractAvatarFileId(userObj);
-                                    if (fileId == RobotFileId) fileId = "";
+                                    if (VRCNext.Services.AvtrdbResolver.IsPlaceholderFileId(fileId)) fileId = "";
                                 }
 
                                 // Fallback: represented group → members/search endpoint (exposes real avatar URL)
@@ -2256,19 +2242,60 @@ public class FriendsController
         return "";
     }
 
+    private async Task<string> ResolveAvatarFileIdForUserAsync(string userId, string fileId)
+    {
+        if (string.IsNullOrEmpty(userId)) return fileId;
+        if (VRCNext.Services.AvtrdbResolver.IsPlaceholderFileId(fileId)) fileId = "";
+
+        var stored = GetStoreValue(userId);
+        if (string.IsNullOrEmpty(fileId) && stored != null) fileId = ExtractAvatarFileId(stored);
+        if (VRCNext.Services.AvtrdbResolver.IsPlaceholderFileId(fileId)) fileId = "";
+
+        JObject? userObj = null;
+        if (string.IsNullOrEmpty(fileId))
+        {
+            userObj = await _core.Users.GetUserAsync(userId);
+            if (userObj != null) fileId = ExtractAvatarFileId(userObj);
+            if (VRCNext.Services.AvtrdbResolver.IsPlaceholderFileId(fileId)) fileId = "";
+        }
+
+        if (string.IsNullOrEmpty(fileId))
+        {
+            var displayName = stored?["displayName"]?.ToString() ?? userObj?["displayName"]?.ToString() ?? "";
+            var repGroup = await _core.Users.GetUserRepresentedGroupAsync(userId);
+            var groupId = repGroup?["groupId"]?.ToString() ?? repGroup?["id"]?.ToString() ?? "";
+            if (!string.IsNullOrEmpty(groupId) && !string.IsNullOrEmpty(displayName))
+            {
+                var member = await _core.Groups.FindGroupMemberByDisplayNameAsync(groupId, displayName, userId);
+                if (member != null) fileId = ExtractAvatarFileId(member["user"] as JObject ?? member);
+                if (VRCNext.Services.AvtrdbResolver.IsPlaceholderFileId(fileId)) fileId = "";
+                _core.SendToJS("log", new { msg = $"[FILE] {displayName} via group {groupId} -> fileId='{fileId}'", color = "info" });
+            }
+        }
+        return fileId;
+    }
+
     private async Task<string> TryGetAvatarFileIdViaGroupAsync(string userId)
     {
         try
         {
-            const string RobotFileId = "file_0e8c4e32-7444-44ea-ade4-313c010d4bae";
             var displayName = GetStoreValue(userId)?["displayName"]?.ToString() ?? "";
             if (string.IsNullOrEmpty(displayName))
                 displayName = (await _core.Users.GetUserAsync(userId))?["displayName"]?.ToString() ?? "";
-            if (string.IsNullOrEmpty(displayName)) return "";
+            if (string.IsNullOrEmpty(displayName))
+            {
+                _core.SendToJS("log", new { msg = $"[FILE] {userId} has no display name, group route unavailable", color = "warn" });
+                return "";
+            }
 
             var repGroup = await _core.Users.GetUserRepresentedGroupAsync(userId);
             var groupId = repGroup?["groupId"]?.ToString() ?? repGroup?["id"]?.ToString() ?? "";
-            if (string.IsNullOrEmpty(groupId)) return "";
+            if (string.IsNullOrEmpty(groupId))
+            {
+                _core.SendToJS("log", new { msg = $"[FILE] {displayName} represents no group, no avatar source left", color = "warn" });
+                return "";
+            }
+            _core.SendToJS("log", new { msg = $"[FILE] {displayName} -> group {groupId}, searching member", color = "info" });
 
             var member = await _core.Groups.FindGroupMemberByDisplayNameAsync(groupId, displayName, userId);
             if (member == null)
@@ -2279,9 +2306,13 @@ public class FriendsController
 
             var fid = ExtractAvatarFileId(member["user"] as JObject ?? member);
             _core.SendToJS("log", new { msg = $"[FILE] {displayName} via group -> fileId='{fid}'", color = "info" });
-            return fid == RobotFileId ? "" : fid;
+            return VRCNext.Services.AvtrdbResolver.IsPlaceholderFileId(fid) ? "" : fid;
         }
-        catch { return ""; }
+        catch (Exception ex)
+        {
+            _core.SendToJS("log", new { msg = $"[FILE] group route failed for {userId}: {ex.Message}", color = "err" });
+            return "";
+        }
     }
 
     private const string RobotAvatarId = "avtr_c38a1615-5bf5-42b4-84eb-a8b6c37cbd11";

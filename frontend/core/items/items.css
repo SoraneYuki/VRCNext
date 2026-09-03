@@ -199,6 +199,13 @@
     background: var(--bg-card) center/cover no-repeat;
     flex-shrink: 0;
 }
+.fd-world-card .inst-item {
+    padding: 9px 12px;
+}
+.fd-world-card .inst-item-thumb {
+    width: 51px;
+    height: 38px;
+}
 .inst-item-body {
     flex: 1;
     min-width: 0;

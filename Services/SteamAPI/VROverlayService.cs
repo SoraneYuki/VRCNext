@@ -1,10 +1,6 @@
 ﻿#if WINDOWS
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Linq;
@@ -16,6 +12,27 @@ using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Windows.Media.Control;
 using VRCNext.Services.Helpers;
+using VRCNext.Services.VrDraw;
+using Color = System.Drawing.Color;
+using Point = System.Drawing.Point;
+using PointF = System.Drawing.PointF;
+using Rectangle = System.Drawing.Rectangle;
+using RectangleF = System.Drawing.RectangleF;
+using Bitmap = VRCNext.Services.VrDraw.VrBitmap;
+using Graphics = VRCNext.Services.VrDraw.D2DGraphics;
+using Font = VRCNext.Services.VrDraw.Font;
+using FontFamily = VRCNext.Services.VrDraw.FontFamily;
+using FontStyle = VRCNext.Services.VrDraw.FontStyle;
+using GraphicsUnit = VRCNext.Services.VrDraw.GraphicsUnit;
+using Brush = VRCNext.Services.VrDraw.Brush;
+using SolidBrush = VRCNext.Services.VrDraw.SolidBrush;
+using Pen = VRCNext.Services.VrDraw.Pen;
+using StringFormat = VRCNext.Services.VrDraw.StringFormat;
+using StringAlignment = VRCNext.Services.VrDraw.StringAlignment;
+using StringTrimming = VRCNext.Services.VrDraw.StringTrimming;
+using StringFormatFlags = VRCNext.Services.VrDraw.StringFormatFlags;
+using InterpolationMode = VRCNext.Services.VrDraw.InterpolationMode;
+using D2DTarget = Vortice.Direct2D1.ID2D1Bitmap1;
 
 namespace VRCNext.Services
 {
@@ -92,15 +109,14 @@ namespace VRCNext.Services
         private uint     _doubleTapLastButton  = uint.MaxValue;
         private DateTime _doubleTapLastTime    = DateTime.MinValue;
 
-        // D3D11 (staging + overlay textures for flicker-free upload)
-
         private ID3D11Device?        _d3dDevice;
         private ID3D11DeviceContext? _d3dContext;
-        private ID3D11Texture2D?     _stagingTex;  
-        private ID3D11Texture2D?     _overlayTex; 
+        private ID3D11Texture2D?     _overlayTex;
+        private D2DRenderer?         _d2d;
+        private D2DTarget?           _overlayTarget;
+        private readonly object      _renderLock = new();
 
         // Rendering
-        private Bitmap?   _bitmap;
         private const int W = 512;
         private const int H = 384;
         private const int ContentVShift = (H - 384) / 2 > 0 ? (H - 384) / 2 : 0;
@@ -114,8 +130,6 @@ namespace VRCNext.Services
         private const int HeaderH = 58;
         private const int TexH = H + HeaderH;
         private const int RenderScale = 2; // render at 2× resolution for sharper overlay
-        // Preallocated RGBA pixel buffer for CPU→staging copy
-        private readonly byte[] _uploadBuf = new byte[W * TexH * 4 * RenderScale * RenderScale];
         // SMTC poll — query media session every ~3 s (270 × 11 ms)
         private int  _smtcTick = 0;
         private bool _smtcPolling = false;
@@ -136,7 +150,6 @@ namespace VRCNext.Services
         private readonly Dictionary<string, DateTime> _joinCooldowns = new();
 
         // Material Symbols Rounded font (downloaded once, used for tool icons)
-        private System.Drawing.Text.PrivateFontCollection? _matSymFonts;
         private FontFamily? _matSymFamily;
 
         // Album art (SMTC thumbnail)
@@ -199,15 +212,13 @@ namespace VRCNext.Services
 
         // Toast notification overlay (HMD-attached)
         private ulong _toastHandle;
-        private Bitmap? _toastBitmap;
-        private ID3D11Texture2D? _toastStagingTex;
         private ID3D11Texture2D? _toastOverlayTex;
+        private D2DTarget? _toastTarget;
         private const int TW = 420;  
         private const int TH = 72;    
         private const int TH_GAP = 6;   
         private const int MAX_STACK = 4;
-        private const int TH_FULL = TH * MAX_STACK + TH_GAP * (MAX_STACK - 1); // max bitmap height
-        private readonly byte[] _toastUploadBuf = new byte[TW * TH_FULL * 4];
+        private const int TH_FULL = TH * MAX_STACK + TH_GAP * (MAX_STACK - 1); // max texture height
 
         // Toast config
         private bool  _toastEnabled    = true;
@@ -735,13 +746,16 @@ namespace VRCNext.Services
                     _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Overlay);
                     if (err != EVRInitError.None)
                     {
+                        var overlayErr = err;
                         err = EVRInitError.None;
                         try { OpenVR.Shutdown(); } catch { }
                         _vrSystem = OpenVR.Init(ref err, EVRApplicationType.VRApplication_Background);
                         if (err != EVRInitError.None)
                         {
-                            LastError = $"OpenVR init failed: {err}";
-                            _log($"[VROverlay] {LastError}");
+                            _log($"[VROverlay] OpenVR init failed: {err}");
+                            var hint = OpenVrInitHint.Describe(overlayErr, err);
+                            if (hint != null) _log($"[VROverlay] {hint}");
+                            LastError = hint ?? $"OpenVR init failed: {err}";
                             return false;
                         }
                     }
@@ -786,42 +800,47 @@ namespace VRCNext.Services
                 var mouseScale = new HmdVector2_t { v0 = W, v1 = TexH };
                 OpenVR.Overlay.SetOverlayMouseScale(_overlayHandle, ref mouseScale);
 
-                _bitmap = new Bitmap(W * RenderScale, TexH * RenderScale, PixelFormat.Format32bppArgb);
-
-                // D3D11: staging (CPU-writable) + overlay (GPU, SteamVR reads from it).
                 try
                 {
-                    D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None,
-                        [FeatureLevel.Level_11_0, FeatureLevel.Level_10_1],
-                        out _d3dDevice, out _d3dContext);
+                    try
+                    {
+                        D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.BgraSupport,
+                            [FeatureLevel.Level_11_0, FeatureLevel.Level_10_1],
+                            out _d3dDevice, out _d3dContext);
+                    }
+                    catch (Exception hwEx)
+                    {
+                        _log($"[VROverlay] Hardware D3D11 failed ({hwEx.Message}), trying WARP");
+                        D3D11.D3D11CreateDevice(null, DriverType.Warp, DeviceCreationFlags.BgraSupport,
+                            [FeatureLevel.Level_11_0, FeatureLevel.Level_10_1],
+                            out _d3dDevice, out _d3dContext);
+                    }
 
-                    // Overlay texture: GPU-only, SteamVR reads from it each compositor frame
                     var overlayDesc = new Texture2DDescription
                     {
                         Width = W * RenderScale, Height = TexH * RenderScale, MipLevels = 1, ArraySize = 1,
                         Format = Format.B8G8R8A8_UNorm,
                         SampleDescription = new SampleDescription(1, 0),
                         Usage = ResourceUsage.Default,
-                        BindFlags = BindFlags.ShaderResource,
+                        BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
                     };
                     _overlayTex = _d3dDevice!.CreateTexture2D(overlayDesc);
 
-                    // Staging texture: CPU-writable, source for CopyResource
-                    var stagingDesc = new Texture2DDescription
-                    {
-                        Width = W * RenderScale, Height = TexH * RenderScale, MipLevels = 1, ArraySize = 1,
-                        Format = Format.B8G8R8A8_UNorm,
-                        SampleDescription = new SampleDescription(1, 0),
-                        Usage = ResourceUsage.Staging,
-                        CPUAccessFlags = CpuAccessFlags.Write,
-                    };
-                    _stagingTex = _d3dDevice.CreateTexture2D(stagingDesc);
-                    _log("[VROverlay] D3D11 staging+overlay textures ready");
+                    _d2d = new D2DRenderer(_d3dDevice) { Log = _log };
+                    _overlayTarget = _d2d.CreateTargetBitmap(_overlayTex);
+                    OpenVR.Overlay.SetOverlayFlag(_overlayHandle, VROverlayFlags.IsPremultiplied, true);
+                    _log("[VROverlay] D3D11 + Direct2D render target ready");
                 }
                 catch (Exception ex)
                 {
-                    _log($"[VROverlay] D3D11 init failed (SetOverlayRaw fallback): {ex.Message}");
-                    _d3dDevice = null; _d3dContext = null; _stagingTex = null; _overlayTex = null;
+                    LastError = $"D3D11/D2D init failed: {ex.Message}";
+                    _log($"[VROverlay] {LastError}");
+                    _overlayTarget?.Dispose(); _overlayTarget = null;
+                    _d2d?.Dispose();        _d2d        = null;
+                    _overlayTex?.Dispose(); _overlayTex = null;
+                    _d3dContext?.Dispose(); _d3dContext = null;
+                    _d3dDevice?.Dispose();  _d3dDevice  = null;
+                    return false;
                 }
 
                 // Toast overlay (HMD-attached, separate from wrist overlay).
@@ -833,10 +852,7 @@ namespace VRCNext.Services
                     OpenVR.Overlay.SetOverlayWidthInMeters(_toastHandle, 0.10f + _toastSize * 0.002f);
                     OpenVR.Overlay.SetOverlayAlpha(_toastHandle, 0f); // start invisible
                     OpenVR.Overlay.SetOverlayInputMethod(_toastHandle, VROverlayInputMethod.None);
-                    _toastBitmap = new Bitmap(TW, TH_FULL, PixelFormat.Format32bppArgb);
-
-                    // D3D11 textures for toast (reuse same device)
-                    if (_d3dDevice != null)
+                    if (_d3dDevice != null && _d2d != null)
                     {
                         try
                         {
@@ -846,21 +862,16 @@ namespace VRCNext.Services
                                 Format = Format.B8G8R8A8_UNorm,
                                 SampleDescription = new SampleDescription(1, 0),
                                 Usage = ResourceUsage.Default,
-                                BindFlags = BindFlags.ShaderResource,
+                                BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
                             });
-                            _toastStagingTex = _d3dDevice.CreateTexture2D(new Texture2DDescription
-                            {
-                                Width = TW, Height = TH_FULL, MipLevels = 1, ArraySize = 1,
-                                Format = Format.B8G8R8A8_UNorm,
-                                SampleDescription = new SampleDescription(1, 0),
-                                Usage = ResourceUsage.Staging,
-                                CPUAccessFlags = CpuAccessFlags.Write,
-                            });
+                            _toastTarget = _d2d.CreateTargetBitmap(_toastOverlayTex);
+                            OpenVR.Overlay.SetOverlayFlag(_toastHandle, VROverlayFlags.IsPremultiplied, true);
                         }
                         catch (Exception ex)
                         {
                             _log($"[VROverlay] Toast D3D11 init failed: {ex.Message}");
-                            _toastStagingTex = null; _toastOverlayTex = null;
+                            _toastTarget = null;
+                            _toastOverlayTex?.Dispose(); _toastOverlayTex = null;
                         }
                     }
                     _log($"[VROverlay] Toast overlay created: {tErr}");
@@ -912,8 +923,7 @@ namespace VRCNext.Services
             }
             DestroyPointerOverlays();
 
-            _toastBitmap?.Dispose(); _toastBitmap = null;
-            _toastStagingTex?.Dispose(); _toastStagingTex = null;
+            _toastTarget?.Dispose(); _toastTarget = null;
             _toastOverlayTex?.Dispose(); _toastOverlayTex = null;
             _activeToasts.Clear();
             lock (_toastQueue) _toastQueue.Clear();
@@ -925,8 +935,8 @@ namespace VRCNext.Services
                 _ownedInit = false;
             }
 
-            _bitmap?.Dispose();     _bitmap     = null;
-            _stagingTex?.Dispose(); _stagingTex  = null;
+            _overlayTarget?.Dispose(); _overlayTarget = null;
+            _d2d?.Dispose();        _d2d         = null;
             _overlayTex?.Dispose(); _overlayTex  = null;
             _d3dContext?.Dispose(); _d3dContext   = null;
             _d3dDevice?.Dispose();  _d3dDevice    = null;
@@ -1002,16 +1012,13 @@ namespace VRCNext.Services
                 }
                 catch (Exception ex) { _log($"[VROverlay] Font download failed: {ex.Message}"); return; }
             }
-            try
+            var fam = D2DRenderer.LoadFontFamily(fontPath, _log);
+            if (fam != null)
             {
-                var pfc = new System.Drawing.Text.PrivateFontCollection();
-                pfc.AddFontFile(fontPath);
-                _matSymFonts  = pfc;
-                _matSymFamily = pfc.Families[0];
-                _log($"[VROverlay] Loaded font: {_matSymFamily.Name}");
+                _matSymFamily = fam;
+                _log($"[VROverlay] Loaded font: {fam.Name}");
                 _dirty = true;
             }
-            catch (Exception ex) { _log($"[VROverlay] Font load failed: {ex.Message}"); }
         }
 
         public void StopPolling()
@@ -1204,8 +1211,7 @@ namespace VRCNext.Services
                     _        => null,
                 };
                 if (string.IsNullOrEmpty(localPath)) return null;
-                using var tmp = new Bitmap(localPath);
-                return new Bitmap(tmp);
+                return Bitmap.FromFile(localPath);
             }
             catch (Exception ex)
             {
@@ -1302,8 +1308,8 @@ namespace VRCNext.Services
                 string? localPath = force ? null : ImageCacheHelper.GetUserCached(userId);
                 localPath ??= await ImageCacheHelper.CacheUserAsync(userId, url, forceRefresh: force);
                 if (string.IsNullOrEmpty(localPath)) return;
-                using var tmp = new Bitmap(localPath);
-                var bmp = new Bitmap(tmp);
+                var bmp = Bitmap.FromFile(localPath);
+                if (bmp == null) return;
                 lock (_locationImgCache)
                 {
                     if (_locationImgCache.TryGetValue(url, out var old) && old != null && !ReferenceEquals(old, bmp)) old.Dispose();
@@ -1411,7 +1417,9 @@ namespace VRCNext.Services
                     {
                         using var ras    = await props.Thumbnail.OpenReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
                         using var stream = ras.AsStreamForRead();
-                        var newArt = new Bitmap(stream);
+                        using var ms     = new MemoryStream();
+                        await stream.CopyToAsync(ms);
+                        var newArt = Bitmap.FromBytes(ms.ToArray());
                         _albumArt?.Dispose();
                         _albumArt = newArt;
                         _dirty    = true;
@@ -3171,25 +3179,30 @@ namespace VRCNext.Services
 
         private void RenderToast()
         {
-            if (_toastBitmap == null || _activeToasts.Count == 0 || OpenVR.Overlay == null || _toastHandle == 0) return;
+            if (_d2d == null || _toastTarget == null || _activeToasts.Count == 0 || OpenVR.Overlay == null || _toastHandle == 0) return;
             try
             {
-                using var g = Graphics.FromImage(_toastBitmap);
-                g.SmoothingMode     = SmoothingMode.AntiAlias;
-                g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-                g.Clear(Color.Transparent);
-
-                // Draw toasts bottom-up: index 0 at the bottom of the bitmap
-                for (int i = 0; i < _activeToasts.Count; i++)
+                lock (_renderLock)
                 {
-                    var at = _activeToasts[i];
-                    double elapsed = (DateTime.UtcNow - at.StartTime).TotalMilliseconds;
-                    float alpha = ComputeToastAlpha(elapsed);
-                    int y = TH_FULL - (i + 1) * TH - i * TH_GAP;
-                    DrawToastContent(g, at.Item, y, alpha, elapsed);
+                using (var g = _d2d.CreateGraphics(_toastTarget))
+                {
+                    g.SmoothingMode     = SmoothingMode.AntiAlias;
+                    g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+                    g.Clear(Color.Transparent);
+
+                    // Draw toasts bottom-up: index 0 at the bottom of the texture
+                    for (int i = 0; i < _activeToasts.Count; i++)
+                    {
+                        var at = _activeToasts[i];
+                        double elapsed = (DateTime.UtcNow - at.StartTime).TotalMilliseconds;
+                        float alpha = ComputeToastAlpha(elapsed);
+                        int y = TH_FULL - (i + 1) * TH - i * TH_GAP;
+                        DrawToastContent(g, at.Item, y, alpha, elapsed);
+                    }
                 }
 
-                UploadToastTexture();
+                PresentToastTexture();
+                }
             }
             catch (Exception ex) { _log($"[VROverlay] ToastRender: {ex.Message}"); }
         }
@@ -3219,31 +3232,11 @@ namespace VRCNext.Services
 
             var oldClip = g.Clip;
             using var avPath = RoundedRectPath(avX, avY, avSize, avSize, avR);
-            g.SetClip(avPath, System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(avPath, CombineMode.Intersect);
             if (avatar != null)
             {
                 var avDest = new Rectangle(avX, avY, avSize, avSize);
-                var avSrc  = avatar;
-                var scaled = GetCoverVariant(g, avatar, avDest, new Rectangle(0, 0, avatar.Width, avatar.Height),
-                    System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic, false);
-                if (scaled != null) avSrc = scaled;
-
-                if (fade >= 0.99f)
-                {
-                    if (!ReferenceEquals(avSrc, avatar)) DrawCoverVariant(g, avSrc, avDest);
-                    else g.DrawImage(avatar, avDest);
-                }
-                else
-                {
-                    using var ia = new System.Drawing.Imaging.ImageAttributes();
-                    float[][] cm = {
-                        new float[] { 1,0,0,0,0 }, new float[] { 0,1,0,0,0 },
-                        new float[] { 0,0,1,0,0 }, new float[] { 0,0,0,fade,0 },
-                        new float[] { 0,0,0,0,1 }
-                    };
-                    ia.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix(cm));
-                    g.DrawImage(avSrc, avDest, 0, 0, avSrc.Width, avSrc.Height, GraphicsUnit.Pixel, ia);
-                }
+                g.DrawImage(avatar, avDest, new Rectangle(0, 0, avatar.Width, avatar.Height), fade);
             }
             else
             {
@@ -3312,98 +3305,63 @@ namespace VRCNext.Services
             }
         }
 
-        private void UploadToastTexture()
+        private void PresentToastTexture()
         {
-            if (_toastBitmap == null || OpenVR.Overlay == null || _toastHandle == 0) return;
-
-            var bmpRect = new Rectangle(0, 0, TW, TH_FULL);
-            bool useD3D = _d3dContext != null && _toastStagingTex != null && _toastOverlayTex != null;
-            var bmpData = _toastBitmap.LockBits(bmpRect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            try
+            if (_toastOverlayTex == null || OpenVR.Overlay == null || _toastHandle == 0) return;
+            var tex = new Valve.VR.Texture_t
             {
-                Marshal.Copy(bmpData.Scan0, _toastUploadBuf, 0, TW * TH_FULL * 4);
-            }
-            finally { _toastBitmap.UnlockBits(bmpData); }
-
-            if (!useD3D)
-            {
-                int bytes = TW * TH_FULL * 4;
-                for (int i = 0; i < bytes; i += 4)
-                    (_toastUploadBuf[i], _toastUploadBuf[i + 2]) = (_toastUploadBuf[i + 2], _toastUploadBuf[i]);
-            }
-
-            if (useD3D)
-            {
-                var mapped = _d3dContext!.Map(_toastStagingTex!, 0, MapMode.Write,
-                    Vortice.Direct3D11.MapFlags.None);
-                try
-                {
-                    int rowBytes = TW * 4;
-                    for (int y = 0; y < TH_FULL; y++)
-                        Marshal.Copy(_toastUploadBuf, y * rowBytes,
-                            IntPtr.Add(mapped.DataPointer, (int)(y * mapped.RowPitch)), rowBytes);
-                }
-                finally { _d3dContext.Unmap(_toastStagingTex!, 0); }
-
-                _d3dContext.CopyResource(_toastOverlayTex!, _toastStagingTex!);
-
-                var tex = new Valve.VR.Texture_t
-                {
-                    handle      = _toastOverlayTex!.NativePointer,
-                    eType       = ETextureType.DirectX,
-                    eColorSpace = EColorSpace.Auto,
-                };
-                OpenVR.Overlay.SetOverlayTexture(_toastHandle, ref tex);
-                _d3dContext.Flush();
-            }
-            else
-            {
-                var pinned = GCHandle.Alloc(_toastUploadBuf, GCHandleType.Pinned);
-                try { OpenVR.Overlay.SetOverlayRaw(_toastHandle, pinned.AddrOfPinnedObject(), (uint)TW, (uint)TH_FULL, 4); }
-                finally { pinned.Free(); }
-            }
+                handle      = _toastOverlayTex.NativePointer,
+                eType       = ETextureType.DirectX,
+                eColorSpace = EColorSpace.Auto,
+            };
+            OpenVR.Overlay.SetOverlayTexture(_toastHandle, ref tex);
+            _d3dContext?.Flush();
         }
 
         // Rendering
 
         private void Render()
         {
-            if (_bitmap == null || OpenVR.Overlay == null || _overlayHandle == 0) return;
+            if (_d2d == null || _overlayTarget == null || OpenVR.Overlay == null || _overlayHandle == 0) return;
             try
             {
                 bool scrolling = _scrollDragging
                     || MathF.Abs(_locationScrollVY) > 0.5f
                     || MathF.Abs(_friendsScrollVY)  > 0.5f;
 
-                using var g = Graphics.FromImage(_bitmap);
-                g.SmoothingMode     = scrolling ? SmoothingMode.None : SmoothingMode.AntiAlias;
-                g.TextRenderingHint = TextRenderingHint.AntiAlias; // ClearType doesn't work with ScaleTransform
-                g.InterpolationMode = scrolling ? System.Drawing.Drawing2D.InterpolationMode.Bilinear
-                                                : System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.Clear(Color.Transparent);
-                g.ScaleTransform(RenderScale, RenderScale);
+                lock (_renderLock)
+                {
+                using (var g = _d2d.CreateGraphics(_overlayTarget))
+                {
+                    g.SmoothingMode     = scrolling ? SmoothingMode.None : SmoothingMode.AntiAlias;
+                    g.TextRenderingHint = TextRenderingHint.AntiAlias;
+                    g.InterpolationMode = scrolling ? InterpolationMode.Bilinear
+                                                    : InterpolationMode.HighQualityBicubic;
+                    g.Clear(Color.Transparent);
+                    g.ScaleTransform(RenderScale, RenderScale);
 
-                DrawBackground(g);
-                DrawHeader(g);
-                var hdrState = g.Save();
-                g.TranslateTransform(0, HeaderH);
-                DrawTabBar(g);
-                var tabClip = g.Clip;
-                g.SetClip(new System.Drawing.Rectangle(0, TabBarBottom, W, H - TabBarBottom),
-                          System.Drawing.Drawing2D.CombineMode.Intersect);
-                if      (_activeTab == 1) DrawNotifications(g);
-                else if (_activeTab == 2) DrawLocations(g);
-                else if (_activeTab == 3) DrawMusicPlayer(g);
-                else if (_activeTab == 4) DrawTools(g);
-                else if (_activeTab == 5) DrawFriends(g);
-                else if (_activeTab == TabKikitan) DrawKikitan(g);
-                else if (_activeTab == TabSize) DrawScaleTab(g);
-                g.SetClip(tabClip, System.Drawing.Drawing2D.CombineMode.Replace);
-                tabClip.Dispose();
-                if (_waterAlarmActive) DrawDashboardAlarm(g);
-                g.Restore(hdrState);
+                    DrawBackground(g);
+                    DrawHeader(g);
+                    var hdrState = g.Save();
+                    g.TranslateTransform(0, HeaderH);
+                    DrawTabBar(g);
+                    var tabClip = g.Clip;
+                    g.SetClip(new Rectangle(0, TabBarBottom, W, H - TabBarBottom), CombineMode.Intersect);
+                    if      (_activeTab == 1) DrawNotifications(g);
+                    else if (_activeTab == 2) DrawLocations(g);
+                    else if (_activeTab == 3) DrawMusicPlayer(g);
+                    else if (_activeTab == 4) DrawTools(g);
+                    else if (_activeTab == 5) DrawFriends(g);
+                    else if (_activeTab == TabKikitan) DrawKikitan(g);
+                    else if (_activeTab == TabSize) DrawScaleTab(g);
+                    g.SetClip(tabClip, CombineMode.Replace);
+                    tabClip.Dispose();
+                    if (_waterAlarmActive) DrawDashboardAlarm(g);
+                    g.Restore(hdrState);
+                }
 
-                UploadTexture();
+                PresentOverlayTexture();
+                }
             }
             catch (Exception ex)
             {
@@ -3424,15 +3382,9 @@ namespace VRCNext.Services
                 // Clip drawing to rounded card shape
                 using var cardClip = RoundedRectPath(0, HeaderH, W, H, r);
                 using var oldClip = g.Clip;
-                g.SetClip(cardClip, System.Drawing.Drawing2D.CombineMode.Intersect);
+                g.SetClip(cardClip, CombineMode.Intersect);
 
-                // Downscale → upscale = cheap blur
-                var tiny = GetCoverVariantAt(_albumArt!, new Rectangle(0, 0, _albumArt!.Width, _albumArt.Height),
-                    64, 48, System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear, false)!;
-                var prevMode = g.InterpolationMode;
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.DrawImage(tiny, new Rectangle(0, HeaderH, W, H));
-                g.InterpolationMode = prevMode;
+                g.DrawImageBlurred(_albumArt!, new Rectangle(0, HeaderH, W, H), 64, 48);
 
                 // Dark overlay — 50% darker so UI elements stay readable
                 using var darkOver = new SolidBrush(Color.FromArgb(110, 0, 0, 0));
@@ -3440,20 +3392,20 @@ namespace VRCNext.Services
 
                 // Top gradient: solid bg-card → transparent, ends just above cover art (artY=78)
                 // Keeps tab buttons legible while art bleeds through below
-                using var topGrad = new System.Drawing.Drawing2D.LinearGradientBrush(
+                using var topGrad = new LinearGradientBrush(
                     new Point(0, HeaderH), new Point(0, HeaderH + 78),
                     Color.FromArgb(220, th.BgCard),
                     Color.FromArgb(0,   th.BgCard));
                 g.FillRectangle(topGrad, 0, HeaderH, W, 78);
 
                 // Bottom gradient: transparent → dark, starts just below cover art (artBottom=206)
-                using var botGrad = new System.Drawing.Drawing2D.LinearGradientBrush(
+                using var botGrad = new LinearGradientBrush(
                     new Point(0, 206 + HeaderH), new Point(0, TexH),
                     Color.FromArgb(0,   th.BgCard),
                     Color.FromArgb(180, th.BgCard));
                 g.FillRectangle(botGrad, 0, 206 + HeaderH, W, TexH - (206 + HeaderH));
 
-                g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                g.SetClip(oldClip, CombineMode.Replace);
             }
             else
             {
@@ -3532,7 +3484,7 @@ namespace VRCNext.Services
             var avRect = new Rectangle(avX, avY, avSz, avSz);
             var oldClip = g.Clip;
             using var avPath = RoundedRectPath(avX, avY, avSz, avSz, avR);
-            g.SetClip(avPath, System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(avPath, CombineMode.Intersect);
             if (avImg != null)
                 DrawImageCover(g, avImg, avRect);
             else
@@ -3540,7 +3492,7 @@ namespace VRCNext.Services
                 using var avBg = new SolidBrush(th.BgHover);
                 g.FillPath(avBg, avPath);
             }
-            g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+            g.SetClip(oldClip, CombineMode.Replace);
             using var avBorder = new Pen(Color.FromArgb(50, th.Brd), 1f);
             DrawRoundedRect(g, avBorder, avX, avY, avSz, avSz, avR);
 
@@ -3624,7 +3576,7 @@ namespace VRCNext.Services
             // Clip to overlay's rounded shape (r=24, same as DrawBackground)
             var oldClip = g.Clip;
             using var alarmClip = RoundedRectPath(0, 0, W, H, 24);
-            g.SetClip(alarmClip, System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(alarmClip, CombineMode.Intersect);
 
             // Dark overlay — covers everything inside rounded rect
             using (var ovBr = new SolidBrush(Color.FromArgb(250, 6, 9, 20)))
@@ -3747,13 +3699,6 @@ namespace VRCNext.Services
                 g.FillEllipse(ringBr, cx - 2, cy - 2, size + 4, size + 4);
 
             var dest = new Rectangle(cx, cy, size, size);
-            if (img != null)
-            {
-                var srcRect = CoverSrcRect(img, dest);
-                var round = GetCoverVariant(g, img, dest, srcRect,
-                    System.Drawing.Drawing2D.InterpolationMode.Bilinear, true);
-                if (round != null) { DrawCoverVariant(g, round, dest); return; }
-            }
 
             var oldClip = g.Clip;
             using var path = new GraphicsPath();
@@ -3762,7 +3707,7 @@ namespace VRCNext.Services
             if (img != null)
             {
                 var prevMode = g.InterpolationMode;
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
+                g.InterpolationMode = InterpolationMode.Bilinear;
                 DrawImageCover(g, img, dest);
                 g.InterpolationMode = prevMode;
                 g.SetClip(oldClip, CombineMode.Replace);
@@ -3818,7 +3763,7 @@ namespace VRCNext.Services
             int colW = LocColW;
 
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, LocContentY, W, ScrollContentH), System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(new Rectangle(0, LocContentY, W, ScrollContentH), CombineMode.Intersect);
 
             for (int i = 0; i < groups.Count; i++)
             {
@@ -3829,7 +3774,7 @@ namespace VRCNext.Services
                 DrawWorldCard(g, groups[i], cx, cy, colW, LocCardH);
             }
 
-            g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+            g.SetClip(oldClip, CombineMode.Replace);
             oldClip.Dispose();
 
             if (maxScroll > 0)
@@ -3861,14 +3806,14 @@ namespace VRCNext.Services
             var oldClip = g.Clip;
             using (var imgPath = RoundedRectPath(imgRect.X, imgRect.Y, imgRect.Width, imgRect.Height, 6))
             {
-                g.SetClip(imgPath, System.Drawing.Drawing2D.CombineMode.Intersect);
+                g.SetClip(imgPath, CombineMode.Intersect);
                 if (worldImg != null) DrawImageCover(g, worldImg, imgRect);
                 else
                 {
                     using var fb = new SolidBrush(Color.FromArgb(80, th.Accent));
                     g.FillPath(fb, imgPath);
                 }
-                g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                g.SetClip(oldClip, CombineMode.Replace);
             }
 
             int tx = imgRect.Right + 8;
@@ -3930,14 +3875,14 @@ namespace VRCNext.Services
             var oldClip0 = g.Clip;
             using (var imgPath = RoundedRectPath(hx, hy, thumb, thumb, 6))
             {
-                g.SetClip(imgPath, System.Drawing.Drawing2D.CombineMode.Intersect);
+                g.SetClip(imgPath, CombineMode.Intersect);
                 if (worldImg != null) DrawImageCover(g, worldImg, imgRect);
                 else
                 {
                     using var fb = new SolidBrush(Color.FromArgb(80, th.Accent));
                     g.FillPath(fb, imgPath);
                 }
-                g.SetClip(oldClip0, System.Drawing.Drawing2D.CombineMode.Replace);
+                g.SetClip(oldClip0, CombineMode.Replace);
             }
 
             var ellip = new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
@@ -3969,7 +3914,7 @@ namespace VRCNext.Services
             int scrollY = (int)_locationScrollY;
 
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, listTop, W, listH), System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(new Rectangle(0, listTop, W, listH), CombineMode.Intersect);
 
             int cy2 = listTop - scrollY;
             foreach (var inst in wg.Instances)
@@ -4001,7 +3946,7 @@ namespace VRCNext.Services
                 }
             }
 
-            g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+            g.SetClip(oldClip, CombineMode.Replace);
             oldClip.Dispose();
 
             if (maxScroll > 0)
@@ -4062,17 +4007,17 @@ namespace VRCNext.Services
             var oldClip = g.Clip;
             using (var path = RoundedRectPath(avX, avY, avSize, avSize, avR))
             {
-                g.SetClip(path, System.Drawing.Drawing2D.CombineMode.Intersect);
+                g.SetClip(path, CombineMode.Intersect);
                 if (img != null)
                 {
                     DrawImageCover(g, img, new Rectangle(avX, avY, avSize, avSize));
-                    g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                    g.SetClip(oldClip, CombineMode.Replace);
                 }
                 else
                 {
                     using var bg = new SolidBrush(_theme.BgHover);
                     g.FillPath(bg, path);
-                    g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                    g.SetClip(oldClip, CombineMode.Replace);
                     string init = name.Length > 0 ? name[0].ToString().ToUpper() : "?";
                     using var f = new Font("Segoe UI", avSize * 0.42f, FontStyle.Bold, GraphicsUnit.Pixel);
                     using var b = new SolidBrush(_theme.Tx2);
@@ -4138,7 +4083,7 @@ namespace VRCNext.Services
             int scrollY = (int)_friendsScrollY;
 
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, FrdContentY, W, ScrollContentH), System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(new Rectangle(0, FrdContentY, W, ScrollContentH), CombineMode.Intersect);
 
             for (int i = 0; i < snap.Count; i++)
             {
@@ -4147,7 +4092,7 @@ namespace VRCNext.Services
                 DrawFriendCard(g, snap[i], FrdPadX, cy, cardW, FrdCardH);
             }
 
-            g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+            g.SetClip(oldClip, CombineMode.Replace);
             oldClip.Dispose();
 
             // Thin scrollbar strip on right edge
@@ -4231,21 +4176,21 @@ namespace VRCNext.Services
             var avRect = new Rectangle(avX, avY, avSz, avSz);
             var oldClip = g.Clip;
             using var avPath = RoundedRectPath(avX, avY, avSz, avSz, avR);
-            g.SetClip(avPath, System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(avPath, CombineMode.Intersect);
             if (avImg != null)
                 DrawImageCover(g, avImg, avRect);
             else
             {
                 using var avBg = new SolidBrush(th.BgHover);
                 g.FillPath(avBg, avPath);
-                g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                g.SetClip(oldClip, CombineMode.Replace);
                 string init = friend.FriendName.Length > 0 ? friend.FriendName[0].ToString().ToUpper() : "?";
                 using var initFont  = new Font("Segoe UI", 12f, FontStyle.Bold, GraphicsUnit.Point);
                 using var initBrush = new SolidBrush(th.Tx2);
                 var initFmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
                 g.DrawString(init, initFont, initBrush, new RectangleF(avX, avY, avSz, avSz), initFmt);
             }
-            g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+            g.SetClip(oldClip, CombineMode.Replace);
             using var avBorder = new Pen(Color.FromArgb(50, th.Brd), 1f);
             DrawRoundedRect(g, avBorder, avX, avY, avSz, avSz, avR);
 
@@ -4335,7 +4280,7 @@ namespace VRCNext.Services
             _toolsScrollY = Math.Clamp(_toolsScrollY, 0f, maxScroll);
             int scrollY = (int)_toolsScrollY;
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, ToolsStartY, W, ToolsViewportH), System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(new Rectangle(0, ToolsStartY, W, ToolsViewportH), CombineMode.Intersect);
 
             // Layout: 2 cols × 3 rows
             // Icons: Material Symbols Rounded codepoints — 1:1 same as sidebar
@@ -4362,7 +4307,7 @@ namespace VRCNext.Services
                 DrawToolCard(g, tools[i].Icon, tools[i].Label, tools[i].Active, x, y, cardW, cardH);
             }
 
-            g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+            g.SetClip(oldClip, CombineMode.Replace);
             oldClip.Dispose();
 
             // Scrollbar strip (only on overflow)
@@ -4649,7 +4594,7 @@ namespace VRCNext.Services
             int scrollY = (int)_notifScrollY;
 
             var oldClip = g.Clip;
-            g.SetClip(new System.Drawing.Rectangle(0, NotifContentY, W, NotifViewportH), System.Drawing.Drawing2D.CombineMode.Intersect);
+            g.SetClip(new Rectangle(0, NotifContentY, W, NotifViewportH), CombineMode.Intersect);
 
             for (int i = 0; i < snap.Count; i++)
             {
@@ -4658,7 +4603,7 @@ namespace VRCNext.Services
                 DrawNotificationItem(g, snap[i], 12, iy, W - 24, NotifItemH - 4);
             }
 
-            g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+            g.SetClip(oldClip, CombineMode.Replace);
             oldClip.Dispose();
 
             if (maxScroll > 0)
@@ -4715,17 +4660,17 @@ namespace VRCNext.Services
             var oldClip = g.Clip;
             using (var avPath = RoundedRectPath(avX, avY, avSize, avSize, avR))
             {
-                g.SetClip(avPath, System.Drawing.Drawing2D.CombineMode.Intersect);
+                g.SetClip(avPath, CombineMode.Intersect);
                 if (avatar != null)
                 {
                     DrawImageCover(g, avatar, new Rectangle(avX, avY, avSize, avSize));
-                    g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                    g.SetClip(oldClip, CombineMode.Replace);
                 }
                 else
                 {
                     using var avBg = new SolidBrush(_theme.BgHover);
                     g.FillPath(avBg, avPath);
-                    g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                    g.SetClip(oldClip, CombineMode.Replace);
                     if (!DrawNotifTypeIcon(g, evType, avX, avY, avSize, _theme.Accent))
                     {
                         string initials = name.Length > 0 ? name[0].ToString().ToUpper() : "?";
@@ -4890,13 +4835,9 @@ namespace VRCNext.Services
                 var artRect = new Rectangle(artX, artY, artSize, artSize);
                 using var artPath = RoundedRectPath(artX, artY, artSize, artSize, 14);
                 var oldClip = g.Clip;
-                g.SetClip(artPath, System.Drawing.Drawing2D.CombineMode.Intersect);
-                var artScaled = GetCoverVariant(g, _albumArt, artRect,
-                    new Rectangle(0, 0, _albumArt.Width, _albumArt.Height),
-                    System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic, false);
-                if (artScaled != null) DrawCoverVariant(g, artScaled, artRect);
-                else g.DrawImage(_albumArt, artRect);
-                g.SetClip(oldClip, System.Drawing.Drawing2D.CombineMode.Replace);
+                g.SetClip(artPath, CombineMode.Intersect);
+                g.DrawImage(_albumArt, artRect);
+                g.SetClip(oldClip, CombineMode.Replace);
             }
             else
             {
@@ -5060,78 +5001,21 @@ namespace VRCNext.Services
                 : $"{ts.Minutes}:{ts.Seconds:D2}";
         }
 
-        private void UploadTexture()
+        private void PresentOverlayTexture()
         {
-            if (_bitmap == null || OpenVR.Overlay == null || _overlayHandle == 0) return;
-
-            int RW = W * RenderScale, RH = TexH * RenderScale;
-            var bmpRect = new Rectangle(0, 0, RW, RH);
-            bool useD3D = _d3dContext != null && _stagingTex != null && _overlayTex != null;
-            var bmpData = _bitmap.LockBits(bmpRect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            try
+            if (_overlayTex == null || OpenVR.Overlay == null || _overlayHandle == 0) return;
+            var tex = new Valve.VR.Texture_t
             {
-                Marshal.Copy(bmpData.Scan0, _uploadBuf, 0, RW * RH * 4);
-            }
-            finally { _bitmap.UnlockBits(bmpData); }
-
-            int rowBytes = RW * 4;
-            if (useD3D)
-            {
-                var mapped = _d3dContext!.Map(_stagingTex!, 0, MapMode.Write,
-                    Vortice.Direct3D11.MapFlags.None);
-                try
-                {
-                    for (int y = 0; y < RH; y++)
-                        Marshal.Copy(_uploadBuf, y * rowBytes,
-                            IntPtr.Add(mapped.DataPointer, (int)(y * mapped.RowPitch)), rowBytes);
-                }
-                finally { _d3dContext.Unmap(_stagingTex!, 0); }
-            }
-            else
-            {
-                int bytes = RW * RH * 4;
-                for (int i = 0; i < bytes; i += 4)
-                    (_uploadBuf[i], _uploadBuf[i + 2]) = (_uploadBuf[i + 2], _uploadBuf[i]);
-            }
-
-            if (useD3D)
-            {
-                _d3dContext!.CopyResource(_overlayTex!, _stagingTex!);
-                var tex = new Valve.VR.Texture_t
-                {
-                    handle      = _overlayTex!.NativePointer,
-                    eType       = ETextureType.DirectX,
-                    eColorSpace = EColorSpace.Auto,
-                };
-                OpenVR.Overlay.SetOverlayTexture(_overlayHandle, ref tex);
-                _d3dContext.Flush();
-            }
-            else
-            {
-                var pinned = GCHandle.Alloc(_uploadBuf, GCHandleType.Pinned);
-                try { OpenVR.Overlay.SetOverlayRaw(_overlayHandle, pinned.AddrOfPinnedObject(), (uint)RW, (uint)RH, 4); }
-                finally { pinned.Free(); }
-            }
+                handle      = _overlayTex.NativePointer,
+                eType       = ETextureType.DirectX,
+                eColorSpace = EColorSpace.Auto,
+            };
+            OpenVR.Overlay.SetOverlayTexture(_overlayHandle, ref tex);
+            _d3dContext?.Flush();
         }
-
-        // GDI+ helpers
-        private static readonly Dictionary<(string, float, FontStyle, GraphicsUnit), Font> _fontCache = new();
 
         private static Font GetCachedFont(string family, float size, FontStyle style, GraphicsUnit unit = GraphicsUnit.Point)
-        {
-            var key = (family, size, style, unit);
-            lock (_fontCache)
-            {
-                if (!_fontCache.TryGetValue(key, out var f))
-                {
-                    f = new Font(family, size, style, unit);
-                    _fontCache[key] = f;
-                }
-                return f;
-            }
-        }
-
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Bitmap, Dictionary<long, Bitmap>> _coverVariants = new();
+            => new(family, size, style, unit);
 
         private static Rectangle CoverSrcRect(Bitmap img, Rectangle dest)
         {
@@ -5148,68 +5032,8 @@ namespace VRCNext.Services
             return new Rectangle(0, (img.Height - srcH) / 2, img.Width, srcH);
         }
 
-        private static Bitmap? GetCoverVariant(Graphics g, Bitmap img, Rectangle dest, Rectangle srcRect,
-                                               System.Drawing.Drawing2D.InterpolationMode mode, bool circular)
-        {
-            int dw, dh;
-            using (var m = g.Transform)
-            {
-                var el = m.Elements;
-                dw = (int)Math.Round(dest.Width  * Math.Abs(el[0]));
-                dh = (int)Math.Round(dest.Height * Math.Abs(el[3]));
-            }
-            if (!circular && (long)srcRect.Width * srcRect.Height < 2L * dw * dh) return null;
-            return GetCoverVariantAt(img, srcRect, dw, dh, mode, circular);
-        }
-
-        private static Bitmap? GetCoverVariantAt(Bitmap img, Rectangle srcRect, int dw, int dh,
-                                                 System.Drawing.Drawing2D.InterpolationMode mode, bool circular)
-        {
-            if (dw <= 0 || dh <= 0 || dw > 4096 || dh > 4096) return null;
-
-            var variants = _coverVariants.GetOrCreateValue(img);
-            long key = ((long)dw << 34) | ((long)dh << 4) | ((circular ? 1L : 0L) << 3) | ((long)mode & 7L);
-            lock (variants)
-            {
-                if (variants.TryGetValue(key, out var hit)) return hit;
-
-                var made = new Bitmap(dw, dh, PixelFormat.Format32bppArgb);
-                using (var bg = Graphics.FromImage(made))
-                {
-                    if (circular)
-                    {
-                        using var p = new GraphicsPath();
-                        p.AddEllipse(0, 0, dw, dh);
-                        bg.SetClip(p, CombineMode.Intersect);
-                    }
-                    bg.InterpolationMode = mode;
-                    bg.PixelOffsetMode   = PixelOffsetMode.HighQuality;
-                    bg.DrawImage(img, new Rectangle(0, 0, dw, dh), srcRect, GraphicsUnit.Pixel);
-                }
-                variants[key] = made;
-                return made;
-            }
-        }
-
-        private static void DrawCoverVariant(Graphics g, Bitmap variant, Rectangle dest)
-        {
-            var pi = g.InterpolationMode;
-            var pp = g.PixelOffsetMode;
-            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            g.PixelOffsetMode   = PixelOffsetMode.Half;
-            g.DrawImage(variant, dest);
-            g.InterpolationMode = pi;
-            g.PixelOffsetMode   = pp;
-        }
-
         private static void DrawImageCover(Graphics g, Bitmap img, Rectangle dest)
-        {
-            var srcRect = CoverSrcRect(img, dest);
-            var variant = GetCoverVariant(g, img, dest, srcRect,
-                System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic, false);
-            if (variant != null) { DrawCoverVariant(g, variant, dest); return; }
-            g.DrawImage(img, dest, srcRect, GraphicsUnit.Pixel);
-        }
+            => g.DrawImage(img, dest, CoverSrcRect(img, dest), GraphicsUnit.Pixel);
 
         private static void FillRoundedRect(Graphics g, Brush brush, int x, int y, int w, int h, int r)
         {

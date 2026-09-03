@@ -181,10 +181,15 @@ public class ChatboxController : IDisposable
                         {
                             // Try OSCQuery first; gets all live values instantly (VRChat v2023.3.1+)
                             bool gotLive = await _osc.TryOscQueryAsync(QueueOscParam);
-                            // Fallback: load config file as pending params so the full list is visible
                             if (!gotLive)
                             {
-                                var (avatarId, paramDefs) = _osc.LoadMostRecentAvatarConfig();
+                                var wornId = _core.VrcApi.CurrentAvatarId ?? "";
+                                var avatarId = wornId;
+                                var paramDefs = string.IsNullOrEmpty(wornId)
+                                    ? new List<OscParamDef>()
+                                    : _osc.LoadAvatarConfig(wornId);
+                                if (paramDefs.Count == 0)
+                                    (avatarId, paramDefs) = _osc.LoadMostRecentAvatarConfig();
                                 if (paramDefs.Count > 0)
                                 {
                                     var paramList = paramDefs.Select(p => new { p.Name, p.Type, p.HasInput, p.HasOutput }).ToList();

@@ -1,7 +1,3 @@
-/* === Meet Network ===
- * Radial map of the people you met most in VRChat (first meets + meet agains).
- * Click a person to expand the worlds you met them in. Pure Canvas, no libraries.
- */
 let _mnetGraph   = null;
 let _mnetPending = false;
 

@@ -1743,7 +1743,7 @@ public class InstanceController
             ["lastActivity"] = prof?["last_activity"]?.ToString() ?? "",
         };
         var avFileId = prof != null ? FriendsController.ExtractAvatarFileId(prof) : "";
-        var avTried  = avFileId == VRCNext.Services.AvtrdbResolver.HiddenAvatarFileId;
+        var avTried  = VRCNext.Services.AvtrdbResolver.IsPlaceholderFileId(avFileId);
         if (!string.IsNullOrEmpty(avFileId) && !avTried)
         {
             var av = AvtrdbCacheHelper.GetFileAvatar(avFileId);

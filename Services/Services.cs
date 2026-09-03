@@ -318,7 +318,6 @@ public class AppSettings
     public bool EnableProfileEffects { get; set; } = false;
     public bool EnableProfileBackgrounds { get; set; } = false;
     public bool EnableProfileThemes { get; set; } = false;
-    public bool ProfileThemeVrcnOverride { get; set; } = false;
     public bool ProfileThemeContrast { get; set; } = true;
     public bool TransparentProfileCards { get; set; } = false;
     public bool ShowDecorationsOnDashboard { get; set; } = false;
