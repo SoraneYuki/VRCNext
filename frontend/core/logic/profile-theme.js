@@ -6,10 +6,6 @@ function profileThemeEnabled() {
     return !!(typeof settings !== 'undefined' && settings.enableProfileThemes);
 }
 
-function profileThemeVrcnOverride() {
-    return !!(typeof settings !== 'undefined' && settings.profileThemeVrcnOverride);
-}
-
 function ptHex(value, fallback = '') {
     const c = String(value || '').trim().replace(/^#/, '').toLowerCase();
     return /^[0-9a-f]{6}$/.test(c) ? '#' + c : fallback;
@@ -152,8 +148,6 @@ function applyProfileTheme(el, user) {
 
     for (const k of PT_VARS) el.style.removeProperty(k);
     el.classList.remove('has-profile-theme', 'pt-has-button', 'pt-has-text');
-
-    if (profileThemeVrcnOverride()) return false;
 
     const c = profileThemeColors(user);
     if (!c) return false;

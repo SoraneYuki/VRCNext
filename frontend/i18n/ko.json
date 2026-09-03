@@ -3575,8 +3575,6 @@
   "settings.decorations.profile_background_desc": "활성화되면, VRCN은 나와 내 친구가 설정한 VRChat 배경을 표시합니다.",
   "settings.decorations.profile_theme": "프로필 테마 사용",
   "settings.decorations.profile_theme_desc": "활성화되면, 유저의 VRC+ 프로필 테마 색상이 프로필 모달에 표시됩니다. 버튼 색상은 모달 자체에도 적용되며, 약 25% 어둡게 적용됩니다.",
-  "settings.decorations.theme_vrcn_override": "VRCN+ 색상 사용",
-  "settings.decorations.theme_vrcn_override_desc": "활성화하면, VRCN+ 프로필 색상이 유저의 VRC+ 프로필 테마를 덮어씌웁니다.",
   "settings.decorations.theme_contrast": "테마 텍스트를 읽기 쉽게 유지",
   "settings.decorations.theme_contrast_desc": "활성화되면, VRC+ 프로필의 텍스트와 아이콘이 읽기 쉽도록 테마의 배경에 맞춰 어두워지거나 밝아집니다. 이 기능을 끄면 원래 테마 색상을 표시합니다.",
   "profiles.theme.title": "프로필 테마",

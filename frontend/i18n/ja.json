@@ -3497,8 +3497,6 @@
   "settings.decorations.profile_background_desc": "有効にすると、自分やフレンドがプロフィールに設定したVRChatの背景をVRCNで表示します。",
   "settings.decorations.profile_theme": "プロフィールテーマを有効化",
   "settings.decorations.profile_theme_desc": "有効にすると、プレイヤーのVRC+テーマの色がプロフィールに適用されます。ボタンの色はモーダル自体も約25%暗く染めます。",
-  "settings.decorations.theme_vrcn_override": "VRCN+の色を優先",
-  "settings.decorations.theme_vrcn_override_desc": "有効にすると、VRCN+のプロフィール色がVRC+テーマより優先されます。",
   "settings.decorations.theme_contrast": "テーマの文字を読みやすく保つ",
   "settings.decorations.theme_contrast_desc": "有効にすると、VRC+プロフィールテーマの文字とアイコンが、テーマの背景上で読みやすくなる分だけ暗く、または明るく調整されます。オフにすると、テーマ本来の色が表示されます。",
   "profiles.theme.title": "プロフィールテーマ",

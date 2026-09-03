@@ -1893,7 +1893,6 @@ public class AuthController
         Flag("enableProfileEffects",           v => _core.Settings.EnableProfileEffects = v);
         Flag("enableProfileBackgrounds",       v => _core.Settings.EnableProfileBackgrounds = v);
         Flag("enableProfileThemes",            v => _core.Settings.EnableProfileThemes = v);
-        Flag("profileThemeVrcnOverride",       v => _core.Settings.ProfileThemeVrcnOverride = v);
         Flag("profileThemeContrast",           v => _core.Settings.ProfileThemeContrast = v);
         Flag("transparentProfileCards",        v => _core.Settings.TransparentProfileCards = v);
         Flag("showDecorationsOnDashboard",     v => _core.Settings.ShowDecorationsOnDashboard = v);
@@ -1944,7 +1943,6 @@ public class AuthController
             _core.Settings.EnableProfileEffects = data["enableProfileEffects"]?.Value<bool>() ?? false;
             _core.Settings.EnableProfileBackgrounds = data["enableProfileBackgrounds"]?.Value<bool>() ?? false;
             _core.Settings.EnableProfileThemes = data["enableProfileThemes"]?.Value<bool>() ?? false;
-            _core.Settings.ProfileThemeVrcnOverride = data["profileThemeVrcnOverride"]?.Value<bool>() ?? false;
             _core.Settings.ProfileThemeContrast = data["profileThemeContrast"]?.Value<bool>() ?? true;
             _core.Settings.TransparentProfileCards = data["transparentProfileCards"]?.Value<bool>() ?? false;
             _core.Settings.ShowDecorationsOnDashboard = data["showDecorationsOnDashboard"]?.Value<bool>() ?? false;

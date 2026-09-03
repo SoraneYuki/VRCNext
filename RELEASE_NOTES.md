@@ -2,6 +2,7 @@
 
 **Removed**
 - Removed the old VRCN+ profile color customization. Custom VRCN+ colors are no longer shown on any profile, only VRChat's native profile customization is used. The VRCN+ supporter badge stays.
+- Removed the **Prefer VRCN+ Colours** setting from Settings > VRC+, since VRCN+ profile colors no longer exist. VRC+ profile themes now always apply when Profile Themes are enabled.
 
 **Reverted**
 - Reverted some changes that added additional outlines to certain elements.

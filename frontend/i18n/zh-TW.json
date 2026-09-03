@@ -3548,8 +3548,6 @@
   "settings.decorations.profile_background_desc": "啟用後，VRCN 會顯示你和好友在個人檔案中設定的 VRChat 背景。",
   "settings.decorations.profile_theme": "啟用個人檔案主題",
   "settings.decorations.profile_theme_desc": "啟用後，玩家的 VRC+ 主題顏色會應用到其個人檔案視窗。按鈕顏色也會為視窗著色，約暗 25%。",
-  "settings.decorations.theme_vrcn_override": "優先使用 VRCN+ 顏色",
-  "settings.decorations.theme_vrcn_override_desc": "啟用後，VRCN+ 顏色優先於玩家的 VRC+ 主題。",
   "settings.decorations.theme_contrast": "保持主題文字可讀",
   "settings.decorations.theme_contrast_desc": "啟用後，VRC+ 個人主頁主題的文字和頭像會被適度調暗或調亮，以便在主題背景上保持可讀。關閉後將顯示主題的原始顏色。",
   "profiles.theme.title": "個人檔案主題",

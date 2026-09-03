@@ -138,7 +138,6 @@ function saveSettings() {
             enableProfileEffects: document.getElementById('setEnableProfileEffect')?.checked ?? false,
             enableProfileBackgrounds: document.getElementById('setEnableProfileBg')?.checked ?? false,
             enableProfileThemes: document.getElementById('setEnableProfileThemes')?.checked ?? false,
-            profileThemeVrcnOverride: document.getElementById('setThemeVrcnOverride')?.checked ?? false,
             profileThemeContrast: document.getElementById('setProfileThemeContrast')?.checked ?? true,
             transparentProfileCards: document.getElementById('setTransparentProfileCards')?.checked ?? false,
             showDecorationsOnDashboard: document.getElementById('setDecoOnDashboard')?.checked ?? false,
@@ -540,9 +539,6 @@ function loadSettingsToUI(s) {
     settings.enableProfileThemes = s.EnableProfileThemes ?? s.enableProfileThemes ?? false;
     const _eptEl = document.getElementById('setEnableProfileThemes');
     if (_eptEl) _eptEl.checked = settings.enableProfileThemes;
-    settings.profileThemeVrcnOverride = s.ProfileThemeVrcnOverride ?? s.profileThemeVrcnOverride ?? false;
-    const _ptoEl = document.getElementById('setThemeVrcnOverride');
-    if (_ptoEl) _ptoEl.checked = settings.profileThemeVrcnOverride;
     settings.profileThemeContrast = s.ProfileThemeContrast ?? s.profileThemeContrast ?? true;
     const _ptcEl = document.getElementById('setProfileThemeContrast');
     if (_ptcEl) _ptcEl.checked = settings.profileThemeContrast;
