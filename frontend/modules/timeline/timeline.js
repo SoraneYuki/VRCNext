@@ -396,12 +396,37 @@ function _tlEditToggleId(id, el) {
     _tlUpdateEditUI();
 }
 
+function _tlEditVisibleIds() {
+    const c = document.getElementById('tlContainer');
+    if (!c) return [];
+    return [...c.querySelectorAll('[data-tlid],[data-ftid]')].map(el => el.dataset.tlid || el.dataset.ftid).filter(Boolean);
+}
+
+function tlEditSelectAll() {
+    if (!tlEditMode) return;
+    const ids = _tlEditVisibleIds();
+    const allSelected = ids.length > 0 && ids.every(id => tlEditSelected.has(id));
+    if (allSelected) ids.forEach(id => tlEditSelected.delete(id));
+    else ids.forEach(id => tlEditSelected.add(id));
+    _tlApplyEditDecor();
+    _tlUpdateEditUI();
+}
+
 function _tlUpdateEditUI() {
+    const bar = document.getElementById('tlEditBar');
+    if (bar) bar.style.display = tlEditMode ? 'flex' : 'none';
+    if (!tlEditMode) return;
+    const n = tlEditSelected.size;
+    const cnt = document.getElementById('tlEditCount');
+    if (cnt) cnt.textContent = tf('timeline.edit.selected', { count: n }, '{count} selected');
     const del = document.getElementById('tlEditDeleteBtn');
-    const cnt = document.getElementById('tlEditDeleteCount');
-    const n   = tlEditSelected.size;
-    if (del) del.style.display = (tlEditMode && n > 0) ? '' : 'none';
-    if (cnt) cnt.textContent = n > 0 ? String(n) : '';
+    if (del) del.disabled = n === 0;
+    const selAll = document.getElementById('tlEditSelectAllBtn');
+    if (selAll) {
+        const ids = _tlEditVisibleIds();
+        const allSelected = ids.length > 0 && ids.every(id => tlEditSelected.has(id));
+        selAll.textContent = allSelected ? t('timeline.edit.deselect_all', 'Deselect All') : t('timeline.edit.select_all', 'Select All');
+    }
 }
 
 function _tlEditCheckHtml(selected) {

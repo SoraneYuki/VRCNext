@@ -410,7 +410,7 @@ function tlTableSortLocal(list, entries, accessors) {
 
 (function () {
     function attach(wrap) {
-        if (wrap.dataset.hbar) return;
+        if (wrap.dataset.hbar || !wrap.parentNode) return;
         wrap.dataset.hbar = '1';
         const bar = document.createElement('div');
         bar.className = 'tl-list-hbar';

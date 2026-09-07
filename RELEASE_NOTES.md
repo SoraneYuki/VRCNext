@@ -32,6 +32,7 @@ Looking for a specific option but forgot which tool it belongs to? Smart Search 
 **Timeline**
 * List view: user names in the **User** column open the profile, and avatar names in the **Detail** column open the avatar.
 * Group notifications like announcements, events, invites and other group entries now show the group as a link in the **User** column. The detail popup also has a **View Group** button. New notification events store the sender user or group ID directly, while older entries still resolve the group from the cached icon.
+* Edit mode uses the same bottom bar as People, Groups and Avatars, with the selection count, **Select All** and **Delete**.
 
 **User & World Modals**
 * Timeline, Last Activity and Instance History now use the Timeline page list design, with **Show more** opening the Timeline already filtered for that user or world.
