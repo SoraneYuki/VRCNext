@@ -396,12 +396,37 @@ function _tlEditToggleId(id, el) {
     _tlUpdateEditUI();
 }
 
+function _tlEditVisibleIds() {
+    const c = document.getElementById('tlContainer');
+    if (!c) return [];
+    return [...c.querySelectorAll('[data-tlid],[data-ftid]')].map(el => el.dataset.tlid || el.dataset.ftid).filter(Boolean);
+}
+
+function tlEditSelectAll() {
+    if (!tlEditMode) return;
+    const ids = _tlEditVisibleIds();
+    const allSelected = ids.length > 0 && ids.every(id => tlEditSelected.has(id));
+    if (allSelected) ids.forEach(id => tlEditSelected.delete(id));
+    else ids.forEach(id => tlEditSelected.add(id));
+    _tlApplyEditDecor();
+    _tlUpdateEditUI();
+}
+
 function _tlUpdateEditUI() {
+    const bar = document.getElementById('tlEditBar');
+    if (bar) bar.style.display = tlEditMode ? 'flex' : 'none';
+    if (!tlEditMode) return;
+    const n = tlEditSelected.size;
+    const cnt = document.getElementById('tlEditCount');
+    if (cnt) cnt.textContent = tf('timeline.edit.selected', { count: n }, '{count} selected');
     const del = document.getElementById('tlEditDeleteBtn');
-    const cnt = document.getElementById('tlEditDeleteCount');
-    const n   = tlEditSelected.size;
-    if (del) del.style.display = (tlEditMode && n > 0) ? '' : 'none';
-    if (cnt) cnt.textContent = n > 0 ? String(n) : '';
+    if (del) del.disabled = n === 0;
+    const selAll = document.getElementById('tlEditSelectAllBtn');
+    if (selAll) {
+        const ids = _tlEditVisibleIds();
+        const allSelected = ids.length > 0 && ids.every(id => tlEditSelected.has(id));
+        selAll.textContent = allSelected ? t('timeline.edit.deselect_all', 'Deselect All') : t('timeline.edit.select_all', 'Select All');
+    }
 }
 
 function _tlEditCheckHtml(selected) {
@@ -1742,7 +1767,7 @@ function renderFtAvatarBody(ev) {
     let _row = null, _startX = 0, _scrollStart = 0, _dragging = false;
 
     document.addEventListener('mousedown', e => {
-        const row = e.target.closest('.tl-filter-row');
+        const row = e.target.closest('.tl-filter-row, .tt-scroll');
         if (!row) return;
         _row         = row;
         _startX      = e.clientX;
@@ -1767,10 +1792,32 @@ function renderFtAvatarBody(ev) {
     });
 
     document.addEventListener('wheel', e => {
-        const row = e.target.closest('.tl-filter-row');
+        const row = e.target.closest('.tl-filter-row, .tt-scroll');
         if (!row || e.deltaX !== 0) return;
         row.scrollLeft += e.deltaY;
         e.preventDefault();
     }, { passive: false });
+
+    document.addEventListener('scroll', e => {
+        if (!(e.target instanceof Element) || !e.target.classList.contains('tt-scroll')) return;
+        e.target.querySelectorAll('.vn-select.vn-open').forEach(w => w.classList.remove('vn-open'));
+    }, true);
+
+    const FADE_SEL = '.tl-filter-row, .tt-scroll';
+    function updateFade(row) {
+        const max = row.scrollWidth - row.clientWidth;
+        row.classList.toggle('tt-fade-l', max > 1 && row.scrollLeft > 1);
+        row.classList.toggle('tt-fade-r', max > 1 && row.scrollLeft < max - 1);
+    }
+    let _fadeRaf = 0;
+    function updateAllFades() {
+        if (_fadeRaf) return;
+        _fadeRaf = requestAnimationFrame(() => { _fadeRaf = 0; document.querySelectorAll(FADE_SEL).forEach(updateFade); });
+    }
+    document.addEventListener('scroll', e => { if (e.target instanceof Element && e.target.matches(FADE_SEL)) updateFade(e.target); }, true);
+    window.addEventListener('resize', updateAllFades);
+    new MutationObserver(updateAllFades).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateAllFades);
+    updateAllFades();
 })();
 
